@@ -1,223 +1,101 @@
-// src/components/CustomCamera.tsx
-import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Image,
-  StyleSheet,
-  Modal,
-  FlatList,
-  Animated,
-  Easing,
-} from "react-native";
-import {
-  CameraView,
-  CameraType,
-  FlashMode,
-  useCameraPermissions,
-} from "expo-camera";
-import * as MediaLibrary from "expo-media-library";
-import { PinchGestureHandler, State } from "react-native-gesture-handler";
+import React, { useState, useEffect, useRef } from "react";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import { Accelerometer } from "expo-sensors";
 
-export default function CustomCamera() {
-  const cameraRef = useRef<CameraView | null>(null);
+export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
-  const [hasMediaPermission, setHasMediaPermission] = useState<boolean | null>(
-    null
-  );
-  const [cameraType, setCameraType] = useState<CameraType>("back");
-  const [flash, setFlash] = useState<FlashMode>("off");
-  const [zoom, setZoom] = useState<number>(0);
-  const [photos, setPhotos] = useState<string[]>([]);
-  const [galleryVisible, setGalleryVisible] = useState(false);
-  const flipAnim = useRef(new Animated.Value(0)).current;
+  const [isLevel, setIsLevel] = useState(true);
+  const [tilt, setTilt] = useState(0);
+  const cameraRef = useRef(null);
 
   useEffect(() => {
-    (async () => {
-      if (!permission) await requestPermission();
-      const media = await MediaLibrary.requestPermissionsAsync();
-      setHasMediaPermission(media.status === "granted");
-    })();
+    const subscription = Accelerometer.addListener(({ x, y, z }) => {
+      // Cân bằng ngang (horizon): kiểm tra độ nghiêng trục x
+      const tiltValue = Math.atan2(x, Math.sqrt(y * y + z * z)) * (180 / Math.PI);
+      setTilt(tiltValue);
+      setIsLevel(Math.abs(tiltValue) < 3); // nghiêng dưới 3° coi như cân bằng
+    });
+    Accelerometer.setUpdateInterval(100);
+    return () => subscription && subscription.remove();
   }, []);
 
-  const handleFlashToggle = () => {
-    setFlash((prev) =>
-      prev === "off" ? "on" : prev === "on" ? "auto" : "off"
+  if (!permission) return <View />;
+  if (!permission.granted)
+    return (
+      <View style={styles.center}>
+        <Text style={styles.text}>Camera permission not granted</Text>
+        <TouchableOpacity onPress={requestPermission}>
+          <Text style={styles.button}>Grant permission</Text>
+        </TouchableOpacity>
+      </View>
     );
-  };
-
-  const handleFlip = () => {
-    Animated.sequence([
-      Animated.timing(flipAnim, {
-        toValue: 1,
-        duration: 200,
-        useNativeDriver: true,
-        easing: Easing.linear,
-      }),
-      Animated.timing(flipAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: true,
-        easing: Easing.linear,
-      }),
-    ]).start(() => {
-      setCameraType((prev) => (prev === "back" ? "front" : "back"));
-    });
-  };
-
-  const handlePinch = (event: any) => {
-    if (event.nativeEvent.state === State.ACTIVE) {
-      const newZoom = Math.min(Math.max(zoom * event.nativeEvent.scale, 0), 1);
-      setZoom(newZoom);
-    }
-  };
-
-  const takePicture = async () => {
-    if (!cameraRef.current) return;
-    try {
-      const photo = await cameraRef.current.takePictureAsync();
-      if (hasMediaPermission) {
-        await MediaLibrary.saveToLibraryAsync(photo.uri);
-      }
-      setPhotos((prev) => [photo.uri, ...prev]);
-    } catch (err) {
-      console.warn("Error capturing:", err);
-    }
-  };
-
-  if (!permission) return <Text>Requesting permissions...</Text>;
-  if (!permission.granted) return <Text>No access to camera</Text>;
 
   return (
     <View style={styles.container}>
-      <PinchGestureHandler onGestureEvent={handlePinch}>
-        <Animated.View
-          style={[
-            styles.cameraContainer,
-            {
-              transform: [
-                {
-                  rotateY: flipAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: ["0deg", "180deg"],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <CameraView
-            ref={cameraRef}
-            style={styles.camera}
-            facing={cameraType}
-            flash={flash}
-            zoom={zoom}
-          />
-        </Animated.View>
-      </PinchGestureHandler>
+      <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} />
 
-      <View style={styles.controls}>
-        {/* Flash */}
-        <TouchableOpacity style={styles.btn} onPress={handleFlashToggle}>
-          <Text style={styles.btnText}>Flash: {flash}</Text>
-        </TouchableOpacity>
-
-        {/* Flip */}
-        <TouchableOpacity style={styles.btn} onPress={handleFlip}>
-          <Text style={styles.btnText}>Flip</Text>
-        </TouchableOpacity>
-
-        {/* Snap */}
-        <TouchableOpacity style={styles.snapBtn} onPress={takePicture}>
-          <View style={styles.innerCircle} />
-        </TouchableOpacity>
-
-        {/* Gallery */}
-        {photos.length > 0 && (
-          <TouchableOpacity
-            onPress={() => setGalleryVisible(true)}
-            style={styles.previewWrapper}
-          >
-            <Image source={{ uri: photos[0] }} style={styles.preview} />
-          </TouchableOpacity>
-        )}
+      {/* Grid Overlay */}
+      <View style={styles.gridContainer}>
+        {[1, 2].map((i) => (
+          <View key={`v-${i}`} style={[styles.gridLine, { left: `${(i * 100) / 3}%`, width: 1 }]} />
+        ))}
+        {[1, 2].map((i) => (
+          <View key={`h-${i}`} style={[styles.gridLine, { top: `${(i * 100) / 3}%`, height: 1 }]} />
+        ))}
       </View>
 
-      {/* Gallery Modal */}
-      <Modal visible={galleryVisible} animationType="slide">
-        <View style={styles.galleryContainer}>
-          <TouchableOpacity
-            onPress={() => setGalleryVisible(false)}
-            style={styles.closeBtn}
-          >
-            <Text style={styles.btnText}>Close</Text>
-          </TouchableOpacity>
-          <FlatList
-            data={photos}
-            keyExtractor={(uri) => uri}
-            horizontal
-            renderItem={({ item }) => (
-              <Image source={{ uri: item }} style={styles.galleryImage} />
-            )}
-          />
-        </View>
-      </Modal>
+      {/* Horizon Indicator */}
+      <View style={styles.levelIndicatorContainer}>
+        <View
+          style={[
+            styles.levelLine,
+            {
+              transform: [{ rotate: `${-tilt}deg` }],
+              backgroundColor: isLevel ? "#00ff00" : "#ff4444",
+            },
+          ]}
+        />
+        <Text style={[styles.levelText, { color: isLevel ? "#0f0" : "#f44" }]}>
+          {isLevel ? "Level" : `${tilt.toFixed(1)}°`}
+        </Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
-  cameraContainer: { flex: 3, overflow: "hidden" },
-  camera: { flex: 1 },
-  controls: {
-    flex: 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#111",
+  container: { flex: 1 },
+  gridContainer: {
+    ...StyleSheet.absoluteFillObject,
   },
-  btn: {
-    backgroundColor: "#333",
-    padding: 10,
-    borderRadius: 8,
-    margin: 5,
+  gridLine: {
+    position: "absolute",
+    backgroundColor: "rgba(255,255,255,0.3)",
   },
-  btnText: { color: "#fff", fontWeight: "600" },
-  snapBtn: {
-    borderWidth: 3,
-    borderColor: "#fff",
-    borderRadius: 50,
-    width: 70,
-    height: 70,
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 10,
-  },
-  innerCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: "#fff",
-  },
-  previewWrapper: { marginTop: 10 },
-  preview: { width: 60, height: 60, borderRadius: 8 },
-  galleryContainer: {
-    flex: 1,
-    backgroundColor: "#000",
-    paddingTop: 50,
+  levelIndicatorContainer: {
+    position: "absolute",
+    bottom: 60,
+    alignSelf: "center",
     alignItems: "center",
   },
-  closeBtn: {
-    backgroundColor: "#333",
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 10,
+  levelLine: {
+    width: 100,
+    height: 3,
+    borderRadius: 3,
   },
-  galleryImage: {
-    width: 300,
-    height: 400,
-    margin: 10,
-    borderRadius: 12,
+  levelText: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  text: { color: "#fff" },
+  button: {
+    marginTop: 10,
+    backgroundColor: "#2196f3",
+    color: "#fff",
+    padding: 8,
+    borderRadius: 6,
   },
 });
