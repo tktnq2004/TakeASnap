@@ -21,7 +21,7 @@ import {
 
 export type SegmentGalleryProps = {
   onClose: () => void;
-  onSelectSegment: (data: { fg: string; bg: string }) => void; // ⚙️ gửi cả 2 ảnh
+  onSelectSegment: (data: { fg: string; bg: string }) => void;
 };
 
 export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGalleryProps) {
