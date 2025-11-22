@@ -4,19 +4,23 @@ import CameraScreen from "./src/screens/CameraScreen";
 import SegmentGallery from "./src/screens/SegmentGallery";
 import SegmentEditor from "./src/screens/SegmentEditor";
 
-// 🔹 Kiểu dữ liệu mới cho ảnh segment
 export type SegmentedImageData = {
-  fg: string; // ảnh foreground (người, vật thể)
-  bg: string | null; // ảnh background
+  fg: string;  // base64 png foreground từ server
+  bg: string | null; // base64 png background từ server
+  mask: string | null; // base64 png mask từ server
 };
 
 export default function App() {
-  const [screen, setScreen] = useState<"camera" | "gallery" | "editor">("camera");
+  const [screen, setScreen] = useState<
+    "camera" | "gallery" | "editor"
+  >("camera");
+
   const [selectedImage, setSelectedImage] = useState<SegmentedImageData | null>(null);
 
+  // Mở thư viện segment
   const openGallery = () => setScreen("gallery");
 
-  // ✅ Khi mở editor, nhận object {fg, bg}
+  // Mở editor với data từ camera hoặc gallery
   const openEditor = (data: SegmentedImageData) => {
     setSelectedImage(data);
     setScreen("editor");
@@ -26,11 +30,11 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      {/* 📸 Màn hình Camera */}
+      
+      {/* 📸 Camera */}
       {screen === "camera" && (
         <CameraScreen
           onOpenGallery={openGallery}
-          onOpenEditor={(uri) => openEditor({ fg: uri, bg: null })} // fallback nếu chụp từ camera
         />
       )}
 
@@ -38,15 +42,17 @@ export default function App() {
       {screen === "gallery" && (
         <SegmentGallery
           onClose={goBackToCamera}
-          onSelectSegment={(data) => openEditor(data)} // data = {fg, bg}
+          // Gallery trả về {fg, bg}
+          onSelectSegment={(data) => openEditor(data)}
         />
       )}
 
-      {/* ✂️ Màn hình chỉnh sửa ảnh segment */}
+      {/* ✂️ Segment Editor (Skia version) */}
       {screen === "editor" && selectedImage && (
         <SegmentEditor
-          segmentedUri={selectedImage.fg}
-          backgroundUri={selectedImage.bg}
+          fgUri={selectedImage.fg}
+          bgUri={selectedImage.bg || ""}
+          maskUri={selectedImage.mask || ""}
           onDone={goBackToCamera}
         />
       )}

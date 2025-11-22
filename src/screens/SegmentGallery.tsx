@@ -21,10 +21,17 @@ import {
 
 export type SegmentGalleryProps = {
   onClose: () => void;
-  onSelectSegment: (data: { fg: string; bg: string }) => void; // ⚙️ gửi cả 2 ảnh
+  onSelectSegment: (data: {
+    fg: string;
+    bg: string | null;
+    mask: string | null;
+  }) => void; // Editor nhận 3 ảnh
 };
 
-export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGalleryProps) {
+export default function SegmentGallery({
+  onClose,
+  onSelectSegment,
+}: SegmentGalleryProps) {
   const [segments, setSegments] = useState<SegmentData[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -36,7 +43,7 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
     })();
   }, []);
 
-  // 🔹 Chọn ảnh từ thư viện
+  // 🔹 Chọn ảnh từ thư viện, gửi lên server segment
   const pickImage = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -46,21 +53,31 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
       const uri = res.assets[0].uri;
       setLoading(true);
       try {
+        // Gọi server tách nền
         const result = await segmentUtils.segmentImage(uri);
-        if (result && result.fg && result.bg) {
+
+        if (result && result.fg && result.bg && result.mask) {
           const newSegment: SegmentData = {
             id: generateSegmentId(),
-            imageUri: result.fg, // ảnh người
-            backgroundUri: result.bg, // ảnh nền tách riêng
+            fgUri: result.fg,
+            bgUri: result.bg,
+            maskUri: result.mask,
             overlayColor: "#00FF00",
             overlayOpacity: 0.5,
             overlayBlur: 0,
             outlineSize: 2,
             createdAt: new Date().toISOString(),
           };
+
           await saveSegment(newSegment);
           setSegments((prev) => [newSegment, ...prev]);
-          onSelectSegment({ fg: result.fg, bg: result.bg }); // ⚙️ truyền cả 2
+
+          // ⚙️ Gửi đúng dữ liệu về Editor
+          onSelectSegment({
+            fg: result.fg,
+            bg: result.bg,
+            mask: result.mask,
+          });
         }
       } catch (err) {
         console.error("Segmentation failed:", err);
@@ -71,7 +88,6 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
     }
   };
 
-  // 🔹 Xóa ảnh (giữ lâu)
   const handleDelete = (id: string) => {
     Alert.alert("Xoá ảnh", "Bạn có chắc muốn xoá ảnh này?", [
       { text: "Hủy", style: "cancel" },
@@ -89,17 +105,32 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
   const renderItem = ({ item }: { item: SegmentData | "add" }) => {
     if (item === "add") {
       return (
-        <TouchableOpacity style={styles.addBtn} onPress={pickImage} disabled={loading}>
-          {loading ? <ActivityIndicator size="small" color="#555" /> : <Text style={{ fontSize: 30 }}>＋</Text>}
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={pickImage}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#555" />
+          ) : (
+            <Text style={{ fontSize: 30 }}>＋</Text>
+          )}
         </TouchableOpacity>
       );
     }
+
     return (
       <TouchableOpacity
-        onPress={() => onSelectSegment({ fg: item.imageUri, bg: item.backgroundUri ?? "" })}
+        onPress={() =>
+          onSelectSegment({
+            fg: item.fgUri,
+            bg: item.bgUri,
+            mask: item.maskUri,
+          })
+        }
         onLongPress={() => handleDelete(item.id)}
       >
-        <Image source={{ uri: item.imageUri }} style={styles.imageItem} />
+        <Image source={{ uri: item.fgUri }} style={styles.imageItem} />
       </TouchableOpacity>
     );
   };

@@ -5,100 +5,133 @@ const FileSys = FileSystem as unknown as {
   cacheDirectory?: string;
 };
 
-const DOC_DIR = FileSys.documentDirectory || FileSys.cacheDirectory || "";
-const SEGMENTS_DIR = `${DOC_DIR}segments/`;
+const ROOT = FileSys.documentDirectory || FileSys.cacheDirectory || "";
+const SEGMENTS_DIR = `${ROOT}segments/`;
 const SEGMENTS_JSON = `${SEGMENTS_DIR}segments.json`;
 
 export type SegmentData = {
   id: string;
-  imageUri: string;   
-  backgroundUri?: string; 
+
+  fgUri: string;
+  bgUri: string;    
+  maskUri: string;  
+
   overlayColor: string;
   overlayOpacity: number;
   overlayBlur: number;
   outlineSize: number;
+
   createdAt: string;
 };
 
+/* ------------------------------------------------------
+   🔧 Đảm bảo thư mục segments/ luôn tồn tại
+-------------------------------------------------------*/
 async function ensureDirExists() {
   try {
-    const dirInfo = await FileSystem.getInfoAsync(SEGMENTS_DIR);
-    if (!dirInfo.exists) {
+    const info = await FileSystem.getInfoAsync(SEGMENTS_DIR);
+    if (!info.exists) {
       await FileSystem.makeDirectoryAsync(SEGMENTS_DIR, { intermediates: true });
     }
   } catch (err) {
-    console.error("❌ ensureDirExists error:", err);
+    console.error("ensureDirExists error:", err);
   }
 }
 
+/* ------------------------------------------------------
+   📌 LOAD tất cả segment
+-------------------------------------------------------*/
 export async function loadSegments(): Promise<SegmentData[]> {
   try {
     await ensureDirExists();
+
     const fileInfo = await FileSystem.getInfoAsync(SEGMENTS_JSON);
     if (!fileInfo.exists) {
       await FileSystem.writeAsStringAsync(SEGMENTS_JSON, "[]");
       return [];
     }
-    const content = await FileSystem.readAsStringAsync(SEGMENTS_JSON);
-    return JSON.parse(content) as SegmentData[];
+
+    const text = await FileSystem.readAsStringAsync(SEGMENTS_JSON);
+    return JSON.parse(text) as SegmentData[];
   } catch (err) {
-    console.error("❌ loadSegments error:", err);
+    console.error("loadSegments error:", err);
     return [];
   }
 }
 
-export async function saveSegment(segment: SegmentData): Promise<void> {
+/* ------------------------------------------------------
+   💾 LƯU 1 segment (append vào JSON)
+-------------------------------------------------------*/
+export async function saveSegment(seg: SegmentData): Promise<void> {
   try {
     await ensureDirExists();
-    const segments = await loadSegments();
-    segments.push(segment);
+
+    const list = await loadSegments();
+    list.push(seg);
+
     await FileSystem.writeAsStringAsync(
       SEGMENTS_JSON,
-      JSON.stringify(segments, null, 2)
+      JSON.stringify(list, null, 2)
     );
   } catch (err) {
-    console.error("❌ saveSegment error:", err);
+    console.error("saveSegment error:", err);
   }
 }
 
+/* ------------------------------------------------------
+   🗑 XÓA 1 segment theo ID
+-------------------------------------------------------*/
 export async function deleteSegment(id: string): Promise<void> {
   try {
     await ensureDirExists();
-    const segments = await loadSegments();
-    const filtered = segments.filter((s) => s.id !== id);
-    const removed = segments.find((s) => s.id === id);
+
+    const list = await loadSegments();
+    const removed = list.find((x) => x.id === id);
 
     if (removed) {
-      const fileInfo = await FileSystem.getInfoAsync(removed.imageUri);
-      if (fileInfo.exists) {
-        await FileSystem.deleteAsync(removed.imageUri, { idempotent: true });
+      // xóa fg/bg/mask
+      const files = [removed.fgUri, removed.bgUri, removed.maskUri];
+
+      for (const file of files) {
+        const f = await FileSystem.getInfoAsync(file);
+        if (f.exists) {
+          await FileSystem.deleteAsync(file, { idempotent: true });
+        }
       }
     }
+
+    const filtered = list.filter((item) => item.id !== id);
 
     await FileSystem.writeAsStringAsync(
       SEGMENTS_JSON,
       JSON.stringify(filtered, null, 2)
     );
   } catch (err) {
-    console.error("❌ deleteSegment error:", err);
+    console.error("deleteSegment error:", err);
   }
 }
 
-/** 🧹 Xoá toàn bộ dữ liệu */
+/* ------------------------------------------------------
+   ♻ XÓA TOÀN BỘ
+-------------------------------------------------------*/
 export async function clearAllSegments(): Promise<void> {
   try {
-    const dirInfo = await FileSystem.getInfoAsync(SEGMENTS_DIR);
-    if (dirInfo.exists) {
+    const info = await FileSystem.getInfoAsync(SEGMENTS_DIR);
+
+    if (info.exists) {
       await FileSystem.deleteAsync(SEGMENTS_DIR, { idempotent: true });
     }
+
     await FileSystem.makeDirectoryAsync(SEGMENTS_DIR, { intermediates: true });
     await FileSystem.writeAsStringAsync(SEGMENTS_JSON, "[]");
   } catch (err) {
-    console.error("❌ clearAllSegments error:", err);
+    console.error("clearAllSegments error:", err);
   }
 }
 
-/** 🪄 Tạo id duy nhất */
+/* ------------------------------------------------------
+   🔑 Tạo ID duy nhất
+-------------------------------------------------------*/
 export function generateSegmentId() {
   return `seg_${Date.now()}`;
 }

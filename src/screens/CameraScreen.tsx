@@ -5,10 +5,9 @@ import { Accelerometer } from "expo-sensors";
 
 type CameraScreenProps = {
   onOpenGallery: () => void;
-  onOpenEditor: (uri: string) => void;
 };
 
-export default function CameraScreen({ onOpenGallery, onOpenEditor }: CameraScreenProps) {
+export default function CameraScreen({ onOpenGallery }: CameraScreenProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const [tilt, setTilt] = useState(0);
   const [cameraType, setCameraType] = useState<CameraType>("back");
@@ -44,7 +43,6 @@ export default function CameraScreen({ onOpenGallery, onOpenEditor }: CameraScre
     if (!cameraRef.current) return;
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-      if (photo.uri) onOpenEditor(photo.uri);
     } catch (err) {
       console.error("Take picture error:", err);
     }
