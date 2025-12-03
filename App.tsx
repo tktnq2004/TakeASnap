@@ -17,10 +17,8 @@ export default function App() {
 
   const [selectedImage, setSelectedImage] = useState<SegmentedImageData | null>(null);
 
-  // Mở thư viện segment
   const openGallery = () => setScreen("gallery");
 
-  // Mở editor với data từ camera hoặc gallery
   const openEditor = (data: SegmentedImageData) => {
     setSelectedImage(data);
     setScreen("editor");
@@ -30,7 +28,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      
+
       {/* 📸 Camera */}
       {screen === "camera" && (
         <CameraScreen

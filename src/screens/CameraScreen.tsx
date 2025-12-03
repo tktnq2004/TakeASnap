@@ -1,21 +1,42 @@
-import React, { useState, useEffect, useRef } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Alert, Animated } from "react-native";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
+import Ionicons from '@expo/vector-icons/Ionicons';
+import * as MediaLibrary from "expo-media-library";
 import { Accelerometer } from "expo-sensors";
 
 type CameraScreenProps = {
   onOpenGallery: () => void;
 };
-
 export default function CameraScreen({ onOpenGallery }: CameraScreenProps) {
   const [permission, requestPermission] = useCameraPermissions();
-  const [tilt, setTilt] = useState(0);
+  const [zoom, setZoom] = useState(0); // zoom bình thường 0
   const [cameraType, setCameraType] = useState<CameraType>("back");
-  const [enableTorch, setEnableTorch] = useState(false);
+  const [flashOn, setFlashOn] = useState(false);
+  const [tilt, setTilt] = useState(0);
   const cameraRef = useRef<CameraView | null>(null);
-  const [showGrid, setShowGrid] = useState(true);
+  const [showHorizon, setShowHorizon] = useState(true);
+  const [gridMode, setGridMode] = useState<0 | 3 | 4>(0);
+  const [focusPoint, setFocusPoint] = useState<{ x: number; y: number } | null>(null);
 
-  // Lắng nghe tilt
+  // Focus animation
+  const focusAnim = useRef(new Animated.Value(0)).current;
+
+  const handleFocus = (event: any) => {
+    const { locationX, locationY, target } = event.nativeEvent;
+    const { width, height } = target;
+    const x = locationX / width;
+    const y = locationY / height;
+
+    setFocusPoint({ x, y });
+    focusAnim.setValue(0);
+    Animated.timing(focusAnim, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start(() => setFocusPoint(null));
+  };
+
   useEffect(() => {
     const subscription = Accelerometer.addListener(({ x, y, z }) => {
       const tiltValue = Math.atan2(x, Math.sqrt(y * y + z * z)) * (180 / Math.PI);
@@ -25,96 +46,290 @@ export default function CameraScreen({ onOpenGallery }: CameraScreenProps) {
     return () => subscription.remove();
   }, []);
 
+  const takePhoto = useCallback(async () => {
+    if (!cameraRef.current) return;
+    try {
+      const photo = await cameraRef.current.takePictureAsync({ quality: 1, skipProcessing: true });
+      const asset = await MediaLibrary.createAssetAsync(photo.uri);
+      await MediaLibrary.createAlbumAsync("CameraApp", asset, false);
+      Alert.alert("Thành công", "Ảnh đã được lưu vào thư viện!");
+      console.log(photo);
+    } catch (err) {
+      console.log(err);
+      Alert.alert("Lỗi", "Không thể chụp ảnh.");
+    }
+  }, []);
+
   if (!permission) return <View />;
   if (!permission.granted)
     return (
-      <View style={styles.center}>
-        <Text style={styles.text}>Camera permission not granted</Text>
+      <View style={styles.permissionCenter}>
+        <Text style={styles.permissionText}>Ứng dụng cần quyền Camera</Text>
         <TouchableOpacity onPress={requestPermission}>
-          <Text style={styles.button}>Grant permission</Text>
+          <Text style={styles.permissionButton}>Cấp quyền</Text>
         </TouchableOpacity>
       </View>
     );
 
-  const flipCamera = () => setCameraType(prev => (prev === "back" ? "front" : "back"));
-  const toggleTorch = () => setEnableTorch(prev => !prev);
-
-  const takePicture = async () => {
-    if (!cameraRef.current) return;
-    try {
-      const photo = await cameraRef.current.takePictureAsync({ quality: 0.8 });
-    } catch (err) {
-      console.error("Take picture error:", err);
-    }
-  };
-
   return (
     <View style={styles.container}>
-      {/* Camera view */}
-      <View style={styles.cameraContainer}>
-        <CameraView
-          ref={cameraRef}
-          style={styles.camera}
-          facing={cameraType}
-          enableTorch={enableTorch} // ✅ Dùng enableTorch, không dùng flashMode
+      <CameraView
+        ref={cameraRef}
+        style={styles.camera}
+        facing={cameraType}
+        zoom={zoom}
+        enableTorch={flashOn}
+        onTouchEnd={handleFocus} // focus point
+      />
+
+      {/* Focus point */}
+      {focusPoint && (
+        <Animated.View
+          style={[
+            styles.focusCircle,
+            {
+              left: `${focusPoint.x * 100}%`,
+              top: `${focusPoint.y * 100}%`,
+              opacity: focusAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }),
+              transform: [{ scale: focusAnim.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] }) }],
+            },
+          ]}
         />
+      )}
 
-        {/* Horizon Line */}
+      {/* Khung viền bo góc */}
+      <View style={styles.overlayFrame}>
+        <View style={styles.cornerTL} />
+        <View style={styles.cornerTR} />
+        <View style={styles.cornerBL} />
+        <View style={styles.cornerBR} />
+      </View>
+
+      {/* Đường ngang hiển thị độ nghiêng */}
+      {showHorizon && (
         <View style={styles.horizonWrapper}>
-          <View style={[styles.horizonLine, { transform: [{ rotate: `${-tilt}deg` }] }]} />
+          <View
+            style={[
+              styles.horizonLine,
+              {
+                transform: [{ rotate: `${-tilt}deg` }],
+                backgroundColor: Math.abs(tilt) < 1 ? "#ff02e1fa" : "rgba(246, 64, 3, 1)",
+              },
+            ]}
+          />
         </View>
+      )}
 
-        {/* Grid Overlay */}
-        {showGrid && (
-          <View style={styles.gridOverlay}>
-            <View style={[styles.gridLine, { left: "33%" }]} />
-            <View style={[styles.gridLine, { left: "66%" }]} />
-            <View style={[styles.gridLine, { top: "33%", width: "100%", height: 1, left: 0 }]} />
-            <View style={[styles.gridLine, { top: "66%", width: "100%", height: 1, left: 0 }]} />
-          </View>
-        )}
-      </View>
+      {/* Grid 3x3 hoặc 4x4 */}
+      {gridMode !== 0 && (
+        <View style={styles.gridContainer}>
+          {(gridMode === 3 ? [33, 66] : [25, 50, 75]).map((p) => (
+            <View key={`v-${p}`} style={[styles.gridLineV, { left: `${p}%` }]} />
+          ))}
+          {(gridMode === 3 ? [33, 66] : [25, 50, 75]).map((p) => (
+            <View key={`h-${p}`} style={[styles.gridLineH, { top: `${p}%` }]} />
+          ))}
+        </View>
+      )}
 
-      {/* Controls */}
-      <View style={styles.controls}>
-        <TouchableOpacity style={styles.btn} onPress={toggleTorch}>
-          <Text style={styles.btnText}>Torch: {enableTorch ? "On" : "Off"}</Text>
+      {/* Thanh công cụ bên trái */}
+      <View style={styles.leftSidebar}>
+        <TouchableOpacity onPress={() => setCameraType((prev) => (prev === "back" ? "front" : "back"))}>
+          <Ionicons name="camera-reverse" style={styles.leftIcon} />
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.btn} onPress={flipCamera}>
-          <Text style={styles.btnText}>Flip</Text>
+        <TouchableOpacity onPress={() => setFlashOn((p) => !p)}>
+          <Ionicons name={flashOn ? "flash" : "flash-off"} style={styles.leftIcon} />
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.snapBtn} onPress={takePicture}>
-          <View style={styles.innerCircle} />
+        <TouchableOpacity onPress={() => setShowHorizon((p) => !p)}>
+          <Ionicons name="remove-outline" style={styles.leftIcon} />
         </TouchableOpacity>
-
-        <TouchableOpacity style={styles.btn} onPress={() => setShowGrid(!showGrid)}>
-          <Text style={styles.btnText}>{showGrid ? "Hide Grid" : "Show Grid"}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.btn} onPress={onOpenGallery}>
-          <Text style={styles.btnText}>🖼️ Gallery</Text>
+        <TouchableOpacity onPress={() => setGridMode((prev) => (prev === 0 ? 3 : prev === 3 ? 4 : 0))}>
+          <Ionicons name="grid" style={styles.leftIcon} />
         </TouchableOpacity>
       </View>
+
+      {/* Thanh dưới – Gallery + Chụp ảnh + Person-add */}
+    <View style={styles.bottomBar}>
+      {/* Mở gallery */}
+      <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
+      <Ionicons name="images-outline" size={32} color="white" />
+    </TouchableOpacity>
+
+      {/* Nút chụp ảnh */}
+    <TouchableOpacity style={styles.captureButton} onPress={takePhoto} />
+
+      {/* Person-add */}
+    <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
+      <Ionicons name="person-add-outline" size={32} color="white" />
+    </TouchableOpacity>
+    </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
-  cameraContainer: { flex: 4, position: "relative", overflow: "hidden" },
-  camera: { flex: 1, borderRadius: 16 },
-  horizonWrapper: { position: "absolute", top: "50%", left: 0, right: 0, alignItems: "center" },
-  horizonLine: { width: 120, height: 1, backgroundColor: "rgba(255,255,255,0.6)" },
-  controls: { flex: 1, backgroundColor: "#111", flexDirection: "row", alignItems: "center", justifyContent: "space-around" },
-  btn: { backgroundColor: "#333", padding: 10, borderRadius: 8 },
-  btnText: { color: "#fff", fontSize: 12 },
-  snapBtn: { borderWidth: 3, borderColor: "#fff", borderRadius: 50, width: 70, height: 70, alignItems: "center", justifyContent: "center" },
-  innerCircle: { width: 50, height: 50, borderRadius: 25, backgroundColor: "#fff" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  text: { color: "#fff" },
-  button: { marginTop: 10, backgroundColor: "#2196f3", color: "#fff", padding: 8, borderRadius: 6 },
-  gridOverlay: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0 },
-  gridLine: { position: "absolute", backgroundColor: "rgba(255,255,255,0.3)", width: 1, height: "100%" },
+  camera: { position: "absolute", width: "100%", height: "100%" },
+
+  overlayFrame: {
+    position: "absolute",
+    top: "15%",
+    left: "0%",
+    right: "0%",
+    bottom: "25%",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  cornerTL: { 
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: 40,
+    height: 40,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+    borderColor: "#fff",
+    borderTopLeftRadius: 20 
+  },
+  cornerTR: { 
+    position: "absolute", 
+    top: 0, 
+    right: 0, 
+    width: 40, 
+    height: 40, 
+    borderTopWidth: 4, 
+    borderRightWidth: 4, 
+    borderColor: "#fff", 
+    borderTopRightRadius: 20 },
+  cornerBL: { 
+    position: "absolute", 
+    bottom: 0, 
+    left: 0, 
+    width: 40, 
+    height: 40, 
+    borderBottomWidth: 4, 
+    borderLeftWidth: 4, 
+    borderColor: "#fff", 
+    borderBottomLeftRadius: 20 
+  },
+  cornerBR: { 
+    position: "absolute", 
+    bottom: 0, 
+    right: 0, 
+    width: 40, 
+    height: 40, 
+    borderBottomWidth: 4, 
+    borderRightWidth: 4, 
+    borderColor: "#fff", 
+    borderBottomRightRadius: 20 
+  },
+
+  gridContainer: { 
+    position: "absolute", 
+    top: "15%", 
+    left: "0%", 
+    right: "0%", 
+    bottom: "30%", 
+    width: "100%", 
+    height: "60%" 
+  },
+  gridLineV: { 
+    position: "absolute", 
+    width: 1, 
+    height: "100%", 
+    backgroundColor: "rgba(255, 255, 255, 0.69)" 
+  },
+  gridLineH: { 
+    position: "absolute", 
+    height: 1, 
+    width: "100%", 
+    backgroundColor: "rgba(255, 255, 255, 0.69)" 
+  },
+
+  horizonWrapper: { 
+    position: "absolute", 
+    top: "45%", 
+    left: "0%", 
+    right: "0%", 
+    alignItems: "center" 
+  },
+
+  horizonLine: { 
+    width: 160, 
+    height: 2, 
+    backgroundColor: "rgba(255,255,255,0.6)" 
+  },
+
+  leftSidebar: { 
+    position: "absolute", 
+    top: "50%", 
+    left: 20, 
+    transform: [{ translateY: -60 }], 
+    alignItems: "center" 
+  },
+
+  leftIcon: { 
+    color: "#fff", 
+    fontSize: 32, 
+    marginBottom: 20 
+  },
+
+  bottomBar: { 
+    position: "absolute",
+    bottom: 30,
+    width: "100%",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 40, // khoảng cách 2 icon ra 2 bên
+  },
+
+  sideIcon: {
+    width: 50,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  captureButton: { 
+    width: 85, 
+    height: 85, 
+    borderRadius: 50, 
+    backgroundColor: "#C259FF", 
+    borderWidth: 3, 
+    borderColor: "#fff" 
+  },
+
+  focusCircle: {
+    position: "absolute",
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: "#00ffff",
+    backgroundColor: "rgba(0,255,255,0.2)",
+    marginLeft: -30,
+    marginTop: -30,
+  },
+
+  permissionCenter: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center" 
+  },
+  permissionText: { 
+    color: "#fff", 
+    marginBottom: 10, 
+    fontSize: 16 
+  },
+  permissionButton: { 
+    backgroundColor: "#2196f3", 
+    paddingHorizontal: 20, 
+    paddingVertical: 10, 
+    borderRadius: 8, color: "#fff"
+   },
 });

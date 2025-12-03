@@ -25,7 +25,7 @@ export type SegmentGalleryProps = {
     fg: string;
     bg: string | null;
     mask: string | null;
-  }) => void; // Editor nhận 3 ảnh
+  }) => void;
 };
 
 export default function SegmentGallery({
