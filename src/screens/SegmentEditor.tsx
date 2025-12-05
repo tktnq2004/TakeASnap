@@ -9,7 +9,7 @@ type Props = {
   onDone?: (updatedSegment: SegmentData) => void;
 };
 
-const TILE_SIZE = 45;
+const TILE_SIZE = 43;
 
 export default function SegmentEditor({ segment, onDone }: Props) {
   const screenWidth = Dimensions.get("window").width;

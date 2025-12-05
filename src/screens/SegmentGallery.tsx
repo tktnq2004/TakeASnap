@@ -184,7 +184,13 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
         <Image source={{ uri: item.fgUri }} style={styles.imageItem} />
         <View style={styles.overlay}>
 
-          <TouchableOpacity style={styles.iconButton} onPress={() => handleSelectSegment(item)}>
+          <TouchableOpacity
+            style={styles.iconButton}
+            onPress={() => {
+              handleSelectSegment(item);
+              onClose();
+            }}
+          >
             <Text style={styles.iconText}>📸</Text>
           </TouchableOpacity>
 
@@ -212,7 +218,7 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
           </View>
         ) : (
           <FlatList
-            data={dataWithAddButton} // ["add"] nếu rỗng, ["add", ...segments] nếu có segment
+            data={dataWithAddButton}
             numColumns={Math.min(NUM_COLUMNS, dataWithAddButton.length)}
             keyExtractor={(item, index) => (typeof item === "string" ? `add-${index}` : item.id)}
             renderItem={renderItem}

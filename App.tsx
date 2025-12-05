@@ -7,32 +7,39 @@ import { SegmentData } from "./src/components/SegmentStorage";
 
 export default function App() {
   const [screen, setScreen] = useState<"camera" | "gallery" | "editor">("camera");
-
   const [currentSegment, setCurrentSegment] = useState<SegmentData | null>(null);
 
+  // Mở gallery từ camera
   const openGallery = () => setScreen("gallery");
 
+  // Chọn segment từ gallery -> mở editor
   const openEditor = (segment: SegmentData) => {
     setCurrentSegment(segment);
     setScreen("editor");
   };
 
+  // Quay lại camera
   const goBackToCamera = () => setScreen("camera");
 
+  // Khi editor xong -> quay về camera với segment cập nhật
   const handleEditorDone = (updatedSegment: SegmentData) => {
-
     setCurrentSegment(updatedSegment);
     setScreen("camera");
   };
 
   return (
     <View style={styles.container}>
-      {screen === "camera" && <CameraScreen onOpenGallery={openGallery} />}
+      {screen === "camera" && (
+        <CameraScreen
+          onOpenGallery={openGallery}
+          overlaySegment={currentSegment}
+        />
+      )}
 
       {screen === "gallery" && (
         <SegmentGallery
           onClose={goBackToCamera}
-          onSelectSegment={(segment) => openEditor(segment)}
+          onSelectSegment={openEditor}
         />
       )}
 
@@ -46,4 +53,6 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({ container: { flex: 1 } });
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
