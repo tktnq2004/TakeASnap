@@ -22,61 +22,60 @@ import {
 export type SegmentGalleryProps = {
   onClose: () => void;
   onSelectSegment: (data: {
-    fg: string;
-    bg: string | null;
-    mask: string | null;
+    id: string;
+    fgUri: string;
+    bgUri: string | null;
+    maskUri: string | null;
+    fgOpacity: number;
+    bgOpacity: number;
+    outlineEnabled: boolean;
+    outlineSize: number;
+    createdAt: string;
   }) => void;
 };
 
-export default function SegmentGallery({
-  onClose,
-  onSelectSegment,
-}: SegmentGalleryProps) {
+export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGalleryProps) {
   const [segments, setSegments] = useState<SegmentData[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Load dữ liệu khi mở gallery
   useEffect(() => {
     (async () => {
       const data = await loadSegments();
-      setSegments(data.reverse()); // hiển thị ảnh mới lên đầu
+      setSegments(data.reverse());
     })();
   }, []);
 
-  // 🔹 Chọn ảnh từ thư viện, gửi lên server segment
   const pickImage = async () => {
-    const res = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    });
-
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images });
     if (!res.canceled && res.assets?.length > 0) {
       const uri = res.assets[0].uri;
       setLoading(true);
       try {
-        // Gọi server tách nền
         const result = await segmentUtils.segmentImage(uri);
-
         if (result && result.fg && result.bg && result.mask) {
           const newSegment: SegmentData = {
             id: generateSegmentId(),
             fgUri: result.fg,
             bgUri: result.bg,
             maskUri: result.mask,
-            overlayColor: "#00FF00",
-            overlayOpacity: 0.5,
-            overlayBlur: 0,
+            fgOpacity: 1,
+            bgOpacity: 1,
+            outlineEnabled: true,
             outlineSize: 2,
             createdAt: new Date().toISOString(),
           };
-
           await saveSegment(newSegment);
-          setSegments((prev) => [newSegment, ...prev]);
-
-          // ⚙️ Gửi đúng dữ liệu về Editor
+          setSegments(prev => [newSegment, ...prev]);
           onSelectSegment({
-            fg: result.fg,
-            bg: result.bg,
-            mask: result.mask,
+            id: newSegment.id,
+            fgUri: result.fg,
+            bgUri: result.bg,
+            maskUri: result.mask,
+            fgOpacity: newSegment.fgOpacity,
+            bgOpacity: newSegment.bgOpacity,
+            outlineEnabled: newSegment.outlineEnabled,
+            outlineSize: newSegment.outlineSize,
+            createdAt: newSegment.createdAt,
           });
         }
       } catch (err) {
@@ -96,7 +95,7 @@ export default function SegmentGallery({
         style: "destructive",
         onPress: async () => {
           await deleteSegment(id);
-          setSegments((prev) => prev.filter((s) => s.id !== id));
+          setSegments(prev => prev.filter(s => s.id !== id));
         },
       },
     ]);
@@ -105,29 +104,24 @@ export default function SegmentGallery({
   const renderItem = ({ item }: { item: SegmentData | "add" }) => {
     if (item === "add") {
       return (
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={pickImage}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color="#555" />
-          ) : (
-            <Text style={{ fontSize: 30 }}>＋</Text>
-          )}
+        <TouchableOpacity style={styles.addBtn} onPress={pickImage} disabled={loading}>
+          {loading ? <ActivityIndicator size="small" color="#555" /> : <Text style={{ fontSize: 30 }}>＋</Text>}
         </TouchableOpacity>
       );
     }
-
     return (
       <TouchableOpacity
-        onPress={() =>
-          onSelectSegment({
-            fg: item.fgUri,
-            bg: item.bgUri,
-            mask: item.maskUri,
-          })
-        }
+        onPress={() => onSelectSegment({
+          id: item.id,
+          fgUri: item.fgUri,
+          bgUri: item.bgUri,
+          maskUri: item.maskUri,
+          fgOpacity: item.fgOpacity,
+          bgOpacity: item.bgOpacity,
+          outlineEnabled: item.outlineEnabled,
+          outlineSize: item.outlineSize,
+          createdAt: item.createdAt,
+        })}
         onLongPress={() => handleDelete(item.id)}
       >
         <Image source={{ uri: item.fgUri }} style={styles.imageItem} />
@@ -138,17 +132,13 @@ export default function SegmentGallery({
   return (
     <View style={{ flex: 1, backgroundColor: "#000" }}>
       <Text style={styles.title}>📁 Ảnh đã tách nền</Text>
-
       <FlatList
         data={["add", ...segments]}
         numColumns={3}
-        keyExtractor={(item, index) =>
-          typeof item === "string" ? `add-${index}` : item.id
-        }
+        keyExtractor={(item, index) => typeof item === "string" ? `add-${index}` : item.id}
         renderItem={renderItem}
         contentContainerStyle={{ padding: 10 }}
       />
-
       <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
         <Text style={{ color: "#fff" }}>Đóng</Text>
       </TouchableOpacity>
@@ -157,36 +147,8 @@ export default function SegmentGallery({
 }
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginTop: 10,
-    marginBottom: 10,
-    color: "#fff",
-    textAlign: "center",
-  },
-  addBtn: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#ccc",
-    justifyContent: "center",
-    alignItems: "center",
-    margin: 5,
-  },
-  imageItem: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
-    margin: 5,
-  },
-  closeBtn: {
-    marginTop: 15,
-    alignSelf: "center",
-    backgroundColor: "#333",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-  },
+  title: { fontSize: 18, fontWeight: "bold", marginVertical: 10, color: "#fff", textAlign: "center" },
+  addBtn: { width: 100, height: 100, borderRadius: 10, borderWidth: 2, borderColor: "#ccc", justifyContent: "center", alignItems: "center", margin: 5 },
+  imageItem: { width: 100, height: 100, borderRadius: 10, margin: 5 },
+  closeBtn: { marginTop: 15, alignSelf: "center", backgroundColor: "#333", paddingVertical: 10, paddingHorizontal: 20, borderRadius: 8 },
 });

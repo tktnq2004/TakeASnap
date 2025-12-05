@@ -1,7 +1,7 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { Platform } from "react-native";
 
-const SERVER_HOST = "192.168.1.13";
+const SERVER_HOST = "192.168.1.4";
 const SERVER_URL = `http://${SERVER_HOST}:5000`;
 
 const CACHE_DIR = FileSystem.cacheDirectory || FileSystem.documentDirectory;

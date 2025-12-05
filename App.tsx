@@ -3,61 +3,47 @@ import { View, StyleSheet } from "react-native";
 import CameraScreen from "./src/screens/CameraScreen";
 import SegmentGallery from "./src/screens/SegmentGallery";
 import SegmentEditor from "./src/screens/SegmentEditor";
-
-export type SegmentedImageData = {
-  fg: string;  // base64 png foreground từ server
-  bg: string | null; // base64 png background từ server
-  mask: string | null; // base64 png mask từ server
-};
+import { SegmentData } from "./src/components/SegmentStorage";
 
 export default function App() {
-  const [screen, setScreen] = useState<
-    "camera" | "gallery" | "editor"
-  >("camera");
+  const [screen, setScreen] = useState<"camera" | "gallery" | "editor">("camera");
 
-  const [selectedImage, setSelectedImage] = useState<SegmentedImageData | null>(null);
+  const [currentSegment, setCurrentSegment] = useState<SegmentData | null>(null);
 
   const openGallery = () => setScreen("gallery");
 
-  const openEditor = (data: SegmentedImageData) => {
-    setSelectedImage(data);
+  const openEditor = (segment: SegmentData) => {
+    setCurrentSegment(segment);
     setScreen("editor");
   };
 
   const goBackToCamera = () => setScreen("camera");
 
+  const handleEditorDone = (updatedSegment: SegmentData) => {
+
+    setCurrentSegment(updatedSegment);
+    setScreen("camera");
+  };
+
   return (
     <View style={styles.container}>
+      {screen === "camera" && <CameraScreen onOpenGallery={openGallery} />}
 
-      {/* 📸 Camera */}
-      {screen === "camera" && (
-        <CameraScreen
-          onOpenGallery={openGallery}
-        />
-      )}
-
-      {/* 🖼️ Thư viện ảnh đã segment */}
       {screen === "gallery" && (
         <SegmentGallery
           onClose={goBackToCamera}
-          // Gallery trả về {fg, bg}
-          onSelectSegment={(data) => openEditor(data)}
+          onSelectSegment={(segment) => openEditor(segment)}
         />
       )}
 
-      {/* ✂️ Segment Editor (Skia version) */}
-      {screen === "editor" && selectedImage && (
+      {screen === "editor" && currentSegment && (
         <SegmentEditor
-          fgUri={selectedImage.fg}
-          bgUri={selectedImage.bg || ""}
-          maskUri={selectedImage.mask || ""}
-          onDone={goBackToCamera}
+          segment={currentSegment}
+          onDone={handleEditorDone}
         />
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-});
+const styles = StyleSheet.create({ container: { flex: 1 } });

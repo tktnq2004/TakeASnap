@@ -12,8 +12,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@miblanchard/react-native-slider": "^2.6.0",
-    
-    "expo": "~54.0.20",
+    "expo": "^54.0.25",
     "expo-camera": "~17.0.8",
     "expo-file-system": "~19.0.19",
     "expo-image-picker": "~17.0.8",
