@@ -7,13 +7,19 @@ const SEGMENTS_JSON = `${SEGMENTS_DIR}segments.json`;
 export type SegmentData = {
   id: string;
   fgUri: string;
-  bgUri: string | null;    
-  maskUri: string | null;  
-  
+  bgUri: string | null;
+  maskUri: string | null;
+
   fgOpacity: number;
   bgOpacity: number;
+
   outlineEnabled: boolean;
   outlineSize: number;
+  outlineColor: string;
+
+  fillEnable: boolean;
+  fillColor: string;
+  fillOpacity: number;
 
   createdAt: string;
 };

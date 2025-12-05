@@ -30,6 +30,10 @@ export type SegmentGalleryProps = {
     bgOpacity: number;
     outlineEnabled: boolean;
     outlineSize: number;
+    outlineColor: string;
+    fillEnable: boolean;
+    fillColor: string;
+    fillOpacity: number;
     createdAt: string;
   }) => void;
 };
@@ -62,6 +66,10 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
             bgOpacity: 1,
             outlineEnabled: true,
             outlineSize: 2,
+            outlineColor: 'white',
+            fillEnable: true,
+            fillColor: "blue",
+            fillOpacity: 1,
             createdAt: new Date().toISOString(),
           };
           await saveSegment(newSegment);
@@ -75,6 +83,10 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
             bgOpacity: newSegment.bgOpacity,
             outlineEnabled: newSegment.outlineEnabled,
             outlineSize: newSegment.outlineSize,
+            outlineColor: newSegment.outlineColor,
+            fillEnable: newSegment.fillEnable,
+            fillColor: newSegment.fillColor,
+            fillOpacity: newSegment.fillOpacity,
             createdAt: newSegment.createdAt,
           });
         }
@@ -120,6 +132,10 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
           bgOpacity: item.bgOpacity,
           outlineEnabled: item.outlineEnabled,
           outlineSize: item.outlineSize,
+          outlineColor: item.outlineColor,
+          fillEnable: item.fillEnable,
+          fillColor: item.fillColor,
+          fillOpacity: item.fillOpacity,
           createdAt: item.createdAt,
         })}
         onLongPress={() => handleDelete(item.id)}

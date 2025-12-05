@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, Dimensions, ScrollView, Switch, TouchableOpacity, Image } from "react-native";
 import { Slider } from "@miblanchard/react-native-slider";
 import { SegmentData, saveSegment } from "../components/SegmentStorage";
 
 type Props = {
-  segment: SegmentData;           // ✅ truyền segment object đầy đủ
+  segment: SegmentData;
   onDone?: (updatedSegment: SegmentData) => void;
 };
 
-const TILE_SIZE = 30;
+const TILE_SIZE = 45;
 
 export default function SegmentEditor({ segment, onDone }: Props) {
   const screenWidth = Dimensions.get("window").width;
@@ -16,70 +16,227 @@ export default function SegmentEditor({ segment, onDone }: Props) {
   const previewHeight = (screenHeight * 3) / 5;
   const controlHeight = (screenHeight * 2) / 5;
 
-  const [fgOpacity, setFgOpacity] = useState(segment.fgOpacity);
-  const [bgOpacity, setBgOpacity] = useState(segment.bgOpacity);
-  const [outlineEnabled, setOutlineEnabled] = useState(segment.outlineEnabled);
-  const [outlineWidth, setOutlineWidth] = useState(segment.outlineSize);
+  // --- State (defaults safe)
+  const [fillEnable, setFillEnable] = useState<boolean>(segment.fillEnable ?? false);
+  const [fillColor, setFillColor] = useState<string>(segment.fillColor ?? "#0047AB");
+  const [fillOpacity, setFillOpacity] = useState<number>(segment.fillOpacity ?? 0.7);
 
-  const rows = Math.ceil(previewHeight / TILE_SIZE);
-  const cols = Math.ceil(screenWidth / TILE_SIZE);
-  const tiles = [];
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const isLight = (x + y) % 2 === 0;
-      tiles.push(
-        <View key={`${x}-${y}`} style={{
-          position: "absolute",
-          width: TILE_SIZE,
-          height: TILE_SIZE,
-          left: x * TILE_SIZE,
-          top: y * TILE_SIZE,
-          backgroundColor: isLight ? "#eee" : "#ccc",
-        }} />
-      );
+  const [fgOpacity, setFgOpacity] = useState<number>(segment.fgOpacity ?? 1);
+  const [bgOpacity, setBgOpacity] = useState<number>(segment.bgOpacity ?? 1);
+
+  const [outlineEnabled, setOutlineEnabled] = useState<boolean>(segment.outlineEnabled ?? false);
+  const [outlineWidth, setOutlineWidth] = useState<number>(segment.outlineSize ?? 6);
+  const [outlineColor, setOutlineColor] = useState<string>(segment.outlineColor ?? "white");
+
+  // tiles with memo for perf
+  const tiles = useMemo(() => {
+    const rows = Math.ceil(previewHeight / TILE_SIZE);
+    const cols = Math.ceil(screenWidth / TILE_SIZE);
+    const generatedTiles = [];
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        const isLight = (x + y) % 2 === 0;
+        generatedTiles.push(
+          <View key={`${x}-${y}`} style={{
+            position: "absolute",
+            width: TILE_SIZE,
+            height: TILE_SIZE,
+            left: x * TILE_SIZE,
+            top: y * TILE_SIZE,
+            backgroundColor: isLight ? "#eee" : "#ccc",
+          }} />
+        );
+      }
     }
-  }
+    return generatedTiles;
+  }, [screenWidth, previewHeight]);
 
   const handleDone = async () => {
     const updatedSegment: SegmentData = {
       ...segment,
+      fillEnable,
+      fillColor,
+      fillOpacity,
       fgOpacity,
       bgOpacity,
       outlineEnabled,
       outlineSize: outlineWidth,
+      outlineColor,
     };
-    await saveSegment(updatedSegment);   // ✅ lưu vào storage
-    onDone?.(updatedSegment);            // ✅ callback trả về App
+    await saveSegment(updatedSegment);
+    onDone?.(updatedSegment);
   };
+
+  // simple scale trick to emulate thicker outline by scaling mask image slightly
+  const outlineScale = 1 + outlineWidth / 30; // tweak denominator to taste
+
+  // color presets UI arrays
+  const fillPresets = ["#0047AB", "#0ea5e9", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6"];
+  const outlinePresets = ["white", "#000000", "#ffffff", "#f3f4f6", "#ef4444", "#10b981"];
 
   return (
     <View style={styles.root}>
       <View style={[styles.preview, { height: previewHeight }]}>
         {tiles}
+
+        {/* Background */}
         {segment.bgUri && <Image source={{ uri: segment.bgUri }} style={[styles.fullImage, { opacity: bgOpacity }]} resizeMode="cover" />}
-        {segment.fgUri && <Image source={{ uri: segment.fgUri }} style={[styles.fullImage, { opacity: fgOpacity }]} resizeMode="cover" />}
-        {outlineEnabled && segment.maskUri && <Image source={{ uri: segment.maskUri }} style={[styles.fullImage, { borderWidth: outlineWidth, borderColor: "white" }]} resizeMode="cover" />}
+
+        {/* Original FG - always present */}
+        {segment.fgUri && (
+          <Image
+            source={{ uri: segment.fgUri }}
+            style={[styles.fullImage, { opacity: fgOpacity }]}
+            resizeMode="cover"
+          />
+        )}
+
+        {/* FILL overlay - rendered only when fillEnable true */}
+        {fillEnable && segment.maskUri && (
+          <Image
+            source={{ uri: segment.maskUri }}
+            style={[
+              styles.fullImage,
+              {
+                tintColor: fillColor,
+                // fill should be semi-transparent, controlled by fillOpacity
+                opacity: fillOpacity,
+              }
+            ]}
+            resizeMode="cover"
+          />
+        )}
+        
+        {/* OUTLINE - rendered independently of fillEnable */}
+        {outlineEnabled && segment.maskUri && (
+          <Image
+            source={{ uri: segment.maskUri }}
+            style={[
+              styles.fullImage,
+              {
+                tintColor: outlineColor,
+                // Simulate thickness by scaling. This is a pixel-based trick;
+                // for a better vectored stroke use Skia/Canvas approach.
+                transform: [{ scale: outlineScale }],
+                opacity: 1,
+              }
+            ]}
+            resizeMode="cover"
+          />
+        )}
       </View>
 
       <ScrollView style={[styles.controls, { height: controlHeight }]}>
-        <Text style={styles.label}>Background Opacity: {(bgOpacity * 100).toFixed(0)}%</Text>
-        <Slider value={bgOpacity} minimumValue={0} maximumValue={1} onValueChange={v => setBgOpacity(Array.isArray(v) ? v[0] : v)} />
 
-        <Text style={[styles.label, { marginTop: 12 }]}>Foreground Opacity: {(fgOpacity * 100).toFixed(0)}%</Text>
+        {/* Foreground opacity */}
+        <Text style={[styles.label, { marginTop: 4 }]}>
+          Foreground Opacity (FG Gốc): {(fgOpacity * 100).toFixed(0)}%
+        </Text>
         <Slider value={fgOpacity} minimumValue={0} maximumValue={1} onValueChange={v => setFgOpacity(Array.isArray(v) ? v[0] : v)} />
 
-        <View style={[styles.row, { marginTop: 12 }]}>
-          <Text style={styles.sectionTitle}>Outline</Text>
-          <Switch value={outlineEnabled} onValueChange={setOutlineEnabled} />
+        <View style={{ height: 1, backgroundColor: '#333', marginVertical: 12 }} />
+
+        {/* Background opacity */}
+        <Text style={[styles.label]}>Background Opacity: {(bgOpacity * 100).toFixed(0)}%</Text>
+        <Slider value={bgOpacity} minimumValue={0} maximumValue={1} onValueChange={v => setBgOpacity(Array.isArray(v) ? v[0] : v)} />
+
+        <View style={{ height: 1, backgroundColor: '#333', marginVertical: 12 }} />
+
+        {/* Toggle Fill */}
+        <View style={[styles.row, { marginTop: 8 }]}>
+          <Text style={styles.sectionTitle}>Enable Fill (Tô màu)</Text>
+          <Switch value={fillEnable} onValueChange={setFillEnable} />
         </View>
-        {outlineEnabled && (
+
+        {fillEnable && (
           <>
-            <Text style={styles.label}>Outline Size: {outlineWidth.toFixed(0)}</Text>
-            <Slider value={outlineWidth} minimumValue={0} maximumValue={40} onValueChange={v => setOutlineWidth(Array.isArray(v) ? v[0] : v)} />
+            <Text style={[styles.label, { marginTop: 6 }]}>Fill Opacity: {(fillOpacity * 100).toFixed(0)}%</Text>
+            <Slider value={fillOpacity} minimumValue={0} maximumValue={1} onValueChange={v => setFillOpacity(Array.isArray(v) ? v[0] : v)} />
+
+            <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Fill Color</Text>
+            <View style={{ flexDirection: "row", justifyContent: "flex-start", marginVertical: 8 }}>
+              {fillPresets.map(c => (
+                <TouchableOpacity
+                  key={c}
+                  onPress={() => setFillColor(c)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: c,
+                    marginRight: 10,
+                    borderWidth: fillColor === c ? 3 : 0,
+                    borderColor: "#fff"
+                  }}
+                />
+              ))}
+              <TouchableOpacity
+                onPress={() => alert("Open color picker here")}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: "#222",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ color: "#fff", fontSize: 12 }}>+ </Text>
+              </TouchableOpacity>
+            </View>
           </>
         )}
 
-        <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
+        <View style={{ height: 1, backgroundColor: '#333', marginVertical: 12 }} />
+
+        {/* Toggle Outline (independent) */}
+        <View style={[styles.row, { marginTop: 8 }]}>
+          <Text style={styles.sectionTitle}>Outline (Viền)</Text>
+          <Switch value={outlineEnabled} onValueChange={setOutlineEnabled} />
+        </View>
+
+        {outlineEnabled && (
+          <>
+            <Text style={[styles.label, { marginTop: 6 }]}>Outline Size: {outlineWidth.toFixed(1)}</Text>
+            <Slider value={outlineWidth} minimumValue={0} maximumValue={30} onValueChange={v => setOutlineWidth(Array.isArray(v) ? v[0] : v)} />
+
+            <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Outline Color</Text>
+            <View style={{ flexDirection: "row", justifyContent: "flex-start", marginVertical: 8 }}>
+              {outlinePresets.map(c => (
+                <TouchableOpacity
+                  key={c}
+                  onPress={() => setOutlineColor(c)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    backgroundColor: c === "white" ? "#fff" : c,
+                    marginRight: 10,
+                    borderWidth: outlineColor === c ? 3 : 0,
+                    borderColor: "#fff"
+                  }}
+                />
+              ))}
+              <TouchableOpacity
+                onPress={() => alert("Open outline color picker here")}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: "#222",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Text style={{ color: "#fff", fontSize: 12 }}>+ </Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+
+        <View style={{ height: 1, backgroundColor: '#333', marginVertical: 12 }} />
+
+        <TouchableOpacity style={[styles.doneButton, { backgroundColor: "#2196F3" }]} onPress={handleDone}>
           <Text style={styles.doneText}>Done</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -95,6 +252,6 @@ const styles = StyleSheet.create({
   label: { color: "#fff", marginVertical: 8 },
   sectionTitle: { color: "#fff", fontWeight: "600" },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 8 },
-  doneButton: { marginTop: 18, backgroundColor: "#2196F3", paddingVertical: 12, borderRadius: 10, alignItems: "center" },
+  doneButton: { marginTop: 18, paddingVertical: 12, borderRadius: 10, alignItems: "center" },
   doneText: { color: "#fff", fontWeight: "700" },
 });
