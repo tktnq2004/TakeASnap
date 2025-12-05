@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, Dimensions, ScrollView, Switch, TouchableOpacity, Image } from "react-native";
 import { Slider } from "@miblanchard/react-native-slider";
 import { SegmentData, saveSegment } from "../components/SegmentStorage";
+import Svg, { Image as SvgImage, Rect, Mask } from 'react-native-svg';
 
 type Props = {
   segment: SegmentData;
@@ -18,8 +19,8 @@ export default function SegmentEditor({ segment, onDone }: Props) {
 
   // --- State (defaults safe)
   const [fillEnable, setFillEnable] = useState<boolean>(segment.fillEnable ?? false);
-  const [fillColor, setFillColor] = useState<string>(segment.fillColor ?? "#0047AB");
-  const [fillOpacity, setFillOpacity] = useState<number>(segment.fillOpacity ?? 0.7);
+  const [fillColor, setFillColor] = useState<string>(segment.fillColor ?? "#fc4747ff");
+  const [fillOpacity, setFillOpacity] = useState<number>(segment.fillOpacity ?? 0.5);
 
   const [fgOpacity, setFgOpacity] = useState<number>(segment.fgOpacity ?? 1);
   const [bgOpacity, setBgOpacity] = useState<number>(segment.bgOpacity ?? 1);
@@ -67,10 +68,8 @@ export default function SegmentEditor({ segment, onDone }: Props) {
     onDone?.(updatedSegment);
   };
 
-  // simple scale trick to emulate thicker outline by scaling mask image slightly
-  const outlineScale = 1 + outlineWidth / 30; // tweak denominator to taste
+  const outlineScale = 1 + outlineWidth / 30;
 
-  // color presets UI arrays
   const fillPresets = ["#0047AB", "#0ea5e9", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6"];
   const outlinePresets = ["white", "#000000", "#ffffff", "#f3f4f6", "#ef4444", "#10b981"];
 
@@ -80,9 +79,14 @@ export default function SegmentEditor({ segment, onDone }: Props) {
         {tiles}
 
         {/* Background */}
-        {segment.bgUri && <Image source={{ uri: segment.bgUri }} style={[styles.fullImage, { opacity: bgOpacity }]} resizeMode="cover" />}
-
-        {/* Original FG - always present */}
+        {segment.bgUri && (
+          <Image
+            source={{ uri: segment.bgUri }}
+            style={[styles.fullImage, { opacity: bgOpacity }]}
+            resizeMode="cover"
+          />
+        )}
+        {/* Original FG */}
         {segment.fgUri && (
           <Image
             source={{ uri: segment.fgUri }}
@@ -90,36 +94,25 @@ export default function SegmentEditor({ segment, onDone }: Props) {
             resizeMode="cover"
           />
         )}
-
-        {/* FILL overlay - rendered only when fillEnable true */}
+        {/* FILL overlay */}
         {fillEnable && segment.maskUri && (
           <Image
             source={{ uri: segment.maskUri }}
             style={[
               styles.fullImage,
-              {
-                tintColor: fillColor,
-                // fill should be semi-transparent, controlled by fillOpacity
-                opacity: fillOpacity,
-              }
+              { tintColor: fillColor, opacity: fillOpacity }
             ]}
             resizeMode="cover"
           />
         )}
-        
-        {/* OUTLINE - rendered independently of fillEnable */}
-        {outlineEnabled && segment.maskUri && (
+
+        {/* OUTLINE - sử dụng outlineMaskUri */}
+        {outlineEnabled && segment.maskOutlineUri && (
           <Image
-            source={{ uri: segment.maskUri }}
+            source={{ uri: segment.maskOutlineUri }}
             style={[
               styles.fullImage,
-              {
-                tintColor: outlineColor,
-                // Simulate thickness by scaling. This is a pixel-based trick;
-                // for a better vectored stroke use Skia/Canvas approach.
-                transform: [{ scale: outlineScale }],
-                opacity: 1,
-              }
+              { tintColor: outlineColor, opacity: 1 }
             ]}
             resizeMode="cover"
           />
@@ -197,8 +190,14 @@ export default function SegmentEditor({ segment, onDone }: Props) {
 
         {outlineEnabled && (
           <>
+            {/* Thanh trượt điều chỉnh kích thước viền */}
             <Text style={[styles.label, { marginTop: 6 }]}>Outline Size: {outlineWidth.toFixed(1)}</Text>
-            <Slider value={outlineWidth} minimumValue={0} maximumValue={30} onValueChange={v => setOutlineWidth(Array.isArray(v) ? v[0] : v)} />
+            <Slider
+              value={outlineWidth}
+              minimumValue={0}
+              maximumValue={30}
+              onValueChange={v => setOutlineWidth(Array.isArray(v) ? v[0] : v)}
+            />
 
             <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Outline Color</Text>
             <View style={{ flexDirection: "row", justifyContent: "flex-start", marginVertical: 8 }}>

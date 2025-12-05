@@ -9,6 +9,7 @@ export type SegmentData = {
   fgUri: string;
   bgUri: string | null;
   maskUri: string | null;
+  maskOutlineUri: string | null;
 
   fgOpacity: number;
   bgOpacity: number;
