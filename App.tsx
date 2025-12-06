@@ -9,19 +9,17 @@ export default function App() {
   const [screen, setScreen] = useState<"camera" | "gallery" | "editor">("camera");
   const [currentSegment, setCurrentSegment] = useState<SegmentData | null>(null);
 
-  // Mở gallery từ camera
   const openGallery = () => setScreen("gallery");
 
-  // Chọn segment từ gallery -> mở editor
   const openEditor = (segment: SegmentData) => {
     setCurrentSegment(segment);
     setScreen("editor");
   };
-
-  // Quay lại camera
+  const handleUpdateOverlay = (overlay: SegmentData | null) => {
+    setCurrentSegment(overlay);
+  };
   const goBackToCamera = () => setScreen("camera");
 
-  // Khi editor xong -> quay về camera với segment cập nhật
   const handleEditorDone = (updatedSegment: SegmentData) => {
     setCurrentSegment(updatedSegment);
     setScreen("camera");
@@ -31,6 +29,7 @@ export default function App() {
     <View style={styles.container}>
       {screen === "camera" && (
         <CameraScreen
+          onUpdateOverlay={handleUpdateOverlay}
           onOpenGallery={openGallery}
           overlaySegment={currentSegment}
         />

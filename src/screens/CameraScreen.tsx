@@ -4,10 +4,9 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
-  Animated,
   FlatList,
   Dimensions,
+  Animated,
   Image,
   PanResponder,
 } from "react-native";
@@ -16,7 +15,8 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as MediaLibrary from "expo-media-library";
 import { Accelerometer } from "expo-sensors";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
+
 
 type SegmentData = {
   id: string;
@@ -38,13 +38,12 @@ type SegmentData = {
 type CameraScreenProps = {
   onOpenGallery: () => void;
   overlaySegment?: SegmentData | null;
+  onUpdateOverlay: (overlay: SegmentData | null) => void;
 };
-
-
 
 type FlashMode = "off" | "on" | "auto";
 
-export default function CameraScreen({ onOpenGallery, overlaySegment = null, }: CameraScreenProps) {
+export default function CameraScreen({ onOpenGallery, overlaySegment = null, onUpdateOverlay }: CameraScreenProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraType, setCameraType] = useState<CameraType>("back");
   const [flashMode, setFlashMode] = useState<FlashMode>("off");
@@ -57,33 +56,62 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, }: 
   const scale = useRef(new Animated.Value(1)).current;
   const rotate = useRef(new Animated.Value(0)).current; // radian
   const position = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+
+  const [editingOverlay, setEditingOverlay] = useState(false);
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: () => setEditingOverlay(true),
       onPanResponderMove: (evt, gestureState) => {
-        if (gestureState.numberActiveTouches === 1) {
-          // 1 ngón: di chuyển
-          position.setValue({ x: gestureState.dx, y: gestureState.dy });
-        } else if (gestureState.numberActiveTouches === 2) {
-          // 2 ngón: phóng to / xoay
-          const touches = evt.nativeEvent.touches;
-          const dx = touches[0].pageX - touches[1].pageX;
-          const dy = touches[0].pageY - touches[1].pageY;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          const angle = Math.atan2(dy, dx);
+        const { dx, dy, numberActiveTouches, moveX, moveY } = gestureState;
+        const DEL_X = width / 2;
+        const DEL_Y = height - 75;
+        const RADIUS = 70;
+        const dist = Math.sqrt((moveX - DEL_X) ** 2 + (moveY - DEL_Y) ** 2);
 
-          // scale: distance / reference
-          scale.setValue(distance / 200); // 200 là khoảng chuẩn ban đầu
+        if (numberActiveTouches === 1) {
+          position.setValue({ x: dx, y: dy });
+
+        } else if (numberActiveTouches === 2) {
+          const touches = evt.nativeEvent.touches;
+          const dxTouches = touches[0].pageX - touches[1].pageX;
+          const dyTouches = touches[0].pageY - touches[1].pageY;
+          const distance = Math.sqrt(dxTouches ** 2 + dyTouches ** 2);
+          const angle = Math.atan2(dyTouches, dxTouches);
+          scale.setValue(distance / 200);
           rotate.setValue(angle);
         }
+        if (dist < RADIUS) {
+          Animated.timing(scale, {
+            toValue: 0.2,
+            duration: 100,
+            useNativeDriver: true,
+          }).start();
+        } else if (dist > RADIUS + 5) {
+          Animated.timing(scale, {
+            toValue: 1,
+            duration: 100,
+            useNativeDriver: true,
+          }).start();
+        }
       },
-      onPanResponderRelease: () => {
-        // optional: reset gesture delta nếu muốn
+      onPanResponderRelease: (evt, gestureState) => {
+        const { moveX, moveY } = gestureState;
+        const DEL_X = width / 2;
+        const DEL_Y = height - 75;
+        const RADIUS = 70;
+        const dist = Math.sqrt((moveX - DEL_X) ** 2 + (moveY - DEL_Y) ** 2);
+
+        if (dist < RADIUS)
+          onUpdateOverlay(null);
+
+        setEditingOverlay(false);
       },
     })
   ).current;
 
+  //zoom
   const zoomAnim = useRef(new Animated.Value(0.5)).current;
   const [zoom, setZoom] = useState(0.5);
 
@@ -139,10 +167,8 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, }: 
       });
       const asset = await MediaLibrary.createAssetAsync(photo.uri);
       await MediaLibrary.createAlbumAsync("CameraApp", asset, false);
-      Alert.alert("Thành công", "Ảnh đã được lưu vào thư viện!");
     } catch (err) {
       console.log(err);
-      Alert.alert("Lỗi", "Không thể chụp ảnh.");
     }
   }, []);
 
@@ -231,7 +257,25 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, }: 
           )}
         </Animated.View>
       )}
-      <ZoomSlider zoom={zoom} zoomAnim={zoomAnim} />
+      {editingOverlay && (
+        <View
+          style={{
+            position: "absolute",
+            bottom: 75,
+            left: "50%",
+            transform: [{ translateX: -45 }],
+            zIndex: 20,
+          }}
+        >
+          <View style={styles.deleteOverlay}>
+            <Ionicons name="close" size={40} color="white" />
+          </View>
+        </View>
+      )}
+
+      {!editingOverlay && (
+        <ZoomSlider zoom={zoom} zoomAnim={zoomAnim} />
+      )}
 
       {/* Frame corners */}
       <View style={styles.overlayFrame}>
@@ -270,46 +314,49 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, }: 
         </View>
       )}
 
-      {/* Left bar */}
-      <View style={styles.leftSidebar}>
-        <TouchableOpacity onPress={() => setCameraType((prev) => (prev === "back" ? "front" : "back"))}>
-          <Ionicons name="camera-reverse-outline" style={styles.leftIcon} />
-        </TouchableOpacity>
+      {!editingOverlay && (
+        <View style={styles.leftSidebar}>
+          <TouchableOpacity onPress={() => setCameraType((prev) => (prev === "back" ? "front" : "back"))}>
+            <Ionicons name="camera-reverse-outline" style={styles.leftIcon} />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => {
-            if (flashMode === "off") setFlashMode("on");
-            else if (flashMode === "on") setFlashMode("auto");
-            else setFlashMode("off");
-          }}
-        >
-          <Ionicons
-            name={flashMode === "off" ? "flash-off" : flashMode === "on" ? "flash" : "eye-outline"}
-            style={styles.leftIcon}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => {
+              if (flashMode === "off") setFlashMode("on");
+              else if (flashMode === "on") setFlashMode("auto");
+              else setFlashMode("off");
+            }}
+          >
+            <Ionicons
+              name={flashMode === "off" ? "flash-off" : flashMode === "on" ? "flash" : "eye-outline"}
+              style={styles.leftIcon}
+            />
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setShowHorizon((p) => !p)}>
-          <Ionicons name="remove-outline" style={styles.leftIcon} />
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowHorizon((p) => !p)}>
+            <Ionicons name="remove-outline" style={styles.leftIcon} />
+          </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setGridMode((prev) => (prev === 0 ? 3 : prev === 3 ? 4 : 0))}>
-          <Ionicons name="grid-outline" style={styles.leftIcon} />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity onPress={() => setGridMode((prev) => (prev === 0 ? 3 : prev === 3 ? 4 : 0))}>
+            <Ionicons name="grid-outline" style={styles.leftIcon} />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Bottom bar */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
-          <Ionicons name="images-outline" size={32} color="white" />
-        </TouchableOpacity>
+      {!editingOverlay && (
+        <View style={styles.bottomBar}>
+          <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
+            <Ionicons name="images-outline" size={32} color="white" />
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.captureButton} onPress={takePhoto} />
+          <TouchableOpacity style={styles.captureButton} onPress={takePhoto} />
 
-        <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
-          <Ionicons name="person-add-outline" size={32} color="white" />
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
+            <Ionicons name="person-add-outline" size={32} color="white" />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -359,7 +406,7 @@ const ZoomSlider = ({ zoom, zoomAnim }: { zoom: number; zoomAnim: Animated.Value
   };
 
   return (
-    <View style={styles.zoomWrapper}>
+    <View style={styles.zoomWrapper} >
       <View style={styles.zoomOverlay}>
         <Text style={styles.markerTop}>▼</Text>
         <Animated.FlatList
@@ -422,4 +469,6 @@ const styles = StyleSheet.create({
   zoomOverlay: { width: "85%", height: 55, backgroundColor: "rgba(0,0,0,0.25)", borderRadius: 100, alignItems: "center", justifyContent: "space-between", paddingVertical: 0 },
   markerTop: { fontSize: 18, color: "#fff", lineHeight: 18 },
   markerBottom: { fontSize: 18, color: "#fff", lineHeight: 20 },
+
+  deleteOverlay: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: "white", backgroundColor: "red", justifyContent: "center", alignItems: "center", opacity: 0.9, }
 });
