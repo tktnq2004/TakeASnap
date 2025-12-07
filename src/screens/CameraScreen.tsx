@@ -9,14 +9,19 @@ import {
   Animated,
   Image,
   PanResponder,
+  Linking,
+  Platform,
+  Alert,
 } from "react-native";
+import * as FileSystem from "expo-file-system/legacy";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as MediaLibrary from "expo-media-library";
+import { Asset } from "expo-media-library";
 import { Accelerometer } from "expo-sensors";
+import * as ImagePicker from "expo-image-picker";
 
 const { width, height } = Dimensions.get("window");
-
 
 type SegmentData = {
   id: string;
@@ -119,7 +124,7 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
     const listener = zoomAnim.addListener(({ value }) => setZoom(value));
     return () => zoomAnim.removeListener(listener);
   }, []);
-
+  //horizon
   useEffect(() => {
     const subscription = Accelerometer.addListener(({ x, y, z }) => {
       const tiltValue =
@@ -129,7 +134,7 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
     Accelerometer.setUpdateInterval(100);
     return () => subscription.remove();
   }, []);
-
+  //flash
   useEffect(() => {
     if (flashMode !== "auto" || !cameraRef.current) return;
     const interval = setInterval(async () => {
@@ -158,19 +163,98 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
     return Math.random();
   };
 
+  //album
+  const [latestImage, setLatestImage] = useState<Asset | null>(null);
+  const [latestImageUri, setLatestImageUri] = useState<string | null>(null);
+  const [isOpening, setIsOpening] = useState(false);
+
+  const getLocalUri = useCallback(async (asset: Asset) => {
+    if (asset.uri.startsWith("ph://")) {
+      const localUri = FileSystem.cacheDirectory + asset.filename;
+      await FileSystem.copyAsync({ from: asset.uri, to: localUri });
+      return localUri;
+    }
+    return asset.uri;
+  }, []);
+  // Load ảnh gần nhất từ album
+  const loadLatestImage = useCallback(async () => {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== "granted") return;
+
+    const assets = await MediaLibrary.getAssetsAsync({
+      first: 1,
+      sortBy: MediaLibrary.SortBy.creationTime,
+      mediaType: ["photo"],
+    });
+
+    if (assets.assets.length > 0) {
+      setLatestImage(assets.assets[0]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!latestImage) return;
+
+    const loadUri = async () => {
+      const uri = await getLocalUri(latestImage);
+      setLatestImageUri(uri);
+    };
+
+    loadUri();
+  }, [latestImage, getLocalUri]);
+
+  // Chụp ảnh và lưu vào album
   const takePhoto = useCallback(async () => {
     if (!cameraRef.current) return;
+
     try {
       const photo = await cameraRef.current.takePictureAsync({
         quality: 1,
         skipProcessing: true,
       });
+
       const asset = await MediaLibrary.createAssetAsync(photo.uri);
       await MediaLibrary.createAlbumAsync("CameraApp", asset, false);
+
+      // Cập nhật ảnh mới nhất
+      await loadLatestImage();
     } catch (err) {
-      console.log(err);
+      console.error("Error taking photo:", err);
     }
-  }, []);
+  }, [cameraRef, loadLatestImage]);
+
+  // Mở album ảnh
+  const openInAlbum = async () => {
+    if (isOpening) return;
+    setIsOpening(true);
+
+    try {
+      if (Platform.OS === "ios") {
+        const url = "photos-redirect://";
+        const supported = await Linking.canOpenURL(url);
+        if (supported) {
+          await Linking.openURL(url);
+        } else {
+          Alert.alert("Không thể mở Photos", "Ứng dụng Photos không khả dụng trên thiết bị này.");
+        }
+      } else if (Platform.OS === "android") {
+        // Android: có thể dùng Linking hoặc IntentLauncher
+        const uri = "content://media/internal/images/media";
+        const supported = await Linking.canOpenURL(uri);
+        if (supported) {
+          await Linking.openURL(uri);
+        } else {
+          Alert.alert("Không thể mở Album", "Ứng dụng Album không khả dụng trên thiết bị này.");
+        }
+      }
+    } catch (err) {
+      console.error("Error opening album app:", err);
+      Alert.alert("Lỗi", "Không thể mở album. Vui lòng thử lại.");
+    } finally {
+      // Sau khi mở xong hoặc lỗi, cho phép nhấn tiếp
+      setIsOpening(false);
+    }
+  };
 
   /* ================= Permission ================= */
   if (!permission) return <View />;
@@ -244,16 +328,17 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
           )}
           {overlaySegment.outlineEnabled && overlaySegment.maskOutlineUri && (
             <Image
-              source={{ uri: overlaySegment.maskOutlineUri }}
+              source={{ uri: latestImageUri! }}
               style={[
                 styles.overlayImage,
                 {
                   tintColor: overlaySegment.outlineColor,
-                  opacity: 1
-                }
+                  opacity: 1,
+                },
               ]}
               resizeMode="cover"
             />
+
           )}
         </Animated.View>
       )}
@@ -346,8 +431,26 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
       {/* Bottom bar */}
       {!editingOverlay && (
         <View style={styles.bottomBar}>
-          <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
-            <Ionicons name="images-outline" size={32} color="white" />
+          <TouchableOpacity
+            style={{
+              width: 45,
+              height: 45,
+              borderRadius: 10,
+              overflow: "hidden",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+            onPress={openInAlbum}
+          >
+            {latestImage ? (
+              <Image
+                source={{ uri: latestImageUri ?? undefined }}
+                style={{ width: "100%", height: "100%" }}
+              />
+
+            ) : (
+              <Ionicons name="images-outline" size={32} color="white" />
+            )}
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.captureButton} onPress={takePhoto} />
