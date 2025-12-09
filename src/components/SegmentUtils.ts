@@ -3,17 +3,17 @@ import { Platform } from "react-native";
 
 const SERVER_HOST = "192.168.1.4";
 const SERVER_URL = `http://${SERVER_HOST}:5000`;
-
 const CACHE_DIR = FileSystem.cacheDirectory || FileSystem.documentDirectory;
 if (!CACHE_DIR) throw new Error("Cannot access cache directory");
 
-// ============================================================
-// 🧠 Gửi ảnh đến Flask server để tách nền (FG + BG + MASK)
-// ============================================================
 export async function segmentImage(
   uri: string
-): Promise<{ fg: string; bg: string; mask: string; maskOutline:string } | null> {
-
+): Promise<{
+  fg: string;
+  bg: string;
+  mask: string;
+  outline: string;
+} | null> {
   try {
     const fileType = (uri.split(".").pop() || "jpg").split("?")[0];
     const formData = new FormData();
@@ -29,31 +29,34 @@ export async function segmentImage(
       body: formData,
     });
 
-    if (!response.ok) {
-      console.error("❌ Segment server returned:", response.status);
-      throw new Error("Segmentation failed");
-    }
-
+    if (!response.ok) throw new Error("Segmentation failed");
     const json = await response.json();
-    if (!json.fg || !json.bg || !json.mask)
-      throw new Error("Server missing fg/bg/mask/maskOutline");
 
-    // 🔹 Lưu file PNG vào cache
+    // ⚡ CHỈ CẦN 4 TRƯỜNG FG/BG/MASK/OUTLINE
+    if (!json.fg || !json.bg || !json.mask || !json.outline)
+      throw new Error("Server missing fg/bg/mask/outline");
+
+    // --- Save PNG files ---
     const fgPath = `${CACHE_DIR}fg_${Date.now()}.png`;
     const bgPath = `${CACHE_DIR}bg_${Date.now()}.png`;
     const maskPath = `${CACHE_DIR}mask_${Date.now()}.png`;
-    const maskOutlinePath = `${CACHE_DIR}mask_${Date.now()}.png`;
+    const outlinePath = `${CACHE_DIR}outline_${Date.now()}.png`;
 
     await FileSystem.writeAsStringAsync(fgPath, json.fg, { encoding: "base64" });
     await FileSystem.writeAsStringAsync(bgPath, json.bg, { encoding: "base64" });
     await FileSystem.writeAsStringAsync(maskPath, json.mask, { encoding: "base64" });
-    await FileSystem.writeAsStringAsync(maskOutlinePath, json.mask, { encoding: "base64" });
+    await FileSystem.writeAsStringAsync(outlinePath, json.outline, {
+      encoding: "base64",
+    });
 
-    console.log("✅ Saved:", fgPath, bgPath, maskPath,maskOutlinePath);
+    console.log("✅ Saved segment:", fgPath, bgPath, maskPath, outlinePath);
 
-    // 🔹 Trả về path file (hoặc data URI nếu muốn)
-    return { fg: fgPath, bg: bgPath, mask: maskPath, maskOutline: maskOutlinePath };
-
+    return {
+      fg: fgPath,
+      bg: bgPath,
+      mask: maskPath,
+      outline: outlinePath,
+    };
   } catch (err) {
     console.error("Error in segmentImage:", err);
     return null;

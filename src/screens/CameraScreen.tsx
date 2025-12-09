@@ -1,34 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-  Dimensions,
-  Animated,
-  Image,
-  PanResponder,
-  Linking,
-  Platform,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Dimensions, Animated, Image, PanResponder, Linking, Platform, Alert, } from "react-native";
 import * as FileSystem from "expo-file-system/legacy";
 import { CameraView, CameraType, useCameraPermissions } from "expo-camera";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import * as MediaLibrary from "expo-media-library";
 import { Asset } from "expo-media-library";
 import { Accelerometer } from "expo-sensors";
-import * as ImagePicker from "expo-image-picker";
 
 const { width, height } = Dimensions.get("window");
 
 type SegmentData = {
   id: string;
-  fgUri: string;
-  bgUri: string | null;
-  maskUri: string | null;
-  maskOutlineUri: string | null;
+  fg: string;
+  bg: string;
+  mask: string;
+  outline: string | null;
   fgOpacity: number;
   bgOpacity: number;
   outlineEnabled: boolean;
@@ -57,7 +43,7 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
   const cameraRef = useRef<CameraView | null>(null);
   const [showHorizon, setShowHorizon] = useState(true);
   const [gridMode, setGridMode] = useState<0 | 3 | 4>(0);
-
+  const [layerSize, setLayerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0, });
   const scale = useRef(new Animated.Value(1)).current;
   const rotate = useRef(new Animated.Value(0)).current; // radian
   const position = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -292,54 +278,64 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
         ]}
           {...panResponder.panHandlers}
         >
-          {overlaySegment.bgUri && (
-            <Image
-              source={{ uri: overlaySegment.bgUri }}
-              style={[
-                styles.overlayImage,
-                { opacity: overlaySegment.bgOpacity ?? 1 }
-              ]}
-              resizeMode="cover"
-            />
-          )}
-          {overlaySegment.fgUri && (
-            <Image
-              source={{ uri: overlaySegment.fgUri }}
-              style={[
-                styles.overlayImage,
-                { opacity: overlaySegment.fgOpacity ?? 1 }
-              ]}
-              resizeMode="cover"
-            />
-          )}
+          <View
+            style={StyleSheet.absoluteFillObject}
+            onLayout={(event) => {
+              const { width, height } = event.nativeEvent.layout;
+              // Lưu kích thước để OutlineLayer dùng
+              setLayerSize({ width, height });
+            }}
+          >
+            {/* 1. Background trong suốt */}
+            {overlaySegment.bg && (
+              <Image
+                source={{ uri: overlaySegment.bg }}
+                style={[styles.overlayImage, { opacity: overlaySegment.bgOpacity ?? 1 }]}
+                resizeMode="cover"
+              />
+            )}
 
-          {overlaySegment.fillEnable && overlaySegment.maskUri && (
-            <Image
-              source={{ uri: overlaySegment.maskUri }}
-              style={[
-                styles.overlayImage,
-                {
-                  tintColor: overlaySegment.fillColor,
-                  opacity: overlaySegment.fillOpacity ?? 0.5
-                }
-              ]}
-              resizeMode="cover"
-            />
-          )}
-          {overlaySegment.outlineEnabled && overlaySegment.maskOutlineUri && (
-            <Image
-              source={{ uri: latestImageUri! }}
-              style={[
-                styles.overlayImage,
-                {
-                  tintColor: overlaySegment.outlineColor,
-                  opacity: 1,
-                },
-              ]}
-              resizeMode="cover"
-            />
+            {/* 2. Người gốc */}
+            {overlaySegment.fg && (
+              <Image
+                source={{ uri: overlaySegment.fg }}
+                style={[styles.overlayImage, { opacity: overlaySegment.fgOpacity ?? 1 }]}
+                resizeMode="cover"
+              />
+            )}
 
-          )}
+            {/* 3. Fill màu */}
+            {overlaySegment.fillEnable && overlaySegment.mask && (
+              <Image
+                source={{ uri: overlaySegment.mask }}
+                style={[
+                  styles.overlayImage,
+                  {
+                    tintColor: overlaySegment.fillColor,
+                    opacity: overlaySegment.fillOpacity ?? 0.5,
+                  },
+                ]}
+                resizeMode="cover"
+              />
+            )}
+
+            {/* 4. OUTLINE REALTIME – ĐẸP NHẤT, CHUẨN NHẤT */}
+            {overlaySegment.outlineEnabled && overlaySegment.outline && (
+              <Image
+                source={{ uri: overlaySegment.outline }}
+                style={[
+                  styles.fullImage,
+                  {
+                    tintColor: overlaySegment.outlineColor,
+                    opacity: 1,
+                    transform: [{ scale: 1 + overlaySegment.outlineSize / 50 }],
+                  },
+                ]}
+                resizeMode="cover"
+              />
+            )}
+
+          </View>
         </Animated.View>
       )}
       {editingOverlay && (
@@ -573,5 +569,6 @@ const styles = StyleSheet.create({
   markerTop: { fontSize: 18, color: "#fff", lineHeight: 18 },
   markerBottom: { fontSize: 18, color: "#fff", lineHeight: 20 },
 
+  fullImage: { position: "absolute",width: "100%",height: "100%", },
   deleteOverlay: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: "white", backgroundColor: "red", justifyContent: "center", alignItems: "center", opacity: 0.9, }
 });

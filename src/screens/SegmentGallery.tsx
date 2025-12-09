@@ -27,10 +27,10 @@ export type SegmentGalleryProps = {
   onClose: () => void;
   onSelectSegment: (data: {
     id: string;
-    fgUri: string;
-    bgUri: string | null;
-    maskUri: string | null;
-    maskOutlineUri: string | null;
+    fg: string;
+    bg: string ;
+    mask: string ;
+    outline: string | null;
     fgOpacity: number;
     bgOpacity: number;
     outlineEnabled: boolean;
@@ -89,10 +89,10 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
         if (result && result.fg && result.bg && result.mask) {
           const newSegment: SegmentData = {
             id: generateSegmentId(),
-            fgUri: result.fg,
-            bgUri: result.bg,
-            maskUri: result.mask,
-            maskOutlineUri: result.maskOutline,
+            fg: result.fg,
+            bg: result.bg,
+            mask: result.mask,
+            outline: result.outline,
             fgOpacity: 1,
             bgOpacity: 1,
             outlineEnabled: true,
@@ -135,10 +135,10 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
   const handleSelectSegment = (item: SegmentData) => {
     onSelectSegment({
       id: item.id,
-      fgUri: item.fgUri,
-      bgUri: item.bgUri,
-      maskUri: item.maskUri,
-      maskOutlineUri: item.maskOutlineUri,
+      fg: item.fg,
+      bg: item.bg,
+      mask: item.mask,
+      outline: item.outline,
       fgOpacity: item.fgOpacity,
       bgOpacity: item.bgOpacity,
       outlineEnabled: item.outlineEnabled,
@@ -177,11 +177,11 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
       );
     }
 
-    if (!item || !item.fgUri) return null;
+    if (!item || !item.fg) return null;
 
     return (
       <View style={styles.itemWrapper}>
-        <Image source={{ uri: item.fgUri }} style={styles.imageItem} />
+        <Image source={{ uri: item.fg }} style={styles.imageItem} />
         <View style={styles.overlay}>
 
           <TouchableOpacity

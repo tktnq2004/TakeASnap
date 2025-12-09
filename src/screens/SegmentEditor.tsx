@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { View, Text, StyleSheet, Dimensions, ScrollView, Switch, TouchableOpacity, Image } from "react-native";
 import { Slider } from "@miblanchard/react-native-slider";
 import { SegmentData, saveSegment } from "../components/SegmentStorage";
-import Svg, { Image as SvgImage, Rect, Mask } from 'react-native-svg';
+
 
 type Props = {
   segment: SegmentData;
@@ -25,9 +25,9 @@ export default function SegmentEditor({ segment, onDone }: Props) {
   const [fgOpacity, setFgOpacity] = useState<number>(segment.fgOpacity ?? 1);
   const [bgOpacity, setBgOpacity] = useState<number>(segment.bgOpacity ?? 1);
 
-  const [outlineEnabled, setOutlineEnabled] = useState<boolean>(segment.outlineEnabled ?? false);
-  const [outlineWidth, setOutlineWidth] = useState<number>(segment.outlineSize ?? 6);
-  const [outlineColor, setOutlineColor] = useState<string>(segment.outlineColor ?? "white");
+  const [outlineEnabled, setOutlineEnabled] = useState<boolean>(true);
+  const [outlineWidth, setOutlineWidth] = useState<number>(8);
+  const [outlineColor, setOutlineColor] = useState<string>("#ffffff");
 
   // tiles with memo for perf
   const tiles = useMemo(() => {
@@ -68,8 +68,6 @@ export default function SegmentEditor({ segment, onDone }: Props) {
     onDone?.(updatedSegment);
   };
 
-  const outlineScale = 1 + outlineWidth / 30;
-
   const fillPresets = ["#0047AB", "#0ea5e9", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6"];
   const outlinePresets = ["white", "#000000", "#ffffff", "#f3f4f6", "#ef4444", "#10b981"];
 
@@ -79,25 +77,25 @@ export default function SegmentEditor({ segment, onDone }: Props) {
         {tiles}
 
         {/* Background */}
-        {segment.bgUri && (
+        {segment.bg && (
           <Image
-            source={{ uri: segment.bgUri }}
+            source={{ uri: segment.bg }}
             style={[styles.fullImage, { opacity: bgOpacity }]}
             resizeMode="cover"
           />
         )}
         {/* Original FG */}
-        {segment.fgUri && (
+        {segment.fg && (
           <Image
-            source={{ uri: segment.fgUri }}
+            source={{ uri: segment.fg }}
             style={[styles.fullImage, { opacity: fgOpacity }]}
             resizeMode="cover"
           />
         )}
         {/* FILL overlay */}
-        {fillEnable && segment.maskUri && (
+        {fillEnable && segment.mask && (
           <Image
-            source={{ uri: segment.maskUri }}
+            source={{ uri: segment.mask }}
             style={[
               styles.fullImage,
               { tintColor: fillColor, opacity: fillOpacity }
@@ -107,16 +105,21 @@ export default function SegmentEditor({ segment, onDone }: Props) {
         )}
 
         {/* OUTLINE - sử dụng outlineMaskUri */}
-        {outlineEnabled && segment.maskOutlineUri && (
+        {outlineEnabled && segment.outline && (
           <Image
-            source={{ uri: segment.maskOutlineUri }}
+            source={{ uri: segment.outline }}
             style={[
               styles.fullImage,
-              { tintColor: outlineColor, opacity: 1 }
+              {
+                tintColor: outlineColor,
+                opacity: 1,
+                transform: [{ scale: 1}],
+              },
             ]}
             resizeMode="cover"
           />
         )}
+
       </View>
 
       <ScrollView style={[styles.controls, { height: controlHeight }]}>
@@ -196,7 +199,8 @@ export default function SegmentEditor({ segment, onDone }: Props) {
               value={outlineWidth}
               minimumValue={0}
               maximumValue={30}
-              onValueChange={v => setOutlineWidth(Array.isArray(v) ? v[0] : v)}
+              step={0.5}
+              onValueChange={(v) => setOutlineWidth(Array.isArray(v) ? v[0] : v)}
             />
 
             <Text style={[styles.sectionTitle, { marginTop: 12 }]}>Outline Color</Text>

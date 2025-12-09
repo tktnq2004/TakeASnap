@@ -6,10 +6,10 @@ const SEGMENTS_JSON = `${SEGMENTS_DIR}segments.json`;
 
 export type SegmentData = {
   id: string;
-  fgUri: string;
-  bgUri: string | null;
-  maskUri: string | null;
-  maskOutlineUri: string | null;
+  fg: string;
+  bg: string;
+  mask: string;
+  outline: string | null;
 
   fgOpacity: number;
   bgOpacity: number;
@@ -63,7 +63,7 @@ export async function deleteSegment(id: string): Promise<void> {
   const list = await loadSegments();
   const removed = list.find((x) => x.id === id);
   if (removed) {
-    const files = [removed.fgUri, removed.bgUri, removed.maskUri];
+    const files = [removed.fg, removed.bg, removed.mask];
     for (const file of files) {
       if (!file) continue;
       const f = await FileSystem.getInfoAsync(file);
