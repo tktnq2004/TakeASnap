@@ -34,7 +34,6 @@ export type SegmentGalleryProps = {
     fgOpacity: number;
     bgOpacity: number;
     outlineEnabled: boolean;
-    outlineSize: number;
     outlineColor: string;
     fillEnable: boolean;
     fillColor: string;
@@ -96,7 +95,6 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
             fgOpacity: 1,
             bgOpacity: 1,
             outlineEnabled: true,
-            outlineSize: 2,
             outlineColor: "white",
             fillEnable: true,
             fillColor: "#fc4747ff",
@@ -142,7 +140,6 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
       fgOpacity: item.fgOpacity,
       bgOpacity: item.bgOpacity,
       outlineEnabled: item.outlineEnabled,
-      outlineSize: item.outlineSize,
       outlineColor: item.outlineColor,
       fillEnable: item.fillEnable,
       fillColor: item.fillColor,

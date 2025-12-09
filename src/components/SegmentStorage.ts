@@ -15,7 +15,6 @@ export type SegmentData = {
   bgOpacity: number;
 
   outlineEnabled: boolean;
-  outlineSize: number;
   outlineColor: string;
 
   fillEnable: boolean;

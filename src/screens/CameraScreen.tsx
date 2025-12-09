@@ -18,7 +18,6 @@ type SegmentData = {
   fgOpacity: number;
   bgOpacity: number;
   outlineEnabled: boolean;
-  outlineSize: number;
   outlineColor: string;
   fillEnable: boolean;
   fillColor: string;
@@ -328,7 +327,6 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
                   {
                     tintColor: overlaySegment.outlineColor,
                     opacity: 1,
-                    transform: [{ scale: 1 + overlaySegment.outlineSize / 50 }],
                   },
                 ]}
                 resizeMode="cover"
