@@ -65,13 +65,30 @@ export default function SegmentEditor({ segment, onDone }: Props) {
     await saveSegment(updatedSegment);
     onDone?.(updatedSegment);
   };
+  const coolFillPresets = [
+    "#3b82f6", 
+    "#0ea5e9", 
+    "#38bdf8", 
+    "#22d3ee", 
+    "#2dd4bf",
+    "#4ade80", 
+    "#a5b4fc", 
+    "#c4b5fd", 
+  ];
 
-  const fillPresets = ["#0047AB", "#0ea5e9", "#10b981", "#ef4444", "#f59e0b", "#8b5cf6"];
-  const outlinePresets = ["white", "#000000", "#ffffff", "#f3f4f6", "#ef4444", "#10b981"];
+  const outlinePresets = [
+    "#ffffff",
+    "#d1d5db",
+    "#9ca3af",
+    "#6b7280",
+    "#4b5563",
+    "#000000",
+  ];
+
 
   return (
     <View style={[styles.root, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-      
+
       {/* ===== Preview Section ===== */}
       <View style={[styles.preview, { height: previewHeight }]}>
         {tiles}
@@ -83,73 +100,134 @@ export default function SegmentEditor({ segment, onDone }: Props) {
       </View>
 
       {/* ===== Controls Section ===== */}
-      <ScrollView style={[styles.controls, { height: controlHeight }]} contentContainerStyle={{ paddingBottom: 30 }}>
-        
-        {/* Foreground Opacity */}
-        <Text style={styles.sectionTitle}>Foreground Opacity</Text>
-        <Text style={styles.label}>{(fgOpacity * 100).toFixed(0)}%</Text>
-        <Slider value={fgOpacity} minimumValue={0} maximumValue={1} onValueChange={v => setFgOpacity(Array.isArray(v) ? v[0] : v)} thumbTintColor="#2196F3" minimumTrackTintColor="#2196F3" />
-        <View style={styles.separator} />
+      <ScrollView
+        style={[styles.controls, { height: controlHeight }]}
+        contentContainerStyle={{ paddingBottom: 40 }}
+      >
 
-        {/* Background Opacity */}
-        <Text style={styles.sectionTitle}>Background Opacity</Text>
-        <Text style={styles.label}>{(bgOpacity * 100).toFixed(0)}%</Text>
-        <Slider value={bgOpacity} minimumValue={0} maximumValue={1} onValueChange={v => setBgOpacity(Array.isArray(v) ? v[0] : v)} thumbTintColor="#2196F3" minimumTrackTintColor="#2196F3" />
-        <View style={styles.separator} />
+        {/* FOREGROUND */}
+        <Text style={styles.sectionHeader}>Foreground</Text>
 
-        {/* Fill Section */}
+        <View style={styles.controlBlock}>
+          <Text style={styles.sectionTitle}>Opacity</Text>
+          <Text style={styles.label}>{(fgOpacity * 100).toFixed(0)}%</Text>
+          <Slider
+            value={fgOpacity}
+            minimumValue={0}
+            maximumValue={1}
+            onValueChange={v => setFgOpacity(Array.isArray(v) ? v[0] : v)}
+            thumbTintColor="#3b82f6"
+            minimumTrackTintColor="#3b82f6"
+          />
+        </View>
+
+        {/* BACKGROUND */}
+        <Text style={styles.sectionHeader}>Background</Text>
+
+        <View style={styles.controlBlock}>
+          <Text style={styles.sectionTitle}>Opacity</Text>
+          <Text style={styles.label}>{(bgOpacity * 100).toFixed(0)}%</Text>
+          <Slider
+            value={bgOpacity}
+            minimumValue={0}
+            maximumValue={1}
+            onValueChange={v => setBgOpacity(Array.isArray(v) ? v[0] : v)}
+            thumbTintColor="#3b82f6"
+            minimumTrackTintColor="#3b82f6"
+          />
+        </View>
+
+        {/* FILL SECTION */}
+        <Text style={styles.sectionHeader}>Fill</Text>
+
         <View style={styles.row}>
           <Text style={styles.sectionTitle}>Enable Fill</Text>
           <Switch value={fillEnable} onValueChange={setFillEnable} />
         </View>
 
         {fillEnable && (
-          <>
+          <View style={styles.controlBlock}>
             <Text style={styles.sectionTitle}>Fill Opacity</Text>
             <Text style={styles.label}>{(fillOpacity * 100).toFixed(0)}%</Text>
-            <Slider value={fillOpacity} minimumValue={0} maximumValue={1} onValueChange={v => setFillOpacity(Array.isArray(v) ? v[0] : v)} thumbTintColor="#2196F3" minimumTrackTintColor="#2196F3" />
+            <Slider
+              value={fillOpacity}
+              minimumValue={0}
+              maximumValue={1}
+              onValueChange={v => setFillOpacity(Array.isArray(v) ? v[0] : v)}
+              thumbTintColor="#3b82f6"
+              minimumTrackTintColor="#3b82f6"
+            />
 
-            <Text style={styles.sectionTitle}>Fill Color</Text>
+            <Text style={[styles.sectionTitle, { marginTop: 8 }]}>Fill Color</Text>
             <View style={styles.colorRow}>
-              {fillPresets.map(c => (
-                <TouchableOpacity key={c} onPress={() => setFillColor(c)} style={[styles.colorCircle, { backgroundColor: c, borderWidth: fillColor === c ? 3 : 0 }]} />
+              {coolFillPresets.map(c => (
+                <TouchableOpacity
+                  key={c}
+                  onPress={() => setFillColor(c)}
+                  style={[
+                    styles.colorCircle,
+                    {
+                      backgroundColor: c,
+                      borderWidth: fillColor === c ? 3 : 1,
+                      borderColor: fillColor === c ? "#fff" : "#555",
+                    },
+                  ]}
+                />
               ))}
-              <TouchableOpacity onPress={() => alert("Open color picker")} style={[styles.colorCircle, { backgroundColor: "#222", justifyContent: "center", alignItems: "center" }]}>
-                <Text style={{ color: "#fff", fontSize: 14 }}>+</Text>
+
+              <TouchableOpacity
+                onPress={() => alert("Open color picker")}
+                style={[styles.colorCircle, styles.addColorCircle]}
+              >
+                <Text style={{ color: "#fff", fontSize: 16 }}>+</Text>
               </TouchableOpacity>
             </View>
-          </>
+          </View>
         )}
 
-        <View style={styles.separator} />
+        {/* OUTLINE */}
+        <Text style={styles.sectionHeader}>Outline</Text>
 
-        {/* Outline Section */}
         <View style={styles.row}>
-          <Text style={styles.sectionTitle}>Outline</Text>
+          <Text style={styles.sectionTitle}>Enable Outline</Text>
           <Switch value={outlineEnabled} onValueChange={setOutlineEnabled} />
         </View>
 
         {outlineEnabled && (
-          <>
+          <View style={styles.controlBlock}>
             <Text style={styles.sectionTitle}>Outline Color</Text>
             <View style={styles.colorRow}>
               {outlinePresets.map(c => (
-                <TouchableOpacity key={c} onPress={() => setOutlineColor(c)} style={[styles.colorCircle, { backgroundColor: c === "white" ? "#fff" : c, borderWidth: outlineColor === c ? 3 : 0 }]} />
+                <TouchableOpacity
+                  key={c}
+                  onPress={() => setOutlineColor(c)}
+                  style={[
+                    styles.colorCircle,
+                    {
+                      backgroundColor: c,
+                      borderWidth: outlineColor === c ? 3 : 1,
+                      borderColor: outlineColor === c ? "#fff" : "#555",
+                    },
+                  ]}
+                />
               ))}
-              <TouchableOpacity onPress={() => alert("Open outline color picker")} style={[styles.colorCircle, { backgroundColor: "#222", justifyContent: "center", alignItems: "center" }]}>
-                <Text style={{ color: "#fff", fontSize: 14 }}>+</Text>
+
+              <TouchableOpacity
+                onPress={() => alert("Open outline color picker")}
+                style={[styles.colorCircle, styles.addColorCircle]}
+              >
+                <Text style={{ color: "#fff", fontSize: 16 }}>+</Text>
               </TouchableOpacity>
             </View>
-          </>
+          </View>
         )}
 
-        <View style={styles.separator} />
-
-        {/* Done Button */}
         <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
           <Text style={styles.doneText}>Done</Text>
         </TouchableOpacity>
+
       </ScrollView>
+
     </View>
   );
 }
@@ -159,12 +237,15 @@ const styles = StyleSheet.create({
   preview: { width: "100%", overflow: "hidden", marginBottom: 8 },
   fullImage: { position: "absolute", width: "100%", height: "100%" },
   controls: { backgroundColor: "#1c1c1e", paddingHorizontal: 16, paddingTop: 12 },
-  label: { color: "#ccc", marginBottom: 6 },
-  sectionTitle: { color: "#fff", fontWeight: "600", fontSize: 16, marginBottom: 4 },
-  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginVertical: 8 },
   separator: { height: 1, backgroundColor: "#333", marginVertical: 12 },
-  colorRow: { flexDirection: "row", flexWrap: "wrap", marginVertical: 8 },
-  colorCircle: { width: 36, height: 36, borderRadius: 18, marginRight: 10, borderColor: "#fff" },
-  doneButton: { marginTop: 20, paddingVertical: 14, borderRadius: 12, alignItems: "center", backgroundColor: "#2196F3" },
-  doneText: { color: "#fff", fontWeight: "700", fontSize: 18 },
+  sectionHeader: { color: "#9ca3af", fontSize: 14, fontWeight: "600", marginTop: 10, marginBottom: 4, letterSpacing: 0.4, },
+  sectionTitle: { color: "#fff", fontSize: 15, fontWeight: "600", marginBottom: 4, },
+  label: { color: "#ccc", fontSize: 14, marginBottom: 8, },
+  row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 12, },
+  controlBlock: { paddingVertical: 8, marginBottom: 12, }, 
+  colorRow: { flexDirection: "row", flexWrap: "wrap", marginTop: 8, },
+  colorCircle: { width: 38, height: 38, borderRadius: 19, marginRight: 12, marginBottom: 12, },
+  addColorCircle: { backgroundColor: "#2e2e32", borderWidth: 1, borderColor: "#555", justifyContent: "center", alignItems: "center"},
+  doneButton: { marginTop: 26, paddingVertical: 16, borderRadius: 12, alignItems: "center", backgroundColor: "#3b82f6"},
+  doneText: { color: "#fff", fontWeight: "700", fontSize: 17, },
 });

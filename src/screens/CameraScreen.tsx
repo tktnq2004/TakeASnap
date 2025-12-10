@@ -43,35 +43,95 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
   const [showHorizon, setShowHorizon] = useState(true);
   const [gridMode, setGridMode] = useState<0 | 3 | 4>(0);
   const [layerSize, setLayerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0, });
+
+  //overlay
   const scale = useRef(new Animated.Value(1)).current;
   const rotate = useRef(new Animated.Value(0)).current; // radian
   const position = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
 
   const [editingOverlay, setEditingOverlay] = useState(false);
+  const mode = useRef<'none' | 'drag' | 'pinch'>('none'); // track current gesture
+
+  // Lưu trạng thái pinch trước đó
+  const lastRotate = useRef(0); // góc overlay trước khi bắt đầu pinch
+  const initialPinchDistance = useRef(0); // khoảng cách pinch ban đầu
+  const [currentRotate, setCurrentRotate] = useState(0);
+  const startAngle = useRef(0);
+  useEffect(() => {
+    const id = rotate.addListener(({ value }) => {
+      setCurrentRotate(value);
+    });
+    return () => rotate.removeListener(id);
+  }, []);
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => setEditingOverlay(true),
+
+      onPanResponderGrant: (evt, gestureState) => {
+        setEditingOverlay(true);
+
+        const touches = evt.nativeEvent.touches;
+
+        if (touches.length === 2) {
+          // Bắt đầu pinch
+          mode.current = 'pinch';
+          lastRotate.current = currentRotate;
+          const dx = touches[0].pageX - touches[1].pageX;
+          const dy = touches[0].pageY - touches[1].pageY;
+          initialPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
+        } else if (touches.length === 1) {
+          // Bắt đầu drag
+          if (mode.current === 'none') mode.current = 'drag';
+        }
+      },
+
       onPanResponderMove: (evt, gestureState) => {
-        const { dx, dy, numberActiveTouches, moveX, moveY } = gestureState;
+        const { dx, dy, moveX, moveY, numberActiveTouches } = gestureState;
         const DEL_X = width / 2;
         const DEL_Y = height - 75;
         const RADIUS = 70;
         const dist = Math.sqrt((moveX - DEL_X) ** 2 + (moveY - DEL_Y) ** 2);
 
-        if (numberActiveTouches === 1) {
-          position.setValue({ x: dx, y: dy });
+        const touches = evt.nativeEvent.touches;
 
-        } else if (numberActiveTouches === 2) {
-          const touches = evt.nativeEvent.touches;
-          const dxTouches = touches[0].pageX - touches[1].pageX;
-          const dyTouches = touches[0].pageY - touches[1].pageY;
-          const distance = Math.sqrt(dxTouches ** 2 + dyTouches ** 2);
-          const angle = Math.atan2(dyTouches, dxTouches);
-          scale.setValue(distance / 200);
-          rotate.setValue(angle);
+        // ---- Handle pinch ----
+        if (numberActiveTouches === 2 && mode.current !== 'pinch') {
+          mode.current = 'pinch';
+
+          // Tính góc ban đầu giữa hai ngón tay
+          const dx = touches[0].pageX - touches[1].pageX;
+          const dy = touches[0].pageY - touches[1].pageY;
+          startAngle.current = Math.atan2(dy, dx);
+
+          lastRotate.current = currentRotate; // currentRotate lấy từ addListener
+          initialPinchDistance.current = Math.sqrt(dx * dx + dy * dy);
         }
+
+        // Khi move pinch
+        if (numberActiveTouches === 2) {
+          const dx = touches[0].pageX - touches[1].pageX;
+          const dy = touches[0].pageY - touches[1].pageY;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const angle = Math.atan2(dy, dx);
+
+          // scale dựa trên distance ban đầu
+          const scaleFactor = distance / initialPinchDistance.current;
+          scale.setValue(scaleFactor);
+
+          // rotate dựa trên delta giữa góc hiện tại và startAngle
+          const deltaAngle = angle - startAngle.current;
+          rotate.setValue(lastRotate.current + deltaAngle);
+
+          return;
+        }
+
+        // ---- Handle drag ----
+        if (mode.current === 'drag' && numberActiveTouches === 1) {
+          position.setValue({ x: dx, y: dy });
+        }
+
+        // ---- Handle shrink near delete area ----
         if (dist < RADIUS) {
           Animated.timing(scale, {
             toValue: 0.2,
@@ -86,18 +146,27 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
           }).start();
         }
       },
+
       onPanResponderRelease: (evt, gestureState) => {
-        const { moveX, moveY } = gestureState;
+        const { moveX, moveY, numberActiveTouches } = gestureState;
         const DEL_X = width / 2;
         const DEL_Y = height - 75;
         const RADIUS = 70;
         const dist = Math.sqrt((moveX - DEL_X) ** 2 + (moveY - DEL_Y) ** 2);
 
-        if (dist < RADIUS)
-          onUpdateOverlay(null);
+        if (dist < RADIUS) onUpdateOverlay(null);
+
+        // Reset mode
+        if (mode.current === 'pinch' && numberActiveTouches === 0) {
+          mode.current = 'none';
+        } else if (mode.current === 'drag') {
+          mode.current = 'none';
+        }
 
         setEditingOverlay(false);
       },
+
+      onPanResponderTerminationRequest: () => false,
     })
   ).current;
 
@@ -544,7 +613,7 @@ const styles = StyleSheet.create({
   gridLineV: { position: "absolute", width: 1, height: "100%", backgroundColor: "rgba(255,255,255,0.7)" },
   gridLineH: { position: "absolute", height: 1, width: "100%", backgroundColor: "rgba(255,255,255,0.7)" },
 
-  horizonWrapper: { position: "absolute", top: "44.8%", left: 0, right: 0, alignItems: "center" },
+  horizonWrapper: { position: "absolute", top: "44.8%", left: 0, right: 0, alignItems: "center", zIndex: 10, pointerEvents: "none" },
   horizonContainer: { width: 200, alignItems: "center" },
   horizonRow: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
   horizonShort: { width: 35, height: 3, backgroundColor: "rgba(255,60,0,1)", borderRadius: 3, marginHorizontal: 10 },
@@ -567,6 +636,6 @@ const styles = StyleSheet.create({
   markerTop: { fontSize: 18, color: "#fff", lineHeight: 18 },
   markerBottom: { fontSize: 18, color: "#fff", lineHeight: 20 },
 
-  fullImage: { position: "absolute",width: "100%",height: "100%", },
+  fullImage: { position: "absolute", width: "100%", height: "100%", },
   deleteOverlay: { width: 90, height: 90, borderRadius: 45, borderWidth: 3, borderColor: "white", backgroundColor: "red", justifyContent: "center", alignItems: "center", opacity: 0.9, }
 });
