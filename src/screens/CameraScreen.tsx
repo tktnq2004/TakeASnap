@@ -29,11 +29,12 @@ type CameraScreenProps = {
   onOpenGallery: () => void;
   overlaySegment?: SegmentData | null;
   onUpdateOverlay: (overlay: SegmentData | null) => void;
+  onChangeBackground?: () => void;
 };
 
 type FlashMode = "off" | "on" | "auto";
 
-export default function CameraScreen({ onOpenGallery, overlaySegment = null, onUpdateOverlay }: CameraScreenProps) {
+export default function CameraScreen({ onOpenGallery, overlaySegment = null, onUpdateOverlay, onChangeBackground }: CameraScreenProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraType, setCameraType] = useState<CameraType>("back");
   const [flashMode, setFlashMode] = useState<FlashMode>("off");
@@ -178,6 +179,7 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
     const listener = zoomAnim.addListener(({ value }) => setZoom(value));
     return () => zoomAnim.removeListener(listener);
   }, []);
+
   //horizon
   useEffect(() => {
     const subscription = Accelerometer.addListener(({ x, y, z }) => {
@@ -498,6 +500,7 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
             style={{
               width: 45,
               height: 45,
+              marginTop: 18,
               borderRadius: 10,
               overflow: "hidden",
               justifyContent: "center",
@@ -512,15 +515,20 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
               />
 
             ) : (
-              <Ionicons name="images-outline" size={32} color="white" />
+              <Ionicons name="albums-outline" size={32} color="white" />
             )}
           </TouchableOpacity>
-
           <TouchableOpacity style={styles.captureButton} onPress={takePhoto} />
 
-          <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
-            <Ionicons name="person-add-outline" size={32} color="white" />
-          </TouchableOpacity>
+          <View style={styles.wrappedIcon}>
+            <TouchableOpacity style={[styles.sideIcon, { marginRight: 20 }]} onPress={onChangeBackground}>
+              <Ionicons name="images-outline" size={32} color="white" />
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.sideIcon} onPress={onOpenGallery}>
+              <Ionicons name="person-add-outline" size={32} color="white" />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
     </View>
@@ -622,10 +630,11 @@ const styles = StyleSheet.create({
 
   leftSidebar: { position: "absolute", top: "40%", left: 15, zIndex: 10, transform: [{ translateY: -55 }], alignItems: "center" },
   leftIcon: { color: "#fff", fontSize: 32, marginBottom: 20 },
-
+  leftIconButton: { color: "#fff", fontSize: 32, marginBottom: 20 },
   bottomBar: { position: "absolute", bottom: 75, width: "100%", zIndex: 10, flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 40 },
   sideIcon: { width: 50, height: 50, justifyContent: "center", alignItems: "center" },
-  captureButton: { width: 85, height: 85, borderRadius: 50, backgroundColor: "#C259FF", borderWidth: 3, borderColor: "#fff" },
+  captureButton: { marginLeft: 75, width: 85, height: 85, borderRadius: 50, backgroundColor: "#C259FF", borderWidth: 3, borderColor: "#fff" },
+  wrappedIcon: { flexDirection: "row", alignItems: "center" },
 
   permissionCenter: { flex: 1, justifyContent: "center", alignItems: "center" },
   permissionText: { color: "#fff", marginBottom: 10, fontSize: 16 },

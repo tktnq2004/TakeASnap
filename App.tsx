@@ -6,12 +6,14 @@ import CameraScreen from "./src/screens/CameraScreen";
 import SegmentGallery from "./src/screens/SegmentGallery";
 import SegmentEditor from "./src/screens/SegmentEditor";
 import { SegmentData } from "./src/components/SegmentStorage";
+import ChangeBackground from "./src/screens/ChangeBackground";
 
 export default function App() {
-  const [screen, setScreen] = useState<"camera" | "gallery" | "editor">("camera");
+  const [screen, setScreen] = useState<"camera" | "gallery" | "editor" | "changeBackground">("camera");
   const [currentSegment, setCurrentSegment] = useState<SegmentData | null>(null);
 
   const openGallery = () => setScreen("gallery");
+  const openChangBackground = () => setScreen("changeBackground");
 
   const openEditor = (segment: SegmentData) => {
     setCurrentSegment(segment);
@@ -37,6 +39,7 @@ export default function App() {
             onUpdateOverlay={handleUpdateOverlay}
             onOpenGallery={openGallery}
             overlaySegment={currentSegment}
+            onChangeBackground={openChangBackground}
           />
         )}
 
@@ -52,6 +55,10 @@ export default function App() {
             segment={currentSegment}
             onDone={handleEditorDone}
           />
+        )}
+
+        {screen === "changeBackground" && (
+          <ChangeBackground onClose={goBackToCamera} />
         )}
       </View>
     </SafeAreaProvider>

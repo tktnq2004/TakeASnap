@@ -1,7 +1,7 @@
 import * as FileSystem from "expo-file-system/legacy";
 import { Platform } from "react-native";
 
-const SERVER_HOST = "192.168.1.4";
+const SERVER_HOST = "192.168.1.6";
 const SERVER_URL = `http://${SERVER_HOST}:5000`;
 const CACHE_DIR = FileSystem.cacheDirectory || FileSystem.documentDirectory;
 if (!CACHE_DIR) throw new Error("Cannot access cache directory");
@@ -32,7 +32,6 @@ export async function segmentImage(
     if (!response.ok) throw new Error("Segmentation failed");
     const json = await response.json();
 
-    // ⚡ CHỈ CẦN 4 TRƯỜNG FG/BG/MASK/OUTLINE
     if (!json.fg || !json.bg || !json.mask || !json.outline)
       throw new Error("Server missing fg/bg/mask/outline");
 

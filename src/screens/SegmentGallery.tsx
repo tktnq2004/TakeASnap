@@ -13,6 +13,12 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SAMPLE_CATEGORIES,
+  SampleImage,
+} from "../components/sampleImages";
+
+
 
 import segmentUtils from "../components/SegmentUtils";
 import {
@@ -28,8 +34,8 @@ export type SegmentGalleryProps = {
   onSelectSegment: (data: {
     id: string;
     fg: string;
-    bg: string ;
-    mask: string ;
+    bg: string;
+    mask: string;
     outline: string | null;
     fgOpacity: number;
     bgOpacity: number;
@@ -42,7 +48,9 @@ export type SegmentGalleryProps = {
   }) => void;
 };
 
+
 const { width } = Dimensions.get("window");
+
 const NUM_COLUMNS = 2;
 const PADDING_HORIZONTAL = 20;
 const SPACING = 10;
@@ -50,7 +58,12 @@ const ITEM_WIDTH = Math.floor(
   (width - PADDING_HORIZONTAL * 2 - SPACING * (NUM_COLUMNS - 1)) / NUM_COLUMNS
 );
 
-export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGalleryProps) {
+export default function SegmentGallery({
+  onClose,
+  onSelectSegment,
+}: SegmentGalleryProps) {
+
+  const [activeTab, setActiveTab] = useState<"sample" | "saved">("sample");
   const [segments, setSegments] = useState<SegmentData[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [processingLoading, setProcessingLoading] = useState(false);
@@ -60,8 +73,7 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
       try {
         const data = await loadSegments();
         setSegments(data.reverse());
-      } catch (error) {
-        console.error("Lỗi khi tải segments:", error);
+      } catch {
         Alert.alert("Lỗi", "Không thể tải dữ liệu ảnh.");
       } finally {
         setInitialLoading(false);
@@ -70,50 +82,80 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
     fetchSegments();
   }, []);
 
+  /* =======================
+     PICK IMAGE (SAVED TAB)
+  ======================== */
   const pickImage = async () => {
     if (Platform.OS !== "web") {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== "granted") {
-        Alert.alert("Lỗi", "Cần quyền truy cập thư viện ảnh để chọn ảnh.");
+        Alert.alert("Lỗi", "Cần quyền truy cập thư viện ảnh.");
         return;
       }
     }
 
-    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images });
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    });
+
     if (!res.canceled && res.assets?.length > 0) {
-      const uri = res.assets[0].uri;
-      setProcessingLoading(true);
-      try {
-        const result = await segmentUtils.segmentImage(uri);
-        if (result && result.fg && result.bg && result.mask) {
-          const newSegment: SegmentData = {
-            id: generateSegmentId(),
-            fg: result.fg,
-            bg: result.bg,
-            mask: result.mask,
-            outline: result.outline,
-            fgOpacity: 1,
-            bgOpacity: 1,
-            outlineEnabled: true,
-            outlineColor: "white",
-            fillEnable: true,
-            fillColor: "#fc4747ff",
-            fillOpacity: 0.5,
-            createdAt: new Date().toISOString(),
-          };
-          await saveSegment(newSegment);
-          setSegments(prev => [newSegment, ...prev]);
-          handleSelectSegment(newSegment);
-        } else {
-          Alert.alert("Lỗi", "Xử lý ảnh không tạo ra kết quả hợp lệ.");
-        }
-      } catch (err) {
-        console.error("Segmentation failed:", err);
-        Alert.alert("Lỗi", "Không thể xử lý ảnh.");
-      } finally {
-        setProcessingLoading(false);
-      }
+      createSegmentFromUri(res.assets[0].uri);
     }
+  };
+
+  /* =======================
+     CREATE SEGMENT (COMMON)
+  ======================== */
+  const createSegmentFromUri = async (uri: string) => {
+    setProcessingLoading(true);
+    try {
+      const result = await segmentUtils.segmentImage(uri);
+
+      if (!result?.fg || !result?.bg || !result?.mask) {
+        throw new Error("Invalid result");
+      }
+
+      const newSegment: SegmentData = {
+        id: generateSegmentId(),
+        fg: result.fg,
+        bg: result.bg,
+        mask: result.mask,
+        outline: result.outline,
+        fgOpacity: 1,
+        bgOpacity: 1,
+        outlineEnabled: true,
+        outlineColor: "white",
+        fillEnable: true,
+        fillColor: "#fc4747ff",
+        fillOpacity: 0.5,
+        createdAt: new Date().toISOString(),
+      };
+
+      await saveSegment(newSegment);
+      setSegments(prev => [newSegment, ...prev]);
+
+      handleSelectSegment(newSegment);
+      onClose();
+    } catch {
+      Alert.alert("Lỗi", "Không thể xử lý ảnh.");
+    } finally {
+      setProcessingLoading(false);
+    }
+  };
+
+  /* =======================
+     SAMPLE SELECT
+  ======================== */
+  const handleSelectSample = async (item: SampleImage) => {
+    const asset = Image.resolveAssetSource(item.source);
+    createSegmentFromUri(asset.uri);
+  };
+
+  /* =======================
+     SELECT / DELETE
+  ======================== */
+  const handleSelectSegment = (item: SegmentData) => {
+    onSelectSegment({ ...item });
   };
 
   const handleDelete = (id: string) => {
@@ -123,114 +165,142 @@ export default function SegmentGallery({ onClose, onSelectSegment }: SegmentGall
         text: "Xoá",
         style: "destructive",
         onPress: async () => {
-          await deleteSegment(id);
-          setSegments(prev => prev.filter(s => s.id !== id));
-        },
+          try {
+            await deleteSegment(id);
+            setSegments(prev => prev.filter(s => s.id !== id));
+          } catch {
+            Alert.alert("Lỗi", "Không thể xoá ảnh.");
+          }
+        }
       },
     ]);
   };
 
-  const handleSelectSegment = (item: SegmentData) => {
-    onSelectSegment({
-      id: item.id,
-      fg: item.fg,
-      bg: item.bg,
-      mask: item.mask,
-      outline: item.outline,
-      fgOpacity: item.fgOpacity,
-      bgOpacity: item.bgOpacity,
-      outlineEnabled: item.outlineEnabled,
-      outlineColor: item.outlineColor,
-      fillEnable: item.fillEnable,
-      fillColor: item.fillColor,
-      fillOpacity: item.fillOpacity,
-      createdAt: item.createdAt,
-    });
-  };
-
-  const dataWithAddButton = useMemo(() => {
+  /* =======================
+     DATA + RENDER
+  ======================== */
+  const dataSaved = useMemo(() => {
     if (segments.length === 0) return ["add" as const];
     return ["add" as const, ...segments];
   }, [segments]);
 
-  const numColumns = Math.min(NUM_COLUMNS, dataWithAddButton.length);
-
-  const renderItem = ({ item }: { item: SegmentData | "add" }) => {
+  const renderSavedItem = ({ item }: { item: SegmentData | "add" }) => {
     if (item === "add") {
       return (
-        <View style={styles.itemWrapper}>
-          <TouchableOpacity
-            style={styles.addBtn}
-            onPress={pickImage}
-            disabled={processingLoading}
-          >
+        <TouchableOpacity
+          style={styles.itemWrapper}
+          onPress={pickImage}
+          disabled={processingLoading}
+        >
+          <View style={styles.addBtn}>
             {processingLoading ? (
-              <ActivityIndicator size="large" color="#fff" />
+              <ActivityIndicator color="#fff" />
             ) : (
               <Text style={styles.addBtnText}>+</Text>
             )}
-          </TouchableOpacity>
-        </View>
+          </View>
+        </TouchableOpacity>
       );
     }
-
-    if (!item || !item.fg) return null;
 
     return (
       <View style={styles.itemWrapper}>
         <Image source={{ uri: item.fg }} style={styles.imageItem} />
         <View style={styles.overlay}>
-
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => {
-              handleSelectSegment(item);
-              onClose();
-            }}
-          >
-            <Text style={styles.iconText}>📸</Text>
+          <TouchableOpacity onPress={() => { handleSelectSegment(item); onClose(); }}>
+            <Text>📸</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.iconButton} onPress={() => handleSelectSegment(item)}>
-            <Text style={styles.iconText}>✏️</Text>
+          <TouchableOpacity onPress={() => handleSelectSegment(item)}>
+            <Text>✏️</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.iconButton, styles.deleteButton]} onPress={() => handleDelete(item.id)}>
-            <Text style={styles.iconText}>🗑️</Text>
+          <TouchableOpacity onPress={() => handleDelete(item.id)}>
+            <Text>🗑️</Text>
           </TouchableOpacity>
         </View>
       </View>
     );
   };
 
+  const renderSampleItem = ({ item }: { item: SampleImage }) => (
+    <TouchableOpacity
+      style={styles.itemWrapper}
+      onPress={() => handleSelectSample(item)}
+    >
+      <Image source={item.source} style={styles.imageItem} />
+    </TouchableOpacity>
+  );
+
+  /* =======================
+     UI
+  ======================== */
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+
         <Text style={styles.title}>Danh sách Form</Text>
 
+        {/* Tabs */}
+        <View style={styles.tabWrapper}>
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "sample" && styles.tabActive]}
+            onPress={() => setActiveTab("sample")}
+          >
+            <Text style={styles.tabText}>Mẫu</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.tab, activeTab === "saved" && styles.tabActive]}
+            onPress={() => setActiveTab("saved")}
+          >
+            <Text style={styles.tabText}>Đã lưu</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Content */}
         {initialLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#0a84ff" />
-            <Text style={styles.loadingText}>Đang tải thư viện...</Text>
-          </View>
-        ) : (
+          <ActivityIndicator color="#fff" />
+        ) : activeTab === "sample" ? (
           <FlatList
-            data={dataWithAddButton}
-            numColumns={Math.min(NUM_COLUMNS, dataWithAddButton.length)}
-            keyExtractor={(item, index) => (typeof item === "string" ? `add-${index}` : item.id)}
-            renderItem={renderItem}
-            contentContainerStyle={styles.flatListContent}
-            columnWrapperStyle={dataWithAddButton.length > 1 ? styles.columnWrapper : undefined}
+            data={SAMPLE_CATEGORIES}
+            keyExtractor={item => item.id}
+            renderItem={({ item }) => (
+              <View style={styles.categoryBlock}>
+                <Text style={styles.categoryTitle}>
+                  {item.title.toUpperCase()}
+                </Text>
+
+                <FlatList
+                  key="sample"
+                  data={item.images}
+                  horizontal
+                  keyExtractor={img => img.id}
+                  renderItem={renderSampleItem}
+                  showsHorizontalScrollIndicator={false}
+                />
+              </View>
+            )}
+          />
+        ) : (
+          <FlatList<SegmentData | "add">
+            key="saved"
+            data={dataSaved}
+            numColumns={NUM_COLUMNS}
+            keyExtractor={(item, index) =>
+              typeof item === "string" ? `add-${index}` : item.id
+            }
+            renderItem={renderSavedItem}
           />
         )}
 
         <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
           <Text style={styles.closeBtnText}>Đóng</Text>
         </TouchableOpacity>
+
       </View>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#1c1c1e" },
@@ -252,4 +322,55 @@ const styles = StyleSheet.create({
   deleteButton: {},
   closeBtn: { alignSelf: "center", backgroundColor: "#0a84ff", paddingVertical: 12, paddingHorizontal: 30, borderRadius: 10, marginTop: 10, marginBottom: 5 },
   closeBtnText: { color: "#fff", fontSize: 16, fontWeight: "600" },
+  tabWrapper: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 15,
+  },
+
+  tab: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: "#2c2c2e",
+    marginHorizontal: 5,
+  },
+
+  tabActive: {
+    backgroundColor: "#0a84ff",
+  },
+
+  tabText: {
+    color: "#fff",
+    fontWeight: "600",
+  },
+
+  categoryBlock: {
+    marginBottom: 20,
+  },
+
+  categoryTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+    marginLeft: 15,
+    marginBottom: 10,
+  },
+
+  sampleItem: {
+    width: ITEM_WIDTH,
+    height: ITEM_WIDTH,
+    marginLeft: 15,
+    borderRadius: 12,
+    overflow: "hidden",
+    backgroundColor: "#333",
+  },
+
+  sampleImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+
+
 });
