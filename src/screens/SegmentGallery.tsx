@@ -135,7 +135,6 @@ export default function SegmentGallery({
       setSegments(prev => [newSegment, ...prev]);
 
       handleSelectSegment(newSegment);
-      onClose();
     } catch {
       Alert.alert("Lỗi", "Không thể xử lý ảnh.");
     } finally {

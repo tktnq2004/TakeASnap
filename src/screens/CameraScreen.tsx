@@ -6,6 +6,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import * as MediaLibrary from "expo-media-library";
 import { Asset } from "expo-media-library";
 import { Accelerometer } from "expo-sensors";
+import * as ImageManipulator from "expo-image-manipulator";
 
 const { width, height } = Dimensions.get("window");
 
@@ -37,6 +38,7 @@ type FlashMode = "off" | "on" | "auto";
 export default function CameraScreen({ onOpenGallery, overlaySegment = null, onUpdateOverlay, onChangeBackground }: CameraScreenProps) {
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraType, setCameraType] = useState<CameraType>("back");
+  const [cameraLayout, setCameraLayout] = useState<{ width: number; height: number; }>({ width: 0, height: 0 });
   const [flashMode, setFlashMode] = useState<FlashMode>("off");
   const [flashOn, setFlashOn] = useState(false);
   const [tilt, setTilt] = useState(0);
@@ -44,6 +46,7 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
   const [showHorizon, setShowHorizon] = useState(true);
   const [gridMode, setGridMode] = useState<0 | 3 | 4>(0);
   const [layerSize, setLayerSize] = useState<{ width: number; height: number }>({ width: 0, height: 0, });
+
 
   //overlay
   const scale = useRef(new Animated.Value(1)).current;
@@ -261,23 +264,41 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
 
   // Chụp ảnh và lưu vào album
   const takePhoto = useCallback(async () => {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current || !cameraLayout.width) return;
 
-    try {
-      const photo = await cameraRef.current.takePictureAsync({
-        quality: 1,
-        skipProcessing: true,
-      });
+    const photo = await cameraRef.current.takePictureAsync({
+      quality: 1,
+      skipProcessing: true,
+    });
 
-      const asset = await MediaLibrary.createAssetAsync(photo.uri);
-      await MediaLibrary.createAlbumAsync("CameraApp", asset, false);
+    const frameX = 0;
+    const frameY = cameraLayout.height * 0.15;
+    const frameWidth = cameraLayout.width;
+    const frameHeight = cameraLayout.height * 0.6;
 
-      // Cập nhật ảnh mới nhất
-      await loadLatestImage();
-    } catch (err) {
-      console.error("Error taking photo:", err);
-    }
-  }, [cameraRef, loadLatestImage]);
+    const scaleX = photo.width / cameraLayout.width;
+    const scaleY = photo.height / cameraLayout.height;
+
+    const cropped = await ImageManipulator.manipulateAsync(
+      photo.uri,
+      [
+        {
+          crop: {
+            originX: frameX * scaleX,
+            originY: frameY * scaleY,
+            width: frameWidth * scaleX,
+            height: frameHeight * scaleY,
+          },
+        },
+      ],
+      { compress: 1, format: ImageManipulator.SaveFormat.JPEG }
+    );
+
+    const asset = await MediaLibrary.createAssetAsync(cropped.uri);
+    await MediaLibrary.createAlbumAsync("CameraApp", asset, false);
+
+    await loadLatestImage();
+  }, [cameraRef, cameraLayout, loadLatestImage]);
 
   // Mở album ảnh
   const openInAlbum = async () => {
@@ -333,7 +354,34 @@ export default function CameraScreen({ onOpenGallery, overlaySegment = null, onU
         facing={cameraType}
         enableTorch={flashOn}
         zoom={(zoom - 0.5) / 9.5}
+        onLayout={(e) => setCameraLayout(e.nativeEvent.layout)}
       />
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        {/* Top */}
+        <View
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "15%",
+            backgroundColor: "rgba(0,0,0,0.6)",
+          }}
+        />
+
+        {/* Bottom */}
+        <View
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: "25%",
+            backgroundColor: "rgba(0,0,0,0.6)",
+          }}
+        />
+      </View>
+
       {overlaySegment && (
         <Animated.View style={[
           styles.overlayLayer,
