@@ -12,6 +12,7 @@ import { color, radius, size, space, type } from '@/ui/tokens';
  */
 const spikes: { href: Href; title: string }[] = [
   { href: '/spike/camera', title: t.spike.cameraTitle },
+  { href: '/spike/segment', title: t.spike.segmentTitle },
   { href: '/spike/overlay', title: t.spike.overlayTitle },
   { href: '/spike/save', title: t.spike.saveTitle },
 ];
@@ -29,9 +30,6 @@ export default function SpikeMenu() {
             </Pressable>
           </Link>
         ))}
-        <View style={styles.row}>
-          <Text style={[type.body, styles.disabled]}>{t.spike.segmentTitle}</Text>
-        </View>
       </View>
     </Screen>
   );

@@ -61,14 +61,39 @@ Kết luận lần 3: tốt, mượt
 
 ## B — Tách người bằng WebView
 
-Chưa làm. Sẽ thêm màn spike B ở bước tiếp theo của Phase 0.
+Màn "B · Tách người bằng WebView": chọn model → "Chạy 25 ảnh mẫu" → đọc bảng tổng ở trên, chạm từng dòng để soi ảnh tách / mask. Thư viện và model tải từ CDN (spike), nên **lần đầu cần mạng**; Phase 1 sẽ đóng gói kèm app để chạy offline.
 
-| Model | iPhone: thời gian | iPhone: mép | Android: thời gian | Android: mép |
-|---|---|---|---|---|
-| MediaPipe selfie_multiclass_256x256 | | | | |
-| MediaPipe DeepLab v3 | | | | |
-| RMBG-1.4 (lượng tử hóa) | | | | |
-| U²-Net human seg (nhỏ) | | | | |
+Thay đổi so với kế hoạch: bỏ U²-Net human seg (file 176 MB, quá nặng cho WebView), thay bằng MediaPipe `selfie_segmenter` (nhẹ, chuyên người).
+
+### Chạy thử trên máy tính (Chrome headless, GPU giả lập) — chỉ để xem độ chính xác
+
+3 ảnh: street1 (ngồi bệt, có xe phía sau), travel3 (váy dài xòe, cầm giỏ), coffee2 (đứng một chân, giơ tay).
+
+| Model | Kết quả bằng mắt | Model chạy (máy tính) |
+|---|---|---|
+| Multiclass | Giữ đủ toàn thân, chân, giày, váy; nền sạch sau khi sửa (xem dưới) | 20–50 ms |
+| Selfie | Mép sạch nhưng **cắt mất chân và váy** → không dùng được cho dáng toàn thân | 15–40 ms |
+| DeepLab | Mép nhòe, dính nền (xe hơi, ghế đỏ) → kém nhất | 30–55 ms |
+| RMBG | Mép đẹp nhất, giữ tóc; giữ cả đồ cầm tay (túi, giỏ) | ~7.5 s (CPU 1 luồng) |
+
+Lỗi đã sửa: Multiclass lúc đầu để nền hiện mờ ~4–20%, vì kênh "nền" chỉ đạt 0.8–0.96 trên vùng nền. Đã kéo dãn xác suất người trong khoảng [0.25, 0.65].
+
+Dự đoán: **Multiclass cho pose, RMBG cho Thay nền.** Cần số đo trên iPhone để chốt.
+
+### Đo trên iPhone
+
+Mỗi model chạy "25 ảnh mẫu" một lần. Thời gian đọc ở bảng tổng trên màn.
+
+| Model | Backend | Nạp lần đầu | Chạy model TB | Cả vòng TB | Cả vòng lâu nhất | Lỗi | Mép (tóc, ngón tay, khe tay–thân) |
+|---|---|---|---|---|---|---|---|
+| Multiclass | | | | | | | |
+| Selfie | | | | | | | |
+| DeepLab | | | | | | | |
+| RMBG | | | | | | | |
+
+Mục tiêu (roadmap Phase 1): pose có trong **dưới 4 s** mỗi ảnh. Thay nền: dưới 5 s cả vòng (Phase 4).
+
+Kết luận:
 
 ---
 
