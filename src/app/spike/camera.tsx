@@ -16,6 +16,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { nextZoomFactor, zoomFactorToProp } from '@/features/camera/zoom';
 import { FpsMeter } from '@/features/spike/FpsMeter';
 import { useTransformGesture } from '@/gestures/useTransformGesture';
 import { haptic } from '@/lib/haptics';
@@ -47,24 +48,23 @@ function CameraSpikeBody() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [editMode, setEditMode] = useState(false);
 
-  // Zoom: shared value trên UI thread → state (tối đa 100 nấc) → prop của CameraView.
-  const zoomSV = useSharedValue(0);
+  // Zoom: hệ số zoom (1×…max) trên UI thread → prop 0..1 làm tròn 0.001 → state → CameraView.
+  // Reaction chỉ chạy khi prop đổi, nên tối đa một lần setState mỗi khung hình.
+  const factor = useSharedValue(1);
   const [zoom, setZoom] = useState(0);
   useAnimatedReaction(
-    () => Math.round(zoomSV.value * 100) / 100,
+    () => zoomFactorToProp(factor.value, cameraZoom.maxFactor, cameraZoom.precision),
     (now, prev) => {
       if (now !== prev) scheduleOnRN(setZoom, now);
     },
   );
-  const zoomText = useDerivedValue(() => `zoom ${Math.round(zoomSV.value * 100)}%`);
+  const zoomText = useDerivedValue(() => `${factor.value.toFixed(1)}× (ước lượng)`);
 
   const camPinch = usePinchGesture({
     enabled: !editMode,
     onUpdate: (e) => {
       'worklet';
-      // Thang log: pinch ×2 khoảng cách luôn tăng cùng một nấc, bất kể đang zoom bao nhiêu.
-      const next = zoomSV.value + Math.log(e.scaleChange) * cameraZoom.pinchSensitivity;
-      zoomSV.value = Math.min(1, Math.max(0, next));
+      factor.set(nextZoomFactor(factor.get(), e.scaleChange, cameraZoom.maxFactor));
     },
   });
 

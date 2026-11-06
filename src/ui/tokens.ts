@@ -82,12 +82,13 @@ export const motion = {
 } as const;
 
 /**
- * Zoom camera. `expo-camera` nhận zoom 0..1 = % độ zoom tối đa của máy; iPhone Pro zoom rất sâu
- * nên hệ số phải nhỏ. Pinch gấp đôi khoảng cách hai ngón → tăng ln(2) × 0.12 ≈ 8% thang zoom.
- * Spike A lần 1 dùng 0.6 tuyến tính: quá nhanh.
+ * Zoom camera (src/features/camera/zoom.ts). Pinch ×2 khoảng cách → hệ số zoom ×2.
+ * `maxFactor`: hệ số ứng với zoom = 1 của expo-camera; giá trị giả định vì expo-camera không cho
+ * đọc. Pinch thấy quá nhanh thì tăng, quá chậm thì giảm. `precision`: bước làm tròn prop 0..1.
  */
 export const cameraZoom = {
-  pinchSensitivity: 0.12,
+  maxFactor: 15,
+  precision: 0.001,
 } as const;
 
 /** Giới hạn của overlay (roadmap §3.5). */

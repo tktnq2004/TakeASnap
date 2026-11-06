@@ -39,12 +39,23 @@ Kết luận: khá 5/10 , sự kiện bắt ngón tay còn delay, tốc độ zo
 
 | Đo lại (lần 2) | iPhone |
 |---|---|
-| UI fps khi pinch zoom liên tục | |
-| Kéo, thả, kéo tiếp: bám ngón tay ngay | |
-| Pinch/xoay bằng 2 ngón chạm cùng lúc, không phải chờ | |
-| Tốc độ zoom vừa tay | |
+| UI fps khi pinch zoom liên tục |60 |
+| Kéo, thả, kéo tiếp: bám ngón tay ngay | tốt |
+| Pinch/xoay bằng 2 ngón chạm cùng lúc, không phải chờ | tốt|
+| Tốc độ zoom vừa tay | js tuột còn 50-52 và chậm|
 
-Kết luận lần 2:
+Kết luận lần 2: 3/4 pinch kéo thả tốt mượt, zoom chưa tốt, không mượt
+
+**Đã sửa sau lần đo 2 (cần đo lại):** zoom giật vì làm tròn prop theo bước 0.01, nên một lần pinch chỉ đi ~8 nấc; chậm vì cộng log ×0.12. Đổi sang kiểu app camera: pinch ×2 khoảng cách → hệ số zoom ×2, quy đổi sang prop 0..1 với `maxFactor` giả định 15 và bước 0.001 (`src/features/camera/zoom.ts`, có test). Màn hiện hệ số dạng "2.0× (ước lượng)".
+
+| Đo lại (lần 3) | iPhone |
+|---|---|
+| UI fps khi pinch zoom liên tục | |
+| JS fps khi pinch zoom liên tục | |
+| Zoom liền mạch, không nhảy nấc | |
+| Pinch ×2 khoảng cách thì ảnh to gấp đôi (so với app Camera của iPhone) | |
+
+Kết luận lần 3:
 
 ---
 
@@ -77,7 +88,7 @@ Kết luận: tốt 4/5
 
 **Đã sửa sau lần đo 1:** panel dùng `minHeight: 296`, tab Viền/Phủ có 2 hàng ô màu nên cao hơn, tab Người ngắn hơn nên preview giãn. Đổi sang `height: 336` cố định. Đo lại: đổi qua lại Viền ↔ Người, preview phải đứng yên.
 
-Kết luận lần 2:
+Kết luận lần 2: Tốt đã fix được
 
 ---
 
