@@ -59,15 +59,33 @@ async function getMediaPipe(model) {
   return { entry: segmenters[model], loadMs: now() - t0 };
 }
 
+let ortBackend = null;
 async function getOrt() {
   if (ortSession) return { session: ortSession, loadMs: 0 };
   const t0 = now();
+  if (typeof ort === 'undefined') throw new Error('rmbg: không nạp được onnxruntime-web');
   ort.env.wasm.numThreads = 1;          // WebView không có SharedArrayBuffer
   ort.env.wasm.wasmPaths = '${ORT_BASE}';
-  ortSession = await ort.InferenceSession.create(URLS.rmbg, {
-    executionProviders: ['wasm'],
-    graphOptimizationLevel: 'all',
-  });
+  // Tải model một lần bằng fetch để lỗi mạng/CORS hiện rõ, rồi đưa bytes cho ORT.
+  log('rmbg: tải model');
+  const res = await fetch(URLS.rmbg);
+  if (!res.ok) throw new Error('rmbg: tải model lỗi HTTP ' + res.status);
+  const bytes = new Uint8Array(await res.arrayBuffer());
+  log('rmbg: đã tải ' + (bytes.length / 1048576).toFixed(1) + ' MB, webgpu=' + !!navigator.gpu);
+  const opts = (ep) => ({ executionProviders: [ep], graphOptimizationLevel: 'all' });
+  if (navigator.gpu) {
+    try {
+      ortSession = await ort.InferenceSession.create(bytes, opts('webgpu'));
+      ortBackend = 'ort-webgpu';
+    } catch (e) {
+      log('rmbg: webgpu lỗi, chuyển wasm: ' + ((e && e.message) || e));
+    }
+  }
+  if (!ortSession) {
+    ortSession = await ort.InferenceSession.create(bytes, opts('wasm'));
+    ortBackend = 'ort-wasm';
+  }
+  log('rmbg: sẵn sàng (' + ortBackend + ')');
   return { session: ortSession, loadMs: now() - t0 };
 }
 
@@ -80,8 +98,8 @@ function loadImage(base64) {
   });
 }
 
-// prob: xác suất là người 0..1 ở kích thước (w, h); trả PNG trắng với alpha = prob, cỡ (outW, outH).
-function probToPng(prob, w, h, outW, outH) {
+// prob (w × h, 0..1) → canvas trắng với alpha = prob.
+function probCanvas(prob, w, h) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const ctx = c.getContext('2d');
@@ -91,16 +109,29 @@ function probToPng(prob, w, h, outW, outH) {
     img.data[j + 3] = Math.max(0, Math.min(255, Math.round(prob[i] * 255)));
   }
   ctx.putImageData(img, 0, 0);
-  let out = c;
-  if (w !== outW || h !== outH) {
-    out = document.createElement('canvas');
-    out.width = outW; out.height = outH;
-    const octx = out.getContext('2d');
-    octx.imageSmoothingEnabled = true;
-    octx.imageSmoothingQuality = 'high';
-    octx.drawImage(c, 0, 0, outW, outH);
-  }
-  return out.toDataURL('image/png').split(',')[1];
+  return c;
+}
+
+// Phóng prob (w × h) lên (W × H) bằng nội suy song tuyến của canvas.
+function upscaleProb(prob, w, h, W, H) {
+  if (w === W && h === H) return prob;
+  const out = document.createElement('canvas');
+  out.width = W; out.height = H;
+  const ctx = out.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(probCanvas(prob, w, h), 0, 0, W, H);
+  const d = ctx.getImageData(0, 0, W, H).data;
+  const p = new Float32Array(W * H);
+  for (let i = 0, j = 3; i < p.length; i++, j += 4) p[i] = d[j] / 255;
+  return p;
+}
+
+// prob ở kích thước ảnh → PNG base64.
+// Đã thử guided filter (ảnh dẫn xám) để làm mịn mép: tệ hơn, mép quầng và lem nền khi áo và nền
+// có độ sáng gần nhau (spike B, docs/spikes.md). Không dùng.
+function finishMask(prob, img) {
+  return probCanvas(prob, img.naturalWidth, img.naturalHeight).toDataURL('image/png').split(',')[1];
 }
 
 async function runMediaPipe(model, img) {
@@ -126,7 +157,8 @@ async function runMediaPipe(model, img) {
   }
   mw = masks[0].width; mh = masks[0].height;
   result.close();
-  const maskBase64 = probToPng(prob, mw, mh, img.naturalWidth, img.naturalHeight);
+  const full = upscaleProb(prob, mw, mh, img.naturalWidth, img.naturalHeight);
+  const maskBase64 = finishMask(full, img);
   const t3 = now();
   return { maskBase64: maskBase64, backend: entry.backend,
     timings: { loadMs: loadMs, prepMs: 0, inferMs: t2 - t1, postMs: t3 - t2 } };
@@ -159,9 +191,10 @@ async function runRmbg(img) {
   const range = hi - lo || 1;
   const prob = new Float32Array(raw.length);
   for (let i = 0; i < raw.length; i++) prob[i] = (raw[i] - lo) / range;
-  const maskBase64 = probToPng(prob, S, S, img.naturalWidth, img.naturalHeight);
+  const full = upscaleProb(prob, S, S, img.naturalWidth, img.naturalHeight);
+  const maskBase64 = finishMask(full, img);
   const t3 = now();
-  return { maskBase64: maskBase64, backend: 'ort-wasm',
+  return { maskBase64: maskBase64, backend: ortBackend,
     timings: { loadMs: loadMs, prepMs: t1 - t0, inferMs: t2 - t1, postMs: t3 - t2 } };
 }
 
@@ -176,7 +209,9 @@ async function handle(msg) {
     post({ id: msg.id, ok: true, maskBase64: r.maskBase64, width: img.naturalWidth,
       height: img.naturalHeight, backend: r.backend, timings: r.timings });
   } catch (e) {
-    post({ id: msg.id, ok: false, error: (e && e.message) || String(e) });
+    const error = (e && e.message) || String(e);
+    log(msg.model + ' lỗi: ' + error);
+    post({ id: msg.id, ok: false, error: error });
   }
 }
 
@@ -187,6 +222,7 @@ document.addEventListener('message', onMessage); // Android
 post({ type: 'ready', info: {
   ua: navigator.userAgent,
   ort: typeof ort !== 'undefined',
+  webgpu: !!navigator.gpu,
   webgl2: !!document.createElement('canvas').getContext('webgl2'),
   wasm: typeof WebAssembly === 'object',
   crossOriginIsolated: !!self.crossOriginIsolated,
@@ -196,6 +232,6 @@ post({ type: 'ready', info: {
 export const segmenterHtml = `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body>
-<script src="${ORT_BASE}ort.min.js"></script>
+<script src="${ORT_BASE}ort.webgpu.min.js"></script>
 <script type="module">${script}</script>
 </body></html>`;

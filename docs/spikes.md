@@ -86,12 +86,26 @@ Mỗi model chạy "25 ảnh mẫu" một lần. Thời gian đọc ở bảng t
 
 | Model | Backend | Nạp lần đầu | Chạy model TB | Cả vòng TB | Cả vòng lâu nhất | Lỗi | Mép (tóc, ngón tay, khe tay–thân) |
 |---|---|---|---|---|---|---|---|
-| Multiclass | | | | | | | |
-| Selfie | | | | | | | |
-| DeepLab | | | | | | | |
-| RMBG | | | | | | | |
+| Multiclass |mediapipe-gpu |4.8s |51ms |105ms |288ms |0 |không tốt |
+| Selfie |mediapipe-gpu |794ms |12ms |71ms |101ms |0 | tệ hơn Multiclass và còn cả vật dính lên người model |
+| DeepLab |mediapipe-gpu |5.4s |72ms |148ms |182ms |0 |gọt ko sát model, còn quá nhiều chi tiết thừa |
+| RMBG | Báo lỗi |
 
 Mục tiêu (roadmap Phase 1): pose có trong **dưới 4 s** mỗi ảnh. Thay nền: dưới 5 s cả vòng (Phase 4).
+
+Nhận xét lần đo 1:
+- MediaPipe trên iPhone rất nhanh: Multiclass ~105 ms cả vòng, dư xa mục tiêu 4 s.
+- Mép Multiclass chưa đẹp vì model tính ở 256 × 256 rồi phóng lên. Với **pose** điều này chấp nhận được: Phase 1 vẽ viền từ contour vector đã làm mượt, nên cái cần là bóng dáng gọn (bỏ mảng thừa), không cần mép tóc.
+- Đã thử làm mịn mép bằng guided filter (ảnh dẫn xám, r = 8/12, eps = 1e-3/1e-4) trên máy tính: **tệ hơn**, mép quầng sáng và lem nền khi áo và nền có độ sáng gần nhau. Đã gỡ.
+- RMBG báo lỗi trên iPhone, chưa có nội dung lỗi. Đã sửa: tải model bằng fetch để lỗi mạng hiện rõ, thử **WebGPU** trước (iOS 26 có WebGPU) rồi lùi về WASM, log từng bước. Trên máy tính, đường lùi về WASM đã chạy đúng.
+
+| Đo lại RMBG (lần 2) | iPhone |
+|---|---|
+| Backend (ort-webgpu / ort-wasm) | |
+| Nạp lần đầu | |
+| Chạy model TB | |
+| Cả vòng TB | |
+| Lỗi (nếu có: chép nguyên 3 dòng log cuối trên màn) | |
 
 Kết luận:
 
