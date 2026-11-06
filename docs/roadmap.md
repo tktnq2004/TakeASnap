@@ -293,8 +293,8 @@ docs/
 
 - [x] Môi trường Windows: nvm-windows + Node 24.22.2 (SDK 58 cần Node ≥ 22.13), VS Code, Git
 - [ ] Expo Go trên iPhone; Android Studio + emulator (hoặc một máy Android thật) để test Android
-- [x] Tag bản cũ `legacy-v0`, làm rebuild trên nhánh `rebuild/v1`
-- [ ] **Push lên GitHub**
+- [x] Tag bản cũ `legacy-v0`, làm rebuild trên nhánh `rebuild`
+- [x] **Push lên GitHub** (tag `legacy-v0` + nhánh `rebuild`)
 - [x] Khởi tạo project mới: Expo SDK 58, RN 0.88, TypeScript strict, ESLint, Prettier, Jest, `expo-router`
 - [ ] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value; đo xem overlay có giữ 60 fps khi đang zoom không *(iOS: đạt ở lần 3, UI 60 / JS 55–58. Còn Android)*
 - [ ] **Spike B — tách người:** `WebViewSegmenter` chạy 4 model ở §3.3 trên 20 ảnh mẫu, trên iPhone và Android; ghi thời gian, bộ nhớ, chất lượng mép (tóc, ngón tay, khe tay–thân)

@@ -94,7 +94,7 @@ Bản cũ (`legacy-v0`) cũng chạy bằng `npx expo start`, nhưng cần serve
 
 ## Quy ước
 
-- Nhánh: bản cũ được tag `legacy-v0`; rebuild làm trên `rebuild/v1`, merge vào `main` khi xong Phase 3.
+- Nhánh: bản cũ được tag `legacy-v0`; rebuild làm trên nhánh `rebuild`, merge vào `main` khi xong Phase 3.
 - Mọi màu, cỡ chữ, khoảng cách, thời gian animation lấy từ `src/ui/tokens.ts` ([design.md §3](docs/design.md#3-token)). Mọi chuỗi giao diện lấy từ `src/ui/strings.ts`.
 - Trong UI chỉ gọi là **pose**. "Segment" chỉ xuất hiện trong code ([business-flow.md §2](docs/business-flow.md#2-thuật-ngữ-dùng-thống-nhất-trong-code-ui-và-tài-liệu)).
 - Skill thiết kế: `.claude/skills/design-taste-frontend` (tasteskill 2.5).
