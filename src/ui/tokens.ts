@@ -89,6 +89,8 @@ export const motion = {
 export const cameraZoom = {
   maxFactor: 15,
   precision: 0.001,
+  /** Khoảng cách tối thiểu giữa hai lần đẩy zoom sang state (~30 lần/giây). */
+  minIntervalMs: 33,
 } as const;
 
 /** Giới hạn của overlay (roadmap §3.5). */

@@ -49,13 +49,19 @@ function CameraSpikeBody() {
   const [editMode, setEditMode] = useState(false);
 
   // Zoom: hệ số zoom (1×…max) trên UI thread → prop 0..1 làm tròn 0.001 → state → CameraView.
-  // Reaction chỉ chạy khi prop đổi, nên tối đa một lần setState mỗi khung hình.
+  // Gửi state tối đa mỗi `cameraZoom.minIntervalMs`: gửi mỗi khung hình làm JS trên Android tụt
+  // còn 15–25 fps (spike A, Pixel 8a). Khi nhấc tay luôn gửi giá trị cuối.
   const factor = useSharedValue(1);
+  const lastSentAt = useSharedValue(0);
   const [zoom, setZoom] = useState(0);
   useAnimatedReaction(
     () => zoomFactorToProp(factor.value, cameraZoom.maxFactor, cameraZoom.precision),
     (now, prev) => {
-      if (now !== prev) scheduleOnRN(setZoom, now);
+      const t = Date.now();
+      if (now !== prev && t - lastSentAt.value >= cameraZoom.minIntervalMs) {
+        lastSentAt.value = t;
+        scheduleOnRN(setZoom, now);
+      }
     },
   );
   const zoomText = useDerivedValue(() => `${factor.value.toFixed(1)}× (ước lượng)`);
@@ -65,6 +71,13 @@ function CameraSpikeBody() {
     onUpdate: (e) => {
       'worklet';
       factor.set(nextZoomFactor(factor.get(), e.scaleChange, cameraZoom.maxFactor));
+    },
+    onFinalize: () => {
+      'worklet';
+      scheduleOnRN(
+        setZoom,
+        zoomFactorToProp(factor.get(), cameraZoom.maxFactor, cameraZoom.precision),
+      );
     },
   });
 

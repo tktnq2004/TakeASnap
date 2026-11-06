@@ -169,16 +169,19 @@ Cách `WebViewSegmenter` chạy:
 3. Trong WebView: chạy model → mask → làm mềm mép → encode PNG → trả base64 về.
 4. JS ghi PNG vào `documentDirectory`, tìm các vùng người tách rời (connected components trên mask 256 px), rồi trả `SegmentResult`.
 
-Ứng viên model (so sánh ở spike B):
+**Đã chốt sau spike B trên iPhone 15 Pro Max** (chi tiết ở [spikes.md](spikes.md#chốt-spike-b-iphone)):
 
-| Model | Thư viện | Ưu | Nhược |
+| Dùng cho | Model | Thư viện | Đo trên iPhone |
 |---|---|---|---|
-| MediaPipe `selfie_multiclass_256x256` | `@mediapipe/tasks-vision` | Nhẹ, chạy WebGL nhanh, tách được tóc/da/quần áo | Tối ưu cho ảnh chân dung gần; người toàn thân ở xa có thể kém |
-| MediaPipe DeepLab v3 | `@mediapipe/tasks-vision` | Có lớp "person" cho cảnh rộng | Mép thô |
-| RMBG-1.4 (lượng tử hóa) | `onnxruntime-web` (WASM) | Mép đẹp, hợp với Thay nền | Nặng hơn, có thể mất vài giây; license phi thương mại (được cho portfolio) |
-| U²-Net human seg (bản nhỏ) | `onnxruntime-web` (WASM) | Nhẹ, chuyên người | Mép kém hơn RMBG |
+| **Pose** | MediaPipe `selfie_multiclass_256x256` | `@mediapipe/tasks-vision` 1.1.1, GPU | ~105 ms cả vòng |
+| **Thay nền** | RMBG-1.4 **fp16** (84 MB) | `onnxruntime-web` 1.30.0, **WebGPU** | ~0.96 s cả vòng |
+| Thay nền, không có WebGPU | RMBG-1.4 int8 (42 MB) | `onnxruntime-web` 1.30.0, WASM 1 luồng | ~7.9 s cả vòng |
 
-Có thể dùng hai model: model nhẹ cho **pose** (chỉ cần dáng), model mép đẹp cho **Thay nền**.
+- Multiclass: lấy `1 − kênh nền` rồi kéo dãn [0.25, 0.65] → [0, 1] (kênh nền chỉ đạt 0.8–0.96 trên vùng nền).
+- RMBG chỉ nhận đúng 1024 × 1024. **Không đưa bản int8 lên WebGPU**: lần đo 2 treo quá 180 s.
+- Đã loại: MediaPipe Selfie (cắt mất chân, váy), DeepLab v3 (mép nhòe, dính nền), U²-Net human seg (176 MB).
+- Đã thử và bỏ: guided filter làm mịn mép (quầng sáng, lem nền).
+- **Còn phải quyết ở Phase 1:** đóng gói model kèm app (app nặng thêm ~85–130 MB, offline hoàn toàn) hay tải một lần khi dùng lần đầu (cần mạng một lần, không gửi ảnh đi). Lần đo đầu mất 24–37 s chủ yếu vì tải model.
 
 Pose mẫu được tách sẵn trên Windows bằng `onnxruntime-node` hoặc Python, dùng cùng model đó (`scripts/build-sample-poses.ts`), nên chọn pose mẫu là dùng được ngay.
 
@@ -296,8 +299,8 @@ docs/
 - [x] Tag bản cũ `legacy-v0`, làm rebuild trên nhánh `rebuild`
 - [x] **Push lên GitHub** (tag `legacy-v0` + nhánh `rebuild`)
 - [x] Khởi tạo project mới: Expo SDK 58, RN 0.88, TypeScript strict, ESLint, Prettier, Jest, `expo-router`
-- [ ] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value; đo xem overlay có giữ 60 fps khi đang zoom không *(iOS: đạt ở lần 3, UI 60 / JS 55–58. Còn Android)*
-- [ ] **Spike B — tách người:** `WebViewSegmenter` chạy 4 model ở §3.3 trên 20 ảnh mẫu, trên iPhone và Android; ghi thời gian, bộ nhớ, chất lượng mép (tóc, ngón tay, khe tay–thân)
+- [ ] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value; đo xem overlay có giữ 60 fps khi đang zoom không *(iOS: đạt ở lần 3, UI 60 / JS 55–58. Android: UI 58–60 nhưng JS 15–25 khi zoom; đã giới hạn 30 lần/giây, chờ đo lại)*
+- [ ] **Spike B — tách người:** `WebViewSegmenter` chạy 4 model ở §3.3 trên 20 ảnh mẫu, trên iPhone và Android; ghi thời gian, bộ nhớ, chất lượng mép (tóc, ngón tay, khe tay–thân) *(iOS: đạt, đã chốt model ở §3.3. Còn Android: có WebGPU không)*
 - [ ] **Spike C — Skia overlay:** contour stroke + fill + ảnh trên 1 canvas, kéo slider độ dày ở 60 fps *(iOS: đạt ở lần 2. Còn Android)*
 - [ ] **Spike D — giới hạn Expo Go:** lưu ảnh vào album "TakeASnap", `expo-haptics` có trong Expo Go không, `formSheet` trên Android *(iOS: đạt 5/5, haptics có. Còn Android)*
 - [x] `src/ui/tokens.ts`, `src/ui/strings.ts` và component nền: Button, IconButton, Slider, Segmented, Swatch, Screen (sheet dùng `formSheet` của expo-router)

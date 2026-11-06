@@ -7,9 +7,9 @@ Thiết bị test:
 
 | | iPhone | Android |
 |---|---|---|
-| Máy | iphone 15promax | |
-| Hệ điều hành | IOS 26.6.2| |
-| Expo Go |58.0.0 | |
+| Máy | iphone 15promax | Pixel_8a |
+| Hệ điều hành | IOS 26.6.2| Google 54.0.8 |
+| Expo Go |58.0.0 | 58.0.0 |
 
 ---
 
@@ -19,15 +19,15 @@ Mục tiêu: khi pinch zoom (CameraLayer re-render), khung cam vẫn kéo/pinch/
 
 | Test | iPhone | Android |
 |---|---|---|
-| UI fps khi đứng yên |60 | |
-| UI fps khi pinch zoom liên tục |180-200| |
-| JS fps khi pinch zoom liên tục |56-58| |
-| UI fps khi kéo + pinch + xoay khung (chế độ chỉnh) |60 | |
+| UI fps khi đứng yên |60 | 60 |
+| UI fps khi pinch zoom liên tục |180-200| 58 |
+| JS fps khi pinch zoom liên tục |56-58| 15-25 |
+| UI fps khi kéo + pinch + xoay khung (chế độ chỉnh) |60 |58-60 |
 | Kéo, thả, kéo tiếp: đi tiếp từ chỗ thả |tay kéo khá xa khung mới đi theo - không đi theo ngón tay | |
-| Pinch 2 lần liên tiếp: lần 2 bắt đầu từ cỡ lần 1 | phải giữ 1 ngón tay trước tầm 0,5s mới có thể pinch bằng ngón kia, hoặc 2 ngón tay chạm tầm 0,5s mới có thể pinch. Đây chắc cũng là lí do ở lần kéo thả ở trên khiến có cảm giác ngón tay đi xa mới đi theo | |
-| Xoay gần 0°/90°: hít góc + rung | tự động về 0 độ / 90 tốt| |
-| Chạm đúp: về vị trí gốc | tốt | |
-| Ở chế độ chụp, pinch chỉ zoom camera | tốt | |
+| Pinch 2 lần liên tiếp: lần 2 bắt đầu từ cỡ lần 1 | phải giữ 1 ngón tay trước tầm 0,5s mới có thể pinch bằng ngón kia, hoặc 2 ngón tay chạm tầm 0,5s mới có thể pinch. Đây chắc cũng là lí do ở lần kéo thả ở trên khiến có cảm giác ngón tay đi xa mới đi theo | 60 |
+| Xoay gần 0°/90°: hít góc + rung | tự động về 0 độ / 90 tốt|tốt |
+| Chạm đúp: về vị trí gốc | tốt | tốt |
+| Ở chế độ chụp, pinch chỉ zoom camera | tốt | tốt |
 | Flash auto hoạt động khi chụp trong tối | (chưa có nút chụp, Phase 2) | |
 
 Kết luận: khá 5/10 , sự kiện bắt ngón tay còn delay, tốc độ zoom còn quá nhanh
@@ -56,6 +56,15 @@ Kết luận lần 2: 3/4 pinch kéo thả tốt mượt, zoom chưa tốt, khô
 | Pinch ×2 khoảng cách thì ảnh to gấp đôi (so với app Camera của iPhone) | tốt |
 
 Kết luận lần 3: tốt, mượt
+
+**Android (Pixel 8a), bản lần 3:** UI 58–60 khi zoom và khi kéo/pinch/xoay, nhưng **JS tụt còn 15–25** khi pinch zoom. Nguyên nhân: zoom đẩy state mỗi khung hình. **Đã sửa:** đẩy tối đa ~30 lần/giây (`cameraZoom.minIntervalMs = 33`) và luôn gửi giá trị cuối khi nhấc tay.
+
+| Đo lại Android (lần 4) | Android |
+|---|---|
+| Máy thật hay emulator | |
+| JS fps khi pinch zoom liên tục | |
+| Zoom vẫn liền mạch | |
+| Kéo, thả, kéo tiếp: bám ngón tay ngay | |
 
 ---
 
@@ -110,12 +119,26 @@ Nhận xét lần đo 1:
 
 | Đo lại RMBG (lần 3, "Chạy 3 ảnh mẫu") | RMBG CPU | RMBG GPU |
 |---|---|---|
-| Nạp lần đầu | | |
-| Chạy model TB | | |
-| Cả vòng TB | | |
-| Lỗi + 5 dòng log cuối (nếu có) | | |
+| backend |ort-wasm | ort-webgpu |
+| Nạp lần đầu |24.1s | 37.1s |
+| Chạy model TB | 7.8s | 854ms|
+| Cả vòng TB |7.9s | 960ms |
+| Lỗi + 5 dòng log cuối (nếu có) |0 |0 |
 
-Kết luận:
+Kết luận: cả 2 đều cắt gọn và đẹp. Có thể do CPU và GPU của ip15 khá mạnh 
+
+### Chốt spike B (iPhone)
+
+| Dùng cho | Model | Lý do |
+|---|---|---|
+| **Pose** (chức năng 1, 2) | **MediaPipe Multiclass** (GPU) | ~105 ms cả vòng; giữ đủ toàn thân. Mép thô không quan trọng vì viền vẽ từ contour vector đã làm mượt (Phase 1) |
+| **Thay nền** (chức năng 3) | **RMBG-1.4 fp16 trên WebGPU** | ~0.96 s cả vòng, mép đẹp, giữ tóc |
+| Thay nền, máy không có WebGPU | RMBG-1.4 int8 trên WASM | ~7.9 s, chậm nhưng chạy được |
+
+- Lần đo 2 treo vì đưa bản **int8** lên WebGPU. Bản **fp16** chạy tốt. Không bao giờ dùng int8 với WebGPU.
+- "Nạp lần đầu" 24–37 s chủ yếu là tải model qua mạng (42 / 84 MB). Phase 1 phải quyết: đóng gói model kèm app hay tải một lần khi dùng Thay nền lần đầu (xem roadmap §3.3).
+- Selfie và DeepLab bị loại.
+- Còn đo trên Android: WebView của Android có WebGPU hay không quyết định Thay nền chạy ~1 s hay ~8 s.
 
 ---
 
