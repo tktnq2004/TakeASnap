@@ -50,12 +50,12 @@ Kết luận lần 2: 3/4 pinch kéo thả tốt mượt, zoom chưa tốt, khô
 
 | Đo lại (lần 3) | iPhone |
 |---|---|
-| UI fps khi pinch zoom liên tục | |
-| JS fps khi pinch zoom liên tục | |
-| Zoom liền mạch, không nhảy nấc | |
-| Pinch ×2 khoảng cách thì ảnh to gấp đôi (so với app Camera của iPhone) | |
+| UI fps khi pinch zoom liên tục | 60|
+| JS fps khi pinch zoom liên tục | 55-58|
+| Zoom liền mạch, không nhảy nấc |zoom out mạnh  |
+| Pinch ×2 khoảng cách thì ảnh to gấp đôi (so với app Camera của iPhone) | tốt |
 
-Kết luận lần 3:
+Kết luận lần 3: tốt, mượt
 
 ---
 
@@ -97,7 +97,7 @@ Kết luận lần 2: Tốt đã fix được
 | Test | iPhone | Android |
 |---|---|---|
 | `expo-haptics` (dòng "expo-haptics: có/không có") |có| |
-| Nút "Thử rung" có rung không |không hoặc có thể tôi đã tắt trên iphone | |
+| Nút "Thử rung" có rung không |có rung (lần 1 ghi nhầm "không") | |
 | Lưu ảnh mẫu vào album "TakeASnap" (dòng KẾT QUẢ) | Đạt | |
 | Mở sheet: cao ~88%, có tay kéo, kéo xuống để đóng | tốt| |
 | Slider trong sheet kéo được, không bị sheet giành cử chỉ |tốt | |

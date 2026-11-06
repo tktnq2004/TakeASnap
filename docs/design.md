@@ -182,7 +182,7 @@ Cấm:
 
 ### 3.6 Haptics
 
-> **Spike D (iPhone 15 Pro Max, Expo Go 58):** `expo-haptics` **không có** trong Expo Go. Mọi lệnh rung đi qua `src/lib/haptics.ts` và tự bỏ qua, nên v1 chạy trong Expo Go sẽ **không rung**. Bảng dưới vẫn giữ để dùng khi chuyển sang dev build. Vì vậy mọi phản hồi quan trọng phải có tín hiệu nhìn thấy được, không dựa vào rung: góc hít có vạch chỉ báo, vùng xóa đổi viền `danger`, thước cân bằng đổi màu.
+> **Spike D (iPhone 15 Pro Max, Expo Go 58):** `expo-haptics` có trong Expo Go và rung được. Mọi lệnh rung vẫn đi qua `src/lib/haptics.ts`, file này tự bỏ qua nếu máy thiếu module. Người dùng có thể tắt rung hệ thống, nên mọi phản hồi quan trọng vẫn phải có tín hiệu nhìn thấy được: góc hít có vạch chỉ báo, vùng xóa đổi viền `danger`, thước cân bằng đổi màu.
 
 | Sự kiện | Kiểu |
 |---|---|

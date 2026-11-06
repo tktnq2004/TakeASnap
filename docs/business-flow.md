@@ -103,10 +103,10 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới tách hẳn
 | Vào bằng | Chạm "Xong", hoặc chạm ra vùng trống | Chạm vào overlay, hoặc nút "Chỉnh pose" |
 | 1 ngón kéo | — | Di chuyển overlay |
 | 2 ngón pinch | Zoom camera | Phóng/thu overlay quanh tâm hai ngón |
-| 2 ngón xoay | — | Xoay overlay (hít về 0° khi lệch dưới 3°, rung nhẹ khi có dev build) |
+| 2 ngón xoay | — | Xoay overlay (hít về 0° khi lệch dưới 3°, rung nhẹ) |
 | Chạm 1 lần | — (camera tự lấy nét; `expo-camera` không có lấy nét theo điểm chạm, để dành cho bản dùng VisionCamera) | — |
 | Chạm đúp | — | Đặt lại vị trí/tỉ lệ/góc ban đầu |
-| Kéo xuống vùng xóa | — | Gỡ overlay khỏi khung (vùng xóa đổi viền `danger` khi overlay vào; rung thêm khi có dev build) |
+| Kéo xuống vùng xóa | — | Gỡ overlay khỏi khung (vùng xóa đổi viền `danger` và rung cảnh báo khi overlay vào) |
 | Thanh điều khiển | Hiện đủ | Ẩn hết, chỉ còn "Xong" và vùng xóa |
 
 Pinch và xoay chạy cùng lúc. Kéo, pinch và xoay đều cộng dồn từ trạng thái trước, không bao giờ nhảy về giá trị cũ.
