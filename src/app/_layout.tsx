@@ -1,0 +1,49 @@
+// Import theo từng weight để chỉ đóng gói 3 file font thay vì cả họ (design.md §3.3).
+import { DMMono_500Medium } from '@expo-google-fonts/dm-mono/500Medium';
+import { Urbanist_400Regular } from '@expo-google-fonts/urbanist/400Regular';
+import { Urbanist_500Medium } from '@expo-google-fonts/urbanist/500Medium';
+import { useFonts } from 'expo-font';
+import { Stack } from 'expo-router';
+import { SQLiteProvider } from 'expo-sqlite';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import { migrate } from '@/db/migrations';
+import { color, radius } from '@/ui/tokens';
+
+export default function RootLayout() {
+  const [fontsLoaded] = useFonts({ Urbanist_400Regular, Urbanist_500Medium, DMMono_500Medium });
+
+  if (!fontsLoaded) return <View style={styles.root} />;
+
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <SQLiteProvider databaseName="takeasnap.db" onInit={migrate}>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: color.bg },
+            animation: 'fade',
+          }}
+        >
+          <Stack.Screen
+            name="spike/sheet"
+            options={{
+              presentation: 'formSheet',
+              sheetAllowedDetents: [0.88],
+              sheetGrabberVisible: true,
+              sheetCornerRadius: radius.lg,
+              contentStyle: { backgroundColor: color.surface },
+            }}
+          />
+        </Stack>
+      </SQLiteProvider>
+    </GestureHandlerRootView>
+  );
+}
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: color.bg },
+});

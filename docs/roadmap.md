@@ -195,24 +195,27 @@ Pose mẫu được tách sẵn trên Windows bằng `onnxruntime-node` hoặc P
 
 ### 3.5 Hệ cử chỉ
 
+Gesture Handler 3.3 (bản đi kèm SDK 58) dùng **API hook**; builder `Gesture.Pan()` đã deprecated. Code thật ở [src/gestures/useTransformGesture.ts](../src/gestures/useTransformGesture.ts), toán tách riêng ở [transformMath.ts](../src/gestures/transformMath.ts) và có unit test.
+
 ```ts
 // Chế độ chỉnh overlay (editMode = true)
-const pan    = Gesture.Pan().enabled(editMode).onChange(e => { tx.value += e.changeX; ty.value += e.changeY; });
-const pinch  = Gesture.Pinch().enabled(editMode).onChange(e => { /* scale *= e.scaleChange, neo theo focalX/Y */ });
-const rotate = Gesture.Rotation().enabled(editMode).onChange(e => { rot.value += e.rotationChange; });
-const reset  = Gesture.Tap().numberOfTaps(2).enabled(editMode).onEnd(resetPlacement);
-const overlayGesture = Gesture.Exclusive(reset, Gesture.Simultaneous(pan, pinch, rotate));
+const pan    = usePanGesture({ enabled: editMode, onUpdate: (e) => { 'worklet'; tx.value += e.changeX; ty.value += e.changeY; } });
+const pinch  = usePinchGesture({ enabled: editMode, onUpdate: (e) => { 'worklet'; /* scaleAbout(t, focal, e.scaleChange) */ } });
+const rotate = useRotationGesture({ enabled: editMode, onUpdate: (e) => { 'worklet'; /* rotateAbout(t, anchor, e.rotationChange) */ } });
+const reset  = useTapGesture({ enabled: editMode, numberOfTaps: 2, onActivate: () => { 'worklet'; resetTo(initial); } });
+const overlayGesture = useExclusiveGestures(reset, useSimultaneousGestures(pan, pinch, rotate));
 
 // Chế độ chụp (editMode = false)
-const camZoom = Gesture.Pinch().enabled(!editMode)
-  .onChange(e => { zoomSV.value = clamp(zoomSV.value * e.scaleChange); });
+const camZoom = usePinchGesture({ enabled: !editMode, onUpdate: (e) => { 'worklet'; zoomSV.value = clamp(zoomSV.value + (e.scaleChange - 1) * 0.6); } });
 ```
+
+Sang JS chỉ bằng `scheduleOnRN` của `react-native-worklets` (thay cho `runOnJS`), và chỉ khi cử chỉ kết thúc.
 
 Quy tắc:
 - Mọi phép biến đổi **cộng dồn** bằng `changeX`, `scaleChange`, `rotationChange`. Không tính lại từ điểm đầu.
 - Pinch neo theo **tâm hai ngón**: điểm dưới ngón tay đứng yên khi phóng to.
 - Cử chỉ chỉnh overlay nhận trên **toàn khung ngắm**, không chỉ trên vùng overlay, nên pose nhỏ vẫn chỉnh được.
-- Chỉ gọi `runOnJS` khi cử chỉ **kết thúc** (lưu placement, haptics).
+- Chỉ gọi `scheduleOnRN` khi cử chỉ **kết thúc** (lưu placement, haptics).
 - Hít góc 0°/90° khi lệch dưới 3°. Giới hạn scale 0.2×–4×.
 - Cùng một hook `useTransformGesture` dùng cho overlay camera và cho bước Vị trí của Thay nền.
 
@@ -243,16 +246,17 @@ Người dùng chỉnh được: hướng sáng (vòng xoay, mặc định là g
 ### 3.7 Cấu trúc thư mục
 
 ```
-app/                          # expo-router
-  _layout.tsx                 # mount WebView segmenter một lần
-  index.tsx                   # Camera
-  library.tsx                 # Thư viện pose (formSheet)
-  editor/[poseId].tsx         # Chỉnh pose
-  compose/
-    _layout.tsx               # stepper 4 bước
-    subject.tsx  background.tsx  place.tsx  result.tsx
-  settings.tsx
 src/
+  app/                        # expo-router (SDK 58 đặt route trong src/app)
+    _layout.tsx               # font, cử chỉ, SQLite; sau này mount WebView segmenter
+    index.tsx                 # Camera (Phase 0: menu spike)
+    library.tsx               # Thư viện pose (formSheet)
+    editor/[poseId].tsx       # Chỉnh pose
+    compose/
+      _layout.tsx             # stepper 4 bước
+      subject.tsx  background.tsx  place.tsx  result.tsx
+    settings.tsx
+    spike/                    # màn đo của Phase 0, xóa khi xong Phase 2
   features/
     camera/                   # CameraLayer (memo), controls, overlay, capture
     pose/                     # library, editor, repository
@@ -262,15 +266,18 @@ src/
     contour.ts                # marching squares, DP, Catmull–Rom (có unit test)
     image.ts                  # chuẩn hóa EXIF, resize
   gestures/useTransformGesture.ts
+  lib/haptics.ts              # rung, tự tắt nếu Expo Go thiếu module
   ui/
-    tokens.ts                 # màu, chữ, khoảng cách, radius, motion
+    tokens.ts                 # màu, chữ, khoảng cách, radius, motion (dữ liệu thuần)
+    easing.ts                 # hàm easing dựng từ token
     strings.ts                # mọi chuỗi tiếng Việt
-    components/               # Button, IconButton, Sheet, Slider, Segmented, Swatch...
+    components/               # Button, IconButton, Slider, Segmented, Swatch, Screen...
   db/                         # schema + migration SQLite
   store/                      # zustand
 assets/
   models/                     # file model (.onnx / .tflite) + .wasm
-  poses/                      # pose mẫu: ảnh + mask + contour tính sẵn
+  poses/
+    source/                   # 25 ảnh mẫu gốc (chuyển từ src/assets/images của bản cũ)
 scripts/build-sample-poses.ts # thay cho src/components/samplesGenerate.js
 metro.config.js               # thêm assetExts: onnx, tflite, wasm
 docs/
@@ -284,16 +291,19 @@ docs/
 
 ### Phase 0 — Nền móng và spike (1–2 tuần)
 
-- [ ] Môi trường Windows: Node LTS, VS Code, Git; Expo Go trên iPhone; Android Studio + emulator (hoặc một máy Android thật) để test Android
-- [ ] Tag bản cũ `legacy-v0`, làm rebuild trên nhánh `rebuild/v1`, **push lên GitHub ngay ngày đầu**
-- [ ] Khởi tạo project mới: Expo SDK theo Expo Go hiện tại, TypeScript strict, ESLint, Prettier, `expo-router`
-- [ ] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value; đo xem overlay có giữ 60 fps khi đang zoom không
+- [x] Môi trường Windows: nvm-windows + Node 24.22.2 (SDK 58 cần Node ≥ 22.13), VS Code, Git
+- [ ] Expo Go trên iPhone; Android Studio + emulator (hoặc một máy Android thật) để test Android
+- [x] Tag bản cũ `legacy-v0`, làm rebuild trên nhánh `rebuild/v1`
+- [ ] **Push lên GitHub**
+- [x] Khởi tạo project mới: Expo SDK 58, RN 0.88, TypeScript strict, ESLint, Prettier, Jest, `expo-router`
+- [ ] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value; đo xem overlay có giữ 60 fps khi đang zoom không *(màn đo đã có, chờ đo trên máy)*
 - [ ] **Spike B — tách người:** `WebViewSegmenter` chạy 4 model ở §3.3 trên 20 ảnh mẫu, trên iPhone và Android; ghi thời gian, bộ nhớ, chất lượng mép (tóc, ngón tay, khe tay–thân)
-- [ ] **Spike C — Skia overlay:** contour stroke + fill + ảnh trên 1 canvas, kéo slider độ dày ở 60 fps
-- [ ] **Spike D — giới hạn Expo Go:** lưu ảnh vào album "TakeASnap" trên iOS và Android; `formSheet` trên Android
-- [ ] `src/ui/tokens.ts`, `src/ui/strings.ts` và 6 component nền: Button, IconButton, Slider, Segmented, Swatch, Sheet
-- [ ] Schema SQLite v1 + migration
-- [ ] CI: typecheck + lint + unit test (GitHub Actions)
+- [ ] **Spike C — Skia overlay:** contour stroke + fill + ảnh trên 1 canvas, kéo slider độ dày ở 60 fps *(màn đo đã có, chờ đo trên máy)*
+- [ ] **Spike D — giới hạn Expo Go:** lưu ảnh vào album "TakeASnap", `expo-haptics` có trong Expo Go không, `formSheet` trên Android *(màn đo đã có, chờ đo trên máy)*
+- [x] `src/ui/tokens.ts`, `src/ui/strings.ts` và component nền: Button, IconButton, Slider, Segmented, Swatch, Screen (sheet dùng `formSheet` của expo-router)
+- [x] `useTransformGesture` + toán biến đổi có unit test (dùng lại ở Phase 2 và Phase 4)
+- [x] Schema SQLite v1 + migration
+- [x] CI: typecheck + lint + unit test (GitHub Actions)
 
 **Xong khi:** 4 spike có số đo ghi vào `docs/spikes.md`; đã chọn model cho pose và cho Thay nền.
 
@@ -388,6 +398,7 @@ docs/
 | Model trong WebView chậm trên iPhone (WASM thường chạy một luồng trong WebView) | Trung bình | Spike B; ưu tiên MediaPipe chạy WebGL; hạ ảnh xuống 1024 px; mỗi ảnh chỉ tách một lần |
 | WebView tốn bộ nhớ khi gửi ảnh base64 lớn | Trung bình | Giới hạn 1024 px cho pose; Thay nền tách ở 1024 px rồi phóng mask lên bằng làm mịn có hướng dẫn theo ảnh gốc |
 | Mask kém với người toàn thân ở xa | Trung bình | So 4 model ở spike B; với pose thì mask thô vẫn đủ vì chỉ dùng làm dáng |
+| Docs SDK 58 không ghi `expo-haptics` có trong Expo Go | Trung bình | `src/lib/haptics.ts` tự tắt khi thiếu module; spike D xác nhận. Thiếu thì app vẫn chạy, chỉ mất rung |
 | Expo Go chỉ chạy SDK mới nhất | Chắc chắn | Khi App Store cập nhật Expo Go thì nâng SDK; không dùng thư viện ngoài danh sách của Expo Go |
 | Expo Go trên Android giới hạn quyền thư viện ảnh | Trung bình | Spike D; dự phòng: lưu bằng `saveToLibraryAsync` không cần album riêng |
 | Zoom camera qua state làm giật overlay | Thấp–trung bình | `CameraLayer` cô lập (§3.5); spike A |

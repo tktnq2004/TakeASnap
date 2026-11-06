@@ -33,10 +33,10 @@ Mọi thư viện đều chạy được trong **Expo Go**, không cần build n
 
 | Phần | Công nghệ |
 |---|---|
-| App | Expo (SDK theo bản Expo Go hiện hành), React Native, TypeScript strict |
+| App | Expo SDK 58, React Native 0.88, TypeScript 6 strict |
 | Điều hướng | `expo-router` |
 | Camera | `expo-camera` |
-| Cử chỉ và animation | `react-native-gesture-handler` v2 + `react-native-reanimated` (UI thread) |
+| Cử chỉ và animation | `react-native-gesture-handler` 3 (API hook) + `react-native-reanimated` 4 (UI thread) |
 | Vẽ overlay, editor, ghép ảnh | `@shopify/react-native-skia` |
 | Tách người | Model segmentation (MediaPipe / ONNX Runtime Web) chạy trong `react-native-webview` ẩn, file model đóng gói kèm app |
 | Lưu trữ | `expo-sqlite`, `expo-file-system`, `expo-media-library` |
@@ -51,7 +51,7 @@ Mọi thư viện đều chạy được trong **Expo Go**, không cần build n
 ## Cấu trúc thư mục (dự kiến)
 
 ```
-app/                    # màn hình (expo-router)
+src/app/                # màn hình (expo-router; spike/ là màn đo của Phase 0)
 src/features/           # camera, pose, compose
 src/engine/             # segmentation (WebView), contour, xử lý ảnh
 src/gestures/           # useTransformGesture dùng chung
@@ -68,12 +68,19 @@ Chi tiết ở [roadmap.md §3.7](docs/roadmap.md#37-cấu-trúc-thư-mục).
 
 ## Chạy app
 
-Cần: Node LTS và VS Code trên Windows, cùng **Expo Go** trên điện thoại (App Store / Play Store). Máy tính và điện thoại phải dùng chung Wi-Fi.
+Cần:
+- **Node 24** (Expo SDK 58 cần Node ≥ 22.13). Máy dùng nvm-windows: `nvm install 24.22.2` rồi `nvm use 24.22.2`.
+- VS Code trên Windows.
+- **Expo Go** trên điện thoại (App Store / Play Store), bản hỗ trợ SDK 58.
+- Máy tính và điện thoại dùng chung Wi-Fi.
 
 ```bash
 npm install
 npx expo start
+npm run check        # typecheck + lint + test, chạy trước khi commit
 ```
+
+Phase 0 chưa có màn Camera thật: app mở vào menu **Phase 0 · Spike**. Kết quả đo ghi vào [docs/spikes.md](docs/spikes.md).
 
 - **iPhone:** mở app Camera, quét mã QR trong terminal.
 - **Android:** mở Expo Go, quét mã QR. Có thể dùng emulator của Android Studio: nhấn `a` trong terminal.

@@ -1,33 +1,33 @@
 {
   "expo": {
     "name": "TakeASnap",
-    "slug": "TakeASnap",
+    "slug": "takeasnap",
+    "scheme": "takeasnap",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#18191b",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSCameraUsageDescription": "TakeASnap cần camera để chụp theo pose.",
+        "NSPhotoLibraryUsageDescription": "TakeASnap cần đọc ảnh để lấy dáng từ ảnh của bạn.",
+        "NSPhotoLibraryAddUsageDescription": "TakeASnap cần quyền lưu ảnh vào album TakeASnap."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#18191b",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-font"
-    ]
+    "plugins": ["expo-router", "expo-sqlite", "expo-font", "expo-asset"],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
