@@ -24,8 +24,12 @@ const models = [
   { key: 'multiclass', label: 'Multiclass' },
   { key: 'selfie', label: 'Selfie' },
   { key: 'deeplab', label: 'DeepLab' },
-  { key: 'rmbg', label: 'RMBG' },
+  { key: 'rmbg-cpu', label: 'RMBG CPU' },
+  { key: 'rmbg-gpu', label: 'RMBG GPU' },
 ] as const;
+
+/** 3 ảnh đã soi trên máy tính (docs/spikes.md): ngồi bệt, váy xòe cầm giỏ, đứng giơ tay. */
+const QUICK_IDS = ['street1', 'travel3', 'coffee2'];
 
 const modes = [
   { key: 'cut', label: t.spike.segmentViewCut },
@@ -96,13 +100,13 @@ export default function SegmentSpike() {
     }
   };
 
-  const runAll = async () => {
+  const runSamples = async (list: typeof samplePoses) => {
     setRows([]);
     setSelected(null);
     const out: Row[] = [];
-    for (let i = 0; i < samplePoses.length; i++) {
-      const s = samplePoses[i]!;
-      setProgress(`${t.spike.segmentRunning} ${i + 1}/${samplePoses.length}`);
+    for (let i = 0; i < list.length; i++) {
+      const s = list[i]!;
+      setProgress(`${t.spike.segmentRunning} ${i + 1}/${list.length}`);
       const [asset] = await Asset.loadAsync(s.source);
       if (!asset?.localUri || !asset.width || !asset.height) continue;
       const row = await runOne(
@@ -114,6 +118,8 @@ export default function SegmentSpike() {
     }
     setProgress(null);
   };
+  const runAll = () => runSamples(samplePoses);
+  const runQuick = () => runSamples(samplePoses.filter((s) => QUICK_IDS.includes(s.id)));
 
   const pick = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
@@ -166,6 +172,13 @@ export default function SegmentSpike() {
             <View style={styles.buttons}>
               <Button label={t.spike.segmentRunAll} onPress={runAll} disabled={busy} fullWidth />
               <Button
+                label={t.spike.segmentRunQuick}
+                variant="secondary"
+                onPress={runQuick}
+                disabled={busy}
+                fullWidth
+              />
+              <Button
                 label={t.spike.segmentPick}
                 variant="secondary"
                 onPress={pick}
@@ -201,7 +214,7 @@ export default function SegmentSpike() {
             )}
 
             {seg.logs.length > 0 && (
-              <Text style={[type.num, styles.muted]}>{seg.logs.slice(-3).join('\n')}</Text>
+              <Text style={[type.num, styles.muted]}>{seg.logs.slice(-5).join('\n')}</Text>
             )}
           </View>
         }

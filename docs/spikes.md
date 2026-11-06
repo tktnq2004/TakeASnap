@@ -99,13 +99,21 @@ Nhận xét lần đo 1:
 - Đã thử làm mịn mép bằng guided filter (ảnh dẫn xám, r = 8/12, eps = 1e-3/1e-4) trên máy tính: **tệ hơn**, mép quầng sáng và lem nền khi áo và nền có độ sáng gần nhau. Đã gỡ.
 - RMBG báo lỗi trên iPhone, chưa có nội dung lỗi. Đã sửa: tải model bằng fetch để lỗi mạng hiện rõ, thử **WebGPU** trước (iOS 26 có WebGPU) rồi lùi về WASM, log từng bước. Trên máy tính, đường lùi về WASM đã chạy đúng.
 
-| Đo lại RMBG (lần 2) | iPhone |
-|---|---|
-| Backend (ort-webgpu / ort-wasm) | |
-| Nạp lần đầu | |
-| Chạy model TB | |
-| Cả vòng TB | |
-| Lỗi (nếu có: chép nguyên 3 dòng log cuối trên màn) | |
+**Lần đo 2 (iPhone):** RMBG tải xong 42.3 MB, WebGPU có, session `ort-webgpu` tạo được, nhưng `session.run` không trả về sau 180 s và không có log nào. Hai khả năng: WebView bị iOS đóng vì hết bộ nhớ (chết im lặng), hoặc model int8 chạy cực chậm trên WebGPU.
+
+**Đã sửa để phân biệt:**
+- Bắt `onContentProcessDidTerminate` (iOS) / `onRenderProcessGone` (Android): màn báo "WebView bị hệ điều hành đóng" và tự nạp lại trang.
+- Log nhịp mỗi 10 s khi model đang chạy: log đều = chạy chậm; log dừng = WebView đã chết.
+- Tách **RMBG CPU** (int8 42 MB, WASM) và **RMBG GPU** (fp16 84 MB, WebGPU), không tự lùi; chỉ giữ một session trong bộ nhớ.
+- Thêm nút "Chạy 3 ảnh mẫu" (street1, travel3, coffee2).
+- Thử chạy RMBG ở 512 px để giảm tải: model báo "invalid dimensions", chỉ nhận 1024 × 1024.
+
+| Đo lại RMBG (lần 3, "Chạy 3 ảnh mẫu") | RMBG CPU | RMBG GPU |
+|---|---|---|
+| Nạp lần đầu | | |
+| Chạy model TB | | |
+| Cả vòng TB | | |
+| Lỗi + 5 dòng log cuối (nếu có) | | |
 
 Kết luận:
 

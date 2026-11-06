@@ -86,6 +86,7 @@ export const t = {
     segmentTitle: 'B · Tách người bằng WebView',
     segmentLoading: 'Đang nạp WebView',
     segmentRunAll: 'Chạy 25 ảnh mẫu',
+    segmentRunQuick: 'Chạy 3 ảnh mẫu',
     segmentPick: 'Chọn ảnh từ máy',
     segmentRunning: 'Đang chạy ảnh',
     segmentViewCut: 'Ảnh tách',

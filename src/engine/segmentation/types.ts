@@ -4,7 +4,7 @@
  */
 
 /** Model đang được so sánh ở spike B (docs/spikes.md). */
-export type SegmentModelId = 'multiclass' | 'selfie' | 'deeplab' | 'rmbg';
+export type SegmentModelId = 'multiclass' | 'selfie' | 'deeplab' | 'rmbg-cpu' | 'rmbg-gpu';
 
 export type SegmentTimings = {
   /** Lần đầu dùng model: tải + khởi tạo. 0 nếu model đã nạp sẵn. */

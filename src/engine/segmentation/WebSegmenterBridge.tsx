@@ -36,7 +36,7 @@ const TIMEOUT_MS = 180_000;
  * Type chung của react-native-webview khai báo WebView là FunctionComponent (không có ref), dù bản
  * iOS/Android thật là forwardRef. Chỉ cần postMessage nên khai báo kiểu tối thiểu.
  */
-type WebViewHandle = { postMessage: (data: string) => void };
+type WebViewHandle = { postMessage: (data: string) => void; reload: () => void };
 
 export function useWebSegmenter() {
   const ref = useRef<WebViewHandle | null>(null);
@@ -69,6 +69,22 @@ export function useWebSegmenter() {
     }
   };
 
+  /**
+   * iOS/Android đóng tiến trình WebView (thường do hết bộ nhớ): trang chết im lặng, không gửi
+   * được lỗi. Báo lỗi cho mọi yêu cầu đang chờ rồi nạp lại trang (spike B, RMBG treo 180 s).
+   */
+  const onProcessGone = () => {
+    const message = 'WebView bị hệ điều hành đóng, có thể do hết bộ nhớ';
+    setInfo(null);
+    setLogs((l) => [...l.slice(-19), message]);
+    for (const [id, p] of pending.current) {
+      clearTimeout(p.timer);
+      p.reject(new Error(message));
+      pending.current.delete(id);
+    }
+    ref.current?.reload();
+  };
+
   const run = (model: SegmentModelId, base64: string) =>
     new Promise<WebSegmentResult>((resolve, reject) => {
       const id = nextId.current++;
@@ -90,6 +106,8 @@ export function useWebSegmenter() {
           javaScriptEnabled
           webviewDebuggingEnabled
           onMessage={onMessage}
+          onContentProcessDidTerminate={onProcessGone}
+          onRenderProcessGone={onProcessGone}
           style={styles.web}
         />
       </View>
