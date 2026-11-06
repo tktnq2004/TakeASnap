@@ -21,7 +21,7 @@ import { useTransformGesture } from '@/gestures/useTransformGesture';
 import { haptic } from '@/lib/haptics';
 import { AnimatedText, Button, IconButton, Screen } from '@/ui/components';
 import { t } from '@/ui/strings';
-import { color, radius, size, space, type } from '@/ui/tokens';
+import { cameraZoom, color, radius, size, space, type } from '@/ui/tokens';
 
 /**
  * Spike A (roadmap §4, Phase 0): expo-camera nhận zoom qua prop nên bắt buộc có state.
@@ -62,7 +62,9 @@ function CameraSpikeBody() {
     enabled: !editMode,
     onUpdate: (e) => {
       'worklet';
-      zoomSV.value = Math.min(1, Math.max(0, zoomSV.value + (e.scaleChange - 1) * 0.6));
+      // Thang log: pinch ×2 khoảng cách luôn tăng cùng một nấc, bất kể đang zoom bao nhiêu.
+      const next = zoomSV.value + Math.log(e.scaleChange) * cameraZoom.pinchSensitivity;
+      zoomSV.value = Math.min(1, Math.max(0, next));
     },
   });
 

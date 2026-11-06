@@ -81,6 +81,15 @@ export const motion = {
   pressScale: 0.985,
 } as const;
 
+/**
+ * Zoom camera. `expo-camera` nhận zoom 0..1 = % độ zoom tối đa của máy; iPhone Pro zoom rất sâu
+ * nên hệ số phải nhỏ. Pinch gấp đôi khoảng cách hai ngón → tăng ln(2) × 0.12 ≈ 8% thang zoom.
+ * Spike A lần 1 dùng 0.6 tuyến tính: quá nhanh.
+ */
+export const cameraZoom = {
+  pinchSensitivity: 0.12,
+} as const;
+
 /** Giới hạn của overlay (roadmap §3.5). */
 export const transformLimits = {
   minScale: 0.2,

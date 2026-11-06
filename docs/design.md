@@ -182,6 +182,8 @@ Cấm:
 
 ### 3.6 Haptics
 
+> **Spike D (iPhone 15 Pro Max, Expo Go 58):** `expo-haptics` **không có** trong Expo Go. Mọi lệnh rung đi qua `src/lib/haptics.ts` và tự bỏ qua, nên v1 chạy trong Expo Go sẽ **không rung**. Bảng dưới vẫn giữ để dùng khi chuyển sang dev build. Vì vậy mọi phản hồi quan trọng phải có tín hiệu nhìn thấy được, không dựa vào rung: góc hít có vạch chỉ báo, vùng xóa đổi viền `danger`, thước cân bằng đổi màu.
+
 | Sự kiện | Kiểu |
 |---|---|
 | Chụp ảnh | `impactLight` |
@@ -376,7 +378,7 @@ Tab "Pose của bạn" là lưới 3 cột, gap 12. Khi trống: một dòng `bo
 │············ ╭┴──┴╮ ··············│  [Xem trên ảnh gốc] là chip ở góc
 │············ ╰┬──┬╯ ··············│
 │··································│
-├──────────────────────────────────┤  panel cao cố định 296
+├──────────────────────────────────┤  panel cao cố định 336 (height, không phải minHeight)
 │ [ Viền | Phủ | Người | Sửa nét ] │
 │                                  │
 │ Hiện viền                   [on] │

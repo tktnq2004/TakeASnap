@@ -138,7 +138,7 @@ Mọi thư viện dưới đây đều có sẵn trong Expo Go hoặc là JS thu
 | Sheet | `presentation: 'formSheet'` của expo-router; dự phòng `@gorhom/bottom-sheet` | Kiểm tra trên Android ở Phase 0 |
 | Font | `@expo-google-fonts/urbanist`, `@expo-google-fonts/dm-mono` | Theo deal ở design.md |
 | Icon | `lucide-react-native` | Một bộ chung cho cả hai nền tảng |
-| Haptics | `expo-haptics` | |
+| Haptics | `expo-haptics` qua `src/lib/haptics.ts` | **Không có trong Expo Go** (spike D). Code tự bỏ qua; rung chỉ có khi lên dev build |
 | Chuỗi giao diện | `src/ui/strings.ts` | Chỉ tiếng Việt |
 | Chất lượng | TypeScript strict, ESLint, Prettier, Jest cho logic thuần | |
 
@@ -299,7 +299,7 @@ docs/
 - [ ] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value; đo xem overlay có giữ 60 fps khi đang zoom không *(màn đo đã có, chờ đo trên máy)*
 - [ ] **Spike B — tách người:** `WebViewSegmenter` chạy 4 model ở §3.3 trên 20 ảnh mẫu, trên iPhone và Android; ghi thời gian, bộ nhớ, chất lượng mép (tóc, ngón tay, khe tay–thân)
 - [ ] **Spike C — Skia overlay:** contour stroke + fill + ảnh trên 1 canvas, kéo slider độ dày ở 60 fps *(màn đo đã có, chờ đo trên máy)*
-- [ ] **Spike D — giới hạn Expo Go:** lưu ảnh vào album "TakeASnap", `expo-haptics` có trong Expo Go không, `formSheet` trên Android *(màn đo đã có, chờ đo trên máy)*
+- [ ] **Spike D — giới hạn Expo Go:** lưu ảnh vào album "TakeASnap", `expo-haptics` có trong Expo Go không, `formSheet` trên Android *(iOS: đạt; haptics không có. Còn Android)*
 - [x] `src/ui/tokens.ts`, `src/ui/strings.ts` và component nền: Button, IconButton, Slider, Segmented, Swatch, Screen (sheet dùng `formSheet` của expo-router)
 - [x] `useTransformGesture` + toán biến đổi có unit test (dùng lại ở Phase 2 và Phase 4)
 - [x] Schema SQLite v1 + migration
@@ -398,7 +398,7 @@ docs/
 | Model trong WebView chậm trên iPhone (WASM thường chạy một luồng trong WebView) | Trung bình | Spike B; ưu tiên MediaPipe chạy WebGL; hạ ảnh xuống 1024 px; mỗi ảnh chỉ tách một lần |
 | WebView tốn bộ nhớ khi gửi ảnh base64 lớn | Trung bình | Giới hạn 1024 px cho pose; Thay nền tách ở 1024 px rồi phóng mask lên bằng làm mịn có hướng dẫn theo ảnh gốc |
 | Mask kém với người toàn thân ở xa | Trung bình | So 4 model ở spike B; với pose thì mask thô vẫn đủ vì chỉ dùng làm dáng |
-| Docs SDK 58 không ghi `expo-haptics` có trong Expo Go | Trung bình | `src/lib/haptics.ts` tự tắt khi thiếu module; spike D xác nhận. Thiếu thì app vẫn chạy, chỉ mất rung |
+| `expo-haptics` không có trong Expo Go | **Đã xảy ra** (spike D, iOS) | `src/lib/haptics.ts` tự bỏ qua; mọi phản hồi phải có tín hiệu nhìn thấy được (design.md §3.6) |
 | Expo Go chỉ chạy SDK mới nhất | Chắc chắn | Khi App Store cập nhật Expo Go thì nâng SDK; không dùng thư viện ngoài danh sách của Expo Go |
 | Expo Go trên Android giới hạn quyền thư viện ảnh | Trung bình | Spike D; dự phòng: lưu bằng `saveToLibraryAsync` không cần album riêng |
 | Zoom camera qua state làm giật overlay | Thấp–trung bình | `CameraLayer` cô lập (§3.5); spike A |

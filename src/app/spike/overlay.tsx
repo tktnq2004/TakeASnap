@@ -97,7 +97,7 @@ export default function OverlaySpike() {
         </View>
       </View>
 
-      <View style={[styles.panel, { paddingBottom: insets.bottom + space[4] }]}>
+      <View style={[styles.panel, { height: PANEL_HEIGHT + insets.bottom }]}>
         <Segmented options={tabs} value={tab} onChange={setTab} />
 
         {tab === 'outline' && (
@@ -197,8 +197,11 @@ function Swatches({ value, onChange }: { value: string; onChange: (v: string) =>
   );
 }
 
-// Panel cao cố định để đổi tab không làm preview co giãn (design.md §4).
-const PANEL_HEIGHT = 296;
+// Panel cao CỐ ĐỊNH (height, không phải minHeight) theo tab cao nhất, để đổi tab không làm
+// preview co giãn (design.md §4). Tab Viền/Phủ: 16 + segmented 40 + 16 + switch 31 + 16 +
+// slider 76 + 16 + 2 hàng ô màu 92 + 16 đệm dưới ≈ 336. Spike C lần 1 dùng minHeight 296: tab
+// Người ngắn hơn nên preview giãn ra.
+const PANEL_HEIGHT = 336;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg },
@@ -213,7 +216,6 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   panel: {
-    minHeight: PANEL_HEIGHT,
     backgroundColor: color.surface,
     borderTopLeftRadius: radius.lg,
     borderTopRightRadius: radius.lg,

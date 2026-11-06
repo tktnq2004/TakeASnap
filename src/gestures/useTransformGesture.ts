@@ -1,5 +1,4 @@
 import {
-  useExclusiveGestures,
   usePanGesture,
   usePinchGesture,
   useRotationGesture,
@@ -80,6 +79,8 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
   const pan = usePanGesture({
     enabled,
     maxPointers: 2,
+    // Kích hoạt sau 2 pt thay vì ngưỡng mặc định, để overlay bám ngón tay ngay từ đầu.
+    minDistance: 2,
     onBegin: () => {
       'worklet';
       begin();
@@ -170,8 +171,11 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
     },
   });
 
-  const transform = useSimultaneousGestures(pan, pinch, rotate);
-  const gesture = useExclusiveGestures(doubleTap, transform);
+  // KHÔNG dùng useExclusiveGestures(doubleTap, …): kiểu ghép đó bắt kéo/pinch/xoay chờ chạm đúp
+  // thất bại (~0.5 s) mới được chạy, nên ngón tay phải đi xa rồi overlay mới theo (spike A,
+  // docs/spikes.md). Chạm đúp chạy song song là đủ: tap tự hủy khi ngón tay di chuyển, còn pan
+  // chỉ kích hoạt khi ngón tay di chuyển, nên hai cử chỉ không giẫm lên nhau.
+  const gesture = useSimultaneousGestures(pan, pinch, rotate, doubleTap);
 
   /** Style cho overlay (đặt overlay ở tâm vùng nhận). */
   const style = useAnimatedStyle(() => ({

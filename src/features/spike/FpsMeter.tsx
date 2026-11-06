@@ -17,6 +17,10 @@ export function FpsMeter() {
   useFrameCallback((info) => {
     'worklet';
     const dt = info.timeSincePreviousFrame ?? 0;
+    // Khi có sự kiện chạm, callback có thể chạy thêm vài lần trong cùng một khung hình (dt ≈ 0).
+    // Đếm cả những lần đó cho ra 180–200 "fps" ảo (spike A lần 1). Màn 120 Hz có dt ≈ 8.3 ms,
+    // nên bỏ qua mọi lần dt < 4 ms.
+    if (dt < 4) return;
     acc.value += dt;
     frames.value += 1;
     if (acc.value >= 500) {

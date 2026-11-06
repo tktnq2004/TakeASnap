@@ -7,9 +7,9 @@ Thiết bị test:
 
 | | iPhone | Android |
 |---|---|---|
-| Máy | | |
-| Hệ điều hành | | |
-| Expo Go | | |
+| Máy | iphone 15promax | |
+| Hệ điều hành | IOS 26.6.2| |
+| Expo Go |58.0.0 | |
 
 ---
 
@@ -19,18 +19,32 @@ Mục tiêu: khi pinch zoom (CameraLayer re-render), khung cam vẫn kéo/pinch/
 
 | Test | iPhone | Android |
 |---|---|---|
-| UI fps khi đứng yên | | |
-| UI fps khi pinch zoom liên tục | | |
-| JS fps khi pinch zoom liên tục | | |
-| UI fps khi kéo + pinch + xoay khung (chế độ chỉnh) | | |
-| Kéo, thả, kéo tiếp: đi tiếp từ chỗ thả | | |
-| Pinch 2 lần liên tiếp: lần 2 bắt đầu từ cỡ lần 1 | | |
-| Xoay gần 0°/90°: hít góc + rung | | |
-| Chạm đúp: về vị trí gốc | | |
-| Ở chế độ chụp, pinch chỉ zoom camera | | |
+| UI fps khi đứng yên |60 | |
+| UI fps khi pinch zoom liên tục |180-200| |
+| JS fps khi pinch zoom liên tục |56-58| |
+| UI fps khi kéo + pinch + xoay khung (chế độ chỉnh) |60 | |
+| Kéo, thả, kéo tiếp: đi tiếp từ chỗ thả |tay kéo khá xa khung mới đi theo - không đi theo ngón tay | |
+| Pinch 2 lần liên tiếp: lần 2 bắt đầu từ cỡ lần 1 | phải giữ 1 ngón tay trước tầm 0,5s mới có thể pinch bằng ngón kia, hoặc 2 ngón tay chạm tầm 0,5s mới có thể pinch. Đây chắc cũng là lí do ở lần kéo thả ở trên khiến có cảm giác ngón tay đi xa mới đi theo | |
+| Xoay gần 0°/90°: hít góc + rung | tự động về 0 độ / 90 tốt| |
+| Chạm đúp: về vị trí gốc | tốt | |
+| Ở chế độ chụp, pinch chỉ zoom camera | tốt | |
 | Flash auto hoạt động khi chụp trong tối | (chưa có nút chụp, Phase 2) | |
 
-Kết luận:
+Kết luận: khá 5/10 , sự kiện bắt ngón tay còn delay, tốc độ zoom còn quá nhanh
+
+**Đã sửa sau lần đo 1 (cần đo lại):**
+- Trễ ~0.5 s trước khi kéo/pinch: do ghép chạm đúp bằng `useExclusiveGestures`, bắt kéo/pinch/xoay chờ chạm đúp thất bại. Đổi sang chạy song song; pan kích hoạt sau 2 pt.
+- Zoom quá nhanh: đổi từ `+ (scaleChange − 1) × 0.6` sang thang log `+ ln(scaleChange) × 0.12` (`cameraZoom.pinchSensitivity` trong tokens). Nếu vẫn nhanh/chậm, báo để chỉnh hệ số.
+- "UI 180–200 fps" là số ảo: bộ đo đếm cả callback chạy thêm trong cùng khung hình khi có sự kiện chạm. Đã bỏ qua các lần dt < 4 ms.
+
+| Đo lại (lần 2) | iPhone |
+|---|---|
+| UI fps khi pinch zoom liên tục | |
+| Kéo, thả, kéo tiếp: bám ngón tay ngay | |
+| Pinch/xoay bằng 2 ngón chạm cùng lúc, không phải chờ | |
+| Tốc độ zoom vừa tay | |
+
+Kết luận lần 2:
 
 ---
 
@@ -53,13 +67,17 @@ Mục tiêu: kéo slider độ dày 1–12 px, hình đổi ngay, **UI ≥ 55 fp
 
 | Test | iPhone | Android |
 |---|---|---|
-| UI fps khi kéo slider Độ dày | | |
-| JS fps khi kéo slider Độ dày | | |
-| UI fps khi kéo slider Độ đậm | | |
-| Viền giữ đúng độ dày px khi đổi kích thước | | |
-| Đổi tab không làm preview co giãn | | |
+| UI fps khi kéo slider Độ dày | tốt trên 60| |
+| JS fps khi kéo slider Độ dày |tốt từ 58 trở lên | |
+| UI fps khi kéo slider Độ đậm | tốt trên 60| |
+| Viền giữ đúng độ dày px khi đổi kích thước |tốt | |
+| Đổi tab không làm preview co giãn | đổi qua người và người đi ngược lại có sự co giãn  | |
 
-Kết luận:
+Kết luận: tốt 4/5 
+
+**Đã sửa sau lần đo 1:** panel dùng `minHeight: 296`, tab Viền/Phủ có 2 hàng ô màu nên cao hơn, tab Người ngắn hơn nên preview giãn. Đổi sang `height: 336` cố định. Đo lại: đổi qua lại Viền ↔ Người, preview phải đứng yên.
+
+Kết luận lần 2:
 
 ---
 
@@ -67,10 +85,10 @@ Kết luận:
 
 | Test | iPhone | Android |
 |---|---|---|
-| `expo-haptics` (dòng "expo-haptics: có/không có") | | |
-| Nút "Thử rung" có rung không | | |
-| Lưu ảnh mẫu vào album "TakeASnap" (dòng KẾT QUẢ) | | |
-| Mở sheet: cao ~88%, có tay kéo, kéo xuống để đóng | | |
-| Slider trong sheet kéo được, không bị sheet giành cử chỉ | | |
+| `expo-haptics` (dòng "expo-haptics: có/không có") |có| |
+| Nút "Thử rung" có rung không |không hoặc có thể tôi đã tắt trên iphone | |
+| Lưu ảnh mẫu vào album "TakeASnap" (dòng KẾT QUẢ) | Đạt | |
+| Mở sheet: cao ~88%, có tay kéo, kéo xuống để đóng | tốt| |
+| Slider trong sheet kéo được, không bị sheet giành cử chỉ |tốt | |
 
-Kết luận:
+Kết luận: 5/5
