@@ -5,17 +5,21 @@
   "private": true,
   "jest": {
     "preset": "jest-expo",
-    "testPathIgnorePatterns": ["/node_modules/", "/.expo/"]
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/.expo/"
+    ]
   },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p scripts --noEmit",
     "test": "jest",
     "format": "prettier --write .",
-    "check": "npm run typecheck && npm run lint && npm run test"
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "build:samples": "node scripts/build-sample-poses.mts"
   },
   "dependencies": {
     "@expo-google-fonts/dm-mono": "^0.4.2",
@@ -58,6 +62,7 @@
     "jest": "^30.5.2",
     "jest-expo": "^58.0.14",
     "prettier": "^3.9.10",
+    "puppeteer-core": "^25.16.0",
     "typescript": "~6.0.3"
   }
 }
