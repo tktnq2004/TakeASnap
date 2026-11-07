@@ -57,10 +57,30 @@ async function getMediaPipe(model) {
     outputCategoryMask: false,
   });
   let seg, backend;
-  try { seg = await make('GPU'); backend = 'mediapipe-GPU'; }
-  catch (e) { log('GPU lỗi, chuyển CPU: ' + e.message); seg = await make('CPU'); backend = 'mediapipe-CPU'; }
+  if (mpForceCpu) { seg = await make('CPU'); backend = 'mediapipe-CPU'; }
+  else {
+    try { seg = await make('GPU'); backend = 'mediapipe-GPU'; }
+    catch (e) { log('GPU lỗi, chuyển CPU: ' + e.message); seg = await make('CPU'); backend = 'mediapipe-CPU'; }
+  }
   segmenters[model] = { seg: seg, backend: backend };
   return { entry: segmenters[model], loadMs: now() - t0 };
+}
+
+// Android emulator (spike B): GPU chạy được nhưng đọc mask số thực từ WebGL ra toàn 0, nên
+// Multiclass ra "toàn người", Selfie/DeepLab ra "không có người". Khi mask đầu tiên rỗng hoàn
+// toàn thì coi GPU hỏng: bỏ mọi segmenter GPU, từ đó chỉ dùng CPU.
+let mpForceCpu = false;
+function maxOf(a) {
+  let m = 0;
+  for (let i = 0; i < a.length; i++) if (a[i] > m) m = a[i];
+  return m;
+}
+function dropGpuSegmenters() {
+  mpForceCpu = true;
+  for (const k of Object.keys(segmenters)) {
+    try { segmenters[k].seg.close(); } catch (e) {}
+    delete segmenters[k];
+  }
 }
 
 // Không lùi tự động giữa GPU và CPU: spike cần đo riêng từng đường.
@@ -144,6 +164,14 @@ async function runMediaPipe(model, img) {
   const t2 = now();
   const masks = result.confidenceMasks || [];
   const pick = (i) => masks[i].getAsFloat32Array();
+  if (entry.backend === 'mediapipe-GPU' && masks.length && maxOf(pick(0)) < 1e-6) {
+    log(model + ': GPU trả mask rỗng, chuyển CPU');
+    result.close();
+    dropGpuSegmenters();
+    const again = await runMediaPipe(model, img);
+    again.timings.loadMs += loadMs;
+    return again;
+  }
   let prob, mw, mh;
   if (model === 'multiclass') {
     // 0 = nền; người = 1 − nền. Kênh nền chỉ đạt ~0.8–0.96 trên vùng nền (đo trên street1), nên

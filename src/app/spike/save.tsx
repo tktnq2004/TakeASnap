@@ -25,7 +25,9 @@ export default function SaveSpike() {
   const runSave = async () => {
     setLog([]);
     try {
-      const perm = await requestPermissionsAsync();
+      // Chỉ xin quyền ảnh. Mặc định SDK 58 xin cả ảnh, video, âm thanh; Expo Go trên Android không
+      // khai báo quyền AUDIO nên bị từ chối (spike D, Pixel 8a).
+      const perm = await requestPermissionsAsync(false, ['photo']);
       push(
         `quyền: ${perm.status}${'accessPrivileges' in perm ? ` (${String(perm.accessPrivileges)})` : ''}`,
       );

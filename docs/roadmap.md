@@ -295,20 +295,22 @@ docs/
 ### Phase 0 — Nền móng và spike (1–2 tuần)
 
 - [x] Môi trường Windows: nvm-windows + Node 24.22.2 (SDK 58 cần Node ≥ 22.13), VS Code, Git
-- [ ] Expo Go trên iPhone; Android Studio + emulator (hoặc một máy Android thật) để test Android
+- [x] Expo Go trên iPhone 15 Pro Max (iOS 26) và emulator Pixel 8a (Android Studio)
 - [x] Tag bản cũ `legacy-v0`, làm rebuild trên nhánh `rebuild`
 - [x] **Push lên GitHub** (tag `legacy-v0` + nhánh `rebuild`)
 - [x] Khởi tạo project mới: Expo SDK 58, RN 0.88, TypeScript strict, ESLint, Prettier, Jest, `expo-router`
-- [ ] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value; đo xem overlay có giữ 60 fps khi đang zoom không *(iOS: đạt ở lần 3, UI 60 / JS 55–58. Android: UI 58–60 nhưng JS 15–25 khi zoom; đã giới hạn 30 lần/giây, chờ đo lại)*
-- [ ] **Spike B — tách người:** `WebViewSegmenter` chạy 4 model ở §3.3 trên 20 ảnh mẫu, trên iPhone và Android; ghi thời gian, bộ nhớ, chất lượng mép (tóc, ngón tay, khe tay–thân) *(iOS: đạt, đã chốt model ở §3.3. Còn Android: có WebGPU không)*
-- [ ] **Spike C — Skia overlay:** contour stroke + fill + ảnh trên 1 canvas, kéo slider độ dày ở 60 fps *(iOS: đạt ở lần 2. Còn Android)*
-- [ ] **Spike D — giới hạn Expo Go:** lưu ảnh vào album "TakeASnap", `expo-haptics` có trong Expo Go không, `formSheet` trên Android *(iOS: đạt 5/5, haptics có. Còn Android)*
+- [x] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value *(iOS: UI 60 / JS 55–58. Android emulator: UI 58–60 / JS ~35 sau khi giới hạn zoom 30 lần/giây)*
+- [x] **Spike B — tách người:** 4 model trong WebView *(chốt ở §3.3: Multiclass cho pose, RMBG fp16 WebGPU cho Thay nền. Android emulator: GPU đọc mask ra 0 → tự lùi CPU; không có WebGPU → RMBG CPU ~9 s)*
+- [x] **Spike C — Skia overlay:** viền + phủ + ảnh trên 1 canvas, slider độ dày ở 60 fps *(iOS và Android emulator: UI ≥ 58)*
+- [x] **Spike D — giới hạn Expo Go:** album, haptics, `formSheet` *(iOS 5/5. Android: haptics có, sheet tốt; lưu album lỗi quyền AUDIO → đã sửa, chờ đo lại)*
 - [x] `src/ui/tokens.ts`, `src/ui/strings.ts` và component nền: Button, IconButton, Slider, Segmented, Swatch, Screen (sheet dùng `formSheet` của expo-router)
 - [x] `useTransformGesture` + toán biến đổi có unit test (dùng lại ở Phase 2 và Phase 4)
 - [x] Schema SQLite v1 + migration
 - [x] CI: typecheck + lint + unit test (GitHub Actions)
 
 **Xong khi:** 4 spike có số đo ghi vào `docs/spikes.md`; đã chọn model cho pose và cho Thay nền.
+
+**Trạng thái:** đạt. Còn hai việc nhỏ không chặn Phase 1: đo lại lưu album trên Android sau khi sửa quyền; và khi có máy Android thật, kiểm tra WebView có WebGPU không (quyết định Thay nền ~1 s hay ~9 s trên Android).
 
 ### Phase 1 — Pose engine và Chỉnh pose (2–3 tuần)
 
@@ -398,7 +400,8 @@ docs/
 
 | Rủi ro | Khả năng | Ứng phó |
 |---|---|---|
-| Model trong WebView chậm trên iPhone (WASM thường chạy một luồng trong WebView) | Trung bình | Spike B; ưu tiên MediaPipe chạy WebGL; hạ ảnh xuống 1024 px; mỗi ảnh chỉ tách một lần |
+| Model trong WebView chậm trên iPhone | **Đã loại** (spike B) | Multiclass ~105 ms, RMBG fp16 WebGPU ~0.96 s trên iPhone 15 Pro Max |
+| Android WebView không có WebGPU, hoặc GPU đọc mask sai | Trung bình (emulator bị cả hai) | MediaPipe tự lùi CPU (~0.3 s); RMBG lùi int8 WASM (~9 s), Thay nền trên Android chậm hơn nhưng vẫn chạy |
 | WebView tốn bộ nhớ khi gửi ảnh base64 lớn | Trung bình | Giới hạn 1024 px cho pose; Thay nền tách ở 1024 px rồi phóng mask lên bằng làm mịn có hướng dẫn theo ảnh gốc |
 | Mask kém với người toàn thân ở xa | Trung bình | So 4 model ở spike B; với pose thì mask thô vẫn đủ vì chỉ dùng làm dáng |
 | Expo Go chỉ chạy SDK mới nhất | Chắc chắn | Khi App Store cập nhật Expo Go thì nâng SDK; không dùng thư viện ngoài danh sách của Expo Go |

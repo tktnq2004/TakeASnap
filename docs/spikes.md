@@ -61,10 +61,12 @@ Kết luận lần 3: tốt, mượt
 
 | Đo lại Android (lần 4) | Android |
 |---|---|
-| Máy thật hay emulator | |
-| JS fps khi pinch zoom liên tục | |
-| Zoom vẫn liền mạch | |
-| Kéo, thả, kéo tiếp: bám ngón tay ngay | |
+| Máy thật hay emulator | emulator|
+| JS fps khi pinch zoom liên tục | có thể do là máy emulator nên js mặc định là 60 và khi zoom liên tục chỉ còn 35 |
+| Zoom vẫn liền mạch | tốt |
+| Kéo, thả, kéo tiếp: bám ngón tay ngay | tốt |
+
+Kết luận Android spike A: đạt trên emulator (UI 58–60; JS ~35 khi zoom, chấp nhận được vì emulator chậm hơn máy thật).
 
 ---
 
@@ -140,6 +142,28 @@ Kết luận: cả 2 đều cắt gọn và đẹp. Có thể do CPU và GPU c�
 - Selfie và DeepLab bị loại.
 - Còn đo trên Android: WebView của Android có WebGPU hay không quyết định Thay nền chạy ~1 s hay ~8 s.
 
+- đo android pixel_8a
+| Model | Backend | Nạp lần đầu | Chạy model TB | Cả vòng TB | Cả vòng lâu nhất | Lỗi | Mép (tóc, ngón tay, khe tay–thân) |
+|---|---|---|---|---|---|---|---|
+| Multiclass |mediapipe-gpu |0s |15ms |370ms |434ms |0 |Không cắt được ảnh, ảnh vẫn nguyên vẹn |
+| Selfie |mediapipe-gpu |939ms |28ms |239ms |273ms |0 | không thấy ảnh tách và mask tất cả chỉ là màu đen và có ảnh thật|
+| DeepLab |mediapipe-gpu |1.2s |33ms |342ms |390s |0 |không thấy ảnh tách và mask tất cả chỉ là màu đen và có ảnh thật |
+|  RMBG (lần 3, "Chạy 3 ảnh mẫu") | RMBG CPU | RMBG GPU |
+|---|---|---|
+| backend |ort-wasm | ort-webgpu |
+| Nạp lần đầu |0s | |
+| Chạy model TB | 8.6s | |
+| Cả vòng TB |8.9s |  |
+| Cả vòng lâu nhất |9s |  |
+| Lỗi + 5 dòng log cuối (nếu có) |0 |3 -no available backend found. ERR: [webgpu] Error: Failed to get GPU adapter. you may need to enable flag ...  |
+
+**Phân tích Android (emulator Pixel 8a):**
+- MediaPipe GPU chạy nhưng **đọc mask từ WebGL ra toàn 0**: Multiclass tính `1 − nền = 1` nên ra "toàn người", Selfie/DeepLab ra "không có người". Lỗi của GPU giả lập trên emulator; máy Android thật có thể không bị.
+- **Đã sửa:** nếu GPU trả mask rỗng hoàn toàn, bỏ segmenter GPU và chạy lại bằng CPU (log "GPU trả mask rỗng, chuyển CPU"). Trên máy tính, ép đường này: mask CPU giống bản GPU, Multiclass CPU ~0.3 s.
+- RMBG GPU: WebView của emulator không có WebGPU (đúng dự đoán). RMBG CPU chạy được, ~8.9 s.
+- **Còn chưa biết:** máy Android thật có WebGPU trong WebView không. Không có → Thay nền trên Android mất ~9 s.
+
+
 ---
 
 ## C — Overlay Skia 3 lớp
@@ -148,11 +172,11 @@ Mục tiêu: kéo slider độ dày 1–12 px, hình đổi ngay, **UI ≥ 55 fp
 
 | Test | iPhone | Android |
 |---|---|---|
-| UI fps khi kéo slider Độ dày | tốt trên 60| |
-| JS fps khi kéo slider Độ dày |tốt từ 58 trở lên | |
-| UI fps khi kéo slider Độ đậm | tốt trên 60| |
-| Viền giữ đúng độ dày px khi đổi kích thước |tốt | |
-| Đổi tab không làm preview co giãn | đổi qua người và người đi ngược lại có sự co giãn  | |
+| UI fps khi kéo slider Độ dày | tốt trên 60| 68-60 |
+| JS fps khi kéo slider Độ dày |tốt từ 58 trở lên |28-30 |
+| UI fps khi kéo slider Độ đậm | tốt trên 60| 58-60 |
+| Viền giữ đúng độ dày px khi đổi kích thước |tốt | tốt |
+| Đổi tab không làm preview co giãn | đổi qua người và người đi ngược lại có sự co giãn  | tốt |
 
 Kết luận: tốt 4/5 
 
@@ -160,16 +184,21 @@ Kết luận: tốt 4/5
 
 Kết luận lần 2: Tốt đã fix được
 
+Android (emulator): UI 58–60, đạt. JS 28–30 khi kéo slider: slider và Skia chạy trên UI thread nên JS tụt không ảnh hưởng hình; ghi lại để so khi có máy thật.
+
 ---
 
 ## D — Giới hạn Expo Go
 
 | Test | iPhone | Android |
 |---|---|---|
-| `expo-haptics` (dòng "expo-haptics: có/không có") |có| |
+| `expo-haptics` (dòng "expo-haptics: có/không có") |có|có |
 | Nút "Thử rung" có rung không |có rung (lần 1 ghi nhầm "không") | |
-| Lưu ảnh mẫu vào album "TakeASnap" (dòng KẾT QUẢ) | Đạt | |
-| Mở sheet: cao ~88%, có tay kéo, kéo xuống để đóng | tốt| |
-| Slider trong sheet kéo được, không bị sheet giành cử chỉ |tốt | |
+| Lưu ảnh mẫu vào album "TakeASnap" (dòng KẾT QUẢ) | Đạt | lỗi Call to function 'ExpoMediaLibrary Next.requestPermissionsAsync' has been rejected -> cause by : you have requested the AUDIO permission, but it not declared in AndroidManifest. Update expo-media-library config plugin to include the permission before requesting it |
+| Lưu ảnh (lần 2, sau khi sửa) | | |
+
+**Đã sửa lỗi lưu ảnh trên Android:** SDK 58 mặc định xin quyền ảnh + video + âm thanh; Expo Go trên Android không khai báo quyền AUDIO. Giờ chỉ xin quyền ảnh: `requestPermissionsAsync(false, ['photo'])`. Đã ghi vào AGENTS.md.
+| Mở sheet: cao ~88%, có tay kéo, kéo xuống để đóng | tốt|tốt |
+| Slider trong sheet kéo được, không bị sheet giành cử chỉ |tốt | tốt |
 
 Kết luận: 5/5

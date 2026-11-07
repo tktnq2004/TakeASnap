@@ -51,6 +51,7 @@ Read `docs/business-flow.md`, `docs/roadmap.md` and `docs/design.md` before chan
 - **Design system:** every colour, size, spacing, radius and duration comes from `src/ui/tokens.ts`; easing functions from `src/ui/easing.ts`. Every user-facing string comes from `src/ui/strings.ts` (Vietnamese only, no exclamation marks, buttons are verb + object). No violet. Icons: `lucide-react-native` only, no emoji.
 - **Tokens stay pure data** (no native imports) so they are testable in Jest.
 - **RN 0.88:** `StyleSheet.absoluteFillObject` no longer exists; use `StyleSheet.absoluteFill` or explicit edges.
-- **Files:** pose files go under `Paths.document` (expo-file-system `File`/`Directory`/`Paths` API), never the cache directory. Media library: `Asset.create(uri, album)`, `Album.get`, `Album.create` from `expo-media-library`.
+- **Files:** pose files go under `Paths.document` (expo-file-system `File`/`Directory`/`Paths` API), never the cache directory. Media library: `Asset.create(uri, album)`, `Album.get`, `Album.create` from `expo-media-library`. Always request permissions with `requestPermissionsAsync(false, ['photo'])`: the default also asks for AUDIO, which Expo Go on Android does not declare, so the call is rejected.
+- **Segmentation models (spike B):** pose = MediaPipe Multiclass; Thay nền = RMBG-1.4 fp16 on WebGPU, fallback RMBG-1.4 int8 on WASM. Never run the int8 model on WebGPU (it hangs). MediaPipe falls back to CPU when the GPU returns an all-zero mask (Android emulator).
 - **Haptics:** call through `src/lib/haptics.ts` only; it no-ops when the native module is missing.
 - Before declaring a task done run `npm run check` (typecheck + lint + Jest).
