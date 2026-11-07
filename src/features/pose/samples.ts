@@ -1,7 +1,12 @@
 /**
- * 25 ảnh pose mẫu (assets/poses/source). Phase 1 sẽ tách sẵn mask + contour cho từng ảnh.
+ * 25 ảnh pose mẫu (assets/poses/source) và viền đã tách sẵn (assets/poses/samples.json).
  * Nhóm khớp với t.library.groups trong src/ui/strings.ts.
  */
+import type { Contour } from '@/engine/contour';
+
+import samplesJson from '../../../assets/poses/samples.json';
+import { DEFAULT_STYLE, type Pose, SAMPLE_PREFIX } from './types';
+
 export type SampleGroup = 'coffee' | 'school' | 'street' | 'travel';
 
 export type SamplePose = { id: string; group: SampleGroup; source: number };
@@ -133,3 +138,45 @@ export const samplePoses: SamplePose[] = [
     source: require('../../../assets/poses/source/travel/travel7.jpg'),
   },
 ];
+
+// ---- Pose mẫu đã tách sẵn (scripts/build-sample-poses.mts → assets/poses/samples.json) ----
+
+type SampleJson = {
+  items: {
+    id: string;
+    group: SampleGroup;
+    width: number;
+    height: number;
+    areaRatio: number;
+    contours: { isHole: boolean; points: [number, number][] }[];
+  }[];
+};
+
+const sourceById = new Map(samplePoses.map((s) => [s.id, s.source]));
+
+/** 25 pose mẫu chỉ đọc (BR-09), theo thứ tự nhóm rồi số. */
+export const sampleLibrary: Pose[] = (samplesJson as unknown as SampleJson).items.flatMap((it) => {
+  const source = sourceById.get(it.id);
+  if (source === undefined) return [];
+  const contours: Contour[] = it.contours.map((c) => ({
+    isHole: c.isHole,
+    points: c.points.map(([x, y]) => ({ x, y })),
+  }));
+  return [
+    {
+      id: SAMPLE_PREFIX + it.id,
+      origin: 'sample' as const,
+      source,
+      width: it.width,
+      height: it.height,
+      contours,
+      style: DEFAULT_STYLE,
+      sampleGroup: it.group,
+      maskUri: null,
+      createdAt: '1970-01-01T00:00:00.000Z',
+      updatedAt: '1970-01-01T00:00:00.000Z',
+    },
+  ];
+});
+
+export const sampleGroups: SampleGroup[] = ['coffee', 'school', 'street', 'travel'];

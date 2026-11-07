@@ -6,3 +6,5 @@ export { Screen } from './Screen';
 export { Segmented } from './Segmented';
 export { Slider } from './Slider';
 export { Swatch } from './Swatch';
+export { SwatchRow } from './SwatchRow';
+export { ToggleRow } from './ToggleRow';

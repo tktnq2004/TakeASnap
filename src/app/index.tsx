@@ -11,6 +11,8 @@ import { color, radius, size, space, type } from '@/ui/tokens';
  * Phase 2 sẽ thay màn này bằng Camera (business-flow §3).
  */
 const spikes: { href: Href; title: string }[] = [
+  // Phase 1: vào Thư viện pose → chạm pose → Chỉnh pose. Phase 2 thay cả màn này bằng Camera.
+  { href: '/library', title: t.library.title },
   { href: '/spike/camera', title: t.spike.cameraTitle },
   { href: '/spike/segment', title: t.spike.segmentTitle },
   { href: '/spike/overlay', title: t.spike.overlayTitle },

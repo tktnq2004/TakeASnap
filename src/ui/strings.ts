@@ -11,6 +11,7 @@ export const t = {
     back: 'Quay lại',
     done: 'Xong',
     retry: 'Thử lại',
+    cancel: 'Hủy',
     openSettings: 'Mở Cài đặt',
   },
   camera: {
@@ -40,6 +41,7 @@ export const t = {
     use: 'Dùng để chụp',
     edit: 'Sửa',
     remove: 'Xóa',
+    removeConfirm: 'Xóa pose này cùng ảnh gốc của nó? Không hoàn tác được.',
     duplicate: 'Tạo bản sao để sửa',
     groups: {
       coffee: 'Quán cà phê',
@@ -50,6 +52,9 @@ export const t = {
   },
   editor: {
     title: 'Chỉnh pose',
+    showOriginal: 'Xem trên ảnh gốc',
+    notFound: 'Không tìm thấy pose này.',
+    saving: 'Đang lưu pose',
     save: 'Lưu pose',
     tabOutline: 'Viền',
     tabFill: 'Phủ',

@@ -328,10 +328,11 @@ docs/
 
 - [ ] Bộ tải model (phương án C, §3.3): tải gói `pose` từ CDN gốc vào `Paths.document/models/`, có tiến độ, thử lại khi lỗi mạng, kiểm tra kích thước; WebView nạp model từ file trong máy
 - [ ] `WebViewSegmenter` hoàn chỉnh: nạp model một lần, chuẩn hóa ảnh, mask, tìm vùng người, xử lý lỗi và hết thời gian
-- [ ] `engine/contour.ts` có unit test (hình tròn, hình có lỗ, nhiều vùng)
-- [ ] Màn Chỉnh pose: 3 lớp, mọi điều khiển ở [business-flow §5.2](business-flow.md#52-màn-chỉnh-pose--3-lớp-và-các-điều-khiển), trừ Sửa nét
-- [ ] Repository pose: tạo, sửa, xóa (xóa sạch file)
-- [ ] `scripts/build-sample-poses.ts`: tách sẵn 25 ảnh trong `src/assets/images/*`, đóng gói mask + contour
+- [x] `engine/contour.ts` có unit test (hình vuông, vành khuyên có lỗ, nhiều vùng, chạm mép, ô chéo, mảng li ti, đơn giản hóa, SVG). Tự viết marching squares vì thư viện `marchingsquares` là AGPL-3.0
+- [x] Màn Chỉnh pose: 3 lớp, mọi điều khiển ở [business-flow §5.2](business-flow.md#52-màn-chỉnh-pose--3-lớp-và-các-điều-khiển), trừ Sửa nét *(chờ đo trên máy)*
+- [x] Repository pose: tạo, sửa, xóa (xóa sạch file); bản sao từ pose mẫu (BR-09); migration v2 cho `mask_uri` rỗng
+- [x] `scripts/build-sample-poses.mts`: tách sẵn 25 ảnh bằng đúng trang WebView + engine viền, ghi `assets/poses/samples.json` (47 KB, chỉ viền vector). Lớp "Người" cắt ảnh theo viền nên pose mẫu không cần mask
+- [x] Thư viện pose (Phase 1: Pose mẫu + Pose của bạn, nhấn giữ để xóa) để vào được Chỉnh pose
 
 **Xong khi:** chọn ảnh → có pose trong dưới 4 s trên iPhone (mục tiêu, sẽ chỉnh theo spike B); mọi slider đổi hình ngay trong frame kế tiếp; độ dày viền đổi được từ 1 đến 12 px.
 
