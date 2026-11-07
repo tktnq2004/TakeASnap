@@ -432,6 +432,7 @@ Không có spinner che màn hình. Màn vẫn hiện ảnh đang xử lý (mờ 
 
 | Việc | Dòng trạng thái |
 |---|---|
+| Tải bộ tách người (lần đầu) | Đang tải bộ tách người, 12 trên 29 MB |
 | Tách người | Đang tách người khỏi nền |
 | Tạo contour | Đang vẽ dáng |
 | Phân tích nền | Đang đo ánh sáng của nền |

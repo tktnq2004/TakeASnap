@@ -181,7 +181,19 @@ Cách `WebViewSegmenter` chạy:
 - RMBG chỉ nhận đúng 1024 × 1024. **Không đưa bản int8 lên WebGPU**: lần đo 2 treo quá 180 s.
 - Đã loại: MediaPipe Selfie (cắt mất chân, váy), DeepLab v3 (mép nhòe, dính nền), U²-Net human seg (176 MB).
 - Đã thử và bỏ: guided filter làm mịn mép (quầng sáng, lem nền).
-- **Còn phải quyết ở Phase 1:** đóng gói model kèm app (app nặng thêm ~85–130 MB, offline hoàn toàn) hay tải một lần khi dùng lần đầu (cần mạng một lần, không gửi ảnh đi). Lần đo đầu mất 24–37 s chủ yếu vì tải model.
+**Cách đưa model vào app: đã chốt phương án C, tải khi dùng lần đầu và lưu vĩnh viễn trong máy.**
+
+| Gói | Gồm | Dung lượng | Tải khi |
+|---|---|---|---|
+| `pose` | Multiclass 15.6 MB + MediaPipe wasm 12.9 MB + JS | ~29 MB | Tạo pose lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
+| `compose-gpu` | RMBG fp16 84.1 MB + ORT wasm (WebGPU) 27.0 MB + JS | ~111 MB | Thay nền lần đầu, máy có WebGPU |
+| `compose-cpu` | RMBG int8 42.3 MB + ORT wasm 13.6 MB + JS | ~56 MB | Thay nền lần đầu, máy không có WebGPU |
+
+- Tải từ **CDN gốc** với phiên bản cố định: jsDelivr (MediaPipe, ORT), Google Storage (Multiclass), Hugging Face (RMBG). Chưa làm bản sao trên GitHub Releases; nếu CDN gốc gặp sự cố thì thêm sau, chỉ phải đổi URL.
+- Lưu trong `Paths.document/models/<gói>/`, kèm `manifest.json` (URL, kích thước, phiên bản). Mở app thấy đủ file đúng kích thước thì không tải lại.
+- Không đóng gói, không đăng lại RMBG: license BRIA chỉ cho dùng phi thương mại, phân phối lại phải đọc kỹ điều khoản.
+- Đã cân nhắc và bỏ: A. đóng gói tất cả (~196 MB trong app và repo, vướng license); B. đóng gói riêng pose (hai cơ chế, mà trong Expo Go app vẫn tải qua mạng ở lần mở đầu nên lợi thế offline gần như không có); D. tải từ CDN mỗi lần (iOS có thể xóa cache, không offline thật).
+- Việc kỹ thuật cần làm ở Phase 1: đưa file từ `Paths.document` vào WebView (đọc file và truyền vào, hoặc cho WebView quyền đọc thư mục model).
 
 Pose mẫu được tách sẵn trên Windows bằng `onnxruntime-node` hoặc Python, dùng cùng model đó (`scripts/build-sample-poses.ts`), nên chọn pose mẫu là dùng được ngay.
 
@@ -314,6 +326,7 @@ docs/
 
 ### Phase 1 — Pose engine và Chỉnh pose (2–3 tuần)
 
+- [ ] Bộ tải model (phương án C, §3.3): tải gói `pose` từ CDN gốc vào `Paths.document/models/`, có tiến độ, thử lại khi lỗi mạng, kiểm tra kích thước; WebView nạp model từ file trong máy
 - [ ] `WebViewSegmenter` hoàn chỉnh: nạp model một lần, chuẩn hóa ảnh, mask, tìm vùng người, xử lý lỗi và hết thời gian
 - [ ] `engine/contour.ts` có unit test (hình tròn, hình có lỗ, nhiều vùng)
 - [ ] Màn Chỉnh pose: 3 lớp, mọi điều khiển ở [business-flow §5.2](business-flow.md#52-màn-chỉnh-pose--3-lớp-và-các-điều-khiển), trừ Sửa nét

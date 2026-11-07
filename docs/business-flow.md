@@ -142,7 +142,10 @@ flowchart TD
     B -- "Thêm ảnh từ máy" --> P[Image picker]
     B -- "Pose mẫu" --> S[Pose mẫu đã tách sẵn<br/>không cần xử lý]
     B -- "Từ ảnh vừa chụp" --> P
-    P --> Q[Chuẩn hóa ảnh<br/>xoay EXIF, giới hạn cạnh dài 2048px]
+    P --> DL{Đã có bộ tách người?}
+    DL -- "Chưa" --> DLG[Tải gói pose ~29 MB<br/>một lần, có tiến độ]
+    DLG --> Q
+    DL -- "Có" --> Q[Chuẩn hóa ảnh<br/>xoay EXIF, giới hạn cạnh dài 2048px]
     Q --> R[Tách người trên máy]
     R --> D{Kết quả}
     D -- "0 người" --> E1[Báo: Không tìm thấy người<br/>Chọn ảnh khác]
@@ -246,7 +249,8 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 |---|---|
 | BR-01 | Ảnh chụp ở chức năng 1 **không bao giờ** kèm overlay. Overlay chỉ để hướng dẫn |
 | BR-02 | Ảnh lưu vào album "TakeASnap" đúng tỉ lệ khung đang chọn. Vùng ảnh lưu trùng đúng vùng thấy trên khung ngắm |
-| BR-03 | Mọi xử lý ảnh (tách người, phân tích nền, ghép ảnh) chạy **hoàn toàn trên máy**. App không có kết nối mạng nào |
+| BR-03 | Mọi xử lý ảnh (tách người, phân tích nền, ghép ảnh) chạy **hoàn toàn trên máy**. Ảnh không bao giờ được gửi đi. Kết nối mạng duy nhất là tải bộ tách người (BR-13) |
+| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~29 MB) khi tạo pose từ ảnh lần đầu; gói Thay nền (~111 MB nếu máy có WebGPU, ~56 MB nếu không) khi Thay nền lần đầu. Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
 | BR-04 | Ảnh ghép xuất ra đúng độ phân giải gốc của ảnh nền. Người trong ảnh không bị phóng quá 1.5× độ phân giải gốc của ảnh người (vượt quá thì báo "Ảnh người sẽ bị vỡ nét ở cỡ này") |
 | BR-05 | Trong Thay nền, chân người phải nằm trong ảnh nền. Kéo chân ra ngoài mép dưới thì bóng không được vẽ, và app hiện gợi ý "Kéo người lên để thấy bóng" |
 | BR-06 | Một pose phải có ít nhất một vùng người chiếm từ 2% diện tích ảnh trở lên. Nhỏ hơn thì báo "Người trong ảnh quá nhỏ" |
@@ -370,6 +374,7 @@ Mỗi thông báo nói **chuyện gì xảy ra** và **làm gì tiếp**, không
 | Không có người | Không tìm thấy người trong ảnh. Chọn ảnh có người nhìn rõ. | Chọn ảnh khác |
 | Người quá nhỏ | Người trong ảnh quá nhỏ để lấy dáng. Chọn ảnh chụp gần hơn. | Chọn ảnh khác |
 | Lưu ảnh lỗi | Chưa lưu được ảnh vào máy. Ảnh vẫn được giữ tạm. | Thử lưu lại |
+| Tải bộ tách người lỗi | Chưa tải được bộ tách người. Kiểm tra kết nối mạng rồi thử lại. | Thử tải lại |
 | Không đoán được hướng sáng | Chưa xác định được hướng sáng của nền. Xoay vòng Hướng sáng để chọn. | (vòng xoay được làm nổi) |
 | Ghép ảnh hết bộ nhớ | Ảnh nền quá lớn để ghép. Thử lại ở 12 MP. | Thử lại ở 12 MP |
 | Thiếu quyền camera | TakeASnap cần camera để chụp theo pose. | Mở Cài đặt |
@@ -378,11 +383,11 @@ Mỗi thông báo nói **chuyện gì xảy ra** và **làm gì tiếp**, không
 
 ## 11. Online / offline
 
-App **không dùng mạng**. Mọi chức năng chạy được ở chế độ máy bay.
+App chỉ dùng mạng để **tải bộ tách người một lần** (BR-13). Sau đó mọi chức năng chạy được ở chế độ máy bay.
 
 | Chức năng | Chạy bằng |
 |---|---|
 | Camera, chụp, lưu | `expo-camera`, `expo-media-library` |
-| Tách người, chỉnh pose, thư viện | Model trong WebView ẩn, Skia, SQLite |
+| Tách người, chỉnh pose, thư viện | Model trong WebView ẩn (tải một lần lần đầu), Skia, SQLite |
 | Pose mẫu | Đóng gói sẵn trong app (mask + contour tính trước) |
-| Thay nền | Model trong WebView ẩn, Skia |
+| Thay nền | Model trong WebView ẩn (tải một lần lần đầu), Skia |
