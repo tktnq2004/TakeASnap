@@ -16,6 +16,7 @@ import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 
 import { buildContours, personAreaRatio, type Contour } from '../src/engine/contour.ts';
+import { buildLimbOutlines, unpackBodyPoints } from '../src/engine/limbs.ts';
 import { MEDIAPIPE_VERSION, segmenterHtml } from '../src/engine/segmentation/web/segmenterHtml.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
@@ -37,7 +38,7 @@ type Incoming =
       height: number;
       backend: string;
       face?: number[] | null;
-      body?: number[] | null;
+      bodyPoints?: number[] | null;
     }
   | { id: number; ok: false; error: string };
 
@@ -48,9 +49,11 @@ type SampleOut = {
   height: number;
   areaRatio: number;
   contours: { isHole: boolean; points: [number, number][] }[];
-  /** Nét mặt / khung xương: đoạn thẳng phẳng chuẩn hóa; null = không thấy. */
+  /** Nét mặt: đoạn thẳng phẳng chuẩn hóa; null = không thấy. bodyPoints: 33 khớp [x, y, vis]. */
   face: number[] | null;
-  body: number[] | null;
+  bodyPoints: number[] | null;
+  /** Ống tay chân: mỗi nét là polyline phẳng [x, y, …]. */
+  limbs: number[][];
 };
 
 async function main() {
@@ -136,6 +139,31 @@ async function main() {
       CONTOUR_SIDE,
     );
 
+    // Ảnh xám cùng kích thước mask: ống tay chân bám vào mép thật trong ảnh.
+    const gray = await page.evaluate(
+      async (img64: string, w: number, h: number) => {
+        const img = new Image();
+        await new Promise((r) => {
+          img.onload = r;
+          img.src = 'data:image/jpeg;base64,' + img64;
+        });
+        const c = document.createElement('canvas');
+        c.width = w;
+        c.height = h;
+        const ctx = c.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, w, h);
+        const d = ctx.getImageData(0, 0, w, h).data;
+        const out: number[] = new Array(w * h);
+        for (let i = 0; i < w * h; i++) {
+          out[i] = (0.299 * d[i * 4]! + 0.587 * d[i * 4 + 1]! + 0.114 * d[i * 4 + 2]!) / 255;
+        }
+        return { width: w, height: h, data: out };
+      },
+      base64,
+      grid.width,
+      grid.height,
+    );
+
     const contours: Contour[] = buildContours(grid, { maxSide: CONTOUR_SIDE });
     const areaRatio = personAreaRatio(contours);
 
@@ -150,13 +178,19 @@ async function main() {
       throw new Error(`${s.id} landmarks: ${'error' in lm ? lm.error : 'không rõ lỗi'}`);
     }
     const face = lm.face ?? null;
-    const body = lm.body ?? null;
+    const bodyPoints = lm.bodyPoints ?? null;
+    // Ống tay chân: cùng engine với app, trên chính lưới mask dùng để dò viền.
+    const limbs = bodyPoints
+      ? buildLimbOutlines(grid, unpackBodyPoints(bodyPoints), { image: gray }).map((line) =>
+          line.flatMap((p) => [p.x, p.y]),
+        )
+      : [];
 
     const warn = areaRatio < MIN_PERSON_RATIO ? '  ⚠ người quá nhỏ (BR-06)' : '';
     console.log(
       `${s.id.padEnd(10)} ${res.width}×${res.height}  viền ${contours.length}  ` +
         `điểm ${contours.reduce((n, c) => n + c.points.length, 0)}  người ${(areaRatio * 100).toFixed(1)}%  ` +
-        `mặt ${face ? face.length / 4 : '—'}  thân ${body ? body.length / 4 : '—'}${warn}`,
+        `mặt ${face ? face.length / 4 : '—'}  ống tay chân ${limbs.length}${warn}`,
     );
     items.push({
       id: s.id,
@@ -169,12 +203,13 @@ async function main() {
         points: c.points.map((p) => [p.x, p.y] as [number, number]),
       })),
       face,
-      body,
+      bodyPoints,
+      limbs,
     });
   }
   await browser.close();
 
-  const out = { version: 2, model: 'multiclass', mediapipe: MEDIAPIPE_VERSION, items };
+  const out = { version: 3, model: 'multiclass', mediapipe: MEDIAPIPE_VERSION, items };
   fs.writeFileSync(OUT_FILE, JSON.stringify(out) + '\n');
   const kb = (fs.statSync(OUT_FILE).size / 1024).toFixed(0);
   console.log(`Đã ghi ${path.relative(ROOT, OUT_FILE)} (${items.length} pose, ${kb} KB)`);

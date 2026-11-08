@@ -7,7 +7,7 @@
  * Giao thức (JSON qua postMessage):
  *   RN → WV  { id, type: 'segment', model, base64 }        ảnh JPEG base64
  *   RN → WV  { id, type: 'landmarks', base64 }             nét mặt + khung xương
- *   WV → RN  { id, ok: true, face, body, timings }         đoạn thẳng chuẩn hóa, null = không thấy
+ *   WV → RN  { id, ok: true, face, bodyPoints, timings }   nét mặt (đoạn thẳng) + 33 khớp [x,y,vis]
  *   WV → RN  { type: 'ready', info }                       trang đã nạp xong thư viện
  *   WV → RN  { id, ok: true, maskBase64, width, height, backend, timings }
  *   WV → RN  { id, ok: false, error }
@@ -270,12 +270,6 @@ function faceConnections() {
   for (const s of sets) for (const c of s) out.push([c.start, c.end]);
   return out.concat(NOSE);
 }
-// Thân + tay + chân (bỏ điểm mặt 0–10 vì đã có nét mặt, bỏ ngón tay 17–22 vì quá nhỏ).
-function bodyConnections() {
-  const skip = (i) => i < 11 || (i >= 17 && i <= 22);
-  return mp.PoseLandmarker.POSE_CONNECTIONS.filter((c) => !skip(c.start) && !skip(c.end))
-    .map((c) => [c.start, c.end]);
-}
 const r4 = (v) => Math.round(v * 10000) / 10000;
 function segments(points, pairs, minVis) {
   const out = [];
@@ -307,7 +301,11 @@ async function runLandmarks(img) {
   }
   return {
     face: face ? segments(face, faceConnections(), 0) : null,
-    body: body ? segments(body, bodyConnections(), 0.5) : null,
+    // 33 khớp phẳng [x, y, visibility, …] chuẩn hóa; JS dựng ống tay chân từ đây + mask
+    // (src/engine/limbs.ts).
+    bodyPoints: body
+      ? body.flatMap((p) => [r4(p.x), r4(p.y), r4(p.visibility ?? 1)])
+      : null,
     timings: { loadMs: loadMs, prepMs: 0, inferMs: now() - t0, postMs: 0 },
   };
 }
@@ -317,7 +315,7 @@ async function handle(msg) {
     try {
       const img = await loadImage(msg.base64);
       const r = await runLandmarks(img);
-      post({ id: msg.id, ok: true, face: r.face, body: r.body, timings: r.timings });
+      post({ id: msg.id, ok: true, face: r.face, bodyPoints: r.bodyPoints, timings: r.timings });
     } catch (e) {
       const error = (e && e.message) || String(e);
       log('landmarks lỗi: ' + error);

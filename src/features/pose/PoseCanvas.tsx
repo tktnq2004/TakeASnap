@@ -10,7 +10,7 @@ import {
   useImage,
 } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
-import type { SharedValue } from 'react-native-reanimated';
+import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
 import { type Contour, contoursToSvgPath } from '@/engine/contour';
 import type { Landmarks } from '@/engine/segmentation/types';
@@ -39,23 +39,28 @@ export type PoseCanvasProps = {
   fillOpacity: Num;
   subjectOpacity: Num;
   backgroundOpacity: Num;
+  /** Nét mặt: cùng màu viền, độ dày = FACE_RATIO × độ dày viền. */
   faceEnabled: boolean;
-  bodyEnabled: boolean;
-  linesColor: string;
-  linesWidth: Num;
+  /** Ống tay chân: cùng màu và độ dày viền, cắt theo bóng người. */
+  limbsEnabled: boolean;
   /** Nền ô caro sau ảnh (Chỉnh pose). Tắt thì nền trong suốt. */
   checker?: boolean;
 };
 
 const CHECKER = 12;
+/** Mắt, mũi, môi là chi tiết nhỏ: nét mặt mảnh hơn viền. */
+const FACE_RATIO = 0.6;
 
 /**
  * Vẽ một bản pose trên một canvas Skia (roadmap §3.4), từ dưới lên:
  * nền (ảnh cắt NGƯỢC theo viền) → người (ảnh cắt theo viền) → phủ (evenOdd, lỗ tay–thân trống)
- * → nét tay chân → nét mặt → viền.
+ * → ống tay chân → nét mặt → viền. Viền, nét mặt và ống tay chân dùng chung màu và độ dày (góp ý
+ * sau Phase 1: chỉnh chung trong tab Viền).
  * Các giá trị số nhận shared value để slider đổi hình mà không re-render React.
  */
 export function PoseCanvas(p: PoseCanvasProps) {
+  const ow = p.outlineWidth;
+  const faceWidth = useDerivedValue(() => (typeof ow === 'number' ? ow : ow.get()) * FACE_RATIO);
   const image = useImage(p.source);
   const scale = Math.min(p.width / p.imageWidth, p.height / p.imageHeight);
   const w = p.imageWidth * scale;
@@ -65,7 +70,7 @@ export function PoseCanvas(p: PoseCanvasProps) {
 
   const path = useMemo(() => makePosePath(p.contours, w, h), [p.contours, w, h]);
   const facePath = useMemo(() => makeSegmentsPath(p.landmarks?.face, w, h), [p.landmarks, w, h]);
-  const bodyPath = useMemo(() => makeSegmentsPath(p.landmarks?.body, w, h), [p.landmarks, w, h]);
+  const limbsPath = useMemo(() => makePolylinesPath(p.landmarks?.limbs, w, h), [p.landmarks, w, h]);
   const checker = useMemo(
     () => (p.checker ? makeCheckerPath(p.width, p.height, CHECKER) : null),
     [p.checker, p.width, p.height],
@@ -97,11 +102,13 @@ export function PoseCanvas(p: PoseCanvasProps) {
           </Group>
         )}
         {path && p.fillEnabled && <Path path={path} color={p.fillColor} opacity={p.fillOpacity} />}
-        {bodyPath && p.bodyEnabled && (
-          <Path path={bodyPath} color={p.linesColor} strokeWidth={p.linesWidth} {...line} />
+        {path && limbsPath && p.limbsEnabled && (
+          <Group clip={path}>
+            <Path path={limbsPath} color={p.outlineColor} strokeWidth={p.outlineWidth} {...line} />
+          </Group>
         )}
         {facePath && p.faceEnabled && (
-          <Path path={facePath} color={p.linesColor} strokeWidth={p.linesWidth} {...line} />
+          <Path path={facePath} color={p.outlineColor} strokeWidth={faceWidth} {...line} />
         )}
         {path && p.outlineEnabled && (
           <Path path={path} color={p.outlineColor} strokeWidth={p.outlineWidth} {...line} />
@@ -130,6 +137,28 @@ export function makeSegmentsPath(
   for (let i = 0; i + 3 < segments.length; i += 4) {
     b.moveTo(segments[i]! * width, segments[i + 1]! * height);
     b.lineTo(segments[i + 2]! * width, segments[i + 3]! * height);
+  }
+  return b.build();
+}
+
+/** Polyline phẳng [x, y, x, y, …] chuẩn hóa → SkPath nét, nối điểm bằng đường cong bậc hai. */
+export function makePolylinesPath(
+  lines: number[][] | null | undefined,
+  width: number,
+  height: number,
+): SkPath | null {
+  if (!lines || !lines.length) return null;
+  const b = Skia.PathBuilder.Make();
+  for (const l of lines) {
+    if (l.length < 4) continue;
+    const X = (i: number) => l[i]! * width;
+    const Y = (i: number) => l[i + 1]! * height;
+    b.moveTo(X(0), Y(0));
+    // Đi qua trung điểm của từng cặp điểm, lấy điểm gốc làm điểm điều khiển → mượt, không gãy góc.
+    for (let i = 2; i + 3 < l.length; i += 2) {
+      b.quadTo(X(i), Y(i), (X(i) + X(i + 2)) / 2, (Y(i) + Y(i + 2)) / 2);
+    }
+    b.lineTo(X(l.length - 2), Y(l.length - 2));
   }
   return b.build();
 }

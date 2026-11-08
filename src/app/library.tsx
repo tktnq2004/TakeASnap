@@ -159,9 +159,7 @@ function PoseTile({
         fillColor={s.fillColor}
         fillOpacity={s.fillOpacity}
         faceEnabled={plain ? false : s.faceEnabled}
-        bodyEnabled={plain ? false : s.bodyEnabled}
-        linesColor={s.linesColor}
-        linesWidth={Math.min(s.linesWidth, 1.5)}
+        limbsEnabled={plain ? false : s.limbsEnabled}
       />
     </Pressable>
   );

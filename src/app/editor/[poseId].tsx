@@ -16,23 +16,31 @@ import {
   STYLE_LIMITS,
 } from '@/features/pose/types';
 import { haptic } from '@/lib/haptics';
-import { Button, IconButton, Segmented, Slider, SwatchRow, ToggleRow } from '@/ui/components';
+import {
+  Button,
+  ChipToggleRow,
+  IconButton,
+  Segmented,
+  Slider,
+  SwatchRow,
+  ToggleRow,
+} from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
 
 const tabs = [
   { key: 'outline', label: t.editor.tabOutline },
   { key: 'fill', label: t.editor.tabFill },
-  { key: 'lines', label: t.editor.tabLines },
   { key: 'image', label: t.editor.tabImage },
 ] as const;
 type Tab = (typeof tabs)[number]['key'];
 
 /**
- * Panel cao CỐ ĐỊNH để đổi tab không làm preview co giãn (design.md §4). Tab cao nhất là Nét:
- * segmented 40 + 2 công tắc 88 + slider 76 + 2 hàng màu 92 + nút 48 + khoảng cách ≈ 440.
+ * Panel cao CỐ ĐỊNH để đổi tab không làm preview co giãn (design.md §4). Tab cao nhất là Viền:
+ * segmented 40 + hàng chip 36 + ghi chú 18 + slider 76 + 2 hàng màu 92 + nút 48 + khoảng cách
+ * ≈ 400.
  */
-const PANEL_HEIGHT = 440;
+const PANEL_HEIGHT = 400;
 
 const percent = (v: number) => {
   'worklet';
@@ -61,11 +69,9 @@ export default function EditorScreen() {
   const [fillEnabled, setFillEnabled] = useState(DEFAULT_STYLE.fillEnabled);
   const [fillColor, setFillColor] = useState(DEFAULT_STYLE.fillColor);
   const [faceEnabled, setFaceEnabled] = useState(DEFAULT_STYLE.faceEnabled);
-  const [bodyEnabled, setBodyEnabled] = useState(DEFAULT_STYLE.bodyEnabled);
-  const [linesColor, setLinesColor] = useState(DEFAULT_STYLE.linesColor);
+  const [limbsEnabled, setLimbsEnabled] = useState(DEFAULT_STYLE.limbsEnabled);
   const outlineWidth = useSharedValue(DEFAULT_STYLE.outlineWidth);
   const fillOpacity = useSharedValue(DEFAULT_STYLE.fillOpacity);
-  const linesWidth = useSharedValue(DEFAULT_STYLE.linesWidth);
   const subjectOpacity = useSharedValue(DEFAULT_STYLE.subjectOpacity);
   const backgroundOpacity = useSharedValue(DEFAULT_STYLE.backgroundOpacity);
 
@@ -81,18 +87,16 @@ export default function EditorScreen() {
       setFillEnabled(s.fillEnabled);
       setFillColor(s.fillColor);
       setFaceEnabled(s.faceEnabled);
-      setBodyEnabled(s.bodyEnabled);
-      setLinesColor(s.linesColor);
+      setLimbsEnabled(s.limbsEnabled);
       outlineWidth.set(s.outlineWidth);
       fillOpacity.set(s.fillOpacity);
-      linesWidth.set(s.linesWidth);
       subjectOpacity.set(s.subjectOpacity);
       backgroundOpacity.set(s.backgroundOpacity);
     });
     return () => {
       alive = false;
     };
-  }, [db, poseId, outlineWidth, fillOpacity, linesWidth, subjectOpacity, backgroundOpacity]);
+  }, [db, poseId, outlineWidth, fillOpacity, subjectOpacity, backgroundOpacity]);
 
   const currentStyle = (): PoseStyle => ({
     outlineEnabled,
@@ -104,9 +108,7 @@ export default function EditorScreen() {
     subjectOpacity: subjectOpacity.get(),
     backgroundOpacity: backgroundOpacity.get(),
     faceEnabled,
-    bodyEnabled,
-    linesColor,
-    linesWidth: linesWidth.get(),
+    limbsEnabled,
   });
 
   const save = async (asNew: boolean) => {
@@ -125,6 +127,14 @@ export default function EditorScreen() {
 
   const isSample = pose ? isSampleId(pose.id) : true;
   const lm = pose?.landmarks ?? null;
+  // Một dòng ghi chú dưới hàng chip: giải thích khi thiếu nét mặt / ống tay chân.
+  const lineNote = !lm
+    ? t.editor.noLandmarks
+    : faceEnabled && !lm.face
+      ? t.editor.noFace
+      : limbsEnabled && !lm.limbs?.length
+        ? t.editor.noLimbs
+        : t.editor.linesShared;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -158,9 +168,7 @@ export default function EditorScreen() {
             subjectOpacity={subjectOpacity}
             backgroundOpacity={backgroundOpacity}
             faceEnabled={faceEnabled}
-            bodyEnabled={bodyEnabled}
-            linesColor={linesColor}
-            linesWidth={linesWidth}
+            limbsEnabled={limbsEnabled}
             checker
           />
         )}
@@ -180,11 +188,32 @@ export default function EditorScreen() {
         <View style={styles.controls}>
           {tab === 'outline' && (
             <>
-              <ToggleRow
-                label={t.editor.showOutline}
-                value={outlineEnabled}
-                onChange={setOutlineEnabled}
+              {/* Viền, nét mặt, ống tay chân: chỉnh chung một màu và độ dày (góp ý sau Phase 1). */}
+              <ChipToggleRow
+                items={[
+                  {
+                    key: 'outline',
+                    label: t.editor.chipOutline,
+                    value: outlineEnabled,
+                    onChange: setOutlineEnabled,
+                  },
+                  {
+                    key: 'face',
+                    label: t.editor.chipFace,
+                    value: faceEnabled,
+                    onChange: setFaceEnabled,
+                  },
+                  {
+                    key: 'limbs',
+                    label: t.editor.chipLimbs,
+                    value: limbsEnabled,
+                    onChange: setLimbsEnabled,
+                  },
+                ]}
               />
+              <Text style={[type.label, styles.muted]} numberOfLines={1}>
+                {lineNote}
+              </Text>
               <Slider
                 label={t.editor.thickness}
                 value={outlineWidth}
@@ -208,26 +237,6 @@ export default function EditorScreen() {
                 format={percent}
               />
               <SwatchRow label={t.editor.color} value={fillColor} onChange={setFillColor} />
-            </>
-          )}
-          {tab === 'lines' && (
-            <>
-              {lm === null && (
-                <Text style={[type.label, styles.muted]}>{t.editor.noLandmarks}</Text>
-              )}
-              <ToggleRow label={t.editor.showFace} value={faceEnabled} onChange={setFaceEnabled} />
-              {lm && !lm.face && <Text style={[type.label, styles.muted]}>{t.editor.noFace}</Text>}
-              <ToggleRow label={t.editor.showBody} value={bodyEnabled} onChange={setBodyEnabled} />
-              {lm && !lm.body && <Text style={[type.label, styles.muted]}>{t.editor.noBody}</Text>}
-              <Slider
-                label={t.editor.linesThickness}
-                value={linesWidth}
-                min={STYLE_LIMITS.linesWidth.min}
-                max={STYLE_LIMITS.linesWidth.max}
-                step={STYLE_LIMITS.linesWidth.step}
-                format={px}
-              />
-              <SwatchRow label={t.editor.color} value={linesColor} onChange={setLinesColor} />
             </>
           )}
           {tab === 'image' && (

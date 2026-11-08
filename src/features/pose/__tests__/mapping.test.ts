@@ -38,15 +38,14 @@ const pose: Pose & { source: string } = {
   width: 736,
   height: 981,
   contours,
-  landmarks: { face: [0.1, 0.2, 0.3, 0.4], body: null },
+  landmarks: { face: [0.1, 0.2, 0.3, 0.4], bodyPoints: null, limbs: [[0.1, 0.1, 0.2, 0.2]] },
   sampleGroup: 'coffee',
   maskUri: null,
   style: {
     ...DEFAULT_STYLE,
     subjectOpacity: 0.5,
     backgroundOpacity: 0.25,
-    bodyEnabled: true,
-    linesWidth: 3.5,
+    limbsEnabled: false,
   },
   createdAt: '2026-11-08T00:00:00.000Z',
   updatedAt: '2026-11-08T01:00:00.000Z',
@@ -72,13 +71,14 @@ describe('pose ↔ dòng SQLite', () => {
     const old = {
       ...poseToVariantRow(pose),
       background_opacity: undefined,
-      lines_color: undefined,
-      lines_width: undefined,
     } as unknown as VariantRow;
-    const s = rowToStyle(old);
-    expect(s.backgroundOpacity).toBe(DEFAULT_STYLE.backgroundOpacity);
-    expect(s.linesColor).toBe(DEFAULT_STYLE.linesColor);
-    expect(s.linesWidth).toBe(DEFAULT_STYLE.linesWidth);
+    expect(rowToStyle(old).backgroundOpacity).toBe(DEFAULT_STYLE.backgroundOpacity);
+  });
+
+  it('ống tay chân lưu ở cột body_enabled', () => {
+    const on = { ...pose, style: { ...pose.style, limbsEnabled: true } };
+    expect(poseToVariantRow(on).body_enabled).toBe(1);
+    expect(rowToStyle(poseToVariantRow(on)).limbsEnabled).toBe(true);
   });
 });
 

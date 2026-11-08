@@ -162,26 +162,24 @@ flowchart TD
 
 ### 5.2 Màn Chỉnh pose — các lớp và điều khiển
 
-Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới lên: **nền → người → phủ → nét tay chân → nét mặt → viền**.
+Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới lên: **nền → người → phủ → ống tay chân → nét mặt → viền**.
 
 | Tab | Lớp | Điều khiển | Khoảng giá trị | Mặc định |
 |---|---|---|---|---|
-| **Viền** | Viền | Bật/tắt | on/off | on |
-| | | Độ dày | 1–12 px (theo pixel màn hình, giữ nguyên khi zoom overlay) | 3 px |
-| | | Màu | 8 màu có sẵn | Trắng |
+| **Viền** | Viền, Mặt, Tay chân | 3 chip bật/tắt độc lập **[Viền] [Mặt] [Tay chân]** | on/off | on / on / on |
+| | (chung) | Độ dày, dùng chung cho cả 3 (nét mặt vẽ mảnh hơn: 0.6 × độ dày) | 1–12 px (theo pixel màn hình, giữ nguyên khi zoom overlay) | 3 px |
+| | (chung) | Màu, dùng chung cho cả 3 | 8 màu có sẵn | Trắng |
 | **Phủ** | Phủ | Bật/tắt | on/off | on |
 | | | Màu | 8 màu có sẵn | Cam |
 | | | Độ đậm | 0–100% | 40% |
-| **Nét** | Nét mặt | Bật/tắt: viền mặt, mắt, lông mày, mũi, môi | on/off | on |
-| | Nét tay chân | Bật/tắt: khung xương thân, tay, chân | on/off | off |
-| | | Độ dày nét (chung) | 1–8 px | 2 px |
-| | | Màu nét (chung) | 8 màu có sẵn | Vàng |
 | **Ảnh** | Người | Độ hiện của người trong ảnh gốc | 0–100% | 0% |
 | | Nền | Độ hiện của nền trong ảnh gốc (phần ngoài người) | 0–100% | 0% |
 | **Sửa nét** (Phase 3) | Mask | Cọ thêm / cọ xóa vùng mask, hoàn tác 30 bước | cỡ cọ 8–64 px | — |
 
-- **Nét mặt cho biết hướng mặt:** có nét mặt nghĩa là người mẫu quay mặt về ống kính; không có nghĩa là quay lưng. Khi không thấy mặt, tab Nét ghi rõ "Không thấy mặt: người mẫu quay lưng, nghiêng hoặc mặt bị che". Giới hạn của model: mặt nghiêng hẳn, cúi xuống hoặc bị tay che có thể không được nhận ra.
-- Nét mặt và nét tay chân lấy từ MediaPipe FaceLandmarker và PoseLandmarker. Ảnh toàn thân có mặt nhỏ thì app dò lại trên vùng đầu đã phóng to.
+- **Nét mặt cho biết hướng mặt:** có nét mặt (viền mặt, mắt, lông mày, mũi, môi) nghĩa là người mẫu quay mặt về ống kính; không có nghĩa là quay lưng. Khi không thấy mặt, dòng ghi chú dưới hàng chip ghi rõ. Giới hạn của model: mặt nghiêng hẳn, cúi xuống hoặc bị tay che có thể không được nhận ra.
+- **Ống tay, ống chân:** mỗi tay/chân có **hai nét dọc hai bên**, giống viền, để thấy được tay chân đặt ở đâu **cả khi chúng nằm trên thân** (ví dụ tay chống cằm, tay ôm gối, tay cầm sách). Chỗ tay chân đã thò ra ngoài thân thì viền ngoài đã đủ, nên không vẽ thêm. Đầu bàn tay/bàn chân nằm trên thân được khép tròn.
+- Cách dựng ống tay chân (src/engine/limbs.ts): lấy khớp vai–khuỷu–cổ tay–bàn tay, hông–gối–cổ chân–mũi chân từ MediaPipe PoseLandmarker; dọc mỗi xương bắn tia vuông góc sang hai bên trong mask. Tia gặp mép bóng người gần thì phía đó đã có viền; tia đi sâu vào thân thì vẽ nét ở bề rộng đo được phía bên kia, hoặc theo tỉ lệ cơ thể, rồi kéo nhẹ về mép thật trong ảnh. **Đây là ước lượng:** tay áo rộng hay tay bị đồ vật che thì nét cho biết vị trí tay chân, không vẽ đúng từng mép vải.
+- Nét mặt lấy từ MediaPipe FaceLandmarker. Ảnh toàn thân có mặt nhỏ thì app dò lại trên vùng đầu đã phóng to.
 - Mọi thay đổi hiện ngay khi kéo slider, không có nút "Áp dụng". Khi sửa nét bằng cọ, viền được tính lại lúc nhấc ngón tay.
 - **Lưu:** "Lưu pose" ghi đè bản đang sửa; "Lưu thành bản mới" thêm một bản khác cho **cùng ảnh gốc**. Với pose mẫu chỉ có "Lưu pose", và nút này luôn thêm bản vào "Pose của bạn" (BR-09).
 

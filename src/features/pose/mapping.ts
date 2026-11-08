@@ -32,9 +32,8 @@ export type VariantRow = {
   subject_opacity: number;
   background_opacity: number;
   face_enabled: number;
+  /** Cột tên cũ, nay lưu "ống tay chân" (limbsEnabled). Cột lines_color/lines_width không dùng. */
   body_enabled: number;
-  lines_color: string;
-  lines_width: number;
   created_at: string;
   updated_at: string;
 };
@@ -57,9 +56,7 @@ export function styleToColumns(s: PoseStyle) {
     subject_opacity: s.subjectOpacity,
     background_opacity: s.backgroundOpacity,
     face_enabled: s.faceEnabled ? 1 : 0,
-    body_enabled: s.bodyEnabled ? 1 : 0,
-    lines_color: s.linesColor,
-    lines_width: s.linesWidth,
+    body_enabled: s.limbsEnabled ? 1 : 0,
   };
 }
 
@@ -74,9 +71,7 @@ export function rowToStyle(r: VariantRow): PoseStyle {
     subjectOpacity: r.subject_opacity,
     backgroundOpacity: r.background_opacity ?? DEFAULT_STYLE.backgroundOpacity,
     faceEnabled: r.face_enabled === 1,
-    bodyEnabled: r.body_enabled === 1,
-    linesColor: r.lines_color ?? DEFAULT_STYLE.linesColor,
-    linesWidth: r.lines_width ?? DEFAULT_STYLE.linesWidth,
+    limbsEnabled: r.body_enabled === 1,
   };
 }
 

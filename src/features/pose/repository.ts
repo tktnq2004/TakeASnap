@@ -61,7 +61,13 @@ async function loadPoses(db: SQLiteDatabase, variants: VariantRow[]): Promise<Po
       p = { row, contours };
       photos.set(v.photo_id, p);
     }
-    out.push(rowsToPose(p.row, v, p.contours));
+    const pose = rowsToPose(p.row, v, p.contours);
+    // Ảnh chép từ pose mẫu: luôn dùng viền, nét mặt, ống tay chân MỚI NHẤT của pose mẫu đó, để bản
+    // đã lưu trước khi app có tính năng mới (ví dụ ống tay chân) cũng được cập nhật.
+    const sample = pose.sampleId
+      ? sampleLibrary.find((s) => s.sampleId === pose.sampleId)
+      : undefined;
+    out.push(sample ? { ...pose, contours: sample.contours, landmarks: sample.landmarks } : pose);
   }
   return out;
 }
@@ -101,8 +107,8 @@ async function insertVariant(db: SQLiteDatabase, pose: Pose) {
     `INSERT INTO pose_variants
       (id, photo_id, outline_enabled, outline_width, outline_color, fill_enabled, fill_color,
        fill_opacity, subject_opacity, background_opacity, face_enabled, body_enabled,
-       lines_color, lines_width, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     v.id,
     v.photo_id,
     v.outline_enabled,
@@ -115,8 +121,6 @@ async function insertVariant(db: SQLiteDatabase, pose: Pose) {
     v.background_opacity,
     v.face_enabled,
     v.body_enabled,
-    v.lines_color,
-    v.lines_width,
     v.created_at,
     v.updated_at,
   );
@@ -129,7 +133,7 @@ export async function updateStyle(db: SQLiteDatabase, variantId: string, style: 
     `UPDATE pose_variants SET
       outline_enabled = ?, outline_width = ?, outline_color = ?, fill_enabled = ?, fill_color = ?,
       fill_opacity = ?, subject_opacity = ?, background_opacity = ?, face_enabled = ?,
-      body_enabled = ?, lines_color = ?, lines_width = ?, updated_at = ?
+      body_enabled = ?, updated_at = ?
      WHERE id = ?`,
     c.outline_enabled,
     c.outline_width,
@@ -141,8 +145,6 @@ export async function updateStyle(db: SQLiteDatabase, variantId: string, style: 
     c.background_opacity,
     c.face_enabled,
     c.body_enabled,
-    c.lines_color,
-    c.lines_width,
     now(),
     variantId,
   );

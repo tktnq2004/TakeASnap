@@ -377,15 +377,15 @@ Tab "Pose của bạn" là lưới phẳng 3 cột, gap 12, **mỗi bản pose m
 ├──────────────────────────────────┤
 │▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░│
 │░▒░▒░▒░▒░▒░▒  ╭──╮  ▒░▒░▒░▒░▒░▒░▒│  preview Skia trên nền ô caro
-│▒░▒░▒░▒░▒░▒░ ╭┴⊙⊙┴╮ ░▒░▒░▒░▒░▒░▒░│  nét mặt vàng trong viền trắng
-│░▒░▒░▒░▒░▒░▒ ╰┬──┬╯ ▒░▒░▒░▒░▒░▒░▒│
-│▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░│
-├──────────────────────────────────┤  panel cao cố định 440 (height, không phải minHeight)
-│ [ Viền | Phủ | Nét | Ảnh ]       │
+│▒░▒░▒░▒░▒░▒░ ╭┴⊙⊙┴╮ ░▒░▒░▒░▒░▒░▒░│  viền + nét mặt + ống tay chân,
+│░▒░▒░▒░▒░▒░▒ │╲══╱│ ▒░▒░▒░▒░▒░▒░▒│  cùng một màu
+│▒░▒░▒░▒░▒░▒░ ╰┬──┬╯ ░▒░▒░▒░▒░▒░▒░│
+├──────────────────────────────────┤  panel cao cố định 400 (height, không phải minHeight)
+│ [ Viền | Phủ | Ảnh ]             │
 │                                  │
-│ Nét mặt                     [on] │
-│ Nét tay chân               [off] │
-│ Độ dày nét ────●────────── 2 px │
+│ (Viền) (Mặt) (Tay chân)          │  chip bật/tắt độc lập, bật = accent
+│ Viền, mặt và tay chân dùng chung…│  ghi chú label muted, 1 dòng
+│ Độ dày ─────●──────────── 3 px  │
 │ Màu  ○ ○ ○ ○ ○ ○ ○ ○            │
 │                                  │
 │ ( Lưu thành bản mới ) (Lưu pose) │  pose mẫu: chỉ có Lưu pose
@@ -394,13 +394,14 @@ Tab "Pose của bạn" là lưới phẳng 3 cột, gap 12, **mỗi bản pose m
 
 | Tab | Nội dung |
 |---|---|
-| Viền | Hiện viền · Độ dày 1–12 px · Màu |
+| Viền | Chip **[Viền] [Mặt] [Tay chân]** · Độ dày 1–12 px · Màu, **dùng chung** cho cả 3 (nét mặt 0.6 × độ dày). Dòng ghi chú: thiếu mặt → "Không thấy mặt…"; tay chân đều ngoài thân → "…viền ngoài đã đủ" |
 | Phủ | Hiện lớp phủ · Độ đậm 0–100% · Màu |
-| Nét | Nét mặt · Nét tay chân · Độ dày nét 1–8 px · Màu nét. Không thấy mặt → dòng `label` muted giải thích (quay lưng, nghiêng, bị che) |
 | Ảnh | Độ hiện người 0–100% · Độ hiện nền 0–100% |
 | Sửa nét (Phase 3) | Thêm / Xóa (segmented) · Cỡ cọ 8–64 px · vẽ trực tiếp lên preview |
 
-**Nền ô caro** cho vùng trống (góp ý sau Phase 1, thay cho nền đen): ô 12 px, hai màu `checkerA` `#2c2e32` / `checkerB` `#3a3d42`. Chọn caro xám đậm thay cho caro trắng–xám kinh điển để không chói trên giao diện tối, và để viền trắng, nét vàng vẫn nổi. Chip "Xem trên ảnh gốc" của bản đầu được thay bằng tab **Ảnh** (độ hiện người và nền riêng).
+**Gộp nét vào tab Viền** (góp ý lần 2): nét mặt và ống tay chân là một phần của "dáng" nên đi cùng màu và độ dày với viền; tab Nét riêng bị bỏ. Ống tay chân bị cắt theo bóng người (không lem ra nền).
+
+**Nền ô caro** cho vùng trống (góp ý sau Phase 1, thay cho nền đen): ô 12 px, hai màu `checkerA` `#2c2e32` / `checkerB` `#3a3d42`. Chọn caro xám đậm thay cho caro trắng–xám kinh điển để không chói trên giao diện tối, và để viền trắng vẫn nổi. Chip "Xem trên ảnh gốc" của bản đầu được thay bằng tab **Ảnh** (độ hiện người và nền riêng).
 
 ### 6.5 Thay nền
 

@@ -1,5 +1,6 @@
 export { AnimatedText } from './AnimatedText';
 export { Button } from './Button';
+export { ChipToggleRow } from './ChipToggle';
 export { IconButton } from './IconButton';
 export { PressableScale } from './PressableScale';
 export { Screen } from './Screen';
