@@ -340,7 +340,7 @@ docs/
 
 **Xong khi:** chọn ảnh → có pose trong dưới 4 s trên iPhone (mục tiêu, sẽ chỉnh theo spike B); mọi slider đổi hình ngay trong frame kế tiếp; độ dày viền đổi được từ 1 đến 12 px.
 
-**Trạng thái:** đạt (xác nhận trên iPhone 15 Pro Max). Tạo pose từ ảnh trong máy chạy được, kể cả ở chế độ máy bay sau lần tải gói đầu.
+**Trạng thái:** đạt (xác nhận trên iPhone 15 Pro Max): Thư viện, Chỉnh pose, tạo pose từ ảnh trong máy. Chưa ghi số đo thời gian và chưa xác nhận riêng chế độ máy bay.
 
 ### Phase 2 — Camera và overlay (2–3 tuần)
 
