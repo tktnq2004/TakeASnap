@@ -146,6 +146,7 @@ function PoseTile({
       style={[styles.tile, { width, height }]}
     >
       <PoseCanvas
+        fit="cover"
         source={pose.source}
         imageWidth={pose.width}
         imageHeight={pose.height}

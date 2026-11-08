@@ -10,7 +10,7 @@ import {
   useImage,
 } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
-import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
+import type { SharedValue } from 'react-native-reanimated';
 
 import { type Contour, contoursToSvgPath } from '@/engine/contour';
 import type { Landmarks } from '@/engine/segmentation/types';
@@ -31,12 +31,10 @@ export type PoseCanvasProps = {
   width: number;
   height: number;
   /**
-   * `cover` (mặc định): ảnh phủ kín canvas, không lộ nền thừa (góp ý lần 4).
-   * `contain`: cả ảnh nằm vừa trong canvas (dùng cho overlay camera sau này).
+   * `contain` (mặc định): cả ảnh nằm vừa trong canvas, hiện đầy đủ trên một màn hình (Chỉnh pose).
+   * `cover`: ảnh phủ kín canvas, cắt bớt phần thừa (ô thư viện).
    */
   fit?: 'cover' | 'contain';
-  /** Kéo/phóng từ usePanZoom (Chỉnh pose). Không có thì ảnh đứng yên ở giữa. */
-  view?: { tx: SharedValue<number>; ty: SharedValue<number>; zoom: SharedValue<number> };
   outlineEnabled: boolean;
   outlineColor: string;
   /** px màn hình. */
@@ -51,7 +49,10 @@ export type PoseCanvasProps = {
   faceColor: string;
   /** px màn hình. */
   faceWidth: Num;
-  /** Nền ô caro sau ảnh (Chỉnh pose). Tắt thì nền trong suốt. */
+  /**
+   * Nền ô caro cho vùng trong suốt (Chỉnh pose). Chỉ vẽ TRONG khung ảnh; phần canvas ngoài mép
+   * ảnh để trơn, không lộ caro thừa (góp ý lần 4).
+   */
   checker?: boolean;
 };
 
@@ -67,35 +68,17 @@ export function PoseCanvas(p: PoseCanvasProps) {
   const image = useImage(p.source);
   const sx = p.width / p.imageWidth;
   const sy = p.height / p.imageHeight;
-  const scale = (p.fit ?? 'cover') === 'cover' ? Math.max(sx, sy) : Math.min(sx, sy);
+  const scale = (p.fit ?? 'contain') === 'cover' ? Math.max(sx, sy) : Math.min(sx, sy);
   const w = p.imageWidth * scale;
   const h = p.imageHeight * scale;
-  const W = p.width;
-  const H = p.height;
-  const view = p.view;
-  const ow = p.outlineWidth;
-  const fw = p.faceWidth;
-
-  // Ảnh có tâm lệch (tx, ty) so với tâm canvas, phóng `zoom` lần so với kích thước w × h.
-  const transform = useDerivedValue(() => {
-    const z = view ? view.zoom.get() : 1;
-    const x = W / 2 + (view ? view.tx.get() : 0) - (w * z) / 2;
-    const y = H / 2 + (view ? view.ty.get() : 0) - (h * z) / 2;
-    return [{ translateX: x }, { translateY: y }, { scale: z }];
-  });
-  // Nét tính theo px màn hình: chia cho mức phóng để không to lên khi phóng.
-  const outlineStroke = useDerivedValue(
-    () => (typeof ow === 'number' ? ow : ow.get()) / (view ? view.zoom.get() : 1),
-  );
-  const faceStroke = useDerivedValue(
-    () => (typeof fw === 'number' ? fw : fw.get()) / (view ? view.zoom.get() : 1),
-  );
+  const ox = (p.width - w) / 2;
+  const oy = (p.height - h) / 2;
 
   const path = useMemo(() => makePosePath(p.contours, w, h), [p.contours, w, h]);
   const facePath = useMemo(() => makeSegmentsPath(p.landmarks?.face, w, h), [p.landmarks, w, h]);
   const checker = useMemo(
-    () => (p.checker ? makeCheckerPath(p.width, p.height, CHECKER) : null),
-    [p.checker, p.width, p.height],
+    () => (p.checker ? makeCheckerPath(w, h, CHECKER) : null),
+    [p.checker, w, h],
   );
   const box = { x: 0, y: 0, width: w, height: h };
   const line = {
@@ -106,13 +89,13 @@ export function PoseCanvas(p: PoseCanvasProps) {
 
   return (
     <Canvas style={{ width: p.width, height: p.height }}>
-      {checker && (
-        <>
-          <Rect x={0} y={0} width={p.width} height={p.height} color={color.checkerA} />
-          <Path path={checker} color={color.checkerB} />
-        </>
-      )}
-      <Group transform={transform}>
+      <Group transform={[{ translateX: ox }, { translateY: oy }]}>
+        {checker && (
+          <Group clip={Skia.XYWHRect(0, 0, w, h)}>
+            <Rect x={0} y={0} width={w} height={h} color={color.checkerA} />
+            <Path path={checker} color={color.checkerB} />
+          </Group>
+        )}
         {image && path && (
           <Group clip={path} invertClip>
             <Image image={image} {...box} fit="fill" opacity={p.backgroundOpacity} />
@@ -125,10 +108,10 @@ export function PoseCanvas(p: PoseCanvasProps) {
         )}
         {path && p.fillEnabled && <Path path={path} color={p.fillColor} opacity={p.fillOpacity} />}
         {facePath && p.faceEnabled && (
-          <Path path={facePath} color={p.faceColor} strokeWidth={faceStroke} {...line} />
+          <Path path={facePath} color={p.faceColor} strokeWidth={p.faceWidth} {...line} />
         )}
         {path && p.outlineEnabled && (
-          <Path path={path} color={p.outlineColor} strokeWidth={outlineStroke} {...line} />
+          <Path path={path} color={p.outlineColor} strokeWidth={p.outlineWidth} {...line} />
         )}
       </Group>
     </Canvas>

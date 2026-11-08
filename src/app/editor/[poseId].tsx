@@ -3,13 +3,10 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Switch, Text, View } from 'react-native';
-import { GestureDetector } from 'react-native-gesture-handler';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
-import { coverScale } from '@/gestures/transformMath';
-import { usePanZoom } from '@/gestures/usePanZoom';
 import { createVariant, getPose, updateStyle } from '@/features/pose/repository';
 import {
   DEFAULT_STYLE,
@@ -61,9 +58,6 @@ export default function EditorScreen() {
 
   const [pose, setPose] = useState<Pose | null | undefined>(undefined);
   const [area, setArea] = useState({ w: 0, h: 0 });
-  // Ảnh luôn phủ kín khung xem; kéo/pinch để xem phần bị che, chạm đúp để về ban đầu.
-  const panZoom = usePanZoom();
-  const { setLayout } = panZoom;
   const [tab, setTab] = useState<Tab>('outline');
   const [lineTarget, setLineTarget] = useState<LineTarget>('outline');
   const [saving, setSaving] = useState(false);
@@ -136,15 +130,6 @@ export default function EditorScreen() {
 
   const isSample = pose ? isSampleId(pose.id) : true;
   const lm = pose?.landmarks ?? null;
-  // Báo kích thước khung và ảnh ở mức phủ kín cho usePanZoom (để kẹp không lộ mép ảnh).
-  const imgW = pose?.width ?? 0;
-  const imgH = pose?.height ?? 0;
-  useEffect(() => {
-    if (!imgW || !area.w) return;
-    const k = coverScale(imgW, imgH, area.w, area.h);
-    setLayout(area.w, area.h, imgW * k, imgH * k);
-  }, [imgW, imgH, area.w, area.h, setLayout]);
-
   const editingFace = lineTarget === 'face';
   // Ghi chú khi đang chỉnh nét mặt mà ảnh không có mặt.
   const faceNote = !editingFace
@@ -165,43 +150,38 @@ export default function EditorScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      <GestureDetector gesture={panZoom.gesture}>
-        <View
-          style={styles.preview}
-          onLayout={(e) =>
-            setArea({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })
-          }
-        >
-          {pose && area.w > 0 && (
-            <PoseCanvas
-              fit="cover"
-              view={panZoom}
-              source={pose.source}
-              imageWidth={pose.width}
-              imageHeight={pose.height}
-              contours={pose.contours}
-              landmarks={lm}
-              width={area.w}
-              height={area.h}
-              outlineEnabled={outlineEnabled}
-              outlineColor={outlineColor}
-              outlineWidth={outlineWidth}
-              fillEnabled={fillEnabled}
-              fillColor={fillColor}
-              fillOpacity={fillOpacity}
-              subjectOpacity={subjectOpacity}
-              backgroundOpacity={backgroundOpacity}
-              faceEnabled={faceEnabled}
-              faceColor={faceColor}
-              faceWidth={faceWidth}
-              checker
-            />
-          )}
-          {pose === null && (
-            <Text style={[type.body, styles.muted, styles.center]}>{t.editor.notFound}</Text>
-          )}
-        </View>
-      </GestureDetector>
+      <View
+        style={styles.preview}
+        onLayout={(e) => setArea({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
+      >
+        {pose && area.w > 0 && (
+          <PoseCanvas
+            fit="contain"
+            source={pose.source}
+            imageWidth={pose.width}
+            imageHeight={pose.height}
+            contours={pose.contours}
+            landmarks={lm}
+            width={area.w}
+            height={area.h}
+            outlineEnabled={outlineEnabled}
+            outlineColor={outlineColor}
+            outlineWidth={outlineWidth}
+            fillEnabled={fillEnabled}
+            fillColor={fillColor}
+            fillOpacity={fillOpacity}
+            subjectOpacity={subjectOpacity}
+            backgroundOpacity={backgroundOpacity}
+            faceEnabled={faceEnabled}
+            faceColor={faceColor}
+            faceWidth={faceWidth}
+            checker
+          />
+        )}
+        {pose === null && (
+          <Text style={[type.body, styles.muted, styles.center]}>{t.editor.notFound}</Text>
+        )}
+      </View>
 
       <View
         style={[

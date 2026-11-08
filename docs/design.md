@@ -400,7 +400,7 @@ Tab "Pose của bạn" là lưới phẳng **4 cột**, gap 8, **mỗi bản pos
 
 **Viền và Mặt chung tab, chỉnh riêng** (góp ý lần 3): một thanh kéo chỉ đổi một thứ. Ống tay chân (góp ý lần 2) đã bỏ vì nét ước lượng chưa đủ tốt.
 
-**Ảnh phủ kín khung xem** (góp ý lần 4): ảnh đặt kiểu cover, không lộ caro ngoài mép ảnh. Kéo 1–2 ngón và pinch (tối đa 4×) để xem phần bị che, kẹp để không bao giờ lộ mép (`src/gestures/usePanZoom.ts`, toán ở `clampPan` có test); chạm đúp về ban đầu (240 ms `easeIO`). Độ dày nét chia cho mức phóng nên luôn đúng px màn hình. Ô thư viện cũng đặt kiểu cover.
+**Ảnh đầy đủ trên một màn hình** (góp ý lần 5): ảnh đặt kiểu contain, không kéo/pinch. Caro chỉ vẽ trong khung ảnh; phần ngoài mép ảnh là nền `bg` trơn. (Lần 4 đã thử cover + kéo/pinch: phải kéo lên xuống mới xem hết, trải nghiệm kém, đã bỏ.) Ô thư viện đặt kiểu cover (ảnh nhỏ, cắt bớt mép không sao).
 
 **Nền ô caro** cho vùng trống (góp ý sau Phase 1, thay cho nền đen): ô 12 px, hai màu `checkerA` `#2c2e32` / `checkerB` `#3a3d42`. Chọn caro xám đậm thay cho caro trắng–xám kinh điển để không chói trên giao diện tối, và để viền trắng vẫn nổi. Chip "Xem trên ảnh gốc" của bản đầu được thay bằng tab **Ảnh** (độ hiện người và nền riêng).
 

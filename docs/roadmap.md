@@ -336,7 +336,7 @@ docs/
 - [x] **Góp ý sau lần thử đầu:** ô thư viện hiện ảnh gốc đầy đủ màu; Chỉnh pose trên nền ô caro; nét mặt (FaceLandmarker, dò lại trên vùng đầu phóng to khi mặt nhỏ) và nét tay chân (PoseLandmarker full); độ hiện nền; 1 ảnh gốc → nhiều bản pose ("Lưu thành bản mới"), migration v3
 - [x] **Góp ý lần 2:** nét mặt gộp vào tab Viền (cùng màu, độ dày); nét tay chân đổi từ khung xương sang **ống tay, ống chân** hai nét (src/engine/limbs.ts, có test): chỉ vẽ ở chỗ tay chân nằm trên thân, kéo về mép thật trong ảnh; bản sao từ pose mẫu luôn lấy dữ liệu mới nhất
 - [x] **Góp ý lần 3:** bỏ hẳn ống tay chân (module, test, dữ liệu); Viền và Mặt chung tab nhưng màu, độ dày riêng (dùng lại cột lines_color / lines_width, không cần migration); "Pose của bạn" 4 ảnh một hàng
-- [x] **Góp ý lần 4:** nét mặt 0.5–5 px; ảnh trong Chỉnh pose và ô thư viện luôn phủ kín khung (cover), kéo/pinch có kẹp để không lộ mép, chạm đúp về ban đầu *(chờ đo trên máy)*
+- [x] **Góp ý lần 4–5:** nét mặt 0.5–5 px. Ảnh trong Chỉnh pose hiện đầy đủ (contain), caro chỉ trong khung ảnh (đã thử cover + kéo/pinch ở lần 4 và bỏ). Ô thư viện kiểu cover
 
 **Xong khi:** chọn ảnh → có pose trong dưới 4 s trên iPhone (mục tiêu, sẽ chỉnh theo spike B); mọi slider đổi hình ngay trong frame kế tiếp; độ dày viền đổi được từ 1 đến 12 px.
 

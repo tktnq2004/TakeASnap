@@ -164,7 +164,7 @@ flowchart TD
 
 Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới lên: **nền → người → phủ → nét mặt → viền**.
 
-Ảnh luôn **phủ kín khung xem** (không lộ caro thừa ngoài mép ảnh). Phần ảnh bị che thì **kéo / pinch** để xem; không kéo được ra ngoài mép ảnh; chạm đúp để về khung ban đầu. Caro chỉ hiện ở vùng trong suốt bên trong ảnh (nền đặt độ hiện < 100%).
+Ảnh hiện **đầy đủ trên một màn hình** (vừa khít khung xem, không phải kéo). Caro chỉ vẽ **bên trong khung ảnh** (vùng trong suốt khi độ hiện nền < 100%); phần khung xem ngoài mép ảnh để nền tối trơn, không lộ caro thừa.
 
 | Tab | Lớp | Điều khiển | Khoảng giá trị | Mặc định |
 |---|---|---|---|---|
