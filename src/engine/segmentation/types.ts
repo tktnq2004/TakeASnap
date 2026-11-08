@@ -22,12 +22,11 @@ export type SegmentTimings = {
  * - `face`: nét mặt, đoạn thẳng phẳng [x1, y1, x2, y2, …]. null = không thấy mặt (người mẫu quay
  *   lưng, nghiêng hoặc che mặt — business-flow §5.2).
  * - `bodyPoints`: 33 khớp MediaPipe phẳng [x, y, visibility, …]; giữ cho tính năng sau (khớp dáng).
- * - `limbs`: ống tay, ống chân (src/engine/limbs.ts), mỗi nét là polyline phẳng [x, y, x, y, …].
+ *   Ống tay chân dựng từ các khớp này đã thử và bỏ (góp ý lần 3: nét ước lượng chưa đủ tốt).
  */
 export type Landmarks = {
   face: number[] | null;
   bodyPoints: number[] | null;
-  limbs: number[][] | null;
 };
 
 /** Kết quả thô từ WebView: mask PNG (trắng, alpha = xác suất là người) cùng kích thước ảnh vào. */

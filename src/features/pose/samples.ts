@@ -151,7 +151,6 @@ type SampleJson = {
     contours: { isHole: boolean; points: [number, number][] }[];
     face?: number[] | null;
     bodyPoints?: number[] | null;
-    limbs?: number[][];
   }[];
 };
 
@@ -178,7 +177,6 @@ export const sampleLibrary: Pose[] = (samplesJson as unknown as SampleJson).item
       landmarks: {
         face: it.face ?? null,
         bodyPoints: it.bodyPoints ?? null,
-        limbs: it.limbs ?? null,
       },
       style: DEFAULT_STYLE,
       sampleGroup: it.group,

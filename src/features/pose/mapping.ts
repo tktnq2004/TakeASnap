@@ -32,8 +32,11 @@ export type VariantRow = {
   subject_opacity: number;
   background_opacity: number;
   face_enabled: number;
-  /** Cột tên cũ, nay lưu "ống tay chân" (limbsEnabled). Cột lines_color/lines_width không dùng. */
-  body_enabled: number;
+  /** Không dùng (ống tay chân đã thử và bỏ); cột vẫn còn trong schema v3, mặc định 0. */
+  body_enabled?: number;
+  /** Tên cột từ v3; nay lưu màu và độ dày của nét mặt. */
+  lines_color: string;
+  lines_width: number;
   created_at: string;
   updated_at: string;
 };
@@ -56,7 +59,8 @@ export function styleToColumns(s: PoseStyle) {
     subject_opacity: s.subjectOpacity,
     background_opacity: s.backgroundOpacity,
     face_enabled: s.faceEnabled ? 1 : 0,
-    body_enabled: s.limbsEnabled ? 1 : 0,
+    lines_color: s.faceColor,
+    lines_width: s.faceWidth,
   };
 }
 
@@ -71,7 +75,8 @@ export function rowToStyle(r: VariantRow): PoseStyle {
     subjectOpacity: r.subject_opacity,
     backgroundOpacity: r.background_opacity ?? DEFAULT_STYLE.backgroundOpacity,
     faceEnabled: r.face_enabled === 1,
-    limbsEnabled: r.body_enabled === 1,
+    faceColor: r.lines_color ?? DEFAULT_STYLE.faceColor,
+    faceWidth: r.lines_width ?? DEFAULT_STYLE.faceWidth,
   };
 }
 

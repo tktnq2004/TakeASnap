@@ -38,14 +38,15 @@ const pose: Pose & { source: string } = {
   width: 736,
   height: 981,
   contours,
-  landmarks: { face: [0.1, 0.2, 0.3, 0.4], bodyPoints: null, limbs: [[0.1, 0.1, 0.2, 0.2]] },
+  landmarks: { face: [0.1, 0.2, 0.3, 0.4], bodyPoints: [0.5, 0.5, 0.9] },
   sampleGroup: 'coffee',
   maskUri: null,
   style: {
     ...DEFAULT_STYLE,
     subjectOpacity: 0.5,
     backgroundOpacity: 0.25,
-    limbsEnabled: false,
+    faceColor: '#ffd60a',
+    faceWidth: 2.5,
   },
   createdAt: '2026-11-08T00:00:00.000Z',
   updatedAt: '2026-11-08T01:00:00.000Z',
@@ -75,10 +76,10 @@ describe('pose ↔ dòng SQLite', () => {
     expect(rowToStyle(old).backgroundOpacity).toBe(DEFAULT_STYLE.backgroundOpacity);
   });
 
-  it('ống tay chân lưu ở cột body_enabled', () => {
-    const on = { ...pose, style: { ...pose.style, limbsEnabled: true } };
-    expect(poseToVariantRow(on).body_enabled).toBe(1);
-    expect(rowToStyle(poseToVariantRow(on)).limbsEnabled).toBe(true);
+  it('màu và độ dày nét mặt lưu ở cột lines_color / lines_width', () => {
+    const row = poseToVariantRow(pose);
+    expect(row.lines_color).toBe('#ffd60a');
+    expect(row.lines_width).toBe(2.5);
   });
 });
 

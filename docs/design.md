@@ -367,7 +367,7 @@ Khung vẽ cho máy 390×844. `·` là vùng ảnh / khung ngắm. Ký hiệu tr
 
 Mọi ô hiện **ảnh gốc đầy đủ màu**: người dùng chọn pose nhờ nhìn cả người mẫu lẫn bối cảnh (góp ý sau Phase 1). Pose mẫu chỉ thêm viền trắng mảnh.
 
-Tab "Pose của bạn" là lưới phẳng 3 cột, gap 12, **mỗi bản pose một ô**; ô vẽ style của chính bản đó lên ảnh gốc để các bản từ cùng một ảnh phân biệt được. Khi trống: một dòng `body` "Chưa có pose nào. Thêm một ảnh có người để lấy dáng." và nút primary "Thêm ảnh từ máy".
+Tab "Pose của bạn" là lưới phẳng **4 cột**, gap 8, **mỗi bản pose một ô**; ô vẽ style của chính bản đó lên ảnh gốc để các bản từ cùng một ảnh phân biệt được. Khi trống: một dòng `body` "Chưa có pose nào. Thêm một ảnh có người để lấy dáng." và nút primary "Thêm ảnh từ máy".
 
 ### 6.4 Chỉnh pose
 
@@ -377,14 +377,13 @@ Tab "Pose của bạn" là lưới phẳng 3 cột, gap 12, **mỗi bản pose m
 ├──────────────────────────────────┤
 │▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░│
 │░▒░▒░▒░▒░▒░▒  ╭──╮  ▒░▒░▒░▒░▒░▒░▒│  preview Skia trên nền ô caro
-│▒░▒░▒░▒░▒░▒░ ╭┴⊙⊙┴╮ ░▒░▒░▒░▒░▒░▒░│  viền + nét mặt + ống tay chân,
-│░▒░▒░▒░▒░▒░▒ │╲══╱│ ▒░▒░▒░▒░▒░▒░▒│  cùng một màu
+│▒░▒░▒░▒░▒░▒░ ╭┴⊙⊙┴╮ ░▒░▒░▒░▒░▒░▒░│  viền + nét mặt, màu và độ
+│░▒░▒░▒░▒░▒░▒ │    │ ▒░▒░▒░▒░▒░▒░▒│  dày riêng
 │▒░▒░▒░▒░▒░▒░ ╰┬──┬╯ ░▒░▒░▒░▒░▒░▒░│
-├──────────────────────────────────┤  panel cao cố định 400 (height, không phải minHeight)
+├──────────────────────────────────┤  panel cao cố định 410 (height, không phải minHeight)
 │ [ Viền | Phủ | Ảnh ]             │
 │                                  │
-│ (Viền) (Mặt) (Tay chân)          │  chip bật/tắt độc lập, bật = accent
-│ Viền, mặt và tay chân dùng chung…│  ghi chú label muted, 1 dòng
+│ [ Viền | Mặt ]            [on]   │  đang chỉnh cái nào + công tắc của nó
 │ Độ dày ─────●──────────── 3 px  │
 │ Màu  ○ ○ ○ ○ ○ ○ ○ ○            │
 │                                  │
@@ -394,12 +393,12 @@ Tab "Pose của bạn" là lưới phẳng 3 cột, gap 12, **mỗi bản pose m
 
 | Tab | Nội dung |
 |---|---|
-| Viền | Chip **[Viền] [Mặt] [Tay chân]** · Độ dày 1–12 px · Màu, **dùng chung** cho cả 3 (nét mặt 0.6 × độ dày). Dòng ghi chú: thiếu mặt → "Không thấy mặt…"; tay chân đều ngoài thân → "…viền ngoài đã đủ" |
+| Viền | Bộ chọn **[Viền | Mặt]** + công tắc cùng hàng · Độ dày (viền 1–12 px, mặt 0.5–6 px) · Màu, **riêng cho từng cái**. Đang chỉnh Mặt mà ảnh không có mặt → dòng `label` muted "Không thấy mặt…" |
 | Phủ | Hiện lớp phủ · Độ đậm 0–100% · Màu |
 | Ảnh | Độ hiện người 0–100% · Độ hiện nền 0–100% |
 | Sửa nét (Phase 3) | Thêm / Xóa (segmented) · Cỡ cọ 8–64 px · vẽ trực tiếp lên preview |
 
-**Gộp nét vào tab Viền** (góp ý lần 2): nét mặt và ống tay chân là một phần của "dáng" nên đi cùng màu và độ dày với viền; tab Nét riêng bị bỏ. Ống tay chân bị cắt theo bóng người (không lem ra nền).
+**Viền và Mặt chung tab, chỉnh riêng** (góp ý lần 3): một thanh kéo chỉ đổi một thứ. Ống tay chân (góp ý lần 2) đã bỏ vì nét ước lượng chưa đủ tốt.
 
 **Nền ô caro** cho vùng trống (góp ý sau Phase 1, thay cho nền đen): ô 12 px, hai màu `checkerA` `#2c2e32` / `checkerB` `#3a3d42`. Chọn caro xám đậm thay cho caro trắng–xám kinh điển để không chói trên giao diện tối, và để viền trắng vẫn nổi. Chip "Xem trên ảnh gốc" của bản đầu được thay bằng tab **Ảnh** (độ hiện người và nền riêng).
 

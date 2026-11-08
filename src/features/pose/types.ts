@@ -4,7 +4,7 @@ import { poseColors } from '@/ui/tokens';
 
 /**
  * Style của một bản pose (business-flow §5.2). Thứ tự vẽ từ dưới lên:
- * nền (ảnh ngoài người) → người → phủ → ống tay chân → nét mặt → viền.
+ * nền (ảnh ngoài người) → người → phủ → nét mặt → viền.
  */
 export type PoseStyle = {
   outlineEnabled: boolean;
@@ -20,15 +20,13 @@ export type PoseStyle = {
   /** Độ hiện của nền trong ảnh gốc (phần ngoài người), 0..1. */
   backgroundOpacity: number;
   /**
-   * Nét mặt (viền mặt, mắt, lông mày, mũi, môi), vẽ CÙNG màu với viền, mảnh hơn (0.6 × độ dày).
-   * Không có mặt = người mẫu quay lưng.
+   * Nét mặt: viền mặt, mắt, lông mày, mũi, môi. Không có mặt = người mẫu quay lưng.
+   * Chỉnh RIÊNG với viền (màu, độ dày), cùng nằm trong tab Viền (góp ý lần 3).
    */
   faceEnabled: boolean;
-  /**
-   * Ống tay, ống chân (src/engine/limbs.ts), vẽ CÙNG màu và độ dày với viền, chỉ ở chỗ tay chân
-   * nằm trên thân (chỗ khác viền ngoài đã có).
-   */
-  limbsEnabled: boolean;
+  faceColor: string;
+  /** px màn hình. */
+  faceWidth: number;
 };
 
 /** Mặc định theo business-flow §5.2. */
@@ -42,11 +40,13 @@ export const DEFAULT_STYLE: PoseStyle = {
   subjectOpacity: 0,
   backgroundOpacity: 0,
   faceEnabled: true,
-  limbsEnabled: true,
+  faceColor: poseColors[0].value, // Trắng
+  faceWidth: 1.5,
 };
 
 export const STYLE_LIMITS = {
   outlineWidth: { min: 1, max: 12, step: 0.5 },
+  faceWidth: { min: 0.5, max: 6, step: 0.5 },
 } as const;
 
 export type PoseOrigin = 'sample' | 'library' | 'camera';

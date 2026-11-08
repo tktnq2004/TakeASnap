@@ -62,8 +62,8 @@ async function loadPoses(db: SQLiteDatabase, variants: VariantRow[]): Promise<Po
       photos.set(v.photo_id, p);
     }
     const pose = rowsToPose(p.row, v, p.contours);
-    // Ảnh chép từ pose mẫu: luôn dùng viền, nét mặt, ống tay chân MỚI NHẤT của pose mẫu đó, để bản
-    // đã lưu trước khi app có tính năng mới (ví dụ ống tay chân) cũng được cập nhật.
+    // Ảnh chép từ pose mẫu: luôn dùng viền và nét mặt MỚI NHẤT của pose mẫu đó, để bản đã lưu
+    // trước khi app có tính năng mới cũng được cập nhật.
     const sample = pose.sampleId
       ? sampleLibrary.find((s) => s.sampleId === pose.sampleId)
       : undefined;
@@ -106,9 +106,9 @@ async function insertVariant(db: SQLiteDatabase, pose: Pose) {
   await db.runAsync(
     `INSERT INTO pose_variants
       (id, photo_id, outline_enabled, outline_width, outline_color, fill_enabled, fill_color,
-       fill_opacity, subject_opacity, background_opacity, face_enabled, body_enabled,
-       created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       fill_opacity, subject_opacity, background_opacity, face_enabled, lines_color,
+       lines_width, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     v.id,
     v.photo_id,
     v.outline_enabled,
@@ -120,7 +120,8 @@ async function insertVariant(db: SQLiteDatabase, pose: Pose) {
     v.subject_opacity,
     v.background_opacity,
     v.face_enabled,
-    v.body_enabled,
+    v.lines_color,
+    v.lines_width,
     v.created_at,
     v.updated_at,
   );
@@ -133,7 +134,7 @@ export async function updateStyle(db: SQLiteDatabase, variantId: string, style: 
     `UPDATE pose_variants SET
       outline_enabled = ?, outline_width = ?, outline_color = ?, fill_enabled = ?, fill_color = ?,
       fill_opacity = ?, subject_opacity = ?, background_opacity = ?, face_enabled = ?,
-      body_enabled = ?, updated_at = ?
+      lines_color = ?, lines_width = ?, updated_at = ?
      WHERE id = ?`,
     c.outline_enabled,
     c.outline_width,
@@ -144,7 +145,8 @@ export async function updateStyle(db: SQLiteDatabase, variantId: string, style: 
     c.subject_opacity,
     c.background_opacity,
     c.face_enabled,
-    c.body_enabled,
+    c.lines_color,
+    c.lines_width,
     now(),
     variantId,
   );

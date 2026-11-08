@@ -28,6 +28,8 @@ const tabs = [
 
 const SAMPLE_W = 104;
 const SAMPLE_H = 138;
+const MINE_COLS = 4;
+const MINE_GAP = space[2];
 
 /**
  * Thư viện pose (design.md §6.3). Phase 1: chạm một pose để mở Chỉnh pose. Phase 2 đổi chạm thành
@@ -59,7 +61,8 @@ export default function LibraryScreen() {
       },
     ]);
 
-  const gridW = (screenW - size.gutter * 2 - space[3] * 2) / 3;
+  // "Pose của bạn": 4 ảnh một hàng (góp ý lần 3).
+  const gridW = (screenW - size.gutter * 2 - MINE_GAP * (MINE_COLS - 1)) / MINE_COLS;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -159,7 +162,8 @@ function PoseTile({
         fillColor={s.fillColor}
         fillOpacity={s.fillOpacity}
         faceEnabled={plain ? false : s.faceEnabled}
-        limbsEnabled={plain ? false : s.limbsEnabled}
+        faceColor={s.faceColor}
+        faceWidth={Math.min(s.faceWidth, 1)}
       />
     </Pressable>
   );
@@ -183,7 +187,7 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: space[3],
+    gap: MINE_GAP,
     paddingHorizontal: size.gutter,
   },
   tile: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: color.surface },

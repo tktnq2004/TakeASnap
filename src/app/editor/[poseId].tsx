@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Switch, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -16,15 +16,7 @@ import {
   STYLE_LIMITS,
 } from '@/features/pose/types';
 import { haptic } from '@/lib/haptics';
-import {
-  Button,
-  ChipToggleRow,
-  IconButton,
-  Segmented,
-  Slider,
-  SwatchRow,
-  ToggleRow,
-} from '@/ui/components';
+import { Button, IconButton, Segmented, Slider, SwatchRow, ToggleRow } from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
 
@@ -35,12 +27,19 @@ const tabs = [
 ] as const;
 type Tab = (typeof tabs)[number]['key'];
 
+/** Trong tab Viền: đang chỉnh viền hay nét mặt (góp ý lần 3: chung tab, chỉnh riêng). */
+const lineTargets = [
+  { key: 'outline', label: t.editor.targetOutline },
+  { key: 'face', label: t.editor.targetFace },
+] as const;
+type LineTarget = (typeof lineTargets)[number]['key'];
+
 /**
  * Panel cao CỐ ĐỊNH để đổi tab không làm preview co giãn (design.md §4). Tab cao nhất là Viền:
- * segmented 40 + hàng chip 36 + ghi chú 18 + slider 76 + 2 hàng màu 92 + nút 48 + khoảng cách
- * ≈ 400.
+ * tab 40 + hàng [Viền | Mặt] + công tắc 44 + slider 76 + 2 hàng màu 92 + ghi chú 26 + nút 48 +
+ * khoảng cách ≈ 410.
  */
-const PANEL_HEIGHT = 400;
+const PANEL_HEIGHT = 410;
 
 const percent = (v: number) => {
   'worklet';
@@ -60,6 +59,7 @@ export default function EditorScreen() {
   const [pose, setPose] = useState<Pose | null | undefined>(undefined);
   const [area, setArea] = useState({ w: 0, h: 0 });
   const [tab, setTab] = useState<Tab>('outline');
+  const [lineTarget, setLineTarget] = useState<LineTarget>('outline');
   const [saving, setSaving] = useState(false);
 
   // Bật/tắt và màu đổi bằng chạm → state. Giá trị kéo slider → shared value (không re-render khi
@@ -69,8 +69,9 @@ export default function EditorScreen() {
   const [fillEnabled, setFillEnabled] = useState(DEFAULT_STYLE.fillEnabled);
   const [fillColor, setFillColor] = useState(DEFAULT_STYLE.fillColor);
   const [faceEnabled, setFaceEnabled] = useState(DEFAULT_STYLE.faceEnabled);
-  const [limbsEnabled, setLimbsEnabled] = useState(DEFAULT_STYLE.limbsEnabled);
+  const [faceColor, setFaceColor] = useState(DEFAULT_STYLE.faceColor);
   const outlineWidth = useSharedValue(DEFAULT_STYLE.outlineWidth);
+  const faceWidth = useSharedValue(DEFAULT_STYLE.faceWidth);
   const fillOpacity = useSharedValue(DEFAULT_STYLE.fillOpacity);
   const subjectOpacity = useSharedValue(DEFAULT_STYLE.subjectOpacity);
   const backgroundOpacity = useSharedValue(DEFAULT_STYLE.backgroundOpacity);
@@ -87,8 +88,9 @@ export default function EditorScreen() {
       setFillEnabled(s.fillEnabled);
       setFillColor(s.fillColor);
       setFaceEnabled(s.faceEnabled);
-      setLimbsEnabled(s.limbsEnabled);
+      setFaceColor(s.faceColor);
       outlineWidth.set(s.outlineWidth);
+      faceWidth.set(s.faceWidth);
       fillOpacity.set(s.fillOpacity);
       subjectOpacity.set(s.subjectOpacity);
       backgroundOpacity.set(s.backgroundOpacity);
@@ -96,7 +98,7 @@ export default function EditorScreen() {
     return () => {
       alive = false;
     };
-  }, [db, poseId, outlineWidth, fillOpacity, subjectOpacity, backgroundOpacity]);
+  }, [db, poseId, outlineWidth, faceWidth, fillOpacity, subjectOpacity, backgroundOpacity]);
 
   const currentStyle = (): PoseStyle => ({
     outlineEnabled,
@@ -108,7 +110,8 @@ export default function EditorScreen() {
     subjectOpacity: subjectOpacity.get(),
     backgroundOpacity: backgroundOpacity.get(),
     faceEnabled,
-    limbsEnabled,
+    faceColor,
+    faceWidth: faceWidth.get(),
   });
 
   const save = async (asNew: boolean) => {
@@ -127,14 +130,15 @@ export default function EditorScreen() {
 
   const isSample = pose ? isSampleId(pose.id) : true;
   const lm = pose?.landmarks ?? null;
-  // Một dòng ghi chú dưới hàng chip: giải thích khi thiếu nét mặt / ống tay chân.
-  const lineNote = !lm
-    ? t.editor.noLandmarks
-    : faceEnabled && !lm.face
-      ? t.editor.noFace
-      : limbsEnabled && !lm.limbs?.length
-        ? t.editor.noLimbs
-        : t.editor.linesShared;
+  const editingFace = lineTarget === 'face';
+  // Ghi chú khi đang chỉnh nét mặt mà ảnh không có mặt.
+  const faceNote = !editingFace
+    ? null
+    : !lm
+      ? t.editor.noLandmarks
+      : !lm.face
+        ? t.editor.noFace
+        : null;
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
@@ -168,7 +172,8 @@ export default function EditorScreen() {
             subjectOpacity={subjectOpacity}
             backgroundOpacity={backgroundOpacity}
             faceEnabled={faceEnabled}
-            limbsEnabled={limbsEnabled}
+            faceColor={faceColor}
+            faceWidth={faceWidth}
             checker
           />
         )}
@@ -188,41 +193,34 @@ export default function EditorScreen() {
         <View style={styles.controls}>
           {tab === 'outline' && (
             <>
-              {/* Viền, nét mặt, ống tay chân: chỉnh chung một màu và độ dày (góp ý sau Phase 1). */}
-              <ChipToggleRow
-                items={[
-                  {
-                    key: 'outline',
-                    label: t.editor.chipOutline,
-                    value: outlineEnabled,
-                    onChange: setOutlineEnabled,
-                  },
-                  {
-                    key: 'face',
-                    label: t.editor.chipFace,
-                    value: faceEnabled,
-                    onChange: setFaceEnabled,
-                  },
-                  {
-                    key: 'limbs',
-                    label: t.editor.chipLimbs,
-                    value: limbsEnabled,
-                    onChange: setLimbsEnabled,
-                  },
-                ]}
-              />
-              <Text style={[type.label, styles.muted]} numberOfLines={1}>
-                {lineNote}
-              </Text>
+              {/* Viền và nét mặt chung tab nhưng chỉnh riêng (góp ý lần 3). */}
+              <View style={styles.targetRow}>
+                <View style={styles.targetSeg}>
+                  <Segmented options={lineTargets} value={lineTarget} onChange={setLineTarget} />
+                </View>
+                <Switch
+                  value={editingFace ? faceEnabled : outlineEnabled}
+                  onValueChange={editingFace ? setFaceEnabled : setOutlineEnabled}
+                  trackColor={{ true: color.accent, false: color.line }}
+                  thumbColor={color.ink}
+                  accessibilityLabel={editingFace ? t.editor.showFace : t.editor.showOutline}
+                />
+              </View>
               <Slider
+                key={lineTarget}
                 label={t.editor.thickness}
-                value={outlineWidth}
-                min={STYLE_LIMITS.outlineWidth.min}
-                max={STYLE_LIMITS.outlineWidth.max}
-                step={STYLE_LIMITS.outlineWidth.step}
+                value={editingFace ? faceWidth : outlineWidth}
+                min={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].min}
+                max={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].max}
+                step={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].step}
                 format={px}
               />
-              <SwatchRow label={t.editor.color} value={outlineColor} onChange={setOutlineColor} />
+              <SwatchRow
+                label={t.editor.color}
+                value={editingFace ? faceColor : outlineColor}
+                onChange={editingFace ? setFaceColor : setOutlineColor}
+              />
+              {faceNote && <Text style={[type.label, styles.muted]}>{faceNote}</Text>}
             </>
           )}
           {tab === 'fill' && (
@@ -310,6 +308,8 @@ const styles = StyleSheet.create({
     gap: space[4],
   },
   controls: { flex: 1, gap: space[2] },
+  targetRow: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  targetSeg: { flex: 1 },
   actions: { flexDirection: 'row', gap: space[3] },
   action: { flex: 1 },
 });

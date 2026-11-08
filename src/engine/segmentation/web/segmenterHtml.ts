@@ -301,8 +301,7 @@ async function runLandmarks(img) {
   }
   return {
     face: face ? segments(face, faceConnections(), 0) : null,
-    // 33 khớp phẳng [x, y, visibility, …] chuẩn hóa; JS dựng ống tay chân từ đây + mask
-    // (src/engine/limbs.ts).
+    // 33 khớp phẳng [x, y, visibility, …] chuẩn hóa; giữ cho tính năng khớp dáng sau này.
     bodyPoints: body
       ? body.flatMap((p) => [r4(p.x), r4(p.y), r4(p.visibility ?? 1)])
       : null,
