@@ -164,12 +164,14 @@ flowchart TD
 
 Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới lên: **nền → người → phủ → nét mặt → viền**.
 
+Ảnh luôn **phủ kín khung xem** (không lộ caro thừa ngoài mép ảnh). Phần ảnh bị che thì **kéo / pinch** để xem; không kéo được ra ngoài mép ảnh; chạm đúp để về khung ban đầu. Caro chỉ hiện ở vùng trong suốt bên trong ảnh (nền đặt độ hiện < 100%).
+
 | Tab | Lớp | Điều khiển | Khoảng giá trị | Mặc định |
 |---|---|---|---|---|
 | **Viền** | | Bộ chọn **[Viền | Mặt]**: chọn đang chỉnh cái nào; công tắc, độ dày và màu bên dưới đổi theo | — | Viền |
 | | Viền | Bật/tắt · Độ dày | on/off · 1–12 px (theo pixel màn hình, giữ nguyên khi zoom overlay) | on · 3 px |
 | | | Màu | 8 màu có sẵn | Trắng |
-| | Nét mặt | Bật/tắt · Độ dày | on/off · 0.5–6 px | on · 1.5 px |
+| | Nét mặt | Bật/tắt · Độ dày | on/off · 0.5–5 px | on · 1.5 px |
 | | | Màu | 8 màu có sẵn | Trắng |
 | **Phủ** | Phủ | Bật/tắt | on/off | on |
 | | | Màu | 8 màu có sẵn | Cam |

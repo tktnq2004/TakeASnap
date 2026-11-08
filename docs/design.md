@@ -393,12 +393,14 @@ Tab "Pose của bạn" là lưới phẳng **4 cột**, gap 8, **mỗi bản pos
 
 | Tab | Nội dung |
 |---|---|
-| Viền | Bộ chọn **[Viền | Mặt]** + công tắc cùng hàng · Độ dày (viền 1–12 px, mặt 0.5–6 px) · Màu, **riêng cho từng cái**. Đang chỉnh Mặt mà ảnh không có mặt → dòng `label` muted "Không thấy mặt…" |
+| Viền | Bộ chọn **[Viền | Mặt]** + công tắc cùng hàng · Độ dày (viền 1–12 px, mặt 0.5–5 px) · Màu, **riêng cho từng cái**. Đang chỉnh Mặt mà ảnh không có mặt → dòng `label` muted "Không thấy mặt…" |
 | Phủ | Hiện lớp phủ · Độ đậm 0–100% · Màu |
 | Ảnh | Độ hiện người 0–100% · Độ hiện nền 0–100% |
 | Sửa nét (Phase 3) | Thêm / Xóa (segmented) · Cỡ cọ 8–64 px · vẽ trực tiếp lên preview |
 
 **Viền và Mặt chung tab, chỉnh riêng** (góp ý lần 3): một thanh kéo chỉ đổi một thứ. Ống tay chân (góp ý lần 2) đã bỏ vì nét ước lượng chưa đủ tốt.
+
+**Ảnh phủ kín khung xem** (góp ý lần 4): ảnh đặt kiểu cover, không lộ caro ngoài mép ảnh. Kéo 1–2 ngón và pinch (tối đa 4×) để xem phần bị che, kẹp để không bao giờ lộ mép (`src/gestures/usePanZoom.ts`, toán ở `clampPan` có test); chạm đúp về ban đầu (240 ms `easeIO`). Độ dày nét chia cho mức phóng nên luôn đúng px màn hình. Ô thư viện cũng đặt kiểu cover.
 
 **Nền ô caro** cho vùng trống (góp ý sau Phase 1, thay cho nền đen): ô 12 px, hai màu `checkerA` `#2c2e32` / `checkerB` `#3a3d42`. Chọn caro xám đậm thay cho caro trắng–xám kinh điển để không chói trên giao diện tối, và để viền trắng vẫn nổi. Chip "Xem trên ảnh gốc" của bản đầu được thay bằng tab **Ảnh** (độ hiện người và nền riêng).
 

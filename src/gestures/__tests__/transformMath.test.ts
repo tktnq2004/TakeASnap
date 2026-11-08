@@ -1,5 +1,7 @@
 import {
   clampedScaleChange,
+  clampPan,
+  coverScale,
   rotateAbout,
   scaleAbout,
   snapAngle,
@@ -76,5 +78,25 @@ describe('toCentered', () => {
     const p = toCentered(0, 0, 200, 100);
     close(p.x, -100);
     close(p.y, -50);
+  });
+});
+
+describe('clampPan / coverScale', () => {
+  it('ảnh dọc 3:4 trong khung ngang 430 × 370 → phủ theo chiều ngang', () => {
+    const k = coverScale(300, 400, 430, 370);
+    expect(300 * k).toBeCloseTo(430);
+    expect(400 * k).toBeGreaterThan(370);
+  });
+
+  it('không cho kéo lộ mép ảnh', () => {
+    // Ảnh hiển thị 430 × 573 trong khung 430 × 370: chỉ kéo dọc được ±101.5.
+    const t = clampPan({ x: 50, y: -500 }, 430, 573, 430, 370);
+    expect(t.x).toBeCloseTo(0);
+    expect(t.y).toBeCloseTo(-101.5);
+  });
+
+  it('phóng to thì được kéo xa hơn', () => {
+    const t = clampPan({ x: 200, y: 0 }, 860, 1146, 430, 370);
+    expect(t.x).toBeCloseTo(200);
   });
 });

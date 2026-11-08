@@ -63,3 +63,20 @@ export function toCentered(x: number, y: number, width: number, height: number):
   'worklet';
   return { x: x - width / 2, y: y - height / 2 };
 }
+
+/**
+ * Kẹp độ lệch để ảnh (kích thước hiển thị dispW × dispH, tâm lệch t so với tâm khung) luôn phủ kín
+ * khung areaW × areaH: không bao giờ lộ phần ngoài mép ảnh (góp ý lần 4: không thấy caro thừa).
+ */
+export function clampPan(t: Vec, dispW: number, dispH: number, areaW: number, areaH: number): Vec {
+  'worklet';
+  const mx = Math.max(0, (dispW - areaW) / 2);
+  const my = Math.max(0, (dispH - areaH) / 2);
+  return { x: clamp(t.x, -mx, mx), y: clamp(t.y, -my, my) };
+}
+
+/** Hệ số phóng để ảnh phủ kín khung (cover). */
+export function coverScale(imgW: number, imgH: number, areaW: number, areaH: number): number {
+  'worklet';
+  return Math.max(areaW / imgW, areaH / imgH);
+}

@@ -46,7 +46,7 @@ export const DEFAULT_STYLE: PoseStyle = {
 
 export const STYLE_LIMITS = {
   outlineWidth: { min: 1, max: 12, step: 0.5 },
-  faceWidth: { min: 0.5, max: 6, step: 0.5 },
+  faceWidth: { min: 0.5, max: 5, step: 0.5 },
 } as const;
 
 export type PoseOrigin = 'sample' | 'library' | 'camera';

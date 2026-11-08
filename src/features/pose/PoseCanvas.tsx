@@ -10,7 +10,7 @@ import {
   useImage,
 } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
-import type { SharedValue } from 'react-native-reanimated';
+import { type SharedValue, useDerivedValue } from 'react-native-reanimated';
 
 import { type Contour, contoursToSvgPath } from '@/engine/contour';
 import type { Landmarks } from '@/engine/segmentation/types';
@@ -27,9 +27,16 @@ export type PoseCanvasProps = {
   imageHeight: number;
   contours: Contour[];
   landmarks: Landmarks | null;
-  /** Kích thước canvas; ảnh được đặt vừa (contain) và căn giữa. */
+  /** Kích thước canvas; ảnh căn giữa theo `fit`. */
   width: number;
   height: number;
+  /**
+   * `cover` (mặc định): ảnh phủ kín canvas, không lộ nền thừa (góp ý lần 4).
+   * `contain`: cả ảnh nằm vừa trong canvas (dùng cho overlay camera sau này).
+   */
+  fit?: 'cover' | 'contain';
+  /** Kéo/phóng từ usePanZoom (Chỉnh pose). Không có thì ảnh đứng yên ở giữa. */
+  view?: { tx: SharedValue<number>; ty: SharedValue<number>; zoom: SharedValue<number> };
   outlineEnabled: boolean;
   outlineColor: string;
   /** px màn hình. */
@@ -58,11 +65,31 @@ const CHECKER = 12;
  */
 export function PoseCanvas(p: PoseCanvasProps) {
   const image = useImage(p.source);
-  const scale = Math.min(p.width / p.imageWidth, p.height / p.imageHeight);
+  const sx = p.width / p.imageWidth;
+  const sy = p.height / p.imageHeight;
+  const scale = (p.fit ?? 'cover') === 'cover' ? Math.max(sx, sy) : Math.min(sx, sy);
   const w = p.imageWidth * scale;
   const h = p.imageHeight * scale;
-  const ox = (p.width - w) / 2;
-  const oy = (p.height - h) / 2;
+  const W = p.width;
+  const H = p.height;
+  const view = p.view;
+  const ow = p.outlineWidth;
+  const fw = p.faceWidth;
+
+  // Ảnh có tâm lệch (tx, ty) so với tâm canvas, phóng `zoom` lần so với kích thước w × h.
+  const transform = useDerivedValue(() => {
+    const z = view ? view.zoom.get() : 1;
+    const x = W / 2 + (view ? view.tx.get() : 0) - (w * z) / 2;
+    const y = H / 2 + (view ? view.ty.get() : 0) - (h * z) / 2;
+    return [{ translateX: x }, { translateY: y }, { scale: z }];
+  });
+  // Nét tính theo px màn hình: chia cho mức phóng để không to lên khi phóng.
+  const outlineStroke = useDerivedValue(
+    () => (typeof ow === 'number' ? ow : ow.get()) / (view ? view.zoom.get() : 1),
+  );
+  const faceStroke = useDerivedValue(
+    () => (typeof fw === 'number' ? fw : fw.get()) / (view ? view.zoom.get() : 1),
+  );
 
   const path = useMemo(() => makePosePath(p.contours, w, h), [p.contours, w, h]);
   const facePath = useMemo(() => makeSegmentsPath(p.landmarks?.face, w, h), [p.landmarks, w, h]);
@@ -85,7 +112,7 @@ export function PoseCanvas(p: PoseCanvasProps) {
           <Path path={checker} color={color.checkerB} />
         </>
       )}
-      <Group transform={[{ translateX: ox }, { translateY: oy }]}>
+      <Group transform={transform}>
         {image && path && (
           <Group clip={path} invertClip>
             <Image image={image} {...box} fit="fill" opacity={p.backgroundOpacity} />
@@ -98,10 +125,10 @@ export function PoseCanvas(p: PoseCanvasProps) {
         )}
         {path && p.fillEnabled && <Path path={path} color={p.fillColor} opacity={p.fillOpacity} />}
         {facePath && p.faceEnabled && (
-          <Path path={facePath} color={p.faceColor} strokeWidth={p.faceWidth} {...line} />
+          <Path path={facePath} color={p.faceColor} strokeWidth={faceStroke} {...line} />
         )}
         {path && p.outlineEnabled && (
-          <Path path={path} color={p.outlineColor} strokeWidth={p.outlineWidth} {...line} />
+          <Path path={path} color={p.outlineColor} strokeWidth={outlineStroke} {...line} />
         )}
       </Group>
     </Canvas>
