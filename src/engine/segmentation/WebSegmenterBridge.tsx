@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
-import type { SegmentModelId, WebSegmentResult } from './types';
+import type { Landmarks, SegmentModelId, SegmentTimings, WebSegmentResult } from './types';
 import { segmenterHtml } from './web/segmenterHtml';
 
 type ReadyInfo = {
@@ -13,8 +13,10 @@ type ReadyInfo = {
   crossOriginIsolated: boolean;
 };
 
+type OkMessage = { id: number; ok: true } & Record<string, unknown>;
+
 type Pending = {
-  resolve: (r: WebSegmentResult) => void;
+  resolve: (msg: OkMessage) => void;
   reject: (e: Error) => void;
   timer: ReturnType<typeof setTimeout>;
 };
@@ -22,7 +24,7 @@ type Pending = {
 type Incoming =
   | { type: 'ready'; info: ReadyInfo }
   | { type: 'log'; message: string }
-  | ({ id: number; ok: true } & WebSegmentResult)
+  | OkMessage
   | { id: number; ok: false; error: string };
 
 /** Lần đầu dùng RMBG phải tải ~44 MB, nên cho phép lâu. */
@@ -52,7 +54,8 @@ export function useWebSegmenter() {
     } catch {
       return;
     }
-    if ('type' in msg) {
+    // Trả lời cho một yêu cầu thì có id; thông báo của trang (ready, log) thì không.
+    if (!('id' in msg)) {
       if (msg.type === 'ready') setInfo(msg.info);
       else setLogs((l) => [...l.slice(-19), msg.message]);
       return;
@@ -61,12 +64,8 @@ export function useWebSegmenter() {
     if (!p) return;
     clearTimeout(p.timer);
     pending.current.delete(msg.id);
-    if (msg.ok) {
-      const { maskBase64, width, height, backend, timings } = msg;
-      p.resolve({ maskBase64, width, height, backend, timings });
-    } else {
-      p.reject(new Error(msg.error));
-    }
+    if (msg.ok) p.resolve(msg);
+    else p.reject(new Error(msg.error as string));
   };
 
   /**
@@ -85,15 +84,25 @@ export function useWebSegmenter() {
     ref.current?.reload();
   };
 
-  const run = (model: SegmentModelId, base64: string) =>
-    new Promise<WebSegmentResult>((resolve, reject) => {
+  /** Tách người: mask PNG cùng kích thước ảnh vào. */
+  const run = async (model: SegmentModelId, base64: string): Promise<WebSegmentResult> =>
+    (await request({ type: 'segment', model, base64 })) as unknown as WebSegmentResult;
+
+  /** Nét mặt + khung xương (lớp Nét của pose). */
+  const landmarks = async (base64: string) =>
+    (await request({ type: 'landmarks', base64 })) as unknown as Landmarks & {
+      timings: SegmentTimings;
+    };
+
+  const request = (payload: Record<string, unknown>) =>
+    new Promise<OkMessage>((resolve, reject) => {
       const id = nextId.current++;
       const timer = setTimeout(() => {
         pending.current.delete(id);
         reject(new Error(`Quá ${TIMEOUT_MS / 1000} giây không có kết quả`));
       }, TIMEOUT_MS);
       pending.current.set(id, { resolve, reject, timer });
-      ref.current?.postMessage(JSON.stringify({ id, type: 'segment', model, base64 }));
+      ref.current?.postMessage(JSON.stringify({ id, ...payload }));
     });
 
   const element = useMemo(
@@ -116,7 +125,7 @@ export function useWebSegmenter() {
     [],
   );
 
-  return { element, run, ready: info !== null, info, logs };
+  return { element, run, landmarks, ready: info !== null, info, logs };
 }
 
 const styles = StyleSheet.create({

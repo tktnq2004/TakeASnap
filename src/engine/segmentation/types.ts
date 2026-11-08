@@ -17,6 +17,12 @@ export type SegmentTimings = {
   postMs: number;
 };
 
+/**
+ * Nét mặt và khung xương: danh sách đoạn thẳng phẳng [x1, y1, x2, y2, …], tọa độ chuẩn hóa 0..1.
+ * `face: null` = không thấy mặt (người mẫu quay lưng, business-flow §5.2).
+ */
+export type Landmarks = { face: number[] | null; body: number[] | null };
+
 /** Kết quả thô từ WebView: mask PNG (trắng, alpha = xác suất là người) cùng kích thước ảnh vào. */
 export type WebSegmentResult = {
   maskBase64: string;

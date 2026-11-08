@@ -185,7 +185,7 @@ Cách `WebViewSegmenter` chạy:
 
 | Gói | Gồm | Dung lượng | Tải khi |
 |---|---|---|---|
-| `pose` | Multiclass 15.6 MB + MediaPipe wasm 12.9 MB + JS | ~29 MB | Tạo pose lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
+| `pose` | Multiclass 15.6 MB + FaceLandmarker 3.6 MB + PoseLandmarker full 9.0 MB + MediaPipe wasm 12.9 MB + JS | ~42 MB | Tạo pose lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
 | `compose-gpu` | RMBG fp16 84.1 MB + ORT wasm (WebGPU) 27.0 MB + JS | ~111 MB | Thay nền lần đầu, máy có WebGPU |
 | `compose-cpu` | RMBG int8 42.3 MB + ORT wasm 13.6 MB + JS | ~56 MB | Thay nền lần đầu, máy không có WebGPU |
 
@@ -333,6 +333,7 @@ docs/
 - [x] Repository pose: tạo, sửa, xóa (xóa sạch file); bản sao từ pose mẫu (BR-09); migration v2 cho `mask_uri` rỗng
 - [x] `scripts/build-sample-poses.mts`: tách sẵn 25 ảnh bằng đúng trang WebView + engine viền, ghi `assets/poses/samples.json` (47 KB, chỉ viền vector). Lớp "Người" cắt ảnh theo viền nên pose mẫu không cần mask
 - [x] Thư viện pose (Phase 1: Pose mẫu + Pose của bạn, nhấn giữ để xóa) để vào được Chỉnh pose
+- [x] **Góp ý sau lần thử đầu:** ô thư viện hiện ảnh gốc đầy đủ màu; Chỉnh pose trên nền ô caro; nét mặt (FaceLandmarker, dò lại trên vùng đầu phóng to khi mặt nhỏ) và nét tay chân (PoseLandmarker full); độ hiện nền; 1 ảnh gốc → nhiều bản pose ("Lưu thành bản mới"), migration v3 *(chờ đo trên máy)*
 
 **Xong khi:** chọn ảnh → có pose trong dưới 4 s trên iPhone (mục tiêu, sẽ chỉnh theo spike B); mọi slider đổi hình ngay trong frame kế tiếp; độ dày viền đổi được từ 1 đến 12 px.
 

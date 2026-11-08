@@ -1,26 +1,28 @@
 /**
- * Chuyển đổi Pose ↔ dòng SQLite (schema ở src/db/migrations.ts). Hàm thuần, có unit test.
+ * Chuyển đổi Pose ↔ dòng SQLite (schema v3 ở src/db/migrations.ts). Hàm thuần, có unit test.
  */
 import type { Contour } from '@/engine/contour';
+import type { Landmarks } from '@/engine/segmentation/types';
 
 import { DEFAULT_STYLE, type Pose, type PoseOrigin, type PoseStyle } from './types';
 
-export type PoseRow = {
+export type PhotoRow = {
   id: string;
   origin: PoseOrigin;
+  sample_id: string | null;
   source_uri: string;
   mask_uri: string | null;
-  thumbnail_uri: string | null;
   width: number;
   height: number;
   bbox_json: string;
   sample_group: string | null;
+  landmarks_json: string | null;
   created_at: string;
-  updated_at: string;
 };
 
-export type StyleRow = {
-  pose_id: string;
+export type VariantRow = {
+  id: string;
+  photo_id: string;
   outline_enabled: number;
   outline_width: number;
   outline_color: string;
@@ -28,18 +30,24 @@ export type StyleRow = {
   fill_color: string;
   fill_opacity: number;
   subject_opacity: number;
+  background_opacity: number;
+  face_enabled: number;
+  body_enabled: number;
+  lines_color: string;
+  lines_width: number;
+  created_at: string;
+  updated_at: string;
 };
 
 export type ContourRow = {
-  pose_id: string;
+  photo_id: string;
   idx: number;
   points_json: string;
   is_hole: number;
 };
 
-export function styleToRow(poseId: string, s: PoseStyle): StyleRow {
+export function styleToColumns(s: PoseStyle) {
   return {
-    pose_id: poseId,
     outline_enabled: s.outlineEnabled ? 1 : 0,
     outline_width: s.outlineWidth,
     outline_color: s.outlineColor,
@@ -47,10 +55,15 @@ export function styleToRow(poseId: string, s: PoseStyle): StyleRow {
     fill_color: s.fillColor,
     fill_opacity: s.fillOpacity,
     subject_opacity: s.subjectOpacity,
+    background_opacity: s.backgroundOpacity,
+    face_enabled: s.faceEnabled ? 1 : 0,
+    body_enabled: s.bodyEnabled ? 1 : 0,
+    lines_color: s.linesColor,
+    lines_width: s.linesWidth,
   };
 }
 
-export function rowToStyle(r: StyleRow): PoseStyle {
+export function rowToStyle(r: VariantRow): PoseStyle {
   return {
     outlineEnabled: r.outline_enabled === 1,
     outlineWidth: r.outline_width,
@@ -59,12 +72,17 @@ export function rowToStyle(r: StyleRow): PoseStyle {
     fillColor: r.fill_color,
     fillOpacity: r.fill_opacity,
     subjectOpacity: r.subject_opacity,
+    backgroundOpacity: r.background_opacity ?? DEFAULT_STYLE.backgroundOpacity,
+    faceEnabled: r.face_enabled === 1,
+    bodyEnabled: r.body_enabled === 1,
+    linesColor: r.lines_color ?? DEFAULT_STYLE.linesColor,
+    linesWidth: r.lines_width ?? DEFAULT_STYLE.linesWidth,
   };
 }
 
-export function contoursToRows(poseId: string, contours: Contour[]): ContourRow[] {
+export function contoursToRows(photoId: string, contours: Contour[]): ContourRow[] {
   return contours.map((c, idx) => ({
-    pose_id: poseId,
+    photo_id: photoId,
     idx,
     // [[x, y], …] gọn hơn [{x, y}, …] khoảng một nửa.
     points_json: JSON.stringify(c.points.map((p) => [p.x, p.y])),
@@ -100,34 +118,47 @@ export function bboxOf(contours: Contour[]): { x: number; y: number; w: number; 
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
 }
 
-export function poseToRow(p: Pose & { source: string }): PoseRow {
+export function poseToPhotoRow(p: Pose & { source: string }): PhotoRow {
   return {
-    id: p.id,
+    id: p.photoId,
     origin: p.origin,
+    sample_id: p.sampleId,
     source_uri: p.source,
     mask_uri: p.maskUri,
-    thumbnail_uri: null,
     width: p.width,
     height: p.height,
     bbox_json: JSON.stringify(bboxOf(p.contours)),
     sample_group: p.sampleGroup,
+    landmarks_json: p.landmarks ? JSON.stringify(p.landmarks) : null,
+    created_at: p.createdAt,
+  };
+}
+
+export function poseToVariantRow(p: Pose): VariantRow {
+  return {
+    id: p.id,
+    photo_id: p.photoId,
+    ...styleToColumns(p.style),
     created_at: p.createdAt,
     updated_at: p.updatedAt,
   };
 }
 
-export function rowToPose(r: PoseRow, style: StyleRow | null, contours: ContourRow[]): Pose {
+export function rowsToPose(photo: PhotoRow, variant: VariantRow, contours: ContourRow[]): Pose {
   return {
-    id: r.id,
-    origin: r.origin,
-    source: r.source_uri,
-    width: r.width,
-    height: r.height,
+    id: variant.id,
+    photoId: photo.id,
+    origin: photo.origin,
+    sampleId: photo.sample_id,
+    source: photo.source_uri,
+    width: photo.width,
+    height: photo.height,
     contours: rowsToContours(contours),
-    style: style ? rowToStyle(style) : DEFAULT_STYLE,
-    sampleGroup: r.sample_group,
-    maskUri: r.mask_uri,
-    createdAt: r.created_at,
-    updatedAt: r.updated_at,
+    landmarks: photo.landmarks_json ? (JSON.parse(photo.landmarks_json) as Landmarks) : null,
+    sampleGroup: photo.sample_group,
+    maskUri: photo.mask_uri,
+    style: rowToStyle(variant),
+    createdAt: variant.created_at,
+    updatedAt: variant.updated_at,
   };
 }

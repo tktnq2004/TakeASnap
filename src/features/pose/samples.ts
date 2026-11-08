@@ -149,6 +149,8 @@ type SampleJson = {
     height: number;
     areaRatio: number;
     contours: { isHole: boolean; points: [number, number][] }[];
+    face?: number[] | null;
+    body?: number[] | null;
   }[];
 };
 
@@ -165,11 +167,14 @@ export const sampleLibrary: Pose[] = (samplesJson as unknown as SampleJson).item
   return [
     {
       id: SAMPLE_PREFIX + it.id,
+      photoId: SAMPLE_PREFIX + it.id,
       origin: 'sample' as const,
+      sampleId: it.id,
       source,
       width: it.width,
       height: it.height,
       contours,
+      landmarks: { face: it.face ?? null, body: it.body ?? null },
       style: DEFAULT_STYLE,
       sampleGroup: it.group,
       maskUri: null,

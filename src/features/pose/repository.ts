@@ -1,5 +1,6 @@
 /**
- * Lưu và đọc pose: SQLite cho dữ liệu, Paths.document/poses/<id>/ cho file (BR-08).
+ * Lưu và đọc pose. Một ảnh gốc (photos: ảnh, viền, nét mặt/khung xương) có nhiều bản pose
+ * (pose_variants: style). File ảnh nằm trong Paths.document/poses/<photoId>/ (BR-08).
  * Pose mẫu không nằm trong DB: đọc từ sampleLibrary, chỉ đọc (BR-09).
  */
 import { Asset } from 'expo-asset';
@@ -9,138 +10,220 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   type ContourRow,
   contoursToRows,
-  poseToRow,
-  type PoseRow,
-  rowToPose,
-  styleToRow,
-  type StyleRow,
+  type PhotoRow,
+  poseToPhotoRow,
+  poseToVariantRow,
+  rowsToPose,
+  styleToColumns,
+  type VariantRow,
 } from './mapping';
 import { sampleLibrary } from './samples';
-import { isSampleId, type Pose, type PoseStyle } from './types';
+import { isSampleId, type Pose, type PoseStyle, SAMPLE_PREFIX } from './types';
 
-export function poseDir(id: string): Directory {
-  return new Directory(Paths.document, 'poses', id);
+export function photoDir(photoId: string): Directory {
+  return new Directory(Paths.document, 'poses', photoId);
 }
 
-export function newPoseId(): string {
-  return `p${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+export function newId(prefix: string): string {
+  return `${prefix}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 }
 
+const now = () => new Date().toISOString();
+
+/** Mọi bản pose của người dùng, mới sửa trước. */
 export async function listUserPoses(db: SQLiteDatabase): Promise<Pose[]> {
-  const rows = await db.getAllAsync<PoseRow>('SELECT * FROM poses ORDER BY created_at DESC');
-  return Promise.all(rows.map((r) => loadRest(db, r)));
+  const variants = await db.getAllAsync<VariantRow>(
+    'SELECT * FROM pose_variants ORDER BY updated_at DESC',
+  );
+  return loadPoses(db, variants);
 }
 
 export async function getPose(db: SQLiteDatabase, id: string): Promise<Pose | null> {
   if (isSampleId(id)) return sampleLibrary.find((p) => p.id === id) ?? null;
-  const row = await db.getFirstAsync<PoseRow>('SELECT * FROM poses WHERE id = ?', id);
-  return row ? loadRest(db, row) : null;
+  const v = await db.getFirstAsync<VariantRow>('SELECT * FROM pose_variants WHERE id = ?', id);
+  if (!v) return null;
+  const [pose] = await loadPoses(db, [v]);
+  return pose ?? null;
 }
 
-async function loadRest(db: SQLiteDatabase, row: PoseRow): Promise<Pose> {
-  const style = await db.getFirstAsync<StyleRow>(
-    'SELECT * FROM pose_styles WHERE pose_id = ?',
-    row.id,
-  );
-  const contours = await db.getAllAsync<ContourRow>(
-    'SELECT * FROM pose_contours WHERE pose_id = ? ORDER BY idx',
-    row.id,
-  );
-  return rowToPose(row, style, contours);
-}
-
-/** Ghi đè toàn bộ pose (dữ liệu, style, viền) trong một transaction. */
-export async function savePose(db: SQLiteDatabase, pose: Pose & { source: string }) {
-  const r = poseToRow(pose);
-  await db.withTransactionAsync(async () => {
-    await db.runAsync(
-      `INSERT OR REPLACE INTO poses
-        (id, origin, source_uri, mask_uri, thumbnail_uri, width, height, bbox_json, sample_group, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      r.id,
-      r.origin,
-      r.source_uri,
-      r.mask_uri,
-      r.thumbnail_uri,
-      r.width,
-      r.height,
-      r.bbox_json,
-      r.sample_group,
-      r.created_at,
-      r.updated_at,
-    );
-    await writeStyle(db, pose.id, pose.style);
-    await db.runAsync('DELETE FROM pose_contours WHERE pose_id = ?', pose.id);
-    for (const c of contoursToRows(pose.id, pose.contours)) {
-      await db.runAsync(
-        'INSERT INTO pose_contours (pose_id, idx, points_json, is_hole) VALUES (?, ?, ?, ?)',
-        c.pose_id,
-        c.idx,
-        c.points_json,
-        c.is_hole,
+async function loadPoses(db: SQLiteDatabase, variants: VariantRow[]): Promise<Pose[]> {
+  const photos = new Map<string, { row: PhotoRow; contours: ContourRow[] }>();
+  const out: Pose[] = [];
+  for (const v of variants) {
+    let p = photos.get(v.photo_id);
+    if (!p) {
+      const row = await db.getFirstAsync<PhotoRow>('SELECT * FROM photos WHERE id = ?', v.photo_id);
+      if (!row) continue;
+      const contours = await db.getAllAsync<ContourRow>(
+        'SELECT * FROM photo_contours WHERE photo_id = ? ORDER BY idx',
+        v.photo_id,
       );
+      p = { row, contours };
+      photos.set(v.photo_id, p);
     }
-  });
+    out.push(rowsToPose(p.row, v, p.contours));
+  }
+  return out;
 }
 
-async function writeStyle(db: SQLiteDatabase, poseId: string, style: PoseStyle) {
-  const s = styleToRow(poseId, style);
+async function insertPhoto(db: SQLiteDatabase, pose: Pose & { source: string }) {
+  const r = poseToPhotoRow(pose);
   await db.runAsync(
-    `INSERT OR REPLACE INTO pose_styles
-      (pose_id, outline_enabled, outline_width, outline_color, fill_enabled, fill_color, fill_opacity, subject_opacity)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    s.pose_id,
-    s.outline_enabled,
-    s.outline_width,
-    s.outline_color,
-    s.fill_enabled,
-    s.fill_color,
-    s.fill_opacity,
-    s.subject_opacity,
+    `INSERT INTO photos
+      (id, origin, sample_id, source_uri, mask_uri, width, height, bbox_json, sample_group, landmarks_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    r.id,
+    r.origin,
+    r.sample_id,
+    r.source_uri,
+    r.mask_uri,
+    r.width,
+    r.height,
+    r.bbox_json,
+    r.sample_group,
+    r.landmarks_json,
+    r.created_at,
+  );
+  for (const c of contoursToRows(pose.photoId, pose.contours)) {
+    await db.runAsync(
+      'INSERT INTO photo_contours (photo_id, idx, points_json, is_hole) VALUES (?, ?, ?, ?)',
+      c.photo_id,
+      c.idx,
+      c.points_json,
+      c.is_hole,
+    );
+  }
+}
+
+async function insertVariant(db: SQLiteDatabase, pose: Pose) {
+  const v = poseToVariantRow(pose);
+  await db.runAsync(
+    `INSERT INTO pose_variants
+      (id, photo_id, outline_enabled, outline_width, outline_color, fill_enabled, fill_color,
+       fill_opacity, subject_opacity, background_opacity, face_enabled, body_enabled,
+       lines_color, lines_width, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    v.id,
+    v.photo_id,
+    v.outline_enabled,
+    v.outline_width,
+    v.outline_color,
+    v.fill_enabled,
+    v.fill_color,
+    v.fill_opacity,
+    v.subject_opacity,
+    v.background_opacity,
+    v.face_enabled,
+    v.body_enabled,
+    v.lines_color,
+    v.lines_width,
+    v.created_at,
+    v.updated_at,
   );
 }
 
-export async function updateStyle(db: SQLiteDatabase, id: string, style: PoseStyle) {
-  await db.withTransactionAsync(async () => {
-    await writeStyle(db, id, style);
-    await db.runAsync('UPDATE poses SET updated_at = ? WHERE id = ?', new Date().toISOString(), id);
-  });
+/** "Lưu pose": ghi đè style của bản đang sửa. */
+export async function updateStyle(db: SQLiteDatabase, variantId: string, style: PoseStyle) {
+  const c = styleToColumns(style);
+  await db.runAsync(
+    `UPDATE pose_variants SET
+      outline_enabled = ?, outline_width = ?, outline_color = ?, fill_enabled = ?, fill_color = ?,
+      fill_opacity = ?, subject_opacity = ?, background_opacity = ?, face_enabled = ?,
+      body_enabled = ?, lines_color = ?, lines_width = ?, updated_at = ?
+     WHERE id = ?`,
+    c.outline_enabled,
+    c.outline_width,
+    c.outline_color,
+    c.fill_enabled,
+    c.fill_color,
+    c.fill_opacity,
+    c.subject_opacity,
+    c.background_opacity,
+    c.face_enabled,
+    c.body_enabled,
+    c.lines_color,
+    c.lines_width,
+    now(),
+    variantId,
+  );
+}
+
+/** "Lưu thành bản mới": thêm một bản pose cho cùng ảnh gốc, không chép lại ảnh. */
+export async function createVariant(db: SQLiteDatabase, base: Pose, style: PoseStyle) {
+  if (isSampleId(base.id)) return createFromSample(db, base, style);
+  const t = now();
+  const pose: Pose = { ...base, id: newId('v'), style, createdAt: t, updatedAt: t };
+  await insertVariant(db, pose);
+  return pose;
 }
 
 /**
- * Pose mẫu chỉ đọc (BR-09): sửa = tạo bản sao vào thư viện của người dùng, chép ảnh gốc vào
- * Paths.document để không phụ thuộc file đóng gói.
+ * Pose mẫu chỉ đọc (BR-09): lưu = thêm bản vào "Pose của bạn". Lần đầu chép ảnh gốc vào
+ * Paths.document; các lần sau dùng lại ảnh đã chép (tìm theo sample_id).
  */
 export async function createFromSample(
   db: SQLiteDatabase,
   sample: Pose,
   style: PoseStyle,
 ): Promise<Pose> {
-  const id = newPoseId();
-  const dir = poseDir(id);
-  dir.create({ intermediates: true, idempotent: true });
-  const [asset] = await Asset.loadAsync(sample.source as number);
-  if (!asset?.localUri) throw new Error('Không đọc được ảnh pose mẫu');
-  const dest = new File(dir, 'source.jpg');
-  await new File(asset.localUri).copy(dest);
-  const now = new Date().toISOString();
-  const pose = {
+  const sampleId = sample.id.slice(SAMPLE_PREFIX.length);
+  const t = now();
+  const existing = await db.getFirstAsync<{ id: string; source_uri: string }>(
+    'SELECT id, source_uri FROM photos WHERE sample_id = ? LIMIT 1',
+    sampleId,
+  );
+  let photoId: string;
+  let source: string;
+  if (existing) {
+    photoId = existing.id;
+    source = existing.source_uri;
+  } else {
+    photoId = newId('ph');
+    const dir = photoDir(photoId);
+    dir.create({ intermediates: true, idempotent: true });
+    const [asset] = await Asset.loadAsync(sample.source as number);
+    if (!asset?.localUri) throw new Error('Không đọc được ảnh pose mẫu');
+    const dest = new File(dir, 'source.jpg');
+    await new File(asset.localUri).copy(dest);
+    source = dest.uri;
+  }
+  const pose: Pose & { source: string } = {
     ...sample,
-    id,
-    origin: 'library' as const,
-    source: dest.uri,
+    id: newId('v'),
+    photoId,
+    origin: 'library',
+    sampleId,
+    source,
     style,
-    createdAt: now,
-    updatedAt: now,
+    createdAt: t,
+    updatedAt: t,
   };
-  await savePose(db, pose);
+  await db.withTransactionAsync(async () => {
+    if (!existing) await insertPhoto(db, pose);
+    await insertVariant(db, pose);
+  });
   return pose;
 }
 
-/** Xóa pose và MỌI file của nó (lỗi L10 của bản cũ: còn sót file). */
-export async function deletePose(db: SQLiteDatabase, id: string) {
-  if (isSampleId(id)) return;
-  await db.runAsync('DELETE FROM poses WHERE id = ?', id);
-  const dir = poseDir(id);
-  if (dir.exists) dir.delete();
+/**
+ * Xóa một bản pose. Bản cuối cùng của ảnh thì xóa luôn ảnh gốc và MỌI file của nó (lỗi L10 của
+ * bản cũ: còn sót file).
+ */
+export async function deleteVariant(db: SQLiteDatabase, variantId: string) {
+  if (isSampleId(variantId)) return;
+  const v = await db.getFirstAsync<{ photo_id: string }>(
+    'SELECT photo_id FROM pose_variants WHERE id = ?',
+    variantId,
+  );
+  if (!v) return;
+  await db.runAsync('DELETE FROM pose_variants WHERE id = ?', variantId);
+  const left = await db.getFirstAsync<{ n: number }>(
+    'SELECT count(*) AS n FROM pose_variants WHERE photo_id = ?',
+    v.photo_id,
+  );
+  if ((left?.n ?? 0) === 0) {
+    await db.runAsync('DELETE FROM photos WHERE id = ?', v.photo_id);
+    const dir = photoDir(v.photo_id);
+    if (dir.exists) dir.delete();
+  }
 }

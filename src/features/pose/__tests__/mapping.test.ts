@@ -1,11 +1,12 @@
 import {
   bboxOf,
   contoursToRows,
-  poseToRow,
+  poseToPhotoRow,
+  poseToVariantRow,
   rowsToContours,
-  rowToPose,
+  rowsToPose,
   rowToStyle,
-  styleToRow,
+  type VariantRow,
 } from '../mapping';
 import { DEFAULT_STYLE, type Pose } from '../types';
 
@@ -28,16 +29,62 @@ const contours = [
   },
 ];
 
-describe('style', () => {
-  it('đi và về giữ nguyên', () => {
-    const s = { ...DEFAULT_STYLE, outlineEnabled: false, fillOpacity: 0.73 };
-    expect(rowToStyle(styleToRow('p1', s))).toEqual(s);
+const pose: Pose & { source: string } = {
+  id: 'v1',
+  photoId: 'ph1',
+  origin: 'library',
+  sampleId: 'coffee2',
+  source: 'file:///poses/ph1/source.jpg',
+  width: 736,
+  height: 981,
+  contours,
+  landmarks: { face: [0.1, 0.2, 0.3, 0.4], body: null },
+  sampleGroup: 'coffee',
+  maskUri: null,
+  style: {
+    ...DEFAULT_STYLE,
+    subjectOpacity: 0.5,
+    backgroundOpacity: 0.25,
+    bodyEnabled: true,
+    linesWidth: 3.5,
+  },
+  createdAt: '2026-11-08T00:00:00.000Z',
+  updatedAt: '2026-11-08T01:00:00.000Z',
+};
+
+describe('pose ↔ dòng SQLite', () => {
+  it('đi và về giữ nguyên, kể cả nét mặt, khung xương và style mới', () => {
+    const back = rowsToPose(
+      poseToPhotoRow(pose),
+      poseToVariantRow(pose),
+      contoursToRows(pose.photoId, pose.contours),
+    );
+    expect(back).toEqual(pose);
+  });
+
+  it('ảnh và bản pose là hai dòng khác nhau', () => {
+    expect(poseToPhotoRow(pose).id).toBe('ph1');
+    expect(poseToVariantRow(pose).photo_id).toBe('ph1');
+    expect(poseToVariantRow(pose).id).toBe('v1');
+  });
+
+  it('dữ liệu chép từ v2 (thiếu cột mới) nhận giá trị mặc định', () => {
+    const old = {
+      ...poseToVariantRow(pose),
+      background_opacity: undefined,
+      lines_color: undefined,
+      lines_width: undefined,
+    } as unknown as VariantRow;
+    const s = rowToStyle(old);
+    expect(s.backgroundOpacity).toBe(DEFAULT_STYLE.backgroundOpacity);
+    expect(s.linesColor).toBe(DEFAULT_STYLE.linesColor);
+    expect(s.linesWidth).toBe(DEFAULT_STYLE.linesWidth);
   });
 });
 
 describe('contours', () => {
   it('đi và về giữ nguyên, kể cả cờ lỗ và thứ tự', () => {
-    const rows = contoursToRows('p1', contours);
+    const rows = contoursToRows('ph1', contours);
     expect(rowsToContours([...rows].reverse())).toEqual(contours);
   });
 });
@@ -52,29 +99,5 @@ describe('bboxOf', () => {
   });
   it('không có viền → cả ảnh', () => {
     expect(bboxOf([])).toEqual({ x: 0, y: 0, w: 1, h: 1 });
-  });
-});
-
-describe('pose', () => {
-  it('đi và về giữ nguyên', () => {
-    const pose: Pose & { source: string } = {
-      id: 'p1',
-      origin: 'library',
-      source: 'file:///poses/p1/source.jpg',
-      width: 736,
-      height: 981,
-      contours,
-      style: { ...DEFAULT_STYLE, subjectOpacity: 0.5 },
-      sampleGroup: 'coffee',
-      maskUri: null,
-      createdAt: '2026-11-08T00:00:00.000Z',
-      updatedAt: '2026-11-08T00:00:00.000Z',
-    };
-    const back = rowToPose(
-      poseToRow(pose),
-      styleToRow(pose.id, pose.style),
-      contoursToRows(pose.id, pose.contours),
-    );
-    expect(back).toEqual(pose);
   });
 });

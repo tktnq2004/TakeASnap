@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
-import { deletePose, listUserPoses } from '@/features/pose/repository';
+import { deleteVariant, listUserPoses } from '@/features/pose/repository';
 import { sampleGroups, sampleLibrary } from '@/features/pose/samples';
 import type { Pose } from '@/features/pose/types';
 import { IconButton, Segmented } from '@/ui/components';
@@ -53,7 +53,7 @@ export default function LibraryScreen() {
         text: t.library.remove,
         style: 'destructive',
         onPress: async () => {
-          await deletePose(db, p.id);
+          await deleteVariant(db, p.id);
           setMine((list) => list.filter((x) => x.id !== p.id));
         },
       },
@@ -86,7 +86,7 @@ export default function LibraryScreen() {
                 {sampleLibrary
                   .filter((p) => p.sampleGroup === g)
                   .map((p) => (
-                    <PoseTile key={p.id} pose={p} width={SAMPLE_W} height={SAMPLE_H} />
+                    <PoseTile key={p.id} pose={p} width={SAMPLE_W} height={SAMPLE_H} plain />
                   ))}
               </ScrollView>
             </View>
@@ -113,22 +113,31 @@ export default function LibraryScreen() {
   );
 }
 
+/**
+ * Ô pose: luôn là ẢNH GỐC đầy đủ màu (người + nền), vì người dùng chọn pose nhờ nhìn cả người
+ * mẫu lẫn bối cảnh (góp ý Phase 1).
+ * - `plain` (Pose mẫu): chỉ thêm viền trắng mảnh.
+ * - Pose của bạn: phủ style của chính bản đó lên ảnh gốc (thu nhỏ độ dày cho vừa ô), để các bản
+ *   từ cùng một ảnh vẫn phân biệt được.
+ */
 function PoseTile({
   pose,
   width,
   height,
+  plain,
   onLongPress,
 }: {
   pose: Pose;
   width: number;
   height: number;
+  plain?: boolean;
   onLongPress?: () => void;
 }) {
   const s = pose.style;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${t.library.edit} ${pose.id}`}
+      accessibilityLabel={`${t.library.edit} ${pose.sampleId ?? pose.id}`}
       onPress={() => router.push(`/editor/${pose.id}`)}
       onLongPress={onLongPress}
       style={[styles.tile, { width, height }]}
@@ -138,15 +147,21 @@ function PoseTile({
         imageWidth={pose.width}
         imageHeight={pose.height}
         contours={pose.contours}
+        landmarks={pose.landmarks}
         width={width}
         height={height}
-        outlineEnabled={s.outlineEnabled}
-        outlineColor={s.outlineColor}
-        outlineWidth={Math.min(s.outlineWidth, 2)}
-        fillEnabled={s.fillEnabled}
+        subjectOpacity={1}
+        backgroundOpacity={1}
+        outlineEnabled={plain ? true : s.outlineEnabled}
+        outlineColor={plain ? '#ffffff' : s.outlineColor}
+        outlineWidth={plain ? 1.5 : Math.min(s.outlineWidth, 2)}
+        fillEnabled={plain ? false : s.fillEnabled}
         fillColor={s.fillColor}
         fillOpacity={s.fillOpacity}
-        subjectOpacity={s.subjectOpacity}
+        faceEnabled={plain ? false : s.faceEnabled}
+        bodyEnabled={plain ? false : s.bodyEnabled}
+        linesColor={s.linesColor}
+        linesWidth={Math.min(s.linesWidth, 1.5)}
       />
     </Pressable>
   );

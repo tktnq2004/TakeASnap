@@ -232,7 +232,7 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `Switch` | switch hệ thống, màu bật = `accent` |
 | `Swatch` | ô màu 36, `radius.sm`; đang chọn: vòng 2 px `ink` cách 2 px |
 | `Sheet` | `expo-router` `presentation: 'formSheet'` (detent 0.88), dự phòng `@gorhom/bottom-sheet` nếu Android không ổn; nền `surface`, có tay kéo, không nảy; không tự làm sheet bằng Animated |
-| `PoseTile` | ô vuông `radius.md`, pose vẽ trên `surface`; chạm = dùng để chụp; nhấn giữ = menu Sửa / Xóa |
+| `PoseTile` | ô `radius.md`, **ảnh gốc đầy đủ màu** (người + nền). Pose mẫu: thêm viền trắng 1.5 px. Pose của bạn: thêm style của chính bản đó (độ dày thu về ≤ 2 px). Chạm = sửa (Phase 2: dùng để chụp); nhấn giữ = xóa |
 | `StatusLine` | một dòng `label` `muted` + spinner 16 px khi đang chạy; không bao giờ che nội dung |
 
 Một panel điều khiển có **chiều cao cố định**: đổi tab trong Chỉnh pose không làm khung preview co giãn.
@@ -365,29 +365,30 @@ Khung vẽ cho máy 390×844. `·` là vùng ảnh / khung ngắm. Ký hiệu tr
 └──────────────────────────────────┘
 ```
 
-Tab "Pose của bạn" là lưới 3 cột, gap 12. Khi trống: một dòng `body` "Chưa có pose nào. Thêm một ảnh có người để lấy dáng." và nút primary "Thêm ảnh từ máy".
+Mọi ô hiện **ảnh gốc đầy đủ màu**: người dùng chọn pose nhờ nhìn cả người mẫu lẫn bối cảnh (góp ý sau Phase 1). Pose mẫu chỉ thêm viền trắng mảnh.
+
+Tab "Pose của bạn" là lưới phẳng 3 cột, gap 12, **mỗi bản pose một ô**; ô vẽ style của chính bản đó lên ảnh gốc để các bản từ cùng một ảnh phân biệt được. Khi trống: một dòng `body` "Chưa có pose nào. Thêm một ảnh có người để lấy dáng." và nút primary "Thêm ảnh từ máy".
 
 ### 6.4 Chỉnh pose
 
 ```
 ┌──────────────────────────────────┐
-│ [‹]     Chỉnh pose     [↶] [↷]   │
+│ [‹]     Chỉnh pose               │
 ├──────────────────────────────────┤
-│··································│
-│············  ╭──╮  ··············│  preview Skia trên nền bg
-│············ ╭┴──┴╮ ··············│  [Xem trên ảnh gốc] là chip ở góc
-│············ ╰┬──┬╯ ··············│
-│··································│
-├──────────────────────────────────┤  panel cao cố định 336 (height, không phải minHeight)
-│ [ Viền | Phủ | Người | Sửa nét ] │
+│▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░│
+│░▒░▒░▒░▒░▒░▒  ╭──╮  ▒░▒░▒░▒░▒░▒░▒│  preview Skia trên nền ô caro
+│▒░▒░▒░▒░▒░▒░ ╭┴⊙⊙┴╮ ░▒░▒░▒░▒░▒░▒░│  nét mặt vàng trong viền trắng
+│░▒░▒░▒░▒░▒░▒ ╰┬──┬╯ ▒░▒░▒░▒░▒░▒░▒│
+│▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░│
+├──────────────────────────────────┤  panel cao cố định 440 (height, không phải minHeight)
+│ [ Viền | Phủ | Nét | Ảnh ]       │
 │                                  │
-│ Hiện viền                   [on] │
-│ Độ dày ─────●──────────── 3 px  │
-│ Màu  ○ ○ ○ ○ ○ ○ ○ ○ ⊕          │
+│ Nét mặt                     [on] │
+│ Nét tay chân               [off] │
+│ Độ dày nét ────●────────── 2 px │
+│ Màu  ○ ○ ○ ○ ○ ○ ○ ○            │
 │                                  │
-│ ┌──────────────────────────────┐ │
-│ │          Lưu pose            │ │
-│ └──────────────────────────────┘ │
+│ ( Lưu thành bản mới ) (Lưu pose) │  pose mẫu: chỉ có Lưu pose
 └──────────────────────────────────┘
 ```
 
@@ -395,10 +396,11 @@ Tab "Pose của bạn" là lưới 3 cột, gap 12. Khi trống: một dòng `bo
 |---|---|
 | Viền | Hiện viền · Độ dày 1–12 px · Màu |
 | Phủ | Hiện lớp phủ · Độ đậm 0–100% · Màu |
-| Người | Độ hiện 0–100% |
-| Sửa nét | Thêm / Xóa (segmented) · Cỡ cọ 8–64 px · vẽ trực tiếp lên preview |
+| Nét | Nét mặt · Nét tay chân · Độ dày nét 1–8 px · Màu nét. Không thấy mặt → dòng `label` muted giải thích (quay lưng, nghiêng, bị che) |
+| Ảnh | Độ hiện người 0–100% · Độ hiện nền 0–100% |
+| Sửa nét (Phase 3) | Thêm / Xóa (segmented) · Cỡ cọ 8–64 px · vẽ trực tiếp lên preview |
 
-Bỏ nền ô cờ (checkerboard) của bản cũ: pose vẽ trên `bg`, giống lúc hiện trên camera. Chip "Xem trên ảnh gốc" đặt ảnh nguồn mờ 30% phía sau để so.
+**Nền ô caro** cho vùng trống (góp ý sau Phase 1, thay cho nền đen): ô 12 px, hai màu `checkerA` `#2c2e32` / `checkerB` `#3a3d42`. Chọn caro xám đậm thay cho caro trắng–xám kinh điển để không chói trên giao diện tối, và để viền trắng, nét vàng vẫn nổi. Chip "Xem trên ảnh gốc" của bản đầu được thay bằng tab **Ảnh** (độ hiện người và nền riêng).
 
 ### 6.5 Thay nền
 
@@ -432,7 +434,7 @@ Không có spinner che màn hình. Màn vẫn hiện ảnh đang xử lý (mờ 
 
 | Việc | Dòng trạng thái |
 |---|---|
-| Tải bộ tách người (lần đầu) | Đang tải bộ tách người, 12 trên 29 MB |
+| Tải bộ tách người (lần đầu) | Đang tải bộ tách người, 12 trên 42 MB |
 | Tách người | Đang tách người khỏi nền |
 | Tạo contour | Đang vẽ dáng |
 | Phân tích nền | Đang đo ánh sáng của nền |

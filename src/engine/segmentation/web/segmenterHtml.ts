@@ -6,6 +6,8 @@
  *
  * Giao thức (JSON qua postMessage):
  *   RN → WV  { id, type: 'segment', model, base64 }        ảnh JPEG base64
+ *   RN → WV  { id, type: 'landmarks', base64 }             nét mặt + khung xương
+ *   WV → RN  { id, ok: true, face, body, timings }         đoạn thẳng chuẩn hóa, null = không thấy
  *   WV → RN  { type: 'ready', info }                       trang đã nạp xong thư viện
  *   WV → RN  { id, ok: true, maskBase64, width, height, backend, timings }
  *   WV → RN  { id, ok: false, error }
@@ -25,6 +27,9 @@ export const MODEL_URLS = {
     'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',
   deeplab:
     'https://storage.googleapis.com/mediapipe-models/image_segmenter/deeplab_v3/float32/1/deeplab_v3.tflite',
+  // Nét mặt (478 điểm) và khung xương (33 khớp) cho lớp "Nét" của pose.
+  face: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+  body: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
   // RMBG-1.4 chỉ nhận đúng 1024 × 1024 (thử 512 → "invalid dimensions").
   // CPU: bản int8 42 MB. GPU: bản fp16 84 MB, vì WebGPU không hỗ trợ phần lớn phép tính int8.
   'rmbg-cpu': 'https://huggingface.co/briaai/RMBG-1.4/resolve/main/onnx/model_quantized.onnx',
@@ -235,7 +240,91 @@ async function runRmbg(model, img) {
     timings: { loadMs: loadMs, prepMs: t1 - t0, inferMs: t2 - t1, postMs: t3 - t2 } };
 }
 
+// ---- Nét mặt + khung xương ----------------------------------------------------------------
+// Trả các đoạn thẳng [x1, y1, x2, y2, …] chuẩn hóa 0..1. Không có mặt = quay lưng (business-flow
+// §5.2). Bộ dò mặt của MediaPipe chỉ bắt tốt mặt to; ảnh toàn thân mặt nhỏ nên dò lại trên vùng
+// đầu (cắt theo mũi/tai/vai của khung xương) phóng lên 512 px — đo trên máy tính: 5/6 ảnh có mặt.
+let faceLm = null, bodyLm = null;
+async function getLandmarkers() {
+  if (faceLm && bodyLm) return 0;
+  const t0 = now();
+  if (!mp) mp = await import('${MP_BASE}/vision_bundle.mjs');
+  if (!fileset) fileset = await mp.FilesetResolver.forVisionTasks('${MP_BASE}/wasm');
+  // CPU: kết quả là toạ độ điểm (không đọc mask từ GPU), ổn định trên mọi máy, đủ nhanh.
+  const base = (url) => ({ modelAssetPath: url, delegate: 'CPU' });
+  faceLm = await mp.FaceLandmarker.createFromOptions(fileset, {
+    baseOptions: base(URLS.face), runningMode: 'IMAGE', numFaces: 1,
+  });
+  bodyLm = await mp.PoseLandmarker.createFromOptions(fileset, {
+    baseOptions: base(URLS.body), runningMode: 'IMAGE', numPoses: 1,
+  });
+  return now() - t0;
+}
+
+const NOSE = [[168, 6], [6, 197], [197, 195], [195, 5], [5, 4], [98, 97], [97, 2], [2, 326], [326, 327]];
+function faceConnections() {
+  const F = mp.FaceLandmarker;
+  const sets = [F.FACE_LANDMARKS_FACE_OVAL, F.FACE_LANDMARKS_LEFT_EYE, F.FACE_LANDMARKS_RIGHT_EYE,
+    F.FACE_LANDMARKS_LEFT_EYEBROW, F.FACE_LANDMARKS_RIGHT_EYEBROW, F.FACE_LANDMARKS_LIPS];
+  const out = [];
+  for (const s of sets) for (const c of s) out.push([c.start, c.end]);
+  return out.concat(NOSE);
+}
+// Thân + tay + chân (bỏ điểm mặt 0–10 vì đã có nét mặt, bỏ ngón tay 17–22 vì quá nhỏ).
+function bodyConnections() {
+  const skip = (i) => i < 11 || (i >= 17 && i <= 22);
+  return mp.PoseLandmarker.POSE_CONNECTIONS.filter((c) => !skip(c.start) && !skip(c.end))
+    .map((c) => [c.start, c.end]);
+}
+const r4 = (v) => Math.round(v * 10000) / 10000;
+function segments(points, pairs, minVis) {
+  const out = [];
+  for (const [a, b] of pairs) {
+    const p = points[a], q = points[b];
+    if (!p || !q) continue;
+    if (minVis && ((p.visibility ?? 1) < minVis || (q.visibility ?? 1) < minVis)) continue;
+    out.push(r4(p.x), r4(p.y), r4(q.x), r4(q.y));
+  }
+  return out;
+}
+
+async function runLandmarks(img) {
+  const loadMs = await getLandmarkers();
+  const t0 = now();
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const body = bodyLm.detect(img).landmarks[0] || null;
+  let face = faceLm.detect(img).faceLandmarks[0] || null;
+  if (!face && body && (body[0].visibility ?? 1) > 0.5) {
+    const sh = Math.hypot((body[11].x - body[12].x) * W, (body[11].y - body[12].y) * H);
+    const ear = Math.hypot((body[7].x - body[8].x) * W, (body[7].y - body[8].y) * H);
+    const side = Math.max(ear * 2.2, sh * 0.9, 48);
+    const sx = body[0].x * W - side / 2, sy = body[0].y * H - side / 2;
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 512;
+    c.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, 512, 512);
+    const f = faceLm.detect(c).faceLandmarks[0];
+    if (f) face = f.map((q) => ({ x: (sx + q.x * side) / W, y: (sy + q.y * side) / H }));
+  }
+  return {
+    face: face ? segments(face, faceConnections(), 0) : null,
+    body: body ? segments(body, bodyConnections(), 0.5) : null,
+    timings: { loadMs: loadMs, prepMs: 0, inferMs: now() - t0, postMs: 0 },
+  };
+}
+
 async function handle(msg) {
+  if (msg && msg.type === 'landmarks') {
+    try {
+      const img = await loadImage(msg.base64);
+      const r = await runLandmarks(img);
+      post({ id: msg.id, ok: true, face: r.face, body: r.body, timings: r.timings });
+    } catch (e) {
+      const error = (e && e.message) || String(e);
+      log('landmarks lỗi: ' + error);
+      post({ id: msg.id, ok: false, error: error });
+    }
+    return;
+  }
   if (!msg || msg.type !== 'segment') return;
   try {
     const t0 = now();

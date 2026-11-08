@@ -29,7 +29,16 @@ const MIN_PERSON_RATIO = 0.02;
 
 type Incoming =
   | { type: 'ready' | 'log'; message?: string }
-  | { id: number; ok: true; maskBase64: string; width: number; height: number; backend: string }
+  | {
+      id: number;
+      ok: true;
+      maskBase64: string;
+      width: number;
+      height: number;
+      backend: string;
+      face?: number[] | null;
+      body?: number[] | null;
+    }
   | { id: number; ok: false; error: string };
 
 type SampleOut = {
@@ -39,6 +48,9 @@ type SampleOut = {
   height: number;
   areaRatio: number;
   contours: { isHole: boolean; points: [number, number][] }[];
+  /** Nét mặt / khung xương: đoạn thẳng phẳng chuẩn hóa; null = không thấy. */
+  face: number[] | null;
+  body: number[] | null;
 };
 
 async function main() {
@@ -126,10 +138,25 @@ async function main() {
 
     const contours: Contour[] = buildContours(grid, { maxSide: CONTOUR_SIDE });
     const areaRatio = personAreaRatio(contours);
+
+    // Nét mặt + khung xương bằng đúng lệnh của WebView.
+    const lmId = id++;
+    await page.evaluate(
+      (m) => window.postMessage(m, '*'),
+      JSON.stringify({ id: lmId, type: 'landmarks', base64 }),
+    );
+    const lm = await waitFor((m) => 'id' in m && m.id === lmId, 120_000);
+    if (!('ok' in lm) || !lm.ok) {
+      throw new Error(`${s.id} landmarks: ${'error' in lm ? lm.error : 'không rõ lỗi'}`);
+    }
+    const face = lm.face ?? null;
+    const body = lm.body ?? null;
+
     const warn = areaRatio < MIN_PERSON_RATIO ? '  ⚠ người quá nhỏ (BR-06)' : '';
     console.log(
       `${s.id.padEnd(10)} ${res.width}×${res.height}  viền ${contours.length}  ` +
-        `điểm ${contours.reduce((n, c) => n + c.points.length, 0)}  người ${(areaRatio * 100).toFixed(1)}%${warn}`,
+        `điểm ${contours.reduce((n, c) => n + c.points.length, 0)}  người ${(areaRatio * 100).toFixed(1)}%  ` +
+        `mặt ${face ? face.length / 4 : '—'}  thân ${body ? body.length / 4 : '—'}${warn}`,
     );
     items.push({
       id: s.id,
@@ -141,11 +168,13 @@ async function main() {
         isHole: c.isHole,
         points: c.points.map((p) => [p.x, p.y] as [number, number]),
       })),
+      face,
+      body,
     });
   }
   await browser.close();
 
-  const out = { version: 1, model: 'multiclass', mediapipe: MEDIAPIPE_VERSION, items };
+  const out = { version: 2, model: 'multiclass', mediapipe: MEDIAPIPE_VERSION, items };
   fs.writeFileSync(OUT_FILE, JSON.stringify(out) + '\n');
   const kb = (fs.statSync(OUT_FILE).size / 1024).toFixed(0);
   console.log(`Đã ghi ${path.relative(ROOT, OUT_FILE)} (${items.length} pose, ${kb} KB)`);

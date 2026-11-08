@@ -18,6 +18,10 @@ export const color = {
   inverseInk: '#18191b',
   scrim: 'rgba(24,25,27,0.56)',
   danger: '#ff6b6b',
+  // Nền ô caro của vùng trống trong Chỉnh pose (góp ý Phase 1): xám đậm để không chói trên giao
+  // diện tối; viền trắng và nét vàng vẫn nổi.
+  checkerA: '#2c2e32',
+  checkerB: '#3a3d42',
 } as const;
 
 /** Màu chức năng cho viền và lớp phủ của pose (design.md §3.2). Không có tím. */

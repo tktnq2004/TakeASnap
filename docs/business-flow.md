@@ -29,7 +29,9 @@ Phạm vi v1: **iOS và Android (chạy trong Expo Go), chỉ tiếng Việt, ch
 | **Ảnh nguồn** | Ảnh gốc có người, dùng để tách dáng | `sourceImage` |
 | **Mask** | Ảnh alpha 1 kênh: 255 = người, 0 = nền | `mask` |
 | **Contour** | Đường bao vector của mask, đã làm mượt | `contours` |
-| **Pose** | Một dáng đã lưu: mask + contour + bộ style 3 lớp | `Pose` |
+| **Ảnh gốc** | Ảnh có người đã tách: viền + nét mặt + khung xương; dùng chung cho mọi bản pose của nó | `photos` |
+| **Pose** (bản pose) | Một ảnh gốc + một bộ style. Một ảnh gốc có thể có nhiều bản | `Pose`, `pose_variants` |
+| **Nét mặt / nét tay chân** | Đường vẽ viền mặt, mắt, mũi, môi / khung xương thân, tay, chân | `style.faceEnabled`, `style.bodyEnabled` |
 | **Lớp viền** | Nét vẽ theo contour (bật/tắt, độ dày, màu) | `style.outline` |
 | **Lớp phủ** | Màu phủ lên vùng mask (bật/tắt, màu, độ đậm) | `style.fill` |
 | **Lớp người** | Phần ảnh người thật đã tách (độ hiện) | `style.subject` |
@@ -143,7 +145,7 @@ flowchart TD
     B -- "Pose mẫu" --> S[Pose mẫu đã tách sẵn<br/>không cần xử lý]
     B -- "Từ ảnh vừa chụp" --> P
     P --> DL{Đã có bộ tách người?}
-    DL -- "Chưa" --> DLG[Tải gói pose ~29 MB<br/>một lần, có tiến độ]
+    DL -- "Chưa" --> DLG[Tải gói pose ~42 MB<br/>một lần, có tiến độ]
     DLG --> Q
     DL -- "Có" --> Q[Chuẩn hóa ảnh<br/>xoay EXIF, giới hạn cạnh dài 2048px]
     Q --> R[Tách người trên máy]
@@ -158,29 +160,38 @@ flowchart TD
     SV --> CAM[Về Camera với pose làm overlay]
 ```
 
-### 5.2 Màn Chỉnh pose — 3 lớp và các điều khiển
+### 5.2 Màn Chỉnh pose — các lớp và điều khiển
 
-Thứ tự lớp từ trên xuống: **viền → phủ → người**.
+Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới lên: **nền → người → phủ → nét tay chân → nét mặt → viền**.
 
-| Lớp | Điều khiển | Khoảng giá trị | Mặc định |
-|---|---|---|---|
-| **Viền** | Bật/tắt | on/off | on |
-| | Độ dày | 1–12 px (theo pixel màn hình, giữ nguyên khi zoom overlay) | 3 px |
-| | Màu | 8 màu có sẵn + bảng chọn màu | Trắng |
-| **Phủ** | Bật/tắt | on/off | on |
-| | Màu | 8 màu có sẵn + bảng chọn màu | Cam |
-| | Độ đậm | 0–100% | 40% |
-| **Người** | Độ hiện | 0–100% | 0% (chỉ thấy viền và phủ) |
-| **Sửa nét** | Cọ thêm / cọ xóa vùng mask | cỡ cọ 8–64 px | — |
-| | Hoàn tác / làm lại | 30 bước | — |
+| Tab | Lớp | Điều khiển | Khoảng giá trị | Mặc định |
+|---|---|---|---|---|
+| **Viền** | Viền | Bật/tắt | on/off | on |
+| | | Độ dày | 1–12 px (theo pixel màn hình, giữ nguyên khi zoom overlay) | 3 px |
+| | | Màu | 8 màu có sẵn | Trắng |
+| **Phủ** | Phủ | Bật/tắt | on/off | on |
+| | | Màu | 8 màu có sẵn | Cam |
+| | | Độ đậm | 0–100% | 40% |
+| **Nét** | Nét mặt | Bật/tắt: viền mặt, mắt, lông mày, mũi, môi | on/off | on |
+| | Nét tay chân | Bật/tắt: khung xương thân, tay, chân | on/off | off |
+| | | Độ dày nét (chung) | 1–8 px | 2 px |
+| | | Màu nét (chung) | 8 màu có sẵn | Vàng |
+| **Ảnh** | Người | Độ hiện của người trong ảnh gốc | 0–100% | 0% |
+| | Nền | Độ hiện của nền trong ảnh gốc (phần ngoài người) | 0–100% | 0% |
+| **Sửa nét** (Phase 3) | Mask | Cọ thêm / cọ xóa vùng mask, hoàn tác 30 bước | cỡ cọ 8–64 px | — |
 
-Mọi thay đổi hiện ngay khi kéo slider, không có nút "Áp dụng". Khi sửa nét bằng cọ, contour được tính lại lúc nhấc ngón tay.
+- **Nét mặt cho biết hướng mặt:** có nét mặt nghĩa là người mẫu quay mặt về ống kính; không có nghĩa là quay lưng. Khi không thấy mặt, tab Nét ghi rõ "Không thấy mặt: người mẫu quay lưng, nghiêng hoặc mặt bị che". Giới hạn của model: mặt nghiêng hẳn, cúi xuống hoặc bị tay che có thể không được nhận ra.
+- Nét mặt và nét tay chân lấy từ MediaPipe FaceLandmarker và PoseLandmarker. Ảnh toàn thân có mặt nhỏ thì app dò lại trên vùng đầu đã phóng to.
+- Mọi thay đổi hiện ngay khi kéo slider, không có nút "Áp dụng". Khi sửa nét bằng cọ, viền được tính lại lúc nhấc ngón tay.
+- **Lưu:** "Lưu pose" ghi đè bản đang sửa; "Lưu thành bản mới" thêm một bản khác cho **cùng ảnh gốc**. Với pose mẫu chỉ có "Lưu pose", và nút này luôn thêm bản vào "Pose của bạn" (BR-09).
 
 ### 5.3 Thư viện pose
 
-- **Pose mẫu**: đi kèm app, chia nhóm (Quán cà phê, Trường học, Đường phố, Du lịch). Mask đã tách sẵn nên chọn là dùng ngay. Không sửa được bản gốc, chỉ "Tạo bản sao để sửa".
-- **Pose của bạn**: sắp xếp mới nhất trước. Mỗi pose có 3 thao tác: **Dùng để chụp**, **Sửa**, **Xóa**.
-- Xóa pose thì xóa luôn mọi file của nó (ảnh nguồn, mask, contour, thumbnail).
+- **Ô pose luôn hiện ảnh gốc đầy đủ màu (người + nền)**: người dùng chọn pose nhờ nhìn cả người mẫu lẫn bối cảnh, để so với bối cảnh mình đang có.
+- **Pose mẫu**: đi kèm app, chia nhóm (Quán cà phê, Trường học, Đường phố, Du lịch). Ô là ảnh gốc + viền trắng mảnh. Viền, nét mặt và tay chân đã tách sẵn nên chọn là dùng ngay.
+- **Pose của bạn**: lưới phẳng, **mỗi bản pose một ô**, sửa gần nhất trước. Ô là ảnh gốc + style của chính bản đó (phủ, viền, nét), nên các bản từ cùng một ảnh vẫn phân biệt được. Chạm để sửa; nhấn giữ để xóa.
+- **Một ảnh gốc, nhiều bản pose:** các bản dùng chung ảnh gốc, viền và nét; chỉ style khác nhau. Lưu nhiều lần từ cùng một pose mẫu cũng không chép lại ảnh.
+- Xóa bản cuối cùng của một ảnh thì xóa luôn ảnh gốc và mọi file của nó (ảnh nguồn, mask).
 
 ---
 
@@ -250,7 +261,7 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 | BR-01 | Ảnh chụp ở chức năng 1 **không bao giờ** kèm overlay. Overlay chỉ để hướng dẫn |
 | BR-02 | Ảnh lưu vào album "TakeASnap" đúng tỉ lệ khung đang chọn. Vùng ảnh lưu trùng đúng vùng thấy trên khung ngắm |
 | BR-03 | Mọi xử lý ảnh (tách người, phân tích nền, ghép ảnh) chạy **hoàn toàn trên máy**. Ảnh không bao giờ được gửi đi. Kết nối mạng duy nhất là tải bộ tách người (BR-13) |
-| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~29 MB) khi tạo pose từ ảnh lần đầu; gói Thay nền (~111 MB nếu máy có WebGPU, ~56 MB nếu không) khi Thay nền lần đầu. Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
+| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu; gói Thay nền (~111 MB nếu máy có WebGPU, ~56 MB nếu không) khi Thay nền lần đầu. Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
 | BR-04 | Ảnh ghép xuất ra đúng độ phân giải gốc của ảnh nền. Người trong ảnh không bị phóng quá 1.5× độ phân giải gốc của ảnh người (vượt quá thì báo "Ảnh người sẽ bị vỡ nét ở cỡ này") |
 | BR-05 | Trong Thay nền, chân người phải nằm trong ảnh nền. Kéo chân ra ngoài mép dưới thì bóng không được vẽ, và app hiện gợi ý "Kéo người lên để thấy bóng" |
 | BR-06 | Một pose phải có ít nhất một vùng người chiếm từ 2% diện tích ảnh trở lên. Nhỏ hơn thì báo "Người trong ảnh quá nhỏ" |
@@ -267,32 +278,33 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 
 ```mermaid
 erDiagram
-    POSE ||--o{ CONTOUR : has
-    POSE ||--|| POSE_STYLE : has
-    POSE ||--o| OVERLAY_PLACEMENT : remembers
-    COMPOSE_JOB }o--|| POSE : "may use"
+    PHOTO ||--o{ CONTOUR : has
+    PHOTO ||--o{ POSE_VARIANT : "có nhiều bản"
+    POSE_VARIANT ||--o| PLACEMENT : remembers
+    COMPOSE_JOB }o--|| PHOTO : "may use"
 
-    POSE {
+    PHOTO {
         string id PK
         string origin "sample | library | camera"
+        string sampleId "pose mẫu gốc, để không chép ảnh hai lần"
         string sourceImageUri
-        string maskUri "PNG 1 kênh"
+        string maskUri "PNG, có thể rỗng"
         int width
         int height
         json bbox "x,y,w,h chuẩn hóa 0..1"
-        string thumbnailUri
         string sampleGroup "null nếu không phải pose mẫu"
+        json landmarks "nét mặt + khung xương, đoạn thẳng chuẩn hóa"
         datetime createdAt
-        datetime updatedAt
     }
     CONTOUR {
-        string poseId FK
+        string photoId FK
         int index
         json points "tọa độ chuẩn hóa 0..1, đã làm mượt"
         bool isHole
     }
-    POSE_STYLE {
-        string poseId FK
+    POSE_VARIANT {
+        string id PK
+        string photoId FK
         bool outlineEnabled
         float outlineWidth "px màn hình"
         string outlineColor
@@ -300,9 +312,16 @@ erDiagram
         string fillColor
         float fillOpacity
         float subjectOpacity
+        float backgroundOpacity
+        bool faceEnabled
+        bool bodyEnabled
+        string linesColor
+        float linesWidth
+        datetime createdAt
+        datetime updatedAt
     }
-    OVERLAY_PLACEMENT {
-        string poseId FK
+    PLACEMENT {
+        string variantId FK
         float x "chuẩn hóa theo khung"
         float y
         float scale
@@ -322,7 +341,8 @@ erDiagram
 ```
 
 Khác với bản cũ:
-- Bỏ `bg` và `bgOpacity`. Nền của ảnh nguồn không phải một lớp của pose.
+- Một ảnh gốc có nhiều bản pose (bản cũ: mỗi lần lưu là một bản sao đầy đủ).
+- Độ hiện nền vẫn có, nhưng tách nền bằng viền (cắt ngược) thay cho file `bg.png` riêng như bản cũ.
 - Bỏ file `outline.png`. Viền được vẽ từ contour vector nên đổi độ dày được.
 - Kiểu `SegmentData` không còn bị khai báo lặp ở 3 file.
 
