@@ -1,11 +1,17 @@
 /**
  * Trang HTML chạy trong WebView ẩn: tách người bằng MediaPipe (WebGL/WASM) hoặc ONNX Runtime Web.
  *
- * SPIKE B: thư viện và model tải từ CDN, phiên bản cố định. Phase 1 đóng gói các file này kèm app
- * (assets/models) để chạy offline (BR-03). Đổi phiên bản ở đây thì đo lại spike B.
+ * Hai chế độ (buildSegmenterHtml):
+ * - 'cdn': thư viện và model tải từ CDN, phiên bản cố định (màn spike, script dựng pose mẫu).
+ * - 'local': app gửi file của gói model đã tải về máy (src/engine/models, BR-13) vào trang theo
+ *   từng khúc base64; trang ghép thành blob: URL / Uint8Array rồi chạy MediaPipe, không cần mạng.
+ *   Không đọc file:// trực tiếp vì WKWebView chặn fetch file://.
+ * Đổi phiên bản ở đây thì đo lại spike B.
  *
  * Giao thức (JSON qua postMessage):
- *   RN → WV  { id, type: 'segment', model, base64 }        ảnh JPEG base64
+ *   RN → WV  { id, type: 'asset', name, mime, index, total, data }   một khúc base64 của một file
+ *   RN → WV  { id, type: 'segment', model, base64, gridSide? }        ảnh JPEG base64
+ *   WV → RN  { id, ok: true, maskBase64, grid?: { width, height, base64 }, … }  grid = alpha Uint8
  *   RN → WV  { id, type: 'landmarks', base64 }             nét mặt + khung xương
  *   WV → RN  { id, ok: true, face, bodyPoints, timings }   nét mặt (đoạn thẳng) + 33 khớp [x,y,vis]
  *   WV → RN  { type: 'ready', info }                       trang đã nạp xong thư viện
@@ -22,7 +28,7 @@ const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/di
 
 export const MODEL_URLS = {
   multiclass:
-    'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/latest/selfie_multiclass_256x256.tflite',
+    'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_multiclass_256x256/float32/1/selfie_multiclass_256x256.tflite',
   selfie:
     'https://storage.googleapis.com/mediapipe-models/image_segmenter/selfie_segmenter/float16/latest/selfie_segmenter.tflite',
   deeplab:
@@ -36,6 +42,13 @@ export const MODEL_URLS = {
   'rmbg-gpu': 'https://huggingface.co/briaai/RMBG-1.4/resolve/main/onnx/model_fp16.onnx',
 } as const;
 
+/** Tên file trong gói model (src/engine/models/packs.ts) ứng với từng model. */
+export const MODEL_FILES = {
+  multiclass: 'selfie_multiclass_256x256.tflite',
+  face: 'face_landmarker.task',
+  body: 'pose_landmarker_full.task',
+} as const;
+
 const script = `
 const post = (m) => window.ReactNativeWebView.postMessage(JSON.stringify(m));
 const log = (message) => post({ type: 'log', message: String(message) });
@@ -46,6 +59,59 @@ const URLS = ${JSON.stringify(MODEL_URLS)};
 const now = () => performance.now();
 let mp = null;          // module MediaPipe, nạp lười
 let fileset = null;
+
+// ---- File của gói model gửi từ app (chế độ local) ----
+const ASSETS = {};      // tên file -> { parts, mime, blob, url, bytes }
+const MODEL_FILES = ${JSON.stringify(MODEL_FILES)};
+function b64ToBytes(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+function bytesToB64(bytes) {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 0x8000) {
+    s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  }
+  return btoa(s);
+}
+function addAssetChunk(msg) {
+  let a = ASSETS[msg.name];
+  if (!a || msg.index === 0) a = ASSETS[msg.name] = { parts: [], got: 0, mime: msg.mime };
+  if (!a.parts[msg.index]) a.got++;
+  a.parts[msg.index] = b64ToBytes(msg.data);
+  if (a.got === msg.total) {
+    a.blob = new Blob(a.parts, { type: a.mime });
+    a.url = URL.createObjectURL(a.blob);
+    a.parts = null; // giải phóng các khúc, chỉ giữ blob
+  }
+}
+async function assetBytes(name) {
+  const a = ASSETS[name];
+  if (!a || !a.blob) return null;
+  if (!a.bytes) a.bytes = new Uint8Array(await a.blob.arrayBuffer());
+  return a.bytes;
+}
+async function loadMp() {
+  if (mp) return;
+  const local = ASSETS['vision_bundle.mjs'];
+  mp = await import(local && local.url ? local.url : '${MP_BASE}/vision_bundle.mjs');
+}
+async function getFileset() {
+  if (fileset) return fileset;
+  const L = ASSETS['vision_wasm_internal.js'], B = ASSETS['vision_wasm_internal.wasm'];
+  fileset = L && L.url && B && B.url
+    ? { wasmLoaderPath: L.url, wasmBinaryPath: B.url }
+    : await mp.FilesetResolver.forVisionTasks('${MP_BASE}/wasm');
+  return fileset;
+}
+// Model trong máy thì truyền bytes, không thì tải từ CDN.
+async function modelOptions(key) {
+  const file = MODEL_FILES[key];
+  const bytes = file ? await assetBytes(file) : null;
+  return bytes ? { modelAssetBuffer: bytes } : { modelAssetPath: URLS[key] };
+}
 const segmenters = {};  // model -> { seg, backend }
 let ortSession = null;  // chỉ giữ MỘT session RMBG trong bộ nhớ
 let ortModel = null;    // 'rmbg-cpu' | 'rmbg-gpu'
@@ -53,10 +119,11 @@ let ortModel = null;    // 'rmbg-cpu' | 'rmbg-gpu'
 async function getMediaPipe(model) {
   if (segmenters[model]) return { entry: segmenters[model], loadMs: 0 };
   const t0 = now();
-  if (!mp) mp = await import('${MP_BASE}/vision_bundle.mjs');
-  if (!fileset) fileset = await mp.FilesetResolver.forVisionTasks('${MP_BASE}/wasm');
+  await loadMp();
+  await getFileset();
+  const source = await modelOptions(model);
   const make = (delegate) => mp.ImageSegmenter.createFromOptions(fileset, {
-    baseOptions: { modelAssetPath: URLS[model], delegate: delegate },
+    baseOptions: Object.assign({ delegate: delegate }, source),
     runningMode: 'IMAGE',
     outputConfidenceMasks: true,
     outputCategoryMask: false,
@@ -117,12 +184,12 @@ async function getOrt(model) {
   return { session: ortSession, loadMs: now() - t0 };
 }
 
-function loadImage(base64) {
+function loadImage(base64, mime) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error('Không giải mã được ảnh'));
-    img.src = 'data:image/jpeg;base64,' + base64;
+    img.src = 'data:' + (mime || 'image/jpeg') + ';base64,' + base64;
   });
 }
 
@@ -248,15 +315,15 @@ let faceLm = null, bodyLm = null;
 async function getLandmarkers() {
   if (faceLm && bodyLm) return 0;
   const t0 = now();
-  if (!mp) mp = await import('${MP_BASE}/vision_bundle.mjs');
-  if (!fileset) fileset = await mp.FilesetResolver.forVisionTasks('${MP_BASE}/wasm');
+  await loadMp();
+  await getFileset();
   // CPU: kết quả là toạ độ điểm (không đọc mask từ GPU), ổn định trên mọi máy, đủ nhanh.
-  const base = (url) => ({ modelAssetPath: url, delegate: 'CPU' });
+  const base = async (key) => Object.assign({ delegate: 'CPU' }, await modelOptions(key));
   faceLm = await mp.FaceLandmarker.createFromOptions(fileset, {
-    baseOptions: base(URLS.face), runningMode: 'IMAGE', numFaces: 1,
+    baseOptions: await base('face'), runningMode: 'IMAGE', numFaces: 1,
   });
   bodyLm = await mp.PoseLandmarker.createFromOptions(fileset, {
-    baseOptions: base(URLS.body), runningMode: 'IMAGE', numPoses: 1,
+    baseOptions: await base('body'), runningMode: 'IMAGE', numPoses: 1,
   });
   return now() - t0;
 }
@@ -309,7 +376,32 @@ async function runLandmarks(img) {
   };
 }
 
+async function maskGrid(maskB64, side) {
+  const img = await loadImage(maskB64, 'image/png');
+  const k = Math.min(1, side / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.max(1, Math.round(img.naturalWidth * k));
+  const h = Math.max(1, Math.round(img.naturalHeight * k));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.drawImage(img, 0, 0, w, h);
+  const d = ctx.getImageData(0, 0, w, h).data;
+  const alpha = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) alpha[i] = d[i * 4 + 3];
+  return { width: w, height: h, base64: bytesToB64(alpha) };
+}
+
 async function handle(msg) {
+  if (msg && msg.type === 'asset') {
+    try {
+      addAssetChunk(msg);
+      post({ id: msg.id, ok: true });
+    } catch (e) {
+      post({ id: msg.id, ok: false, error: 'asset ' + msg.name + ': ' + ((e && e.message) || e) });
+    }
+    return;
+  }
   if (msg && msg.type === 'landmarks') {
     try {
       const img = await loadImage(msg.base64);
@@ -331,7 +423,9 @@ async function handle(msg) {
       ? await runRmbg(msg.model, img)
       : await runMediaPipe(msg.model, img);
     r.timings.prepMs += decodeMs;
-    post({ id: msg.id, ok: true, maskBase64: r.maskBase64, width: img.naturalWidth,
+    // Lưới alpha thu nhỏ (cạnh dài ≤ gridSide) để JS dò viền mà không phải giải mã PNG.
+    const grid = msg.gridSide ? await maskGrid(r.maskBase64, msg.gridSide) : undefined;
+    post({ id: msg.id, ok: true, maskBase64: r.maskBase64, grid: grid, width: img.naturalWidth,
       height: img.naturalHeight, backend: r.backend, timings: r.timings });
   } catch (e) {
     const error = (e && e.message) || String(e);
@@ -354,9 +448,18 @@ post({ type: 'ready', info: {
 } });
 `;
 
-export const segmenterHtml = `<!doctype html>
+/**
+ * 'cdn': nạp MediaPipe/ORT/model từ CDN (spike, script dựng pose mẫu).
+ * 'local': không nạp gì từ mạng; chờ app gửi file của gói model (BR-13).
+ */
+export function buildSegmenterHtml(mode: 'cdn' | 'local'): string {
+  const ort = mode === 'cdn' ? `<script src="${ORT_BASE}ort.webgpu.min.js"></script>` : '';
+  return `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body>
-<script src="${ORT_BASE}ort.webgpu.min.js"></script>
+${ort}
 <script type="module">${script}</script>
 </body></html>`;
+}
+
+export const segmenterHtml = buildSegmenterHtml('cdn');

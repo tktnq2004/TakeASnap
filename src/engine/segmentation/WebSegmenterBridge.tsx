@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
 import type { Landmarks, SegmentModelId, SegmentTimings, WebSegmentResult } from './types';
-import { segmenterHtml } from './web/segmenterHtml';
+import { buildSegmenterHtml } from './web/segmenterHtml';
 
 type ReadyInfo = {
   ua: string;
@@ -40,10 +40,21 @@ const TIMEOUT_MS = 180_000;
  */
 type WebViewHandle = { postMessage: (data: string) => void; reload: () => void };
 
-export function useWebSegmenter() {
+/** Một khúc base64 gửi vào WebView: bội của 4 để mỗi khúc tự giải mã được. */
+const ASSET_CHUNK = 1024 * 1024;
+
+export type MaskGrid = { width: number; height: number; base64: string };
+
+/**
+ * `mode`: 'cdn' (spike, nạp model từ CDN) hoặc 'local' (app gửi gói model trong máy bằng
+ * `sendAsset`, chạy offline — BR-13).
+ */
+export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
   const ref = useRef<WebViewHandle | null>(null);
   const pending = useRef(new Map<number, Pending>());
   const nextId = useRef(1);
+  /** Tăng mỗi lần trang nạp xong ('ready'); trang nạp lại thì file đã gửi vào trang mất hết. */
+  const generation = useRef(0);
   const [info, setInfo] = useState<ReadyInfo | null>(null);
   const [logs, setLogs] = useState<string[]>([]);
 
@@ -56,8 +67,10 @@ export function useWebSegmenter() {
     }
     // Trả lời cho một yêu cầu thì có id; thông báo của trang (ready, log) thì không.
     if (!('id' in msg)) {
-      if (msg.type === 'ready') setInfo(msg.info);
-      else setLogs((l) => [...l.slice(-19), msg.message]);
+      if (msg.type === 'ready') {
+        generation.current += 1;
+        setInfo(msg.info);
+      } else setLogs((l) => [...l.slice(-19), msg.message]);
       return;
     }
     const p = pending.current.get(msg.id);
@@ -84,9 +97,27 @@ export function useWebSegmenter() {
     ref.current?.reload();
   };
 
-  /** Tách người: mask PNG cùng kích thước ảnh vào. */
-  const run = async (model: SegmentModelId, base64: string): Promise<WebSegmentResult> =>
-    (await request({ type: 'segment', model, base64 })) as unknown as WebSegmentResult;
+  /**
+   * Tách người: mask PNG cùng kích thước ảnh vào. `gridSide`: trả thêm lưới alpha (Uint8, cạnh
+   * dài ≤ gridSide) để dò viền mà không phải giải mã PNG.
+   */
+  const run = async (
+    model: SegmentModelId,
+    base64: string,
+    gridSide?: number,
+  ): Promise<WebSegmentResult & { grid?: MaskGrid }> =>
+    (await request({ type: 'segment', model, base64, gridSide })) as unknown as WebSegmentResult & {
+      grid?: MaskGrid;
+    };
+
+  /** Gửi một file của gói model vào trang, từng khúc, chờ trang nhận xong từng khúc. */
+  const sendAsset = async (name: string, mime: string, base64: string) => {
+    const total = Math.max(1, Math.ceil(base64.length / ASSET_CHUNK));
+    for (let index = 0; index < total; index++) {
+      const data = base64.slice(index * ASSET_CHUNK, (index + 1) * ASSET_CHUNK);
+      await request({ type: 'asset', name, mime, index, total, data });
+    }
+  };
 
   /** Nét mặt + khung xương (lớp Nét của pose). */
   const landmarks = async (base64: string) =>
@@ -110,7 +141,7 @@ export function useWebSegmenter() {
       <View style={styles.host} pointerEvents="none">
         <WebView
           {...({ ref } as object)}
-          source={{ html: segmenterHtml, baseUrl: 'https://localhost/' }}
+          source={{ html: buildSegmenterHtml(mode), baseUrl: 'https://localhost/' }}
           originWhitelist={['*']}
           javaScriptEnabled
           webviewDebuggingEnabled
@@ -121,11 +152,20 @@ export function useWebSegmenter() {
         />
       </View>
     ),
-    // onMessage chỉ dùng ref và setState ổn định; WebView không được tạo lại khi re-render.
-    [],
+    // onMessage chỉ dùng ref và setState ổn định; WebView chỉ tạo lại khi đổi chế độ.
+    [mode],
   );
 
-  return { element, run, landmarks, ready: info !== null, info, logs };
+  return {
+    element,
+    run,
+    landmarks,
+    sendAsset,
+    generation: () => generation.current,
+    ready: info !== null,
+    info,
+    logs,
+  };
 }
 
 const styles = StyleSheet.create({

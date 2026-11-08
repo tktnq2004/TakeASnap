@@ -10,6 +10,7 @@ import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { migrate } from '@/db/migrations';
+import { SegmenterProvider } from '@/engine/segmentation/SegmenterProvider';
 import { color, radius } from '@/ui/tokens';
 
 export default function RootLayout() {
@@ -20,25 +21,28 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SQLiteProvider databaseName="takeasnap.db" onInit={migrate}>
-        <StatusBar style="light" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: color.bg },
-            animation: 'fade',
-          }}
-        >
-          <Stack.Screen
-            name="spike/sheet"
-            options={{
-              presentation: 'formSheet',
-              sheetAllowedDetents: [0.88],
-              sheetGrabberVisible: true,
-              sheetCornerRadius: radius.lg,
-              contentStyle: { backgroundColor: color.surface },
+        {/* WebView tách người chế độ local (roadmap §3.7): gắn một lần, nạp model khi cần. */}
+        <SegmenterProvider>
+          <StatusBar style="light" />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: color.bg },
+              animation: 'fade',
             }}
-          />
-        </Stack>
+          >
+            <Stack.Screen
+              name="spike/sheet"
+              options={{
+                presentation: 'formSheet',
+                sheetAllowedDetents: [0.88],
+                sheetGrabberVisible: true,
+                sheetCornerRadius: radius.lg,
+                contentStyle: { backgroundColor: color.surface },
+              }}
+            />
+          </Stack>
+        </SegmenterProvider>
       </SQLiteProvider>
     </GestureHandlerRootView>
   );

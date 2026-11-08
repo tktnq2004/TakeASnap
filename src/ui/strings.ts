@@ -78,8 +78,12 @@ export const t = {
     redo: 'Làm lại',
   },
   status: {
+    downloadingModel: 'Đang tải bộ tách người',
+    loadingModel: 'Đang nạp bộ tách người',
     segmenting: 'Đang tách người khỏi nền',
+    detectingFace: 'Đang tìm nét mặt',
     contouring: 'Đang vẽ dáng',
+    savingPose: 'Đang lưu pose',
     analyzing: 'Đang đo ánh sáng của nền',
     saved: 'Đã lưu vào album TakeASnap',
   },
@@ -87,6 +91,9 @@ export const t = {
     noPerson: 'Không tìm thấy người trong ảnh. Chọn ảnh có người nhìn rõ.',
     personTooSmall: 'Người trong ảnh quá nhỏ để lấy dáng. Chọn ảnh chụp gần hơn.',
     saveFailed: 'Chưa lưu được ảnh vào máy. Ảnh vẫn được giữ tạm.',
+    downloadFailed: 'Chưa tải được bộ tách người. Kiểm tra kết nối mạng rồi thử lại.',
+    segmentFailed: 'Chưa tách được người trong ảnh này. Thử lại hoặc chọn ảnh khác.',
+    title: 'Chưa tạo được pose',
   },
   spike: {
     title: 'Phase 0 · Spike',

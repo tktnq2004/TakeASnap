@@ -1,8 +1,10 @@
+import * as ImagePicker from 'expo-image-picker';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { ChevronLeft } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Pressable,
   ScrollView,
@@ -13,11 +15,17 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
+import {
+  type CreateProgress,
+  createPoseFromImage,
+  PoseCreateError,
+} from '@/features/pose/createFromImage';
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
 import { deleteVariant, listUserPoses } from '@/features/pose/repository';
 import { sampleGroups, sampleLibrary } from '@/features/pose/samples';
 import type { Pose } from '@/features/pose/types';
-import { IconButton, Segmented } from '@/ui/components';
+import { Button, IconButton, Segmented } from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
 
@@ -32,8 +40,9 @@ const MINE_COLS = 4;
 const MINE_GAP = space[2];
 
 /**
- * Thư viện pose (design.md §6.3). Phase 1: chạm một pose để mở Chỉnh pose. Phase 2 đổi chạm thành
- * "Dùng để chụp" và mở màn này dạng sheet trên Camera; Phase 3 thêm Thêm ảnh từ máy.
+ * Thư viện pose (design.md §6.3). Phase 1: chạm một pose để mở Chỉnh pose; "Thêm ảnh từ máy" tạo
+ * pose mới (business-flow §5.1). Phase 2 đổi chạm thành "Dùng để chụp" và mở màn này dạng sheet
+ * trên Camera.
  */
 export default function LibraryScreen() {
   const db = useSQLiteContext();
@@ -41,6 +50,8 @@ export default function LibraryScreen() {
   const { width: screenW } = useWindowDimensions();
   const [tab, setTab] = useState<'samples' | 'mine'>('samples');
   const [mine, setMine] = useState<Pose[]>([]);
+  const [progress, setProgress] = useState<CreateProgress | null>(null);
+  const { segmentForPose } = useSegmenter();
 
   useFocusEffect(
     useCallback(() => {
@@ -60,6 +71,27 @@ export default function LibraryScreen() {
         },
       },
     ]);
+
+  const addFromDevice = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
+    const a = res.canceled ? null : res.assets[0];
+    if (!a) return;
+    setProgress({ stage: 'segment' });
+    try {
+      const pose = await createPoseFromImage(
+        db,
+        segmentForPose,
+        { uri: a.uri, width: a.width, height: a.height },
+        setProgress,
+      );
+      setTab('mine');
+      router.push(`/editor/${pose.id}`);
+    } catch (e) {
+      Alert.alert(t.errors.title, errorMessage(e));
+    } finally {
+      setProgress(null);
+    }
+  };
 
   // "Pose của bạn": 4 ảnh một hàng (góp ý lần 3).
   const gridW = (screenW - size.gutter * 2 - MINE_GAP * (MINE_COLS - 1)) / MINE_COLS;
@@ -112,8 +144,46 @@ export default function LibraryScreen() {
             </View>
           ))}
       </ScrollView>
+
+      {/* Nút ghim ở đáy; đang xử lý thì thay bằng dòng trạng thái (design.md §6.6). */}
+      <View style={[styles.footer, { paddingBottom: insets.bottom + space[3] }]}>
+        {progress ? (
+          <View style={styles.status} accessibilityLiveRegion="polite">
+            <ActivityIndicator size="small" color={color.muted} />
+            <Text style={[type.label, styles.muted]}>{progressText(progress)}</Text>
+          </View>
+        ) : (
+          <Button label={t.library.addFromDevice} onPress={addFromDevice} fullWidth />
+        )}
+      </View>
     </View>
   );
+}
+
+function progressText(p: CreateProgress): string {
+  switch (p.stage) {
+    case 'download':
+      return `${t.status.downloadingModel}, ${mb(p.bytes)} trên ${mb(p.total)} MB`;
+    case 'load':
+      return t.status.loadingModel;
+    case 'segment':
+      return t.status.segmenting;
+    case 'landmarks':
+      return t.status.detectingFace;
+    case 'contour':
+      return t.status.contouring;
+    case 'save':
+      return t.status.savingPose;
+  }
+}
+
+const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
+
+function errorMessage(e: unknown): string {
+  if (e instanceof PoseCreateError) return t.errors[e.code];
+  const msg = e instanceof Error ? e.message : String(e);
+  if (/tải|network|internet|offline|timed out|Hủy/i.test(msg)) return t.errors.downloadFailed;
+  return t.errors.segmentFailed;
 }
 
 /**
@@ -190,6 +260,20 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: MINE_GAP,
     paddingHorizontal: size.gutter,
+  },
+  footer: {
+    paddingHorizontal: size.gutter,
+    paddingTop: space[3],
+    borderTopWidth: 1,
+    borderTopColor: color.line,
+    backgroundColor: color.bg,
+  },
+  status: {
+    minHeight: size.button,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: space[2],
   },
   tile: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: color.surface },
   empty: { paddingHorizontal: size.gutter },

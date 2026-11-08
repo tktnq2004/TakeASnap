@@ -161,6 +161,14 @@ export async function createVariant(db: SQLiteDatabase, base: Pose, style: PoseS
   return pose;
 }
 
+/** Ảnh gốc mới (tạo từ ảnh trong máy) + bản pose đầu tiên, trong một transaction. */
+export async function savePhotoAndVariant(db: SQLiteDatabase, pose: Pose & { source: string }) {
+  await db.withTransactionAsync(async () => {
+    await insertPhoto(db, pose);
+    await insertVariant(db, pose);
+  });
+}
+
 /**
  * Pose mẫu chỉ đọc (BR-09): lưu = thêm bản vào "Pose của bạn". Lần đầu chép ảnh gốc vào
  * Paths.document; các lần sau dùng lại ảnh đã chép (tìm theo sample_id).
