@@ -326,10 +326,10 @@ docs/
 
 ### Phase 1 — Pose engine và Chỉnh pose (2–3 tuần)
 
-- [x] Bộ tải model (phương án C, §3.3): `src/engine/models/` tải gói `pose` (6 file, 43.5 MB) từ CDN gốc vào `Paths.document/models/pose/`, có tiến độ, tải vào `.part` rồi mới đổi tên, kiểm tra đúng dung lượng, manifest theo phiên bản. WebView chế độ `local`: app gửi file theo khúc base64 1 MB, trang ghép thành `blob:` URL / `modelAssetBuffer` (WKWebView chặn fetch `file://`). Kiểm trên Chrome **đã tắt mạng**: gửi gói ~3 s, 0 yêu cầu tới CDN *(chờ đo trên máy)*
-- [x] `SegmenterProvider` (gắn một lần ở `_layout`): tải gói nếu thiếu, gửi gói vào trang một lần mỗi phiên (gửi lại nếu trang bị nạp lại), ảnh 1024 px → mask PNG + lưới alpha 512 + nét mặt. "Thêm ảnh từ máy" trong Thư viện: viền, kiểm BR-06, lưu `source.jpg` + `mask.png`, mở Chỉnh pose; dòng trạng thái thay nút khi đang xử lý *(chờ đo trên máy)*. Chọn từng người khi ảnh có nhiều người: Phase 3
+- [x] Bộ tải model (phương án C, §3.3): `src/engine/models/` tải gói `pose` (6 file, 43.5 MB) từ CDN gốc vào `Paths.document/models/pose/`, có tiến độ, tải vào `.part` rồi mới đổi tên, kiểm tra đúng dung lượng, manifest theo phiên bản. WebView chế độ `local`: app gửi file theo khúc base64 1 MB, trang ghép thành `blob:` URL / `modelAssetBuffer` (WKWebView chặn fetch `file://`). Kiểm trên Chrome **đã tắt mạng**: gửi gói ~3 s, 0 yêu cầu tới CDN
+- [x] `SegmenterProvider` (gắn một lần ở `_layout`): tải gói nếu thiếu, gửi gói vào trang một lần mỗi phiên (gửi lại nếu trang bị nạp lại), ảnh 1024 px → mask PNG + lưới alpha 512 + nét mặt. "Thêm ảnh từ máy" trong Thư viện: viền, kiểm BR-06, lưu `source.jpg` + `mask.png`, mở Chỉnh pose; dòng trạng thái thay nút khi đang xử lý. Chọn từng người khi ảnh có nhiều người: Phase 3
 - [x] `engine/contour.ts` có unit test (hình vuông, vành khuyên có lỗ, nhiều vùng, chạm mép, ô chéo, mảng li ti, đơn giản hóa, SVG). Tự viết marching squares vì thư viện `marchingsquares` là AGPL-3.0
-- [x] Màn Chỉnh pose: 3 lớp, mọi điều khiển ở [business-flow §5.2](business-flow.md#52-màn-chỉnh-pose--3-lớp-và-các-điều-khiển), trừ Sửa nét *(chờ đo trên máy)*
+- [x] Màn Chỉnh pose: 3 lớp, mọi điều khiển ở [business-flow §5.2](business-flow.md#52-màn-chỉnh-pose--3-lớp-và-các-điều-khiển), trừ Sửa nét
 - [x] Repository pose: tạo, sửa, xóa (xóa sạch file); bản sao từ pose mẫu (BR-09); migration v2 cho `mask_uri` rỗng
 - [x] `scripts/build-sample-poses.mts`: tách sẵn 25 ảnh bằng đúng trang WebView + engine viền, ghi `assets/poses/samples.json` (47 KB, chỉ viền vector). Lớp "Người" cắt ảnh theo viền nên pose mẫu không cần mask
 - [x] Thư viện pose (Phase 1: Pose mẫu + Pose của bạn, nhấn giữ để xóa) để vào được Chỉnh pose
@@ -339,6 +339,8 @@ docs/
 - [x] **Góp ý lần 4–5:** nét mặt 0.5–5 px. Ảnh trong Chỉnh pose hiện đầy đủ (contain), caro chỉ trong khung ảnh (đã thử cover + kéo/pinch ở lần 4 và bỏ). Ô thư viện kiểu cover
 
 **Xong khi:** chọn ảnh → có pose trong dưới 4 s trên iPhone (mục tiêu, sẽ chỉnh theo spike B); mọi slider đổi hình ngay trong frame kế tiếp; độ dày viền đổi được từ 1 đến 12 px.
+
+**Trạng thái:** đạt (xác nhận trên iPhone 15 Pro Max). Tạo pose từ ảnh trong máy chạy được, kể cả ở chế độ máy bay sau lần tải gói đầu.
 
 ### Phase 2 — Camera và overlay (2–3 tuần)
 
