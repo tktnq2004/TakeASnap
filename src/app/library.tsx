@@ -1,7 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { ChevronLeft } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,6 +16,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
+import { clearPlacement, useCameraStore } from '@/features/camera/cameraStore';
 import {
   type CreateProgress,
   createPoseFromImage,
@@ -40,9 +41,9 @@ const MINE_COLS = 4;
 const MINE_GAP = space[2];
 
 /**
- * Thư viện pose (design.md §6.3). Phase 1: chạm một pose để mở Chỉnh pose; "Thêm ảnh từ máy" tạo
- * pose mới (business-flow §5.1). Phase 2 đổi chạm thành "Dùng để chụp" và mở màn này dạng sheet
- * trên Camera.
+ * Thư viện pose (design.md §6.3), mở dạng sheet trên Camera. Chạm một pose = "Dùng để chụp" (đặt
+ * làm overlay rồi đóng sheet); giữ lâu = Sửa / Xóa. "Thêm ảnh từ máy" tạo pose mới rồi mở Chỉnh
+ * pose (business-flow §5.1).
  */
 export default function LibraryScreen() {
   const db = useSQLiteContext();
@@ -67,9 +68,29 @@ export default function LibraryScreen() {
         style: 'destructive',
         onPress: async () => {
           await deleteVariant(db, p.id);
+          clearPlacement(p.id);
+          if (useCameraStore.getState().poseId === p.id) useCameraStore.getState().clearPose();
           setMine((list) => list.filter((x) => x.id !== p.id));
         },
       },
+    ]);
+
+  const pickForCamera = (p: Pose) => {
+    useCameraStore.getState().selectPose(p.id);
+    router.back();
+  };
+
+  const openEditor = (p: Pose) => router.push(`/editor/${p.id}`);
+
+  // Giữ lâu: pose mẫu chỉ sửa được (thành bản sao, BR-09); pose của bạn có thêm Xóa.
+  const showActions = (p: Pose, mineTile: boolean) =>
+    Alert.alert(t.library.title, undefined, [
+      { text: t.library.use, onPress: () => pickForCamera(p) },
+      { text: mineTile ? t.library.edit : t.library.duplicate, onPress: () => openEditor(p) },
+      ...(mineTile
+        ? [{ text: t.library.remove, style: 'destructive' as const, onPress: () => confirmDelete(p) }]
+        : []),
+      { text: t.common.cancel, style: 'cancel' as const },
     ]);
 
   const addFromDevice = async () => {
@@ -97,12 +118,12 @@ export default function LibraryScreen() {
   const gridW = (screenW - size.gutter * 2 - MINE_GAP * (MINE_COLS - 1)) / MINE_COLS;
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View style={styles.root}>
       <View style={styles.header}>
-        <IconButton icon={ChevronLeft} label={t.common.back} onPress={() => router.back()} />
         <Text accessibilityRole="header" style={[type.title, styles.ink]}>
           {t.library.title}
         </Text>
+        <IconButton icon={X} label={t.common.close} onPress={() => router.back()} />
       </View>
       <View style={styles.tabs}>
         <Segmented options={tabs} value={tab} onChange={setTab} />
@@ -121,7 +142,15 @@ export default function LibraryScreen() {
                 {sampleLibrary
                   .filter((p) => p.sampleGroup === g)
                   .map((p) => (
-                    <PoseTile key={p.id} pose={p} width={SAMPLE_W} height={SAMPLE_H} plain />
+                    <PoseTile
+                      key={p.id}
+                      pose={p}
+                      width={SAMPLE_W}
+                      height={SAMPLE_H}
+                      plain
+                      onPress={() => pickForCamera(p)}
+                      onLongPress={() => showActions(p, false)}
+                    />
                   ))}
               </ScrollView>
             </View>
@@ -138,7 +167,8 @@ export default function LibraryScreen() {
                   pose={p}
                   width={gridW}
                   height={gridW * 1.33}
-                  onLongPress={() => confirmDelete(p)}
+                  onPress={() => pickForCamera(p)}
+                  onLongPress={() => showActions(p, true)}
                 />
               ))}
             </View>
@@ -198,20 +228,23 @@ function PoseTile({
   width,
   height,
   plain,
+  onPress,
   onLongPress,
 }: {
   pose: Pose;
   width: number;
   height: number;
   plain?: boolean;
-  onLongPress?: () => void;
+  onPress: () => void;
+  onLongPress: () => void;
 }) {
   const s = pose.style;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${t.library.edit} ${pose.sampleId ?? pose.id}`}
-      onPress={() => router.push(`/editor/${pose.id}`)}
+      accessibilityLabel={t.library.use}
+      accessibilityHint={t.library.longPressHint}
+      onPress={onPress}
       onLongPress={onLongPress}
       style={[styles.tile, { width, height }]}
     >
@@ -245,9 +278,11 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space[2],
-    paddingHorizontal: space[2],
-    paddingVertical: space[2],
+    justifyContent: 'space-between',
+    paddingLeft: size.gutter,
+    paddingRight: space[2],
+    paddingTop: space[4],
+    paddingBottom: space[2],
   },
   tabs: { paddingHorizontal: size.gutter, paddingBottom: space[4] },
   ink: { color: color.ink },

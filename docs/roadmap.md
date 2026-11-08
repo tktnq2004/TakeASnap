@@ -344,6 +344,8 @@ docs/
 
 ### Phase 2 — Camera và overlay (2–3 tuần)
 
+**Trạng thái:** đã viết code (Camera là màn đầu, Thư viện mở dạng sheet, màn spike chuyển sang `/spike` qua nút cài đặt). Typecheck, lint, 70 unit test và bundle iOS + Android đều qua. **Chưa chạy ma trận cử chỉ trên máy thật**, nên các ô dưới chưa đánh dấu. Chưa làm: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (để Phase 4). Chữ "2×" của chip zoom vẫn là ước lượng (`cameraZoom.maxFactor`).
+
 - [ ] `expo-camera`: đổi camera, flash gốc 3 chế độ, tỉ lệ 3:4 / 9:16 / 1:1, chip zoom + pinch, hẹn giờ
 - [ ] Lưới 3×3 / 4×4, thước cân bằng (accelerometer → shared value)
 - [ ] Overlay Skia + `useTransformGesture`, hai chế độ chụp / chỉnh

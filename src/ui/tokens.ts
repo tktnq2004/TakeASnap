@@ -22,6 +22,12 @@ export const color = {
   // diện tối; viền trắng và nét vàng vẫn nổi.
   checkerA: '#2c2e32',
   checkerB: '#3a3d42',
+  /** Lưới và mốc thước trên khung ngắm. */
+  guide: 'rgba(239,240,241,0.45)',
+  /** Khung bao overlay ở chế độ chỉnh (design.md §6.2: 1 px ink 40%). */
+  overlayBox: 'rgba(239,240,241,0.4)',
+  /** Chớp tối khi bấm chụp. */
+  shutterFlash: '#000000',
 } as const;
 
 /** Màu chức năng cho viền và lớp phủ của pose (design.md §3.2). Không có tím. */
@@ -95,6 +101,19 @@ export const cameraZoom = {
   precision: 0.001,
   /** Khoảng cách tối thiểu giữa hai lần đẩy zoom sang state (~30 lần/giây). */
   minIntervalMs: 33,
+} as const;
+
+/** Thước cân bằng (business-flow §4.3): đổi màu nhấn khi lệch dưới `levelDeg`. */
+export const levelGuide = { levelDeg: 1, length: 96, ref: 16, thickness: 2 } as const;
+
+/** Camera: vùng xóa (design.md §6.2), hẹn giờ, chớp chụp. */
+export const cameraUi = {
+  trash: 64,
+  /** Tâm overlay vào trong bán kính này quanh tâm vùng xóa thì tính là thả để gỡ. */
+  trashRadius: 96,
+  timerOptions: [0, 3, 10],
+  shutterFlashMs: 120,
+  countdownSize: 96,
 } as const;
 
 /** Giới hạn của overlay (roadmap §3.5). */
