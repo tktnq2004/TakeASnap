@@ -109,8 +109,12 @@ export const levelGuide = { levelDeg: 1, length: 96, ref: 16, thickness: 2 } as 
 /** Camera: vùng xóa (design.md §6.2), hẹn giờ, chớp chụp. */
 export const cameraUi = {
   trash: 64,
-  /** Tâm overlay vào trong bán kính này quanh tâm vùng xóa thì tính là thả để gỡ. */
-  trashRadius: 96,
+  /** NGÓN TAY vào trong bán kính này quanh tâm vùng xóa thì tính là thả để gỡ. */
+  trashRadius: 56,
+  /** Vòng vùng xóa phóng nhẹ khi ngón tay vào. */
+  trashActiveScale: 1.15,
+  /** Flash bật: bật đèn trước khi chụp chừng này để camera kịp chỉnh sáng. */
+  torchWarmMs: 450,
   timerOptions: [0, 3, 10],
   shutterFlashMs: 120,
   countdownSize: 96,

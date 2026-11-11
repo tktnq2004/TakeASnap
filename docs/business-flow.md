@@ -88,37 +88,37 @@ sequenceDiagram
     L-->>U: Pose mẫu + Pose của bạn
     U->>L: Chọn một pose
     L->>C: Đặt overlay ở giữa khung, vừa chiều cao khung
-    U->>C: Vào chế độ chỉnh overlay: kéo, pinch, xoay
-    U->>C: Chạm "Xong" (khóa overlay)
+    U->>C: Chạm vào pose rồi kéo, pinch, xoay ngay (nhấc tay là xong)
     U->>C: Bảo người mẫu đứng khớp dáng, căn khung
     U->>C: Chụp
     C->>A: Lưu ảnh KHÔNG kèm overlay
     C-->>U: Thumbnail ảnh vừa chụp cập nhật
 ```
 
-### 4.2 Hai chế độ thao tác trên khung ngắm
+### 4.2 Thao tác trên khung ngắm
 
-Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới tách hẳn thành **hai chế độ**, mỗi lúc chỉ một chế độ nhận cử chỉ:
+Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết định theo **chỗ ngón tay đầu tiên chạm xuống**, giữ nguyên cho cả lượt chạm (đến khi nhấc hết ngón):
 
-| | **Chế độ chụp** (mặc định, overlay đã khóa) | **Chế độ chỉnh overlay** |
+| | **Lượt chạm bắt đầu trên pose** | **Lượt chạm bắt đầu ngoài pose** |
 |---|---|---|
-| Vào bằng | Chạm "Xong", hoặc chạm ra vùng trống | Chạm vào overlay, hoặc nút "Chỉnh pose" |
-| 1 ngón kéo | — | Di chuyển overlay |
-| 2 ngón pinch | Zoom camera | Phóng/thu overlay quanh tâm hai ngón |
-| 2 ngón xoay | — | Xoay overlay (hít về 0° khi lệch dưới 3°, rung nhẹ) |
-| Chạm 1 lần | — (camera tự lấy nét; `expo-camera` không có lấy nét theo điểm chạm, để dành cho bản dùng VisionCamera) | — |
-| Chạm đúp | — | Đặt lại vị trí/tỉ lệ/góc ban đầu |
-| Kéo xuống vùng xóa | — | Gỡ overlay khỏi khung (vùng xóa đổi viền `danger` và rung cảnh báo khi overlay vào) |
-| Thanh điều khiển | Hiện đủ | Ẩn hết, chỉ còn "Xong" và vùng xóa |
+| 1 ngón kéo | Di chuyển overlay ngay, không cần bật chế độ chỉnh | — |
+| 2 ngón pinch | Phóng/thu overlay quanh tâm hai ngón | Zoom camera |
+| 2 ngón xoay | Xoay overlay (hít về 0° khi lệch dưới 3°, rung nhẹ) | — |
+| Chạm 1 lần | — | — (camera tự lấy nét; `expo-camera` không có lấy nét theo điểm chạm) |
+| Chạm đúp | Đặt lại vị trí/tỉ lệ/góc ban đầu | — |
+| Kéo vào vùng xóa | Vùng xóa ăn theo **ngón tay**: ngón vào vòng tròn thì viền `danger`, rung cảnh báo, overlay mờ và thu nhỏ về phía thùng rác. Thả tay lúc đó thì overlay mờ hẳn rồi bị gỡ; kéo ra khỏi vòng thì trở lại như cũ | — |
+| Thanh điều khiển | Điều khiển dưới và rail mờ đi, vùng xóa hiện ra trong lúc kéo | Hiện đủ |
 
-Pinch và xoay chạy cùng lúc. Kéo, pinch và xoay đều cộng dồn từ trạng thái trước, không bao giờ nhảy về giá trị cũ.
+- Vùng nhận cử chỉ là **cả màn hình** (dưới các nút), nên pose kéo ra ngoài khung ngắm vẫn chỉnh tiếp được.
+- Pose là lớp trên cùng của ảnh (nằm trên cả vùng nền đặc ngoài khung) nhưng dưới các nút điều khiển.
+- Pinch và xoay chạy cùng lúc. Kéo, pinch và xoay đều cộng dồn từ trạng thái trước, không bao giờ nhảy về giá trị cũ.
 
 ### 4.3 Điều khiển camera
 
 | Điều khiển | Giá trị | Ghi chú |
 |---|---|---|
 | Đổi camera | sau / trước | Camera trước: preview soi gương, ảnh lưu không soi gương (theo cài đặt) |
-| Flash | tắt / bật / tự động | Dùng flash gốc của camera, không dùng đèn pin |
+| Flash | tắt / bật / tự động | Tự động dùng flash gốc. Bật: đèn sáng trong lúc chụp, vì flash gốc chế độ "bật" không nháy trên iPhone trong Expo Go 58 |
 | Lưới | tắt / 3×3 / 4×4 | Vẽ trong vùng ảnh thật sẽ được lưu |
 | Thước cân bằng | bật / tắt | Đổi sang màu nhấn khi máy lệch dưới 1° |
 | Tỉ lệ khung | 3:4 / 9:16 / 1:1 | Khung ngắm hiển thị đúng vùng ảnh sẽ được lưu |
@@ -271,7 +271,7 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 | BR-08 | Mọi file của pose nằm trong `documentDirectory`, không bao giờ nằm trong cache |
 | BR-09 | Pose mẫu chỉ đọc. Sửa pose mẫu là tạo bản sao |
 | BR-10 | Overlay nhớ vị trí/tỉ lệ/góc lần dùng gần nhất của từng pose |
-| BR-11 | Khi ở chế độ chỉnh overlay, camera không nhận pinch-zoom |
+| BR-11 | Lượt chạm bắt đầu trên pose thì camera không nhận pinch-zoom |
 | BR-12 | Lưu ảnh lỗi thì không mất ảnh: giữ bản tạm và cho thử lại |
 
 ---

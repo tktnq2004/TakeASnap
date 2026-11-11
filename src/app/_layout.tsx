@@ -31,17 +31,9 @@ export default function RootLayout() {
               animation: 'fade',
             }}
           >
-            {/* Thư viện pose: sheet cao 88% trên Camera (design.md §6.3). */}
-            <Stack.Screen
-              name="library"
-              options={{
-                presentation: 'formSheet',
-                sheetAllowedDetents: [0.88],
-                sheetGrabberVisible: true,
-                sheetCornerRadius: radius.lg,
-                contentStyle: { backgroundColor: color.bg },
-              }}
-            />
+            {/* Thư viện pose: modal trên Camera (iOS: thẻ trượt lên; Android: toàn màn hình).
+                formSheet có detent làm vỡ bố cục: ảnh đè lên tiêu đề và tab (góp ý Phase 2). */}
+            <Stack.Screen name="library" options={{ presentation: 'modal' }} />
             {/* Chỉnh pose mở từ sheet nên phải là modal để hiện được trên sheet. */}
             <Stack.Screen name="editor/[poseId]" options={{ presentation: 'fullScreenModal' }} />
             <Stack.Screen

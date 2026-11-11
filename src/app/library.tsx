@@ -6,6 +6,7 @@ import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -49,6 +50,7 @@ export default function LibraryScreen() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
   const { width: screenW } = useWindowDimensions();
+  const [rootW, setRootW] = useState(0);
   const [tab, setTab] = useState<'samples' | 'mine'>('samples');
   const [mine, setMine] = useState<Pose[]>([]);
   const [progress, setProgress] = useState<CreateProgress | null>(null);
@@ -88,7 +90,13 @@ export default function LibraryScreen() {
       { text: t.library.use, onPress: () => pickForCamera(p) },
       { text: mineTile ? t.library.edit : t.library.duplicate, onPress: () => openEditor(p) },
       ...(mineTile
-        ? [{ text: t.library.remove, style: 'destructive' as const, onPress: () => confirmDelete(p) }]
+        ? [
+            {
+              text: t.library.remove,
+              style: 'destructive' as const,
+              onPress: () => confirmDelete(p),
+            },
+          ]
         : []),
       { text: t.common.cancel, style: 'cancel' as const },
     ]);
@@ -115,11 +123,19 @@ export default function LibraryScreen() {
   };
 
   // "Pose của bạn": 4 ảnh một hàng (góp ý lần 3).
-  const gridW = (screenW - size.gutter * 2 - MINE_GAP * (MINE_COLS - 1)) / MINE_COLS;
+  // Đo theo bề rộng thật của màn thư viện (modal có thể hẹp hơn cửa sổ trên iPad).
+  const listW = rootW || screenW;
+  const gridW = Math.floor((listW - size.gutter * 2 - MINE_GAP * (MINE_COLS - 1)) / MINE_COLS);
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
+    <View style={styles.root} onLayout={(e) => setRootW(e.nativeEvent.layout.width)}>
+      {/* iOS: modal là thẻ dưới thanh trạng thái nên không cần chừa vùng an toàn trên. */}
+      <View
+        style={[
+          styles.header,
+          { paddingTop: Platform.OS === 'ios' ? space[4] : insets.top + space[2] },
+        ]}
+      >
         <Text accessibilityRole="header" style={[type.title, styles.ink]}>
           {t.library.title}
         </Text>
@@ -280,8 +296,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingLeft: size.gutter,
-    paddingRight: space[2],
-    paddingTop: space[4],
+    paddingRight: size.gutter - space[2],
     paddingBottom: space[2],
   },
   tabs: { paddingHorizontal: size.gutter, paddingBottom: space[4] },

@@ -16,26 +16,26 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { ease, easeIO } from '@/ui/easing';
 import { motion, transformLimits } from '@/ui/tokens';
 
-import {
-  clampedScaleChange,
-  rotateAbout,
-  scaleAbout,
-  snapAngle,
-  toCentered,
-} from './transformMath';
+import { clampedScaleChange, rotateAbout, scaleAbout, snapAngle } from './transformMath';
 
 export type Placement = { x: number; y: number; scale: number; rotation: number };
 
 const IDENTITY: Placement = { x: 0, y: 0, scale: 1, rotation: 0 };
 
 type Options = {
-  /** Chỉ nhận cử chỉ khi true (chế độ chỉnh overlay, business-flow §4.2). */
+  /** Tắt hẳn mọi cử chỉ (ví dụ chưa có pose). */
   enabled: boolean;
   initial?: Placement;
-  /** Gọi một lần khi mọi ngón tay rời màn hình, để lưu placement (BR-10). */
+  /** Gọi một lần khi mọi ngón tay rời màn hình sau một lượt chỉnh, để lưu placement (BR-10). */
   onEnd?: (p: Placement) => void;
   /** Gọi khi góc hít vào 0°/90° (haptics). */
   onSnap?: () => void;
+  /**
+   * Worklet: chạm (tọa độ trong vùng nhận) có trúng vật đang ở placement `p` không. Có hàm này thì chỉ lượt chạm BẮT
+   * ĐẦU trên vật mới kéo/pinch/xoay vật, ngay từ ngón đầu tiên, không cần bật chế độ chỉnh
+   * (góp ý Phase 2). Lượt chạm bắt đầu ngoài vật để cho cử chỉ khác (zoom camera).
+   */
+  hitTest?: (x: number, y: number, p: Placement) => boolean;
 };
 
 /**
@@ -45,18 +45,32 @@ type Options = {
  * - Chạy hoàn toàn trên UI thread: không có setState nào trong lúc cử chỉ đang diễn ra.
  * - Mọi phép biến đổi cộng dồn bằng phần thay đổi của từng frame.
  * - Pinch neo theo tâm hai ngón, xoay neo theo điểm neo của hai ngón.
- * - Gắn `gesture` lên VÙNG NHẬN (toàn khung ngắm), không phải lên overlay, và gắn
- *   `onLayout` của vùng nhận vào `setArea` để đổi tọa độ ngón tay về gốc tâm.
+ * - Gắn `gesture` lên VÙNG NHẬN, không phải lên vật. Gọi `setArea(w, h, ox, oy)` với cỡ vùng
+ *   nhận và vị trí tâm-lúc-nghỉ của vật trong vùng đó (mặc định giữa vùng).
  */
-export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap }: Options) {
+export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap, hitTest }: Options) {
   const tx = useSharedValue(initial.x);
   const ty = useSharedValue(initial.y);
   const scale = useSharedValue(initial.scale);
   const rotation = useSharedValue(initial.rotation);
-  const areaW = useSharedValue(0);
-  const areaH = useSharedValue(0);
+  const originX = useSharedValue(0);
+  const originY = useSharedValue(0);
   const active = useSharedValue(0);
+  /** Lượt chạm hiện tại đang điều khiển vật. */
+  const engaged = useSharedValue(false);
+  /** Đã quyết định lượt chạm này thuộc vật hay không. */
+  const decided = useSharedValue(false);
+  /** Vật đã thực sự bị kéo/pinch/xoay trong lượt này (để hiện vùng xóa). */
+  const moved = useSharedValue(false);
+  /** Vị trí ngón kéo trong vùng nhận. */
+  const fingerX = useSharedValue(0);
+  const fingerY = useSharedValue(0);
   const reduceMotion = useReducedMotion();
+
+  const current = (): Placement => {
+    'worklet';
+    return { x: tx.value, y: ty.value, scale: scale.value, rotation: rotation.value };
+  };
 
   const begin = () => {
     'worklet';
@@ -66,7 +80,8 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
   const finish = () => {
     'worklet';
     active.value = Math.max(0, active.value - 1);
-    if (active.value === 0 && onEnd) {
+    if (active.value > 0) return;
+    if (engaged.value && onEnd) {
       scheduleOnRN(onEnd, {
         x: tx.value,
         y: ty.value,
@@ -74,21 +89,39 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
         rotation: rotation.value,
       });
     }
+    engaged.value = false;
+    decided.value = false;
+    moved.value = false;
+  };
+
+  const decide = (x: number, y: number) => {
+    'worklet';
+    if (decided.value) return;
+    decided.value = true;
+    engaged.value = hitTest ? hitTest(x, y, current()) : true;
   };
 
   const pan = usePanGesture({
     enabled,
     maxPointers: 2,
-    // Kích hoạt sau 2 pt thay vì ngưỡng mặc định, để overlay bám ngón tay ngay từ đầu.
+    // Kích hoạt sau 2 pt thay vì ngưỡng mặc định, để vật bám ngón tay ngay từ đầu.
     minDistance: 2,
-    onBegin: () => {
+    onBegin: (e) => {
       'worklet';
       begin();
+      // Ngón đầu tiên chạm xuống quyết định cả lượt.
+      decide(e.x, e.y);
+      fingerX.value = e.x;
+      fingerY.value = e.y;
     },
     onUpdate: (e) => {
       'worklet';
+      if (!engaged.value) return;
       tx.value += e.changeX;
       ty.value += e.changeY;
+      fingerX.value = e.x;
+      fingerY.value = e.y;
+      moved.value = true;
     },
     onFinalize: () => {
       'worklet';
@@ -104,17 +137,19 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
     },
     onUpdate: (e) => {
       'worklet';
+      if (!engaged.value) return;
       const k = clampedScaleChange(
         scale.value,
         e.scaleChange,
         transformLimits.minScale,
         transformLimits.maxScale,
       );
-      const f = toCentered(e.focalX, e.focalY, areaW.value, areaH.value);
+      const f = { x: e.focalX - originX.value, y: e.focalY - originY.value };
       const t = scaleAbout({ x: tx.value, y: ty.value }, f, k);
       tx.value = t.x;
       ty.value = t.y;
       scale.value *= k;
+      moved.value = true;
     },
     onFinalize: () => {
       'worklet';
@@ -130,14 +165,17 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
     },
     onUpdate: (e) => {
       'worklet';
-      const a = toCentered(e.anchorX, e.anchorY, areaW.value, areaH.value);
+      if (!engaged.value) return;
+      const a = { x: e.anchorX - originX.value, y: e.anchorY - originY.value };
       const t = rotateAbout({ x: tx.value, y: ty.value }, a, e.rotationChange);
       tx.value = t.x;
       ty.value = t.y;
       rotation.value += e.rotationChange;
+      moved.value = true;
     },
     onDeactivate: () => {
       'worklet';
+      if (!engaged.value) return;
       const snapped = snapAngle(rotation.value, transformLimits.snapAngleDeg);
       if (snapped !== null) {
         rotation.value = reduceMotion
@@ -165,8 +203,9 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
   const doubleTap = useTapGesture({
     enabled,
     numberOfTaps: 2,
-    onActivate: () => {
+    onActivate: (e) => {
       'worklet';
+      if (hitTest && !hitTest(e.x, e.y, current())) return;
       resetTo(initial);
     },
   });
@@ -177,7 +216,7 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
   // chỉ kích hoạt khi ngón tay di chuyển, nên hai cử chỉ không giẫm lên nhau.
   const gesture = useSimultaneousGestures(pan, pinch, rotate, doubleTap);
 
-  /** Style cho overlay (đặt overlay ở tâm vùng nhận). */
+  /** Style cho vật (đặt vật sao cho tâm-lúc-nghỉ trùng `origin`). */
   const style = useAnimatedStyle(() => ({
     transform: [
       { translateX: tx.value },
@@ -187,10 +226,11 @@ export function useTransformGesture({ enabled, initial = IDENTITY, onEnd, onSnap
     ],
   }));
 
-  const setArea = (w: number, h: number) => {
-    areaW.value = w;
-    areaH.value = h;
+  /** Cỡ vùng nhận và tâm-lúc-nghỉ của vật trong vùng đó (mặc định giữa vùng). */
+  const setArea = (w: number, h: number, ox = w / 2, oy = h / 2) => {
+    originX.value = ox;
+    originY.value = oy;
   };
 
-  return { gesture, style, tx, ty, scale, rotation, setArea };
+  return { gesture, style, tx, ty, scale, rotation, setArea, engaged, moved, fingerX, fingerY };
 }

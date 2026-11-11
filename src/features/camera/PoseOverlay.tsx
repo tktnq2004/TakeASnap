@@ -26,7 +26,8 @@ type Props = {
   opacity: number;
   mirrored: boolean;
   hidden: boolean;
-  editMode: boolean;
+  /** Hiện khung bao 1 px khi đang kéo/pinch/xoay (design.md §6.2). */
+  showBox: SharedValue<boolean>;
 };
 
 /**
@@ -47,7 +48,11 @@ export function PoseOverlay(p: Props) {
   const fadeStyle = useAnimatedStyle(() => ({
     opacity: withTiming(visible, { duration: motion.in, easing: ease }),
   }));
-  const boxStyle = useAnimatedStyle(() => ({ borderWidth: 1 / scale.get() }));
+  const { showBox } = p;
+  const boxStyle = useAnimatedStyle(() => ({
+    borderWidth: 1 / scale.get(),
+    opacity: withTiming(showBox.get() ? 1 : 0, { duration: motion.in, easing: ease }),
+  }));
 
   return (
     <Animated.View
@@ -78,11 +83,9 @@ export function PoseOverlay(p: Props) {
           faceWidth={faceWidth}
         />
       </Animated.View>
-      {p.editMode && (
-        <View style={[styles.abs, styles.center, { width: p.width, height: p.height }]}>
-          <Animated.View style={[{ width: box.width, height: box.height }, styles.box, boxStyle]} />
-        </View>
-      )}
+      <View style={[styles.abs, styles.center, { width: p.width, height: p.height }]}>
+        <Animated.View style={[{ width: box.width, height: box.height }, styles.box, boxStyle]} />
+      </View>
     </Animated.View>
   );
 }

@@ -280,7 +280,6 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 | Nút chụp (a11y) | Chụp ảnh |
 | Nút pose (a11y) | Mở thư viện pose |
 | Chế độ dưới nút chụp | Chụp theo pose · Thay nền |
-| Thoát chế độ chỉnh overlay | Xong |
 | Vùng xóa | Thả để gỡ pose |
 | Thêm pose | Thêm ảnh từ máy |
 | Thao tác trên pose | Dùng để chụp · Sửa · Xóa |
@@ -325,26 +324,29 @@ Khung vẽ cho máy 390×844. `·` là vùng ảnh / khung ngắm. Ký hiệu tr
 - Thanh trên và vùng dưới nằm trên nền `bg` đặc (ngoài vùng ảnh sẽ lưu). Ở tỉ lệ 9:16, khi khung ngắm tràn ra sau thanh điều khiển, nút icon có đĩa `scrim`.
 - Nút pose hiện **thumbnail của pose đang dùng**, viền 2 px `accent` khi pose đang bật.
 
-### 6.2 Camera — chế độ chỉnh overlay
+### 6.2 Camera — đang kéo pose
+
+Không còn chế độ chỉnh riêng: chạm vào pose là kéo được ngay, nhấc tay là xong (góp ý Phase 2).
 
 ```
 ┌──────────────────────────────────┐
-│                          ( Xong )│  chỉ còn nút Xong (secondary)
+│ [⚡] [#] [📏] [⏱] [3:4]     [⚙] │  thanh trên giữ nguyên
 ├──────────────────────────────────┤
 │··································│
-│········  ╭──╮   ·················│  overlay có khung bao 1 px ink 40%
-│········  │  │   ·················│  cử chỉ nhận trên TOÀN khung ngắm
+│········  ╭──╮   ·················│  overlay có khung bao 1 px ink 40% trong lúc kéo
+│········  │  │   ·················│  pose nằm trên cả vùng nền đặc ngoài khung
 │········ ╭┴──┴╮  ·················│
 │········ ╰┬──┬╯  ·················│
 │··································│
 ├──────────────────────────────────┤
-│                                  │
-│             ( 🗑 )               │  vùng xóa 64, đĩa line;
-│         Thả để gỡ pose           │  khi overlay vào: viền danger + rung
+│                                  │  rail và điều khiển dưới mờ đi
+│             ( 🗑 )               │  vùng xóa 64; ngón tay vào: viền danger, phóng 1.15,
+│         Thả để gỡ pose           │  rung; overlay mờ và thu nhỏ về thùng rác
 └──────────────────────────────────┘
 ```
 
-### 6.3 Thư viện pose (sheet, cao 88%)
+### 6.3 Thư viện pose (modal)
+
 
 ```
 ┌──────────────────────────────────┐

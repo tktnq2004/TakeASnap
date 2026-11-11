@@ -13,6 +13,8 @@ type Props = {
   cameraRef: Ref<CameraView>;
   facing: CameraType;
   flash: FlashMode;
+  /** Đèn bật (dùng cho Flash bật lúc chụp). */
+  torch: boolean;
   /** Hệ số zoom 1×…max trên UI thread (pinch và chip zoom ghi vào đây). */
   factor: SharedValue<number>;
   /** Tăng mỗi khi pinch kết thúc: luôn gửi giá trị cuối, kể cả khi đang trong khoảng chờ. */
@@ -33,6 +35,7 @@ export const CameraLayer = memo(function CameraLayer({
   cameraRef,
   facing,
   flash,
+  torch,
   factor,
   settle,
   lens,
@@ -65,6 +68,7 @@ export const CameraLayer = memo(function CameraLayer({
       style={StyleSheet.absoluteFill}
       facing={facing}
       flash={flash}
+      enableTorch={torch}
       zoom={zoom}
       ratio="4:3"
       selectedLens={lens}

@@ -7,7 +7,6 @@ import {
   FlipHorizontal2,
   Grid3x3,
   type LucideIcon,
-  Move,
   PersonStanding,
   Ruler,
   Settings,
@@ -32,12 +31,12 @@ import {
   GestureDetector,
   usePinchGesture,
   useSimultaneousGestures,
-  useTapGesture,
 } from 'react-native-gesture-handler';
 import Animated, {
   type SharedValue,
   useAnimatedReaction,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withSequence,
   withTiming,
@@ -58,6 +57,7 @@ import { ASPECTS, type Rect, viewfinderRect } from '@/features/camera/frame';
 import { FrameGrid, LevelGuide } from '@/features/camera/FrameGuides';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
 import { PoseOverlay } from '@/features/camera/PoseOverlay';
+import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor } from '@/features/camera/zoom';
 import { type ZoomChip, ZoomChips } from '@/features/camera/ZoomChips';
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
@@ -73,6 +73,8 @@ import { cameraUi, cameraZoom, color, motion, radius, size, space, type } from '
 const ULTRA_WIDE = 'AVCaptureDeviceTypeBuiltInUltraWideCamera';
 const WIDE = 'AVCaptureDeviceTypeBuiltInWideAngleCamera';
 const IDENTITY: Placement = { x: 0, y: 0, scale: 1, rotation: 0 };
+
+const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Camera — màn đầu tiên của app (business-flow §3, §4; design.md §6.1–6.2). */
 export default function CameraScreen() {
@@ -114,7 +116,7 @@ function CameraBody() {
   const [lenses, setLenses] = useState<string[]>([]);
   const [ultraWide, setUltraWide] = useState(false);
   const [ready, setReady] = useState(false);
-  const [editMode, setEditMode] = useState(false);
+  const [torch, setTorch] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [pose, setPose] = useState<Pose | null>(null);
   const [busy, setBusy] = useState(false);
@@ -126,8 +128,14 @@ function CameraBody() {
   const topH = insets.top + space[2] + size.iconButton + space[2];
   const bottomH = insets.bottom + space[4] + size.shutter + space[4] + size.chip + space[3];
   const frame: Rect = viewfinderRect(root.width, root.height, topH, bottomH, ASPECTS[aspect]);
+  const frameCx = frame.x + frame.width / 2;
+  const frameCy = frame.y + frame.height / 2;
   const overTop = frame.y < topH;
   const overBottom = frame.y + frame.height > root.height - bottomH;
+  // Tâm vùng xóa (design.md §6.2: giữa vùng dưới, trên dòng chữ "Thả để gỡ pose").
+  const trashX = root.width / 2;
+  const trashY =
+    root.height - insets.bottom - space[4] - type.label.lineHeight - space[2] - cameraUi.trash / 2;
 
   // ---- Pose đang dùng: đọc lại mỗi lần quay về Camera (có thể vừa sửa hoặc xóa) ----
   const loadPose = useCallback(() => {
@@ -145,13 +153,104 @@ function CameraBody() {
   }, [db, poseId]);
   useFocusEffect(loadPose);
 
-  // ---- Zoom camera: chỉ ở chế độ chụp (BR-11) ----
+  // ---- Overlay: chạm trúng pose là kéo/pinch/xoay ngay, nhấc tay là xong (góp ý Phase 2) ----
+  const hitW = useSharedValue(0);
+  const hitH = useSharedValue(0);
+  const inTrash = useSharedValue(false);
+  const vanish = useSharedValue(0);
+
+  const hitTest = (x: number, y: number, p: Placement) => {
+    'worklet';
+    if (hitW.get() <= 0) return false;
+    return hitOverlay(x - frameCx, y - frameCy, p, hitW.get(), hitH.get(), space[3]);
+  };
+
+  const finishRemove = () => {
+    if (poseId) clearPlacement(poseId);
+    store().clearPose();
+    inTrash.set(false);
+  };
+
+  const onPlacementEnd = (p: Placement) => {
+    if (inTrash.get()) {
+      // Thả trong vùng xóa: mờ hẳn rồi mới gỡ.
+      haptic.capture();
+      vanish.set(
+        withTiming(1, { duration: motion.out, easing: ease }, (done) => {
+          if (done) scheduleOnRN(finishRemove);
+        }),
+      );
+      return;
+    }
+    if (poseId) savePlacement(poseId, p, frame.height);
+  };
+
+  const overlay = useTransformGesture({
+    enabled: pose != null,
+    onEnd: onPlacementEnd,
+    onSnap: haptic.snap,
+    hitTest,
+  });
+  const { tx, ty, scale, rotation, setArea, engaged, moved, fingerX, fingerY } = overlay;
+
+  // Vùng nhận là cả màn hình; tâm-lúc-nghỉ của pose là tâm khung ngắm.
+  useEffect(() => {
+    setArea(root.width, root.height, frameCx, frameCy);
+  }, [root.width, root.height, frameCx, frameCy, setArea]);
+
+  // Đặt overlay về placement đã nhớ khi đổi pose (hoặc khi khung đổi cỡ).
+  useEffect(() => {
+    if (!pose || frame.height <= 0) return;
+    const p = loadPlacement(pose.id, frame.height) ?? IDENTITY;
+    tx.set(p.x);
+    ty.set(p.y);
+    scale.set(p.scale);
+    rotation.set(p.rotation);
+    vanish.set(0);
+  }, [pose, frame.height, tx, ty, scale, rotation, vanish]);
+
+  useEffect(() => {
+    const box = pose
+      ? containSize(pose.width, pose.height, frame.width, frame.height)
+      : { width: 0, height: 0 };
+    hitW.set(box.width);
+    hitH.set(box.height);
+  }, [pose, frame.width, frame.height, hitW, hitH]);
+
+  // Vùng xóa ăn theo NGÓN TAY: ngón vào vòng tròn mới đỏ và rung (một lần mỗi lần vào).
+  // Nhấc tay giữ nguyên trạng thái để onPlacementEnd đọc được.
+  useAnimatedReaction(
+    () =>
+      moved.get()
+        ? Math.hypot(fingerX.get() - trashX, fingerY.get() - trashY) < cameraUi.trashRadius
+        : null,
+    (now) => {
+      if (now === null || now === inTrash.get()) return;
+      inTrash.set(now);
+      if (now) scheduleOnRN(haptic.enterTrash);
+    },
+  );
+
+  // Khi ở vùng xóa: overlay mờ đi và thu nhỏ về phía thùng rác.
+  const trashP = useDerivedValue(() =>
+    withTiming(inTrash.get() ? 1 : 0, { duration: motion.in, easing: ease }),
+  );
+  const trashStyle = useAnimatedStyle(() =>
+    trashTransform(
+      trashP.get(),
+      vanish.get(),
+      { x: tx.get(), y: ty.get() },
+      { x: trashX - frameCx, y: trashY - frameCy },
+    ),
+  );
+
+  // ---- Zoom camera: chỉ khi lượt chạm không bắt đầu trên pose (BR-11) ----
   const factor = useSharedValue(1);
   const settle = useSharedValue(0);
   const camPinch = usePinchGesture({
-    enabled: !editMode,
     onUpdate: (e) => {
       'worklet';
+      if (engaged.get()) return;
       factor.set(nextZoomFactor(factor.get(), e.scaleChange, cameraZoom.maxFactor));
     },
     onFinalize: () => {
@@ -159,6 +258,7 @@ function CameraBody() {
       settle.set(settle.get() + 1);
     },
   });
+  const gesture = useSimultaneousGestures(camPinch, overlay.gesture);
 
   const selectZoom = (chip: ZoomChip) => {
     setUltraWide(chip === '0.5');
@@ -183,100 +283,14 @@ function CameraBody() {
     settle.set(settle.get() + 1);
   };
 
-  // ---- Overlay: kéo/pinch/xoay ở chế độ chỉnh, nhớ placement theo pose (BR-10) ----
-  const inTrash = useSharedValue(false);
-  const trashDy = useSharedValue(0);
-  const hitW = useSharedValue(0);
-  const hitH = useSharedValue(0);
-
-  const removePose = () => {
-    if (poseId) clearPlacement(poseId);
-    store().clearPose();
-    setEditMode(false);
-  };
-
-  const onPlacementEnd = (p: Placement) => {
-    if (inTrash.get()) {
-      inTrash.set(false);
-      removePose();
-      return;
-    }
-    if (poseId) savePlacement(poseId, p, frame.height);
-  };
-
-  const overlay = useTransformGesture({
-    enabled: editMode,
-    onEnd: onPlacementEnd,
-    onSnap: haptic.snap,
-  });
-  const { tx, ty, scale, rotation, setArea } = overlay;
-
-  useEffect(() => {
-    setArea(frame.width, frame.height);
-  }, [frame.width, frame.height, setArea]);
-
-  // Đặt overlay về placement đã nhớ khi đổi pose (hoặc khi khung đổi cỡ).
-  useEffect(() => {
-    if (!pose || frame.height <= 0) return;
-    const p = loadPlacement(pose.id, frame.height) ?? IDENTITY;
-    tx.set(p.x);
-    ty.set(p.y);
-    scale.set(p.scale);
-    rotation.set(p.rotation);
-  }, [pose, frame.height, tx, ty, scale, rotation]);
-
-  useEffect(() => {
-    if (!pose) return;
-    const box = containSize(pose.width, pose.height, frame.width, frame.height);
-    hitW.set(box.width);
-    hitH.set(box.height);
-  }, [pose, frame.width, frame.height, hitW, hitH]);
-
-  // Tâm vùng xóa tính từ tâm khung ngắm (design.md §6.2: vùng xóa ở giữa vùng dưới).
-  const trashCenterY =
-    root.height - insets.bottom - space[4] - type.label.lineHeight - space[2] - cameraUi.trash / 2;
-  useEffect(() => {
-    trashDy.set(trashCenterY - (frame.y + frame.height / 2));
-  }, [trashCenterY, frame.y, frame.height, trashDy]);
-
-  const editing = useSharedValue(false);
-  useEffect(() => {
-    editing.set(editMode);
-  }, [editMode, editing]);
-
-  useAnimatedReaction(
-    () =>
-      editing.get() &&
-      Math.hypot(tx.get(), ty.get() - trashDy.get()) < cameraUi.trashRadius,
-    (now, prev) => {
-      inTrash.set(now);
-      if (now && prev === false) scheduleOnRN(haptic.enterTrash);
-    },
-  );
-
-  // Chạm 1 lần: trúng overlay → vào chế độ chỉnh; ở chế độ chỉnh chạm ra ngoài → thoát.
-  const onTap = (hit: boolean) => {
-    if (!pose) return;
-    if (!editMode && hit) setEditMode(true);
-    else if (editMode && !hit) setEditMode(false);
-  };
-  const tap = useTapGesture({
-    numberOfTaps: 1,
-    onActivate: (e) => {
-      'worklet';
-      const hit = hitOverlay(
-        e.x - frame.width / 2,
-        e.y - frame.height / 2,
-        { x: tx.get(), y: ty.get(), scale: scale.get(), rotation: rotation.get() },
-        hitW.get(),
-        hitH.get(),
-        space[3],
-      );
-      scheduleOnRN(onTap, hit);
-    },
-  });
-
-  const gesture = useSimultaneousGestures(camPinch, overlay.gesture, tap);
+  // Đang kéo pose: ẩn điều khiển dưới, hiện vùng xóa.
+  const dragging = useDerivedValue(() => moved.get() || inTrash.get());
+  const controlsStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(dragging.get() ? 0 : 1, { duration: motion.in, easing: ease }),
+  }));
+  const trashZoneStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(dragging.get() ? 1 : 0, { duration: motion.in, easing: ease }),
+  }));
 
   // ---- Chụp ----
   const flashOpacity = useSharedValue(0);
@@ -306,21 +320,29 @@ function CameraBody() {
     const cam = cameraRef.current;
     if (!cam || busy) return;
     setBusy(true);
-    haptic.capture();
-    flashOpacity.set(
-      withSequence(
-        withTiming(0.7, { duration: cameraUi.shutterFlashMs / 2, easing: ease }),
-        withTiming(0, { duration: cameraUi.shutterFlashMs * 2, easing: ease }),
-      ),
-    );
     try {
+      // Flash bật: flash gốc chế độ 'on' không nháy trên iPhone (Expo Go 58, góp ý Phase 2), nên
+      // bật đèn trong lúc chụp, chờ camera chỉnh sáng rồi mới chụp. Flash tự động vẫn dùng gốc.
+      if (flash === 'on') {
+        setTorch(true);
+        await wait(cameraUi.torchWarmMs);
+      }
+      haptic.capture();
+      flashOpacity.set(
+        withSequence(
+          withTiming(0.7, { duration: cameraUi.shutterFlashMs / 2, easing: ease }),
+          withTiming(0, { duration: cameraUi.shutterFlashMs * 2, easing: ease }),
+        ),
+      );
       const pic = await cam.takePictureAsync({ quality: 1, shutterSound: true });
+      setTorch(false);
       const out = await cropToFrame(pic, frame, root);
       setLastPhoto(out.uri);
       await save(out.uri);
     } catch {
       Alert.alert(t.errors.saveFailed);
     } finally {
+      setTorch(false);
       setBusy(false);
     }
   };
@@ -370,6 +392,7 @@ function CameraBody() {
   const gridLabel =
     grid === 'off' ? t.camera.gridOff : grid === '3' ? t.camera.grid3 : t.camera.grid4;
   const timerLabel = timer === 0 ? t.camera.timerOff : t.camera.timerSec(timer);
+  const frameBox = { left: frame.x, top: frame.y, width: frame.width, height: frame.height };
 
   return (
     <View
@@ -382,7 +405,8 @@ function CameraBody() {
       <CameraLayer
         cameraRef={cameraRef}
         facing={facing}
-        flash={flash}
+        flash={flash === 'on' ? 'off' : flash}
+        torch={torch}
         factor={factor}
         settle={settle}
         lens={lens}
@@ -396,119 +420,102 @@ function CameraBody() {
           <FrameGrid frame={frame} mode={grid} />
           {levelOn && <LevelGuide frame={frame} />}
 
+          {/* Vùng nhận cử chỉ phủ cả màn hình, nằm dưới các nút. Pose là lớp trên cùng của
+              ảnh (trên cả vùng xám ngoài khung) nhưng dưới thanh điều khiển (góp ý Phase 2). */}
           <GestureDetector gesture={gesture}>
-            <View
-              collapsable={false}
-              style={[
-                styles.abs,
-                { left: frame.x, top: frame.y, width: frame.width, height: frame.height },
-                !editMode && styles.clip,
-              ]}
-            >
+            <View collapsable={false} style={StyleSheet.absoluteFill}>
               {pose && (
-                <PoseOverlay
-                  pose={pose}
-                  width={frame.width}
-                  height={frame.height}
-                  transform={overlay.style}
-                  scale={scale}
-                  opacity={OVERLAY_OPACITY[opacityLevel]}
-                  mirrored={mirrored}
-                  hidden={hidden}
-                  editMode={editMode}
-                />
-              )}
-              {countdown != null && (
-                <View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.center]}>
-                  <Text style={styles.countdown} accessibilityLiveRegion="assertive">
-                    {countdown}
-                  </Text>
-                </View>
+                <Animated.View pointerEvents="none" style={[styles.abs, frameBox, trashStyle]}>
+                  <PoseOverlay
+                    pose={pose}
+                    width={frame.width}
+                    height={frame.height}
+                    transform={overlay.style}
+                    scale={scale}
+                    opacity={OVERLAY_OPACITY[opacityLevel]}
+                    mirrored={mirrored}
+                    hidden={hidden}
+                    showBox={moved}
+                  />
+                </Animated.View>
               )}
             </View>
           </GestureDetector>
 
           <Animated.View
             pointerEvents="none"
-            style={[
-              styles.abs,
-              styles.shutterFlash,
-              { left: frame.x, top: frame.y, width: frame.width, height: frame.height },
-              flashStyle,
-            ]}
+            style={[styles.abs, styles.shutterFlash, frameBox, flashStyle]}
           />
+          {countdown != null && (
+            <View pointerEvents="none" style={[styles.abs, styles.center, frameBox]}>
+              <Text style={styles.countdown} accessibilityLiveRegion="assertive">
+                {countdown}
+              </Text>
+            </View>
+          )}
         </>
       )}
 
-      {/* Thanh trên (design.md §6.1). Chế độ chỉnh chỉ còn nút Xong (§6.2). */}
+      {/* Thanh trên (design.md §6.1). */}
       <View style={[styles.top, { paddingTop: insets.top + space[2] }]} pointerEvents="box-none">
-        {editMode ? (
-          <>
-            <View />
-            <Button label={t.common.done} variant="secondary" onPress={() => setEditMode(false)} />
-          </>
-        ) : (
-          <>
-            <View style={styles.row}>
-              <BarButton
-                icon={flashIcon}
-                label={flashLabel}
-                onPress={store().cycleFlash}
-                active={flash !== 'off'}
-                badge={flash === 'auto' ? 'A' : undefined}
-                onScrim={overTop}
-              />
-              <BarButton
-                icon={Grid3x3}
-                label={gridLabel}
-                onPress={store().cycleGrid}
-                active={grid !== 'off'}
-                badge={grid === 'off' ? undefined : grid}
-                onScrim={overTop}
-              />
-              <BarButton
-                icon={Ruler}
-                label={levelOn ? t.camera.levelOn : t.camera.levelOff}
-                onPress={store().toggleLevel}
-                active={levelOn}
-                onScrim={overTop}
-              />
-              <BarButton
-                icon={Timer}
-                label={timerLabel}
-                onPress={store().cycleTimer}
-                active={timer > 0}
-                badge={timer > 0 ? String(timer) : undefined}
-                onScrim={overTop}
-              />
-              <BarButton
-                label={t.camera.aspect(aspect)}
-                onPress={store().cycleAspect}
-                onScrim={overTop}
-                wide
-              >
-                <Text style={[type.num, styles.ink]}>{aspect}</Text>
-              </BarButton>
-            </View>
-            <BarButton
-              icon={Settings}
-              label={t.camera.openSpikes}
-              onPress={() => router.push('/spike')}
-              onScrim={overTop}
-            />
-          </>
-        )}
+        <View style={styles.row}>
+          <BarButton
+            icon={flashIcon}
+            label={flashLabel}
+            onPress={store().cycleFlash}
+            active={flash !== 'off'}
+            badge={flash === 'auto' ? 'A' : undefined}
+            onScrim={overTop}
+          />
+          <BarButton
+            icon={Grid3x3}
+            label={gridLabel}
+            onPress={store().cycleGrid}
+            active={grid !== 'off'}
+            badge={grid === 'off' ? undefined : grid}
+            onScrim={overTop}
+          />
+          <BarButton
+            icon={Ruler}
+            label={levelOn ? t.camera.levelOn : t.camera.levelOff}
+            onPress={store().toggleLevel}
+            active={levelOn}
+            onScrim={overTop}
+          />
+          <BarButton
+            icon={Timer}
+            label={timerLabel}
+            onPress={store().cycleTimer}
+            active={timer > 0}
+            badge={timer > 0 ? String(timer) : undefined}
+            onScrim={overTop}
+          />
+          <BarButton
+            label={t.camera.aspect(aspect)}
+            onPress={store().cycleAspect}
+            onScrim={overTop}
+            wide
+          >
+            <Text style={[type.num, styles.ink]}>{aspect}</Text>
+          </BarButton>
+        </View>
+        <BarButton
+          icon={Settings}
+          label={t.camera.openSpikes}
+          onPress={() => router.push('/spike')}
+          onScrim={overTop}
+        />
       </View>
 
       {/* Rail điều khiển nhanh cho overlay (business-flow §4.4), chỉ khi có pose. */}
-      {pose && !editMode && root.height > 0 && (
-        <View
+      {pose && root.height > 0 && (
+        <Animated.View
           style={[
             styles.rail,
             {
-              top:
-                Math.min(frame.y + frame.height, root.height - bottomH) - railHeight - space[3],
+              top: Math.min(frame.y + frame.height, root.height - bottomH) - railHeight - space[3],
             },
+            controlsStyle,
           ]}
         >
           <BarButton
@@ -533,73 +540,69 @@ function CameraBody() {
             active={hidden}
             onScrim
           />
-          <BarButton
-            icon={Move}
-            label={t.camera.editPose}
-            onPress={() => setEditMode(true)}
-            onScrim
-          />
-        </View>
+        </Animated.View>
       )}
 
+      {/* Vùng xóa: chỉ hiện khi đang kéo pose. */}
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.trashZone, { bottom: insets.bottom + space[4] }, trashZoneStyle]}
+      >
+        <TrashZone inTrash={inTrash} />
+      </Animated.View>
+
       {/* Vùng dưới. */}
-      <View
-        style={[styles.bottom, { paddingBottom: insets.bottom + space[4] }]}
+      <Animated.View
+        style={[styles.bottom, { paddingBottom: insets.bottom + space[4] }, controlsStyle]}
         pointerEvents="box-none"
       >
-        {editMode ? (
-          <TrashZone inTrash={inTrash} />
-        ) : (
-          <>
-            <ZoomChips
-              factor={factor}
-              ultraWideActive={ultraWide && hasUltraWide}
-              hasUltraWide={hasUltraWide}
-              onSelect={selectZoom}
-            />
-            <View style={styles.shutterRow}>
-              <View style={styles.side}>
-                <View
-                  style={[styles.thumb, overBottom && styles.thumbScrim]}
-                  accessible
-                  accessibilityLabel={t.camera.lastPhoto}
-                >
-                  {busy ? (
-                    <ActivityIndicator size="small" color={color.ink} />
-                  ) : lastPhoto ? (
-                    <Image source={{ uri: lastPhoto }} style={styles.thumbImage} />
-                  ) : null}
-                </View>
-              </View>
-
-              <PressableScale
-                accessibilityRole="button"
-                accessibilityLabel={countdown != null ? t.camera.cancelTimer : t.camera.capture}
-                accessibilityState={{ disabled: !ready || busy }}
-                onPress={onShutter}
-                style={styles.shutter}
-              >
-                <View style={[styles.shutterInner, countdown != null && styles.shutterCounting]} />
-              </PressableScale>
-
-              <View style={[styles.side, styles.sideRight]}>
-                <PoseButton pose={pose} onPress={() => router.push('/library')} />
-                <BarButton
-                  icon={SwitchCamera}
-                  label={t.camera.switchCamera}
-                  onPress={switchCamera}
-                  onScrim={overBottom}
-                />
-              </View>
+        <ZoomChips
+          factor={factor}
+          ultraWideActive={ultraWide && hasUltraWide}
+          hasUltraWide={hasUltraWide}
+          onSelect={selectZoom}
+        />
+        <View style={styles.shutterRow}>
+          <View style={styles.side}>
+            <View
+              style={[styles.thumb, overBottom && styles.thumbScrim]}
+              accessible
+              accessibilityLabel={t.camera.lastPhoto}
+            >
+              {busy ? (
+                <ActivityIndicator size="small" color={color.ink} />
+              ) : lastPhoto ? (
+                <Image source={{ uri: lastPhoto }} style={styles.thumbImage} />
+              ) : null}
             </View>
-          </>
-        )}
-      </View>
+          </View>
+
+          <PressableScale
+            accessibilityRole="button"
+            accessibilityLabel={countdown != null ? t.camera.cancelTimer : t.camera.capture}
+            accessibilityState={{ disabled: !ready || busy }}
+            onPress={onShutter}
+            style={styles.shutter}
+          >
+            <View style={[styles.shutterInner, countdown != null && styles.shutterCounting]} />
+          </PressableScale>
+
+          <View style={[styles.side, styles.sideRight]}>
+            <PoseButton pose={pose} onPress={() => router.push('/library')} />
+            <BarButton
+              icon={SwitchCamera}
+              label={t.camera.switchCamera}
+              onPress={switchCamera}
+              onScrim={overBottom}
+            />
+          </View>
+        </View>
+      </Animated.View>
     </View>
   );
 }
 
-const railHeight = size.iconButton * 4 + space[2] * 3;
+const railHeight = size.iconButton * 3 + space[2] * 2;
 
 /** Phần ngoài khung ngắm phủ nền đặc: ảnh lưu chỉ là phần trong khung (BR-02). */
 function FrameMask({ frame, root }: { frame: Rect; root: { width: number; height: number } }) {
@@ -607,9 +610,7 @@ function FrameMask({ frame, root }: { frame: Rect; root: { width: number; height
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <View style={[styles.mask, { top: 0, left: 0, right: 0, height: Math.max(0, frame.y) }]} />
-      <View
-        style={[styles.mask, { top: below, left: 0, right: 0, height: root.height - below }]}
-      />
+      <View style={[styles.mask, { top: below, left: 0, right: 0, height: root.height - below }]} />
       {frame.x > 0 && (
         <>
           <View
@@ -708,16 +709,18 @@ function PoseButton({ pose, onPress }: { pose: Pose | null; onPress: () => void 
   );
 }
 
-/** Vùng xóa (design.md §6.2): đổi viền danger khi overlay vào. */
+/** Vùng xóa (design.md §6.2): ngón tay vào thì viền danger và phóng nhẹ. */
 function TrashZone({ inTrash }: { inTrash: SharedValue<boolean> }) {
-  const ringStyle = useAnimatedStyle(() => ({
-    borderColor: withTiming(inTrash.get() ? color.danger : color.line, {
-      duration: motion.in,
-      easing: ease,
-    }),
-  }));
+  const ringStyle = useAnimatedStyle(() => {
+    const on = inTrash.get();
+    const cfg = { duration: motion.in, easing: ease };
+    return {
+      borderColor: withTiming(on ? color.danger : color.line, cfg),
+      transform: [{ scale: withTiming(on ? cameraUi.trashActiveScale : 1, cfg) }],
+    };
+  });
   return (
-    <View style={styles.trashWrap} pointerEvents="none">
+    <View style={styles.trashWrap}>
       <Animated.View style={[styles.trash, ringStyle]}>
         <Trash2 size={size.icon} strokeWidth={1.75} color={color.ink} />
       </Animated.View>
@@ -729,7 +732,6 @@ function TrashZone({ inTrash }: { inTrash: SharedValue<boolean> }) {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg },
   abs: { position: 'absolute' },
-  clip: { overflow: 'hidden' },
   center: { alignItems: 'center', justifyContent: 'center' },
   ink: { color: color.ink },
   mask: { position: 'absolute', backgroundColor: color.bg },
@@ -772,6 +774,9 @@ const styles = StyleSheet.create({
     gap: space[4],
   },
   shutterRow: { flexDirection: 'row', alignItems: 'center' },
+  // Hai bên cùng flex 1 để nút chụp luôn ở chính giữa.
+  side: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+  sideRight: { justifyContent: 'flex-end', gap: space[2] },
   thumb: {
     width: size.thumb,
     height: size.thumb,
@@ -785,9 +790,6 @@ const styles = StyleSheet.create({
   thumbScrim: { backgroundColor: color.scrim },
   thumbImage: { width: size.thumb, height: size.thumb },
   poseOn: { borderWidth: 2, borderColor: color.accent },
-  // Hai bên cùng flex 1 để nút chụp luôn ở chính giữa.
-  side: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  sideRight: { justifyContent: 'flex-end', gap: space[2] },
   shutter: {
     width: size.shutter,
     height: size.shutter,
@@ -810,7 +812,8 @@ const styles = StyleSheet.create({
     lineHeight: cameraUi.countdownSize * 1.1,
     color: color.ink,
   },
-  trashWrap: { alignItems: 'center', gap: space[2], paddingTop: space[4] },
+  trashZone: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  trashWrap: { alignItems: 'center', gap: space[2] },
   trash: {
     width: cameraUi.trash,
     height: cameraUi.trash,

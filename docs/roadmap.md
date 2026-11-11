@@ -346,6 +346,8 @@ docs/
 
 **Trạng thái:** đã viết code (Camera là màn đầu, Thư viện mở dạng sheet, màn spike chuyển sang `/spike` qua nút cài đặt). Typecheck, lint, 70 unit test và bundle iOS + Android đều qua. **Chưa chạy ma trận cử chỉ trên máy thật**, nên các ô dưới chưa đánh dấu. Chưa làm: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (để Phase 4). Chữ "2×" của chip zoom vẫn là ước lượng (`cameraZoom.maxFactor`).
 
+**Góp ý lần 1 (iPhone):** flash "bật" không nháy → dùng đèn trong lúc chụp; thư viện formSheet vỡ bố cục → modal; bỏ chế độ chỉnh riêng: chạm vào pose là kéo ngay, vùng nhận cử chỉ cả màn hình; vùng xóa ăn theo ngón tay, có hiệu ứng mờ và thu nhỏ về thùng rác.
+
 - [ ] `expo-camera`: đổi camera, flash gốc 3 chế độ, tỉ lệ 3:4 / 9:16 / 1:1, chip zoom + pinch, hẹn giờ
 - [ ] Lưới 3×3 / 4×4, thước cân bằng (accelerometer → shared value)
 - [ ] Overlay Skia + `useTransformGesture`, hai chế độ chụp / chỉnh
@@ -361,9 +363,10 @@ docs/
 | Pinch 2 lần liên tiếp | Lần 2 bắt đầu từ cỡ của lần 1 |
 | Xoay 2 lần liên tiếp | Lần 2 bắt đầu từ góc của lần 1 |
 | Pinch và xoay cùng lúc | Cả hai cùng chạy, không giật |
-| Pinch ở chế độ chụp | Chỉ zoom camera, overlay đứng yên |
-| Pinch ở chế độ chỉnh | Chỉ đổi overlay, zoom đứng yên |
-| Kéo vào vùng xóa | Rung một lần, thả thì gỡ overlay |
+| Pinch bắt đầu ngoài pose | Chỉ zoom camera, overlay đứng yên |
+| Pinch bắt đầu trên pose | Chỉ đổi overlay, zoom đứng yên |
+| Kéo pose, ngón tay vào vùng xóa | Rung một lần, overlay mờ và thu về thùng rác; thả thì gỡ, kéo ra thì trở lại |
+| Kéo pose ra ngoài khung | Vẫn kéo tiếp được, pose nằm trên vùng nền đặc |
 | Ảnh lưu so với khung | Mép ảnh trùng mép khung, sai số dưới 1% |
 
 ### Phase 3 — Thư viện pose và Sửa nét (1–2 tuần)
