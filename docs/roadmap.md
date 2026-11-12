@@ -344,11 +344,13 @@ docs/
 
 ### Phase 2 — Camera và overlay (2–3 tuần)
 
-**Trạng thái:** đã viết code (Camera là màn đầu, Thư viện mở dạng sheet, màn spike chuyển sang `/spike` qua nút cài đặt). Typecheck, lint, 70 unit test và bundle iOS + Android đều qua. **Chưa chạy ma trận cử chỉ trên máy thật**, nên các ô dưới chưa đánh dấu. Chưa làm: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (để Phase 4). Chữ "2×" của chip zoom vẫn là ước lượng (`cameraZoom.maxFactor`).
+**Trạng thái:** đã viết code (Camera là màn đầu, Thư viện mở dạng sheet, màn spike chuyển sang `/spike` qua nút cài đặt). Typecheck, lint, 70 unit test và bundle iOS + Android đều qua. **Chưa chạy ma trận cử chỉ trên máy thật**, nên các ô dưới chưa đánh dấu. Chưa làm: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (để Phase 4). Số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`).
 
 **Góp ý lần 1 (iPhone):** flash "bật" không nháy → dùng đèn trong lúc chụp; thư viện formSheet vỡ bố cục → modal; bỏ chế độ chỉnh riêng: chạm vào pose là kéo ngay, vùng nhận cử chỉ cả màn hình; vùng xóa ăn theo ngón tay, có hiệu ứng mờ và thu nhỏ về thùng rác.
 
-- [ ] `expo-camera`: đổi camera, flash gốc 3 chế độ, tỉ lệ 3:4 / 9:16 / 1:1, chip zoom + pinch, hẹn giờ
+**Góp ý lần 2:** flash về lại flash gốc (lần 1 là nhầm lẫn khi thử); hiệu ứng xóa chậm và nhẹ hơn; thay chip zoom bằng thanh kéo 0,5×–5× bước 0,1, vì pinch trên pose giờ chỉnh pose.
+
+- [ ] `expo-camera`: đổi camera, flash gốc 3 chế độ, tỉ lệ 3:4 / 9:16 / 1:1, thanh kéo zoom + pinch, hẹn giờ
 - [ ] Lưới 3×3 / 4×4, thước cân bằng (accelerometer → shared value)
 - [ ] Overlay Skia + `useTransformGesture`, hai chế độ chụp / chỉnh
 - [ ] Điều khiển nhanh: độ hiện, lật ngang, giữ để ẩn, gỡ pose

@@ -8,8 +8,8 @@
  */
 
 /** Cỡ còn lại khi đã vào hẳn vùng xóa / khi đã mờ hẳn. */
-export const TRASH_SCALE = 0.25;
-const TRASH_OPACITY = 0.45;
+export const TRASH_SCALE = 0.35;
+const TRASH_OPACITY = 0.6;
 
 /**
  * @param p 0..1, mức đã vào vùng xóa.
@@ -24,7 +24,8 @@ export function trashTransform(
   goal: { x: number; y: number },
 ) {
   'worklet';
-  const s = (1 - (1 - TRASH_SCALE) * p) * (1 - 0.5 * vanish);
+  // Lúc mờ hẳn vẫn thu nhỏ tiếp một chút, như rơi vào thùng rác.
+  const s = (1 - (1 - TRASH_SCALE) * p) * (1 - 0.4 * vanish);
   return {
     opacity: (1 - (1 - TRASH_OPACITY) * p) * (1 - vanish),
     transform: [

@@ -118,12 +118,12 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 | Điều khiển | Giá trị | Ghi chú |
 |---|---|---|
 | Đổi camera | sau / trước | Camera trước: preview soi gương, ảnh lưu không soi gương (theo cài đặt) |
-| Flash | tắt / bật / tự động | Tự động dùng flash gốc. Bật: đèn sáng trong lúc chụp, vì flash gốc chế độ "bật" không nháy trên iPhone trong Expo Go 58 |
+| Flash | tắt / bật / tự động | Dùng flash gốc của camera, không dùng đèn pin |
 | Lưới | tắt / 3×3 / 4×4 | Vẽ trong vùng ảnh thật sẽ được lưu |
 | Thước cân bằng | bật / tắt | Đổi sang màu nhấn khi máy lệch dưới 1° |
 | Tỉ lệ khung | 3:4 / 9:16 / 1:1 | Khung ngắm hiển thị đúng vùng ảnh sẽ được lưu |
 | Hẹn giờ | tắt / 3 s / 10 s | Cho người chụp tự đặt máy |
-| Zoom | chip 0.5× / 1× / 2× + pinch | 0.5× chỉ có trên iPhone có ống góc rộng (đổi ống kính qua `selectedLens`); Android có 1× / 2× |
+| Zoom | thanh kéo 0,5×–5×, bước 0,1 + pinch ngoài pose | Dưới 1× chỉ có trên iPhone có ống góc rộng (đổi ống qua `selectedLens`); camera trước và Android bắt đầu từ 1×. Số hiển thị là ước lượng vì `expo-camera` không cho đọc zoom tối đa thật |
 
 ### 4.4 Điều khiển nhanh cho overlay (khi đang có pose)
 

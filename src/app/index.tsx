@@ -44,7 +44,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { CameraLayer } from '@/features/camera/CameraLayer';
+import { CameraLayer, ULTRA_WIDE_LENS } from '@/features/camera/CameraLayer';
 import {
   clearPlacement,
   loadPlacement,
@@ -58,23 +58,19 @@ import { FrameGrid, LevelGuide } from '@/features/camera/FrameGuides';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
 import { PoseOverlay } from '@/features/camera/PoseOverlay';
 import { trashTransform } from '@/features/camera/trash';
-import { nextZoomFactor } from '@/features/camera/zoom';
-import { type ZoomChip, ZoomChips } from '@/features/camera/ZoomChips';
+import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
+import { ZoomSlider } from '@/features/camera/ZoomSlider';
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
 import { haptic } from '@/lib/haptics';
 import { Button, PressableScale, Screen } from '@/ui/components';
-import { ease } from '@/ui/easing';
+import { ease, easeIO } from '@/ui/easing';
 import { t } from '@/ui/strings';
 import { cameraUi, cameraZoom, color, motion, radius, size, space, type } from '@/ui/tokens';
 
-const ULTRA_WIDE = 'AVCaptureDeviceTypeBuiltInUltraWideCamera';
-const WIDE = 'AVCaptureDeviceTypeBuiltInWideAngleCamera';
 const IDENTITY: Placement = { x: 0, y: 0, scale: 1, rotation: 0 };
-
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Camera — màn đầu tiên của app (business-flow §3, §4; design.md §6.1–6.2). */
 export default function CameraScreen() {
@@ -114,9 +110,7 @@ function CameraBody() {
   const [root, setRoot] = useState({ width: 0, height: 0 });
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [lenses, setLenses] = useState<string[]>([]);
-  const [ultraWide, setUltraWide] = useState(false);
   const [ready, setReady] = useState(false);
-  const [torch, setTorch] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [pose, setPose] = useState<Pose | null>(null);
   const [busy, setBusy] = useState(false);
@@ -126,7 +120,7 @@ function CameraBody() {
 
   // ---- Bố cục: thanh trên, vùng dưới, khung ngắm theo tỉ lệ (frame.ts) ----
   const topH = insets.top + space[2] + size.iconButton + space[2];
-  const bottomH = insets.bottom + space[4] + size.shutter + space[4] + size.chip + space[3];
+  const bottomH = insets.bottom + space[4] + size.shutter + space[4] + size.tap + space[3];
   const frame: Rect = viewfinderRect(root.width, root.height, topH, bottomH, ASPECTS[aspect]);
   const frameCx = frame.x + frame.width / 2;
   const frameCy = frame.y + frame.height / 2;
@@ -176,7 +170,7 @@ function CameraBody() {
       // Thả trong vùng xóa: mờ hẳn rồi mới gỡ.
       haptic.capture();
       vanish.set(
-        withTiming(1, { duration: motion.out, easing: ease }, (done) => {
+        withTiming(1, { duration: cameraUi.trashVanishMs, easing: ease }, (done) => {
           if (done) scheduleOnRN(finishRemove);
         }),
       );
@@ -233,7 +227,7 @@ function CameraBody() {
 
   // Khi ở vùng xóa: overlay mờ đi và thu nhỏ về phía thùng rác.
   const trashP = useDerivedValue(() =>
-    withTiming(inTrash.get() ? 1 : 0, { duration: motion.in, easing: ease }),
+    withTiming(inTrash.get() ? 1 : 0, { duration: cameraUi.trashInMs, easing: easeIO }),
   );
   const trashStyle = useAnimatedStyle(() =>
     trashTransform(
@@ -244,14 +238,18 @@ function CameraBody() {
     ),
   );
 
-  // ---- Zoom camera: chỉ khi lượt chạm không bắt đầu trên pose (BR-11) ----
+  // ---- Zoom camera: thanh kéo, hoặc pinch khi lượt chạm không bắt đầu trên pose (BR-11) ----
+  // 0,5× chỉ có trên iPhone có ống góc rộng (đổi ống qua selectedLens, CameraLayer lo).
+  const hasUltraWide =
+    Platform.OS === 'ios' && facing === 'back' && lenses.includes(ULTRA_WIDE_LENS);
+  const zoomMin = hasUltraWide ? ULTRA_WIDE_FACTOR : 1;
   const factor = useSharedValue(1);
   const settle = useSharedValue(0);
   const camPinch = usePinchGesture({
     onUpdate: (e) => {
       'worklet';
       if (engaged.get()) return;
-      factor.set(nextZoomFactor(factor.get(), e.scaleChange, cameraZoom.maxFactor));
+      factor.set(nextZoomFactor(factor.get(), e.scaleChange, zoomMin, cameraZoom.max));
     },
     onFinalize: () => {
       'worklet';
@@ -260,24 +258,14 @@ function CameraBody() {
   });
   const gesture = useSimultaneousGestures(camPinch, overlay.gesture);
 
-  const selectZoom = (chip: ZoomChip) => {
-    setUltraWide(chip === '0.5');
-    factor.set(chip === '2' ? 2 : 1);
-    settle.set(settle.get() + 1);
-  };
-  const hasUltraWide = Platform.OS === 'ios' && facing === 'back' && lenses.includes(ULTRA_WIDE);
-  const lens =
-    Platform.OS !== 'ios'
-      ? undefined
-      : ultraWide && hasUltraWide
-        ? ULTRA_WIDE
-        : lenses.includes(WIDE)
-          ? WIDE
-          : undefined;
+  // Danh sách ống báo lại mỗi lần đổi ống: chỉ cập nhật khi thật sự khác.
+  const onLenses = useCallback(
+    (next: string[]) => setLenses((cur) => (cur.join() === next.join() ? cur : next)),
+    [],
+  );
 
   const switchCamera = () => {
     setFacing((f) => (f === 'back' ? 'front' : 'back'));
-    setUltraWide(false);
     setLenses([]);
     factor.set(1);
     settle.set(settle.get() + 1);
@@ -321,12 +309,6 @@ function CameraBody() {
     if (!cam || busy) return;
     setBusy(true);
     try {
-      // Flash bật: flash gốc chế độ 'on' không nháy trên iPhone (Expo Go 58, góp ý Phase 2), nên
-      // bật đèn trong lúc chụp, chờ camera chỉnh sáng rồi mới chụp. Flash tự động vẫn dùng gốc.
-      if (flash === 'on') {
-        setTorch(true);
-        await wait(cameraUi.torchWarmMs);
-      }
       haptic.capture();
       flashOpacity.set(
         withSequence(
@@ -335,14 +317,12 @@ function CameraBody() {
         ),
       );
       const pic = await cam.takePictureAsync({ quality: 1, shutterSound: true });
-      setTorch(false);
       const out = await cropToFrame(pic, frame, root);
       setLastPhoto(out.uri);
       await save(out.uri);
     } catch {
       Alert.alert(t.errors.saveFailed);
     } finally {
-      setTorch(false);
       setBusy(false);
     }
   };
@@ -405,12 +385,11 @@ function CameraBody() {
       <CameraLayer
         cameraRef={cameraRef}
         facing={facing}
-        flash={flash === 'on' ? 'off' : flash}
-        torch={torch}
+        flash={flash}
         factor={factor}
         settle={settle}
-        lens={lens}
-        onLenses={setLenses}
+        lenses={lenses}
+        onLenses={onLenses}
         onReady={() => setReady(true)}
       />
 
@@ -556,11 +535,10 @@ function CameraBody() {
         style={[styles.bottom, { paddingBottom: insets.bottom + space[4] }, controlsStyle]}
         pointerEvents="box-none"
       >
-        <ZoomChips
+        <ZoomSlider
           factor={factor}
-          ultraWideActive={ultraWide && hasUltraWide}
-          hasUltraWide={hasUltraWide}
-          onSelect={selectZoom}
+          min={zoomMin}
+          onChangeEnd={() => settle.set(settle.get() + 1)}
         />
         <View style={styles.shutterRow}>
           <View style={styles.side}>

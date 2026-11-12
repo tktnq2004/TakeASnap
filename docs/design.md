@@ -313,7 +313,7 @@ Khung vẽ cho máy 390×844. `·` là vùng ảnh / khung ngắm. Ký hiệu tr
 │··································│
 │                         [◐][⇋][👁]│  rail overlay (chỉ khi có pose):
 ├──────────────────────────────────┤  độ hiện · lật ngang · giữ để ẩn
-│        (0.5×) ( 1× ) (2×)        │  Chip zoom
+│     ( 1,0×  ━━━━●━━━━━━━ )      │  thanh kéo zoom 0,5×–5×, đĩa scrim
 │                                  │
 │  [ảnh]        ( ◯ )       [pose] │  thumbnail 44 · nút chụp 76 · nút pose 44
 │                                  │

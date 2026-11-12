@@ -1,66 +1,87 @@
 import { type CameraType, CameraView } from 'expo-camera';
 import { memo, type Ref, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { type SharedValue, useAnimatedReaction, useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { cameraZoom } from '@/ui/tokens';
 
 import type { FlashMode } from './cameraStore';
-import { zoomFactorToProp } from './zoom';
+import { type ZoomConfig, zoomTarget } from './zoom';
+
+export const ULTRA_WIDE_LENS = 'AVCaptureDeviceTypeBuiltInUltraWideCamera';
+const WIDE_LENS = 'AVCaptureDeviceTypeBuiltInWideAngleCamera';
 
 type Props = {
   cameraRef: Ref<CameraView>;
   facing: CameraType;
   flash: FlashMode;
-  /** Đèn bật (dùng cho Flash bật lúc chụp). */
-  torch: boolean;
-  /** Hệ số zoom 1×…max trên UI thread (pinch và chip zoom ghi vào đây). */
+  /** Hệ số zoom hiển thị (0,5×…5×) trên UI thread; pinch và thanh kéo cùng ghi vào đây. */
   factor: SharedValue<number>;
-  /** Tăng mỗi khi pinch kết thúc: luôn gửi giá trị cuối, kể cả khi đang trong khoảng chờ. */
+  /** Tăng mỗi khi pinch/kéo kết thúc: luôn gửi giá trị cuối, kể cả khi đang trong khoảng chờ. */
   settle: SharedValue<number>;
-  /** `deviceType` của ống kính (iOS); undefined = ống mặc định. */
-  lens: string | undefined;
+  /** `deviceType` các ống của camera đang dùng (iOS). */
+  lenses: string[];
   onLenses: (deviceTypes: string[]) => void;
   onReady: () => void;
 };
 
+type ZoomState = { prop: number; ultra: boolean };
+
 /**
- * Chỉ component này re-render khi zoom đổi (roadmap §3.5): `expo-camera` nhận zoom qua prop nên
- * phải có state. Shared value đẩy sang state tối đa mỗi `cameraZoom.minIntervalMs` (spike A:
- * đẩy mỗi khung hình làm JS Android tụt 15–25 fps). Overlay, lưới, nút nằm ngoài nên không bị
- * kéo theo.
+ * Chỉ component này re-render khi zoom đổi (roadmap §3.5): `expo-camera` nhận zoom và ống kính
+ * qua prop nên phải có state. Shared value đẩy sang state tối đa mỗi `cameraZoom.minIntervalMs`
+ * (spike A: đẩy mỗi khung hình làm JS Android tụt 15–25 fps). Overlay, lưới, nút nằm ngoài nên
+ * không bị kéo theo.
  */
 export const CameraLayer = memo(function CameraLayer({
   cameraRef,
   facing,
   flash,
-  torch,
   factor,
   settle,
-  lens,
+  lenses,
   onLenses,
   onReady,
 }: Props) {
-  const [zoom, setZoom] = useState(0);
+  const [zoom, setZoom] = useState<ZoomState>({ prop: 0, ultra: false });
   const lastSentAt = useSharedValue(0);
+  const ios = Platform.OS === 'ios';
+  const hasUltraWide = ios && facing === 'back' && lenses.includes(ULTRA_WIDE_LENS);
+  const config: ZoomConfig = {
+    platform: ios ? 'ios' : 'android',
+    hasUltraWide,
+    iosMaxFactor: cameraZoom.iosMaxFactor,
+    androidMaxRatio: cameraZoom.androidMaxRatio,
+    precision: cameraZoom.precision,
+  };
+
   useAnimatedReaction(
-    () => ({
-      z: zoomFactorToProp(factor.get(), cameraZoom.maxFactor, cameraZoom.precision),
-      s: settle.get(),
-    }),
+    () => ({ ...zoomTarget(factor.get(), config), s: settle.get() }),
     (now, prev) => {
       const t = Date.now();
-      // Bước nhảy lớn (chip zoom, về 1×) và lúc nhấc tay gửi ngay; pinch thì giới hạn tần suất.
-      const settled = prev != null && now.s !== prev.s;
-      const jump = prev != null && Math.abs(now.z - prev.z) > 0.02;
-      const changed = prev == null || now.z !== prev.z;
-      if (settled || (changed && (jump || t - lastSentAt.get() >= cameraZoom.minIntervalMs))) {
+      // Đổi ống, lúc nhấc tay và bước nhảy lớn gửi ngay; còn lại giới hạn tần suất.
+      const urgent =
+        prev == null ||
+        now.s !== prev.s ||
+        now.ultra !== prev.ultra ||
+        Math.abs(now.prop - prev.prop) > 0.05;
+      const changed = prev == null || now.prop !== prev.prop || now.ultra !== prev.ultra;
+      if (urgent || (changed && t - lastSentAt.get() >= cameraZoom.minIntervalMs)) {
         lastSentAt.set(t);
-        scheduleOnRN(setZoom, now.z);
+        scheduleOnRN(setZoom, { prop: now.prop, ultra: now.ultra });
       }
     },
   );
+
+  // Ghi rõ ống chính khi có, để quay từ ống góc rộng về được chắc chắn.
+  const lens = !ios
+    ? undefined
+    : zoom.ultra && hasUltraWide
+      ? ULTRA_WIDE_LENS
+      : lenses.includes(WIDE_LENS)
+        ? WIDE_LENS
+        : undefined;
 
   return (
     <CameraView
@@ -68,8 +89,7 @@ export const CameraLayer = memo(function CameraLayer({
       style={StyleSheet.absoluteFill}
       facing={facing}
       flash={flash}
-      enableTorch={torch}
-      zoom={zoom}
+      zoom={zoom.prop}
       ratio="4:3"
       selectedLens={lens}
       animateShutter={false}

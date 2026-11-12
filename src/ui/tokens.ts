@@ -92,15 +92,22 @@ export const motion = {
 } as const;
 
 /**
- * Zoom camera (src/features/camera/zoom.ts). Pinch ×2 khoảng cách → hệ số zoom ×2.
- * `maxFactor`: hệ số ứng với zoom = 1 của expo-camera; giá trị giả định vì expo-camera không cho
- * đọc. Pinch thấy quá nhanh thì tăng, quá chậm thì giảm. `precision`: bước làm tròn prop 0..1.
+ * Zoom camera (src/features/camera/zoom.ts). Thanh kéo và pinch dùng chung một hệ số.
+ * `iosMaxFactor` / `androidMaxRatio`: zoom tối đa của ống mà expo-camera quy đổi `zoom` = 1 về;
+ * JS không đọc được nên là giá trị giả định. Số trên thanh kéo lệch so với app camera của máy thì
+ * chỉnh hai số này.
  */
 export const cameraZoom = {
-  maxFactor: 15,
-  precision: 0.001,
+  /** 0,5× chỉ có trên iPhone có ống góc rộng; còn lại bắt đầu từ 1×. */
+  min: 0.5,
+  max: 5,
+  step: 0.1,
+  iosMaxFactor: 123.75,
+  androidMaxRatio: 8,
+  precision: 0.0005,
   /** Khoảng cách tối thiểu giữa hai lần đẩy zoom sang state (~30 lần/giây). */
   minIntervalMs: 33,
+  sliderWidth: 200,
 } as const;
 
 /** Thước cân bằng (business-flow §4.3): đổi màu nhấn khi lệch dưới `levelDeg`. */
@@ -113,8 +120,10 @@ export const cameraUi = {
   trashRadius: 56,
   /** Vòng vùng xóa phóng nhẹ khi ngón tay vào. */
   trashActiveScale: 1.15,
-  /** Flash bật: bật đèn trước khi chụp chừng này để camera kịp chỉnh sáng. */
-  torchWarmMs: 450,
+  /** Vào / ra vùng xóa: overlay thu về thùng rác (đi một quãng nên dùng easeIO). */
+  trashInMs: 320,
+  /** Thả trong vùng xóa: mờ hẳn rồi mới gỡ. */
+  trashVanishMs: 420,
   timerOptions: [0, 3, 10],
   shutterFlashMs: 120,
   countdownSize: 96,

@@ -27,6 +27,8 @@ type Props = {
   format: (v: number) => string;
   /** Gọi một lần khi thả tay (lưu, haptics). Không gọi trong lúc kéo. */
   onChangeEnd?: (v: number) => void;
+  /** Chỉ vẽ rãnh, không có dòng nhãn + giá trị (nhãn vẫn đọc cho VoiceOver/TalkBack). */
+  compact?: boolean;
 };
 
 const THUMB = 24;
@@ -36,7 +38,7 @@ const TRACK = 4;
  * Slider chạy hoàn toàn trên UI thread: kéo không gây re-render (roadmap §3.4).
  * Chạm vào rãnh để nhảy tới vị trí đó.
  */
-export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }: Props) {
+export function Slider({ label, value, min, max, step = 0, format, onChangeEnd, compact }: Props) {
   const [width, setWidth] = useState(0);
   const usable = Math.max(1, width - THUMB);
 
@@ -80,12 +82,14 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }
 
   const gesture = useSimultaneousGestures(pan, tap);
 
+  const ratio = () => {
+    'worklet';
+    return Math.min(1, Math.max(0, (value.value - min) / (max - min)));
+  };
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: ((value.value - min) / (max - min)) * usable }],
+    transform: [{ translateX: ratio() * usable }],
   }));
-  const fillStyle = useAnimatedStyle(() => ({
-    width: ((value.value - min) / (max - min)) * usable,
-  }));
+  const fillStyle = useAnimatedStyle(() => ({ width: ratio() * usable }));
   const text = useDerivedValue(() => format(value.value));
 
   // VoiceOver/TalkBack: vuốt lên/xuống để tăng/giảm một nấc (design.md §7).
@@ -97,13 +101,15 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }
   };
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={[type.body, styles.label]} maxFontSizeMultiplier={1.3}>
-          {label}
-        </Text>
-        <AnimatedText text={text} style={[type.num, styles.value]} />
-      </View>
+    <View style={compact ? styles.compact : styles.root}>
+      {!compact && (
+        <View style={styles.header}>
+          <Text style={[type.body, styles.label]} maxFontSizeMultiplier={1.3}>
+            {label}
+          </Text>
+          <AnimatedText text={text} style={[type.num, styles.value]} />
+        </View>
+      )}
       <GestureDetector gesture={gesture}>
         <View
           accessible
@@ -126,6 +132,7 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }
 
 const styles = StyleSheet.create({
   root: { gap: space[2] },
+  compact: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { color: color.ink },
   value: { color: color.muted, minWidth: 56, textAlign: 'right' },

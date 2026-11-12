@@ -2,7 +2,7 @@ import { CameraView, type CameraType, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
 import { ChevronLeft, SwitchCamera } from 'lucide-react-native';
 import { memo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import {
   GestureDetector,
   usePinchGesture,
@@ -16,13 +16,21 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { nextZoomFactor, zoomFactorToProp } from '@/features/camera/zoom';
+import { nextZoomFactor, zoomTarget } from '@/features/camera/zoom';
 import { FpsMeter } from '@/features/spike/FpsMeter';
 import { useTransformGesture } from '@/gestures/useTransformGesture';
 import { haptic } from '@/lib/haptics';
 import { AnimatedText, Button, IconButton, Screen } from '@/ui/components';
 import { t } from '@/ui/strings';
 import { cameraZoom, color, radius, size, space, type } from '@/ui/tokens';
+
+const SPIKE_ZOOM = {
+  platform: Platform.OS === 'ios' ? ('ios' as const) : ('android' as const),
+  hasUltraWide: false,
+  iosMaxFactor: cameraZoom.iosMaxFactor,
+  androidMaxRatio: cameraZoom.androidMaxRatio,
+  precision: cameraZoom.precision,
+};
 
 /**
  * Spike A (roadmap §4, Phase 0): expo-camera nhận zoom qua prop nên bắt buộc có state.
@@ -55,7 +63,7 @@ function CameraSpikeBody() {
   const lastSentAt = useSharedValue(0);
   const [zoom, setZoom] = useState(0);
   useAnimatedReaction(
-    () => zoomFactorToProp(factor.value, cameraZoom.maxFactor, cameraZoom.precision),
+    () => zoomTarget(factor.value, SPIKE_ZOOM).prop,
     (now, prev) => {
       const t = Date.now();
       if (now !== prev && t - lastSentAt.value >= cameraZoom.minIntervalMs) {
@@ -70,14 +78,11 @@ function CameraSpikeBody() {
     enabled: !editMode,
     onUpdate: (e) => {
       'worklet';
-      factor.set(nextZoomFactor(factor.get(), e.scaleChange, cameraZoom.maxFactor));
+      factor.set(nextZoomFactor(factor.get(), e.scaleChange, 1, cameraZoom.max));
     },
     onFinalize: () => {
       'worklet';
-      scheduleOnRN(
-        setZoom,
-        zoomFactorToProp(factor.get(), cameraZoom.maxFactor, cameraZoom.precision),
-      );
+      scheduleOnRN(setZoom, zoomTarget(factor.get(), SPIKE_ZOOM).prop);
     },
   });
 

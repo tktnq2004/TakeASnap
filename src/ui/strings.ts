@@ -45,7 +45,7 @@ export const t = {
     opacity: (pct: number) => `Độ hiện pose ${pct}%`,
     mirror: 'Lật ngang pose',
     holdToHide: 'Giữ để ẩn pose',
-    zoom: (f: string) => `Zoom ${f}`,
+    zoomLabel: 'Mức thu phóng',
     lastPhoto: 'Ảnh vừa chụp',
     cancelTimer: 'Hủy hẹn giờ',
     saving: 'Đang lưu ảnh',
