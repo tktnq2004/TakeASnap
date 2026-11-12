@@ -10,7 +10,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { haptic } from '@/lib/haptics';
 import { t } from '@/ui/strings';
-import { color, levelGuide } from '@/ui/tokens';
+import { color, gridLine, levelGuide } from '@/ui/tokens';
 
 import type { GridMode } from './cameraStore';
 import type { Rect } from './frame';
@@ -24,10 +24,18 @@ export function FrameGrid({ frame, mode }: { frame: Rect; mode: GridMode }) {
   return (
     <View pointerEvents="none" style={[styles.abs, frameStyle(frame)]}>
       {lines.map((f) => (
-        <View key={`v${f}`} style={[styles.v, { left: `${f * 100}%` }]} />
+        <View key={`v${f}`} style={[styles.v, { left: `${f * 100}%` }]}>
+          <View style={styles.halo} />
+          <View style={styles.stroke} />
+          <View style={styles.halo} />
+        </View>
       ))}
       {lines.map((f) => (
-        <View key={`h${f}`} style={[styles.h, { top: `${f * 100}%` }]} />
+        <View key={`h${f}`} style={[styles.h, { top: `${f * 100}%` }]}>
+          <View style={styles.halo} />
+          <View style={styles.stroke} />
+          <View style={styles.halo} />
+        </View>
       ))}
     </View>
   );
@@ -84,25 +92,31 @@ export function LevelGuide({ frame }: { frame: Rect }) {
   );
 }
 
+const GRID_THICK = gridLine.width + gridLine.halo * 2;
+
 const frameStyle = (f: Rect) => ({ left: f.x, top: f.y, width: f.width, height: f.height });
 
 const styles = StyleSheet.create({
   abs: { position: 'absolute' },
   center: { alignItems: 'center', justifyContent: 'center' },
+  // Nét lưới = viền tối | nét sáng | viền tối, căn giữa đúng vạch chia.
   v: {
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: color.guide,
+    flexDirection: 'row',
+    width: GRID_THICK,
+    marginLeft: -GRID_THICK / 2,
   },
   h: {
     position: 'absolute',
     left: 0,
     right: 0,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: color.guide,
+    height: GRID_THICK,
+    marginTop: -GRID_THICK / 2,
   },
+  halo: { flexBasis: gridLine.halo, backgroundColor: color.guideHalo },
+  stroke: { flexBasis: gridLine.width, backgroundColor: color.guide },
   level: { width: levelGuide.length, height: levelGuide.thickness, borderRadius: 1 },
   // Hai vạch ngắn cố định hai bên: mốc để so vạch xoay.
   levelRefLeft: {

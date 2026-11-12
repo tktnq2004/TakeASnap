@@ -57,7 +57,7 @@ function CameraSpikeBody() {
   const [editMode, setEditMode] = useState(false);
 
   // Zoom: hệ số zoom (1×…max) trên UI thread → prop 0..1 làm tròn 0.001 → state → CameraView.
-  // Gửi state tối đa mỗi `cameraZoom.minIntervalMs`: gửi mỗi khung hình làm JS trên Android tụt
+  // Gửi state tối đa mỗi `cameraZoom.minIntervalMsAndroid`: gửi mỗi khung hình làm JS trên Android tụt
   // còn 15–25 fps (spike A, Pixel 8a). Khi nhấc tay luôn gửi giá trị cuối.
   const factor = useSharedValue(1);
   const lastSentAt = useSharedValue(0);
@@ -66,7 +66,7 @@ function CameraSpikeBody() {
     () => zoomTarget(factor.value, SPIKE_ZOOM).prop,
     (now, prev) => {
       const t = Date.now();
-      if (now !== prev && t - lastSentAt.value >= cameraZoom.minIntervalMs) {
+      if (now !== prev && t - lastSentAt.value >= cameraZoom.minIntervalMsAndroid) {
         lastSentAt.value = t;
         scheduleOnRN(setZoom, now);
       }

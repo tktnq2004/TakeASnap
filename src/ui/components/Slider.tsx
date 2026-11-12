@@ -82,14 +82,16 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd, 
 
   const gesture = useSimultaneousGestures(pan, tap);
 
-  const ratio = () => {
+  // Reanimated chỉ theo dõi shared value đọc TRỰC TIẾP trong style; đọc qua hàm phụ thì thanh chỉ
+  // vẽ lại khi re-render (lỗi góp ý Phase 2: thanh zoom đứng yên tới lúc thả tay).
+  const ratio = (v: number) => {
     'worklet';
-    return Math.min(1, Math.max(0, (value.value - min) / (max - min)));
+    return Math.min(1, Math.max(0, (v - min) / (max - min)));
   };
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: ratio() * usable }],
+    transform: [{ translateX: ratio(value.get()) * usable }],
   }));
-  const fillStyle = useAnimatedStyle(() => ({ width: ratio() * usable }));
+  const fillStyle = useAnimatedStyle(() => ({ width: ratio(value.get()) * usable }));
   const text = useDerivedValue(() => format(value.value));
 
   // VoiceOver/TalkBack: vuốt lên/xuống để tăng/giảm một nấc (design.md §7).

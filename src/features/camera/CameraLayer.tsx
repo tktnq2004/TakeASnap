@@ -1,9 +1,15 @@
 import { type CameraType, CameraView } from 'expo-camera';
 import { memo, type Ref, useState } from 'react';
 import { Platform, StyleSheet } from 'react-native';
-import { type SharedValue, useAnimatedReaction, useSharedValue } from 'react-native-reanimated';
+import {
+  type SharedValue,
+  useAnimatedReaction,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { ease } from '@/ui/easing';
 import { cameraZoom } from '@/ui/tokens';
 
 import type { FlashMode } from './cameraStore';
@@ -30,9 +36,9 @@ type ZoomState = { prop: number; ultra: boolean };
 
 /**
  * Chỉ component này re-render khi zoom đổi (roadmap §3.5): `expo-camera` nhận zoom và ống kính
- * qua prop nên phải có state. Shared value đẩy sang state tối đa mỗi `cameraZoom.minIntervalMs`
- * (spike A: đẩy mỗi khung hình làm JS Android tụt 15–25 fps). Overlay, lưới, nút nằm ngoài nên
- * không bị kéo theo.
+ * qua prop nên phải có state. Shared value đẩy sang state tối đa mỗi khung hình trên iOS,
+ * ~30 lần/giây trên Android (spike A: đẩy mỗi khung hình làm JS Android tụt 15–25 fps). Overlay,
+ * lưới, nút nằm ngoài nên không bị kéo theo.
  */
 export const CameraLayer = memo(function CameraLayer({
   cameraRef,
@@ -46,7 +52,9 @@ export const CameraLayer = memo(function CameraLayer({
 }: Props) {
   const [zoom, setZoom] = useState<ZoomState>({ prop: 0, ultra: false });
   const lastSentAt = useSharedValue(0);
+  const smooth = useSharedValue(1);
   const ios = Platform.OS === 'ios';
+  const interval = ios ? cameraZoom.minIntervalMsIos : cameraZoom.minIntervalMsAndroid;
   const hasUltraWide = ios && facing === 'back' && lenses.includes(ULTRA_WIDE_LENS);
   const config: ZoomConfig = {
     platform: ios ? 'ios' : 'android',
@@ -56,18 +64,32 @@ export const CameraLayer = memo(function CameraLayer({
     precision: cameraZoom.precision,
   };
 
+  // Camera trượt tới hệ số mới thay vì nhảy: nấc 0,1 của thanh kéo và pinch nhanh không giật.
   useAnimatedReaction(
-    () => ({ ...zoomTarget(factor.get(), config), s: settle.get() }),
+    () => factor.get(),
+    (f, prev) => {
+      if (prev == null) smooth.set(f);
+      else smooth.set(withTiming(f, { duration: cameraZoom.smoothMs, easing: ease }));
+    },
+  );
+
+  useAnimatedReaction(
+    () => {
+      const f = smooth.get();
+      return { ...zoomTarget(f, config), done: f === factor.get(), s: settle.get() };
+    },
     (now, prev) => {
       const t = Date.now();
-      // Đổi ống, lúc nhấc tay và bước nhảy lớn gửi ngay; còn lại giới hạn tần suất.
+      const changed = prev == null || now.prop !== prev.prop || now.ultra !== prev.ultra;
+      // Đổi ống, lúc nhấc tay, lúc trượt xong (giá trị cuối) và bước nhảy lớn gửi ngay; còn lại
+      // giới hạn tần suất.
       const urgent =
         prev == null ||
         now.s !== prev.s ||
         now.ultra !== prev.ultra ||
+        (now.done && changed) ||
         Math.abs(now.prop - prev.prop) > 0.05;
-      const changed = prev == null || now.prop !== prev.prop || now.ultra !== prev.ultra;
-      if (urgent || (changed && t - lastSentAt.get() >= cameraZoom.minIntervalMs)) {
+      if (urgent || (changed && t - lastSentAt.get() >= interval)) {
         lastSentAt.set(t);
         scheduleOnRN(setZoom, { prop: now.prop, ultra: now.ultra });
       }

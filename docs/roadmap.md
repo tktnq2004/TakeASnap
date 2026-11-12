@@ -344,18 +344,20 @@ docs/
 
 ### Phase 2 — Camera và overlay (2–3 tuần)
 
-**Trạng thái:** đã viết code (Camera là màn đầu, Thư viện mở dạng sheet, màn spike chuyển sang `/spike` qua nút cài đặt). Typecheck, lint, 70 unit test và bundle iOS + Android đều qua. **Chưa chạy ma trận cử chỉ trên máy thật**, nên các ô dưới chưa đánh dấu. Chưa làm: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (để Phase 4). Số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`).
+**Trạng thái:** đã thử trên iPhone 15 Pro Max và Android emulator Pixel_8a, kết quả ghi ở [phase2-test.md](phase2-test.md). Đạt: kéo / pinch / xoay pose, thùng rác, chụp và crop theo khung (iPhone), flash, hẹn giờ, điều khiển nhanh, nhớ placement và cài đặt. Còn chờ thử lại sau góp ý lần 3: zoom và lưới. Chưa làm: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (để Phase 4). Số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`). Emulator không thử được crop ảnh và thước cân bằng.
 
 **Góp ý lần 1 (iPhone):** flash "bật" không nháy → dùng đèn trong lúc chụp; thư viện formSheet vỡ bố cục → modal; bỏ chế độ chỉnh riêng: chạm vào pose là kéo ngay, vùng nhận cử chỉ cả màn hình; vùng xóa ăn theo ngón tay, có hiệu ứng mờ và thu nhỏ về thùng rác.
 
 **Góp ý lần 2:** flash về lại flash gốc (lần 1 là nhầm lẫn khi thử); hiệu ứng xóa chậm và nhẹ hơn; thay chip zoom bằng thanh kéo 0,5×–5× bước 0,1, vì pinch trên pose giờ chỉnh pose.
 
-- [ ] `expo-camera`: đổi camera, flash gốc 3 chế độ, tỉ lệ 3:4 / 9:16 / 1:1, thanh kéo zoom + pinch, hẹn giờ
-- [ ] Lưới 3×3 / 4×4, thước cân bằng (accelerometer → shared value)
-- [ ] Overlay Skia + `useTransformGesture`, hai chế độ chụp / chỉnh
-- [ ] Điều khiển nhanh: độ hiện, lật ngang, giữ để ẩn, gỡ pose
-- [ ] Chụp: crop đúng vùng khung ngắm theo kích thước ảnh thật (sửa L7), lưu album, thumbnail
-- [ ] Nhớ placement theo từng pose (BR-10)
+**Góp ý lần 3 (phiếu kiểm tra):** thanh zoom đứng yên tới lúc thả tay (style đọc shared value qua hàm phụ nên Reanimated không theo dõi); zoom giật hơn bản trước → camera trượt tới hệ số mới trong 90 ms, iOS gửi zoom mỗi khung hình, Android giữ ~30 lần/giây; nét lưới mảnh, mất trên nền sáng → nét sáng có viền tối hai bên. Lỗi Android emulator: transaction SQLite chạy chồng (giờ xếp hàng) và `GO_BACK` khi chạm hai lần (rời màn một lần). Qua mốc 1× trên iPhone vẫn chớp vì đổi ống vật lý.
+
+- [ ] `expo-camera`: đổi camera, flash gốc 3 chế độ, tỉ lệ 3:4 / 9:16 / 1:1, thanh kéo zoom + pinch, hẹn giờ — chờ thử lại zoom
+- [ ] Lưới 3×3 / 4×4, thước cân bằng (accelerometer → shared value) — chờ thử lại lưới
+- [x] Overlay Skia + `useTransformGesture`: chạm vào pose là kéo ngay, không có chế độ chỉnh riêng
+- [x] Điều khiển nhanh: độ hiện, lật ngang, giữ để ẩn, gỡ pose
+- [x] Chụp: crop đúng vùng khung ngắm theo kích thước ảnh thật (sửa L7), lưu album, thumbnail
+- [x] Nhớ placement theo từng pose (BR-10)
 
 **Xong khi:** đạt hết ma trận cử chỉ dưới đây trên iPhone và Android, không rơi frame nhìn thấy được.
 

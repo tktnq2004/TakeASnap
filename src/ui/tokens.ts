@@ -23,7 +23,9 @@ export const color = {
   checkerA: '#2c2e32',
   checkerB: '#3a3d42',
   /** Lưới và mốc thước trên khung ngắm. */
-  guide: 'rgba(239,240,241,0.45)',
+  guide: 'rgba(239,240,241,0.7)',
+  /** Viền tối hai bên nét lưới: nét vẫn thấy được trên nền sáng (góp ý Phase 2). */
+  guideHalo: 'rgba(24,25,27,0.3)',
   /** Khung bao overlay ở chế độ chỉnh (design.md §6.2: 1 px ink 40%). */
   overlayBox: 'rgba(239,240,241,0.4)',
   /** Chớp tối khi bấm chụp. */
@@ -105,12 +107,21 @@ export const cameraZoom = {
   iosMaxFactor: 123.75,
   androidMaxRatio: 8,
   precision: 0.0005,
-  /** Khoảng cách tối thiểu giữa hai lần đẩy zoom sang state (~30 lần/giây). */
-  minIntervalMs: 33,
+  /**
+   * Khoảng cách tối thiểu giữa hai lần đẩy zoom sang state. iOS mỗi khung hình (60 lần/giây)
+   * cho mượt như zoom gốc; Android ~30 lần/giây (spike A: dày hơn làm JS tụt 15–25 fps).
+   */
+  minIntervalMsIos: 16,
+  minIntervalMsAndroid: 33,
+  /** Zoom camera trượt tới giá trị mới trong khoảng này: nấc 0,1 của thanh kéo không còn giật. */
+  smoothMs: 90,
   sliderWidth: 200,
 } as const;
 
 /** Thước cân bằng (business-flow §4.3): đổi màu nhấn khi lệch dưới `levelDeg`. */
+/** Nét lưới khung ngắm: nét sáng 1 px kẹp giữa hai viền tối 1 px. */
+export const gridLine = { width: 1, halo: 1 } as const;
+
 export const levelGuide = { levelDeg: 1, length: 96, ref: 16, thickness: 2 } as const;
 
 /** Camera: vùng xóa (design.md §6.2), hẹn giờ, chớp chụp. */
