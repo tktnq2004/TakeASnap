@@ -75,6 +75,8 @@ export const t = {
     saving: 'Đang lưu pose',
     save: 'Lưu pose',
     saveAsNew: 'Lưu thành bản mới',
+    saveFailedTitle: 'Chưa lưu được pose',
+    saveFailed: 'Các chỉnh sửa vẫn còn trên màn này. Thử lưu lại.',
     tabOutline: 'Viền',
     tabFill: 'Phủ',
     tabImage: 'Ảnh',

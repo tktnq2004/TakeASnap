@@ -1,5 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { transaction } from './transaction';
+
 /**
  * Migration theo PRAGMA user_version. Mỗi phần tử là một bước nâng version, không bao giờ sửa
  * bước cũ, chỉ thêm bước mới. Mô hình dữ liệu: docs/business-flow.md §9.
@@ -190,7 +192,7 @@ export async function migrate(db: SQLiteDatabase): Promise<void> {
 
   while (version < steps.length) {
     const sql = steps[version] as string;
-    await db.withTransactionAsync(async () => {
+    await transaction(db, async () => {
       await db.execAsync(sql);
       await db.execAsync(`PRAGMA user_version = ${version + 1}`);
     });

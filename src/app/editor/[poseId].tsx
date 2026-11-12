@@ -1,8 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { ChevronLeft } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { StyleSheet, Switch, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -61,6 +61,7 @@ export default function EditorScreen() {
   const [tab, setTab] = useState<Tab>('outline');
   const [lineTarget, setLineTarget] = useState<LineTarget>('outline');
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
 
   // Bật/tắt và màu đổi bằng chạm → state. Giá trị kéo slider → shared value (không re-render khi
   // kéo, roadmap §3.4).
@@ -115,7 +116,9 @@ export default function EditorScreen() {
   });
 
   const save = async (asNew: boolean) => {
-    if (!pose || saving) return;
+    // Ref chứ không phải state: hai lần chạm nhanh chạy trước khi state kịp re-render.
+    if (!pose || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     try {
       // Pose mẫu chỉ đọc (BR-09): lưu luôn là thêm bản vào "Pose của bạn".
@@ -123,7 +126,10 @@ export default function EditorScreen() {
       else await updateStyle(db, pose.id, currentStyle());
       haptic.saved();
       router.back();
+    } catch {
+      Alert.alert(t.editor.saveFailedTitle, t.editor.saveFailed);
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };

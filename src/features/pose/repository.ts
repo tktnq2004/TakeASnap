@@ -7,6 +7,8 @@ import { Asset } from 'expo-asset';
 import { Directory, File, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { transaction } from '@/db/transaction';
+
 import {
   type ContourRow,
   contoursToRows,
@@ -163,7 +165,7 @@ export async function createVariant(db: SQLiteDatabase, base: Pose, style: PoseS
 
 /** Ảnh gốc mới (tạo từ ảnh trong máy) + bản pose đầu tiên, trong một transaction. */
 export async function savePhotoAndVariant(db: SQLiteDatabase, pose: Pose & { source: string }) {
-  await db.withTransactionAsync(async () => {
+  await transaction(db, async () => {
     await insertPhoto(db, pose);
     await insertVariant(db, pose);
   });
@@ -210,7 +212,7 @@ export async function createFromSample(
     createdAt: t,
     updatedAt: t,
   };
-  await db.withTransactionAsync(async () => {
+  await transaction(db, async () => {
     if (!existing) await insertPhoto(db, pose);
     await insertVariant(db, pose);
   });
