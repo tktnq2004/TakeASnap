@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { ChevronLeft } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
@@ -16,6 +16,7 @@ import {
   STYLE_LIMITS,
 } from '@/features/pose/types';
 import { haptic } from '@/lib/haptics';
+import { useGoBack } from '@/lib/useGoBack';
 import { Button, IconButton, Segmented, Slider, SwatchRow, ToggleRow } from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
@@ -62,6 +63,7 @@ export default function EditorScreen() {
   const [lineTarget, setLineTarget] = useState<LineTarget>('outline');
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
+  const goBack = useGoBack();
 
   // Bật/tắt và màu đổi bằng chạm → state. Giá trị kéo slider → shared value (không re-render khi
   // kéo, roadmap §3.4).
@@ -125,7 +127,7 @@ export default function EditorScreen() {
       if (asNew || isSampleId(pose.id)) await createVariant(db, pose, currentStyle());
       else await updateStyle(db, pose.id, currentStyle());
       haptic.saved();
-      router.back();
+      goBack();
     } catch {
       Alert.alert(t.editor.saveFailedTitle, t.editor.saveFailed);
     } finally {
@@ -149,7 +151,7 @@ export default function EditorScreen() {
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <IconButton icon={ChevronLeft} label={t.common.back} onPress={() => router.back()} />
+        <IconButton icon={ChevronLeft} label={t.common.back} onPress={goBack} />
         <Text accessibilityRole="header" style={[type.head, styles.ink]}>
           {t.editor.title}
         </Text>

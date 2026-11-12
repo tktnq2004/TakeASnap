@@ -27,6 +27,7 @@ import { PoseCanvas } from '@/features/pose/PoseCanvas';
 import { deleteVariant, listUserPoses } from '@/features/pose/repository';
 import { sampleGroups, sampleLibrary } from '@/features/pose/samples';
 import type { Pose } from '@/features/pose/types';
+import { useGoBack } from '@/lib/useGoBack';
 import { Button, IconButton, Segmented } from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
@@ -55,6 +56,7 @@ export default function LibraryScreen() {
   const [mine, setMine] = useState<Pose[]>([]);
   const [progress, setProgress] = useState<CreateProgress | null>(null);
   const { segmentForPose } = useSegmenter();
+  const goBack = useGoBack();
 
   useFocusEffect(
     useCallback(() => {
@@ -79,7 +81,7 @@ export default function LibraryScreen() {
 
   const pickForCamera = (p: Pose) => {
     useCameraStore.getState().selectPose(p.id);
-    router.back();
+    goBack();
   };
 
   const openEditor = (p: Pose) => router.push(`/editor/${p.id}`);
@@ -139,7 +141,7 @@ export default function LibraryScreen() {
         <Text accessibilityRole="header" style={[type.title, styles.ink]}>
           {t.library.title}
         </Text>
-        <IconButton icon={X} label={t.common.close} onPress={() => router.back()} />
+        <IconButton icon={X} label={t.common.close} onPress={goBack} />
       </View>
       <View style={styles.tabs}>
         <Segmented options={tabs} value={tab} onChange={setTab} />
