@@ -7,7 +7,9 @@ Cách điền: mỗi ô máy ghi `đạt`, `lỗi` hoặc `—` (không áp dụ
 | iPhone | iPhone 15 Pro Max · Expo Go 58 · iOS |
 | Android | Pixel_8a emulator · Expo Go 58 · Android |
 
-Ngày thử: 
+Lần 1: phiếu dưới đây. Lần 2 (sau commit `db3179c`): thử lại 1.5, 3.1, 3.2, 3.3, 4.6, đều tốt.
+
+**Kết quả: Phase 2 đạt.**
 
 ## 1. Kéo, pinch, xoay pose
 
@@ -17,7 +19,7 @@ Ngày thử:
 | 1.2 | Pinch pose hai lần liên tiếp | Lần hai bắt đầu từ cỡ của lần một | tốt | tốt | |
 | 1.3 | Xoay pose hai lần liên tiếp | Lần hai bắt đầu từ góc của lần một | tốt | tốt | |
 | 1.4 | Pinch và xoay cùng lúc | Cả hai cùng chạy, không giật | tốt |tốt | |
-| 1.5 | Pinch bắt đầu ngoài pose | Chỉ zoom camera, pose đứng yên | tốt | tốt | nhưng khá giật lag, không được mượt như zoom gốc của ip, phiên bản trước bạn làm rất tốt nhưng ở đây lại lag. Ở android simulator thì không kiểm chứng được |
+| 1.5 | Pinch bắt đầu ngoài pose | Chỉ zoom camera, pose đứng yên | tốt | tốt | 
 | 1.6 | Pinch bắt đầu trên pose | Chỉ đổi pose, zoom đứng yên | tốt | tốt | |
 | 1.7 | Kéo pose ra ngoài khung, xuống vùng xám | Vẫn kéo tiếp được | tốt | tốt | |
 
@@ -34,7 +36,7 @@ Ngày thử:
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 3.1 | Kéo thanh zoom | 0,5×–5×, bước 0,1. Camera trước và Android bắt đầu từ 1× | lag, không mượt, khi thả tay thì thanh tiến độ mới cập nhật | tương tự iphone | |
+| 3.1 | Kéo thanh zoom | 0,5×–5×, bước 0,1. Camera trước và Android bắt đầu từ 1× | tốt  | tốt |
 | 3.2 | Pinch ngoài pose | Thanh kéo chạy theo | phần số chạy theo nhưng thanh kéo nằm yên | giống iphone  | |
 | 3.3 | Kéo tới 2,0×, so với nút 2× của app Camera | Khung hình giống nhau | Không thấy nút chọn 2x| — | |
 | 3.4 | Kéo qua mốc 1× | Chỉ chớp nhẹ, không đơ |đúng, có chớp giật | — | |

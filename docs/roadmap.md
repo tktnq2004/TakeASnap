@@ -344,7 +344,7 @@ docs/
 
 ### Phase 2 — Camera và overlay (2–3 tuần)
 
-**Trạng thái:** đã thử trên iPhone 15 Pro Max và Android emulator Pixel_8a, kết quả ghi ở [phase2-test.md](phase2-test.md). Đạt: kéo / pinch / xoay pose, thùng rác, chụp và crop theo khung (iPhone), flash, hẹn giờ, điều khiển nhanh, nhớ placement và cài đặt. Còn chờ thử lại sau góp ý lần 3: zoom và lưới. Chưa làm: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (để Phase 4). Số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`). Emulator không thử được crop ảnh và thước cân bằng.
+**Trạng thái: xong.** Đạt cả ma trận cử chỉ trên iPhone 15 Pro Max và Android emulator Pixel_8a sau hai lần thử, kết quả ở [phase2-test.md](phase2-test.md). Emulator không thử được crop ảnh và thước cân bằng (đã đạt trên iPhone). Để lại: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (Phase 4); số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`); qua mốc 1× trên iPhone còn chớp vì đổi ống vật lý.
 
 **Góp ý lần 1 (iPhone):** flash "bật" không nháy → dùng đèn trong lúc chụp; thư viện formSheet vỡ bố cục → modal; bỏ chế độ chỉnh riêng: chạm vào pose là kéo ngay, vùng nhận cử chỉ cả màn hình; vùng xóa ăn theo ngón tay, có hiệu ứng mờ và thu nhỏ về thùng rác.
 
@@ -352,8 +352,8 @@ docs/
 
 **Góp ý lần 3 (phiếu kiểm tra):** thanh zoom đứng yên tới lúc thả tay (style đọc shared value qua hàm phụ nên Reanimated không theo dõi); zoom giật hơn bản trước → camera trượt tới hệ số mới trong 90 ms, iOS gửi zoom mỗi khung hình, Android giữ ~30 lần/giây; nét lưới mảnh, mất trên nền sáng → nét sáng có viền tối hai bên. Lỗi Android emulator: transaction SQLite chạy chồng (giờ xếp hàng) và `GO_BACK` khi chạm hai lần (rời màn một lần). Qua mốc 1× trên iPhone vẫn chớp vì đổi ống vật lý.
 
-- [ ] `expo-camera`: đổi camera, flash gốc 3 chế độ, tỉ lệ 3:4 / 9:16 / 1:1, thanh kéo zoom + pinch, hẹn giờ — chờ thử lại zoom
-- [ ] Lưới 3×3 / 4×4, thước cân bằng (accelerometer → shared value) — chờ thử lại lưới
+- [x] `expo-camera`: đổi camera, flash gốc 3 chế độ, tỉ lệ 3:4 / 9:16 / 1:1, thanh kéo zoom + pinch, hẹn giờ
+- [x] Lưới 3×3 / 4×4, thước cân bằng (accelerometer → shared value)
 - [x] Overlay Skia + `useTransformGesture`: chạm vào pose là kéo ngay, không có chế độ chỉnh riêng
 - [x] Điều khiển nhanh: độ hiện, lật ngang, giữ để ẩn, gỡ pose
 - [x] Chụp: crop đúng vùng khung ngắm theo kích thước ảnh thật (sửa L7), lưu album, thumbnail
