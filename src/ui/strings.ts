@@ -119,11 +119,6 @@ export const t = {
   spike: {
     title: 'Phase 0 · Spike',
     intro: 'Màn tạm để đo trên máy thật. Ghi kết quả vào docs/spikes.md.',
-    cameraTitle: 'A · Camera và zoom',
-    cameraHint: 'Pinch ngoài khung để zoom. Bật chỉnh rồi kéo, pinch, xoay khung cam.',
-    overlayTitle: 'C · Overlay Skia 3 lớp',
-    saveTitle: 'D · Giới hạn Expo Go',
-    sheetTitle: 'D · Sheet',
     segmentTitle: 'B · Tách người bằng WebView',
     segmentLoading: 'Đang nạp WebView',
     segmentRunAll: 'Chạy 25 ảnh mẫu',
@@ -139,10 +134,5 @@ export const t = {
     segmentMaxTotal: 'Cả vòng, lâu nhất',
     segmentErrors: 'Lỗi',
     segmentBackend: 'Backend',
-    runSave: 'Lưu ảnh mẫu vào album',
-    runHaptics: 'Thử rung',
-    openSheet: 'Mở sheet',
-    editOn: 'Chỉnh khung',
-    editOff: 'Khóa khung',
   },
 } as const;

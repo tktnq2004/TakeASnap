@@ -7,14 +7,11 @@ import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
 
 /**
- * Màn thử nghiệm: danh sách spike để đo trên máy thật. Từ Phase 2 mở bằng nút cài đặt trên
- * Camera.
+ * Màn thử nghiệm, mở bằng nút cài đặt trên Camera. Sau Phase 2 chỉ còn spike B (tách người): công
+ * cụ đo RMBG cho cổng quyết định Thay nền ở Phase 4, xóa khi xong Phase 4.
  */
 const spikes: { href: Href; title: string }[] = [
-  { href: '/spike/camera', title: t.spike.cameraTitle },
   { href: '/spike/segment', title: t.spike.segmentTitle },
-  { href: '/spike/overlay', title: t.spike.overlayTitle },
-  { href: '/spike/save', title: t.spike.saveTitle },
 ];
 
 export default function SpikeMenu() {

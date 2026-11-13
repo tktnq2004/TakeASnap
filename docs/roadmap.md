@@ -271,7 +271,7 @@ src/
       _layout.tsx             # stepper 4 bước
       subject.tsx  background.tsx  place.tsx  result.tsx
     settings.tsx
-    spike/                    # màn đo của Phase 0, xóa khi xong Phase 2
+    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 4
   features/
     camera/                   # CameraLayer (memo), controls, overlay, capture
     pose/                     # library, editor, repository

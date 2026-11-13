@@ -11,7 +11,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { migrate } from '@/db/migrations';
 import { SegmenterProvider } from '@/engine/segmentation/SegmenterProvider';
-import { color, radius } from '@/ui/tokens';
+import { color } from '@/ui/tokens';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ Urbanist_400Regular, Urbanist_500Medium, DMMono_500Medium });
@@ -36,16 +36,6 @@ export default function RootLayout() {
             <Stack.Screen name="library" options={{ presentation: 'modal' }} />
             {/* Chỉnh pose mở từ sheet nên phải là modal để hiện được trên sheet. */}
             <Stack.Screen name="editor/[poseId]" options={{ presentation: 'fullScreenModal' }} />
-            <Stack.Screen
-              name="spike/sheet"
-              options={{
-                presentation: 'formSheet',
-                sheetAllowedDetents: [0.88],
-                sheetGrabberVisible: true,
-                sheetCornerRadius: radius.lg,
-                contentStyle: { backgroundColor: color.surface },
-              }}
-            />
           </Stack>
         </SegmenterProvider>
       </SQLiteProvider>
