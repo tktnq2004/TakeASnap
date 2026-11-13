@@ -1,7 +1,7 @@
 /**
  * Chuyển đổi Pose ↔ dòng SQLite (schema v3 ở src/db/migrations.ts). Hàm thuần, có unit test.
  */
-import type { Contour } from '@/engine/contour';
+import { type Contour, segmentsInContours } from '@/engine/contour';
 import type { Landmarks } from '@/engine/segmentation/types';
 
 import { DEFAULT_STYLE, type Pose, type PoseOrigin, type PoseStyle } from './types';
@@ -121,6 +121,7 @@ export function bboxOf(contours: Contour[]): { x: number; y: number; w: number; 
 }
 
 export function poseToPhotoRow(p: Pose & { source: string }): PhotoRow {
+  const lm = p.rawLandmarks ?? p.landmarks;
   return {
     id: p.photoId,
     origin: p.origin,
@@ -131,7 +132,8 @@ export function poseToPhotoRow(p: Pose & { source: string }): PhotoRow {
     height: p.height,
     bbox_json: JSON.stringify(bboxOf(p.contours)),
     sample_group: p.sampleGroup,
-    landmarks_json: p.landmarks ? JSON.stringify(p.landmarks) : null,
+    // Luôn lưu nét gốc; bản đã lọc theo viền Sửa nét chỉ để vẽ.
+    landmarks_json: lm ? JSON.stringify(lm) : null,
     created_at: p.createdAt,
   };
 }
@@ -146,7 +148,18 @@ export function poseToVariantRow(p: Pose): VariantRow {
   };
 }
 
+/**
+ * Nét phụ khớp với viền đã Sửa nét: nét mặt nằm trên vùng đã xóa thì ẩn. Không đổi dữ liệu gốc,
+ * nên tô lại vùng mặt thì nét mặt hiện lại.
+ */
+export function landmarksForContours(lm: Landmarks | null, contours: Contour[]): Landmarks | null {
+  if (!lm) return null;
+  return { ...lm, face: segmentsInContours(lm.face, contours) };
+}
+
 export function rowsToPose(photo: PhotoRow, variant: VariantRow, contours: ContourRow[]): Pose {
+  const outline = rowsToContours(contours);
+  const landmarks = photo.landmarks_json ? (JSON.parse(photo.landmarks_json) as Landmarks) : null;
   return {
     id: variant.id,
     photoId: photo.id,
@@ -155,8 +168,10 @@ export function rowsToPose(photo: PhotoRow, variant: VariantRow, contours: Conto
     source: photo.source_uri,
     width: photo.width,
     height: photo.height,
-    contours: rowsToContours(contours),
-    landmarks: photo.landmarks_json ? (JSON.parse(photo.landmarks_json) as Landmarks) : null,
+    contours: outline,
+    ...(photo.contours_edited
+      ? { landmarks: landmarksForContours(landmarks, outline), rawLandmarks: landmarks }
+      : { landmarks }),
     sampleGroup: photo.sample_group,
     maskUri: photo.mask_uri,
     style: rowToStyle(variant),

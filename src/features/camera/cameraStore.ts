@@ -38,6 +38,8 @@ type Actions = {
   cycleTimer: () => void;
   cycleAspect: () => void;
   selectPose: (id: string) => void;
+  /** Pose đang dùng vừa được sửa thành bản mới: dùng bản mới, giữ vị trí và lật ngang. */
+  replacePose: (id: string) => void;
   clearPose: () => void;
   cycleOpacity: () => void;
   toggleMirror: () => void;
@@ -70,6 +72,14 @@ export const useCameraStore = create<State & Actions>()(
       cycleTimer: () => set((s) => ({ timer: next([0, 3, 10] as const, s.timer) })),
       cycleAspect: () => set((s) => ({ aspect: next(['3:4', '9:16', '1:1'] as const, s.aspect) })),
       selectPose: (id) => set({ poseId: id, mirrored: false }),
+      replacePose: (id) =>
+        set((s) => {
+          if (s.poseId) {
+            const raw = Storage.getItemSync(placementKey(s.poseId));
+            if (raw) Storage.setItemSync(placementKey(id), raw);
+          }
+          return { poseId: id };
+        }),
       clearPose: () => set({ poseId: null }),
       cycleOpacity: () => set((s) => ({ opacityLevel: ((s.opacityLevel + 1) % 3) as 0 | 1 | 2 })),
       toggleMirror: () => set((s) => ({ mirrored: !s.mirrored })),

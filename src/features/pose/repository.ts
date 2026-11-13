@@ -15,6 +15,7 @@ import {
   bboxOf,
   type ContourRow,
   contoursToRows,
+  landmarksForContours,
   type PhotoRow,
   poseToPhotoRow,
   poseToVariantRow,
@@ -77,7 +78,12 @@ async function loadPoses(db: SQLiteDatabase, variants: VariantRow[]): Promise<Po
         ? {
             ...pose,
             contours: p.row.contours_edited ? pose.contours : sample.contours,
-            landmarks: sample.landmarks,
+            ...(p.row.contours_edited
+              ? {
+                  landmarks: landmarksForContours(sample.landmarks, pose.contours),
+                  rawLandmarks: sample.landmarks,
+                }
+              : { landmarks: sample.landmarks }),
           }
         : pose,
     );
@@ -200,22 +206,22 @@ export async function createVariant(
   return pose;
 }
 
-/** Lưu từ màn Chỉnh pose (business-flow §5.2). */
+/** Lưu từ màn Chỉnh pose (business-flow §5.2). Trả id của bản đã lưu (bản mới hoặc chính nó). */
 export async function saveEdits(
   db: SQLiteDatabase,
   pose: Pose,
   style: PoseStyle,
   opts: { asNew: boolean; contours: Contour[] | null },
-) {
+): Promise<string> {
   // Pose mẫu chỉ đọc (BR-09): lưu luôn là thêm bản vào "Pose của bạn".
   if (opts.asNew || isSampleId(pose.id)) {
-    await createVariant(db, pose, style, opts.contours);
-    return;
+    return (await createVariant(db, pose, style, opts.contours)).id;
   }
   await transaction(db, async () => {
     await updateStyle(db, pose.id, style);
     if (opts.contours) await writeContours(db, pose.photoId, opts.contours);
   });
+  return pose.id;
 }
 
 /** Ảnh gốc mới (tạo từ ảnh trong máy) + bản pose đầu tiên, trong một transaction. */

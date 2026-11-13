@@ -36,7 +36,11 @@ const SUB = 4;
  * Viền chuẩn hóa → lưới 0..1 (fill rule evenOdd, lỗ tay–thân để trống), có khử răng cưa để dò
  * viền lại ra đường mượt.
  */
-export function rasterizeContours(contours: Contour[], width: number, height: number): Float32Array {
+export function rasterizeContours(
+  contours: Contour[],
+  width: number,
+  height: number,
+): Float32Array {
   const out = new Float32Array(width * height);
   const edges: [number, number, number, number][] = [];
   for (const c of contours) {

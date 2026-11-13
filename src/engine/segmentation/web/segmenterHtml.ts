@@ -323,12 +323,22 @@ async function getLandmarkers() {
     baseOptions: await base('face'), runningMode: 'IMAGE', numFaces: MAX_FACES,
   });
   bodyLm = await mp.PoseLandmarker.createFromOptions(fileset, {
-    baseOptions: await base('body'), runningMode: 'IMAGE', numPoses: 1,
+    baseOptions: await base('body'), runningMode: 'IMAGE', numPoses: MAX_FACES,
   });
   return now() - t0;
 }
 
 const MAX_FACES = 4;
+// Điểm (chuẩn hóa) nằm trong khung bao của mặt, nới 20% mỗi phía.
+function faceHas(f, x, y) {
+  let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
+  for (const q of f) {
+    if (q.x < x0) x0 = q.x; if (q.x > x1) x1 = q.x;
+    if (q.y < y0) y0 = q.y; if (q.y > y1) y1 = q.y;
+  }
+  const mx = (x1 - x0) * 0.2, my = (y1 - y0) * 0.2;
+  return x >= x0 - mx && x <= x1 + mx && y >= y0 - my && y <= y1 + my;
+}
 const NOSE = [[168, 6], [6, 197], [197, 195], [195, 5], [5, 4], [98, 97], [97, 2], [2, 326], [326, 327]];
 function faceConnections() {
   const F = mp.FaceLandmarker;
@@ -354,19 +364,27 @@ async function runLandmarks(img) {
   const loadMs = await getLandmarkers();
   const t0 = now();
   const W = img.naturalWidth, H = img.naturalHeight;
-  const body = bodyLm.detect(img).landmarks[0] || null;
+  const bodies = bodyLm.detect(img).landmarks || [];
+  const body = bodies[0] || null;
   // Ảnh nhiều người: lấy mọi mặt, app giữ lại mặt của người được chọn (Phase 3).
-  let faces = faceLm.detect(img).faceLandmarks || [];
-  if (!faces.length && body && (body[0].visibility ?? 1) > 0.5) {
-    const sh = Math.hypot((body[11].x - body[12].x) * W, (body[11].y - body[12].y) * H);
-    const ear = Math.hypot((body[7].x - body[8].x) * W, (body[7].y - body[8].y) * H);
+  const faces = (faceLm.detect(img).faceLandmarks || []).slice();
+  // Mặt nhỏ (ảnh toàn thân, nhiều người) bộ dò bỏ sót: dò lại trên vùng đầu của TỪNG khung xương
+  // chưa có mặt, để người đứng sát nhau (chung một vùng) vẫn có nét mặt riêng.
+  for (const b of bodies) {
+    if ((b[0].visibility ?? 1) <= 0.5) continue;
+    if (faces.some((f) => faceHas(f, b[0].x, b[0].y))) continue;
+    const sh = Math.hypot((b[11].x - b[12].x) * W, (b[11].y - b[12].y) * H);
+    const ear = Math.hypot((b[7].x - b[8].x) * W, (b[7].y - b[8].y) * H);
     const side = Math.max(ear * 2.2, sh * 0.9, 48);
-    const sx = body[0].x * W - side / 2, sy = body[0].y * H - side / 2;
+    const sx = b[0].x * W - side / 2, sy = b[0].y * H - side / 2;
     const c = document.createElement('canvas');
     c.width = 512; c.height = 512;
     c.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, 512, 512);
-    const f = faceLm.detect(c).faceLandmarks[0];
-    if (f) faces = [f.map((q) => ({ x: (sx + q.x * side) / W, y: (sy + q.y * side) / H }))];
+    // Vùng cắt có thể dính mặt người bên cạnh: lấy mặt chứa mũi của khung xương này.
+    const found = (faceLm.detect(c).faceLandmarks || [])
+      .map((f) => f.map((q) => ({ x: (sx + q.x * side) / W, y: (sy + q.y * side) / H })))
+      .find((f) => faceHas(f, b[0].x, b[0].y));
+    if (found) faces.push(found);
   }
   return {
     face: faces.length ? faces.flatMap((f) => segments(f, faceConnections(), 0)) : null,

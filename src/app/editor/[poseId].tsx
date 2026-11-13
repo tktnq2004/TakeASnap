@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { ChevronLeft, Redo2, Undo2 } from 'lucide-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,7 +14,9 @@ import {
   refineGridSize,
 } from '@/engine/brush';
 import { buildContours, type Contour, personAreaRatio } from '@/engine/contour';
+import { useCameraStore } from '@/features/camera/cameraStore';
 import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
+import { landmarksForContours } from '@/features/pose/mapping';
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
 import { RefineLayer } from '@/features/pose/RefineLayer';
 import { getPose, saveEdits } from '@/features/pose/repository';
@@ -76,7 +78,8 @@ const pxInt = (v: number) => {
 
 /** Màn Chỉnh pose (business-flow §5.2, design.md §6.4). */
 export default function EditorScreen() {
-  const { poseId } = useLocalSearchParams<{ poseId: string }>();
+  // from=camera: mở từ nút Chỉnh pose trên Camera; lưu thành bản mới thì Camera dùng luôn bản đó.
+  const { poseId, from } = useLocalSearchParams<{ poseId: string; from?: string }>();
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
 
@@ -212,7 +215,10 @@ export default function EditorScreen() {
     savingRef.current = true;
     setSaving(true);
     try {
-      await saveEdits(db, pose, currentStyle(), { asNew, contours: edited });
+      const savedId = await saveEdits(db, pose, currentStyle(), { asNew, contours: edited });
+      if (from === 'camera' && savedId !== pose.id) {
+        useCameraStore.getState().replacePose(savedId);
+      }
       haptic.saved();
       goBack();
     } catch {
@@ -224,7 +230,14 @@ export default function EditorScreen() {
   };
 
   const isSample = pose ? isSampleId(pose.id) : true;
-  const lm = pose?.landmarks ?? null;
+  // Đang Sửa nét: nét mặt nằm trên vùng vừa xóa thì ẩn ngay, lọc từ nét gốc nên tô lại thì hiện lại.
+  const lm = useMemo(
+    () =>
+      contours
+        ? landmarksForContours(pose?.rawLandmarks ?? pose?.landmarks ?? null, contours)
+        : (pose?.landmarks ?? null),
+    [contours, pose],
+  );
   const editingFace = lineTarget === 'face';
   // Ghi chú khi đang chỉnh nét mặt mà ảnh không có mặt.
   const faceNote = !editingFace
@@ -274,12 +287,7 @@ export default function EditorScreen() {
           />
         )}
         {pose && area.w > 0 && tab === 'refine' && (
-          <RefineLayer
-            mode={brushMode}
-            size={brushSize}
-            live={live}
-            onStroke={onStroke}
-          />
+          <RefineLayer mode={brushMode} size={brushSize} live={live} onStroke={onStroke} />
         )}
         {pose === null && (
           <Text style={[type.body, styles.muted, styles.center]}>{t.editor.notFound}</Text>

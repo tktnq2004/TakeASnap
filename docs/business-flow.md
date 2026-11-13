@@ -127,6 +127,7 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 
 ### 4.4 Điều khiển nhanh cho overlay (khi đang có pose)
 
+- **Chỉnh pose**: mở thẳng màn Chỉnh pose cho pose đang dùng (góp ý Phase 3). Lưu thì quay về Camera; lưu thành bản mới (hoặc sửa pose mẫu) thì Camera dùng luôn bản mới, giữ vị trí và lật ngang.
 - **Độ hiện overlay**: 3 mức chạm nhanh 100% / 60% / 30%.
 - **Lật ngang**: soi gương dáng (dáng tay trái thành tay phải).
 - **Ẩn tạm**: giữ nút để ẩn overlay, thả ra để hiện lại, dùng khi cần nhìn rõ người thật.

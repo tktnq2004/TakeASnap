@@ -208,6 +208,7 @@ Cấm:
 | Thước cân bằng | `ruler` |
 | Hẹn giờ | `timer` |
 | Pose | thumbnail pose hiện tại, chưa có thì `person-standing` |
+| Chỉnh pose (rail Camera) | `pencil` |
 | Lật ngang | `flip-horizontal-2` |
 | Ẩn tạm | `eye-off` |
 | Xóa | `trash-2` |
@@ -312,8 +313,8 @@ Khung vẽ cho máy 390×844. `·` là vùng ảnh / khung ngắm. Ký hiệu tr
 │··········   │  │   ·············│
 │······────────────────────·······│  thước cân bằng: ink → accent khi thẳng
 │··································│
-│                         [◐][⇋][👁]│  rail overlay (chỉ khi có pose):
-├──────────────────────────────────┤  độ hiện · lật ngang · giữ để ẩn
+│                      [✎][◐][⇋][👁]│  rail overlay (chỉ khi có pose, xếp dọc):
+├──────────────────────────────────┤  chỉnh pose · độ hiện · lật ngang · giữ để ẩn
 │     ( 1,0×  ━━━━●━━━━━━━ )      │  thanh kéo zoom 0,5×–5×, đĩa scrim
 │                                  │
 │  [ảnh]        ( ◯ )       [pose] │  thumbnail 44 · nút chụp 76 · nút pose 44

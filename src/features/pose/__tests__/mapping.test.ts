@@ -76,6 +76,20 @@ describe('pose ↔ dòng SQLite', () => {
     expect(rowToStyle(old).backgroundOpacity).toBe(DEFAULT_STYLE.backgroundOpacity);
   });
 
+  it('viền đã Sửa nét: ẩn nét mặt nằm ngoài người, vẫn lưu nét gốc', () => {
+    const face = [0.5, 0.2, 0.52, 0.2, 0.05, 0.8, 0.07, 0.8];
+    const raw = { face, bodyPoints: null };
+    const photo = { ...poseToPhotoRow({ ...pose, landmarks: raw }), contours_edited: 1 };
+    const back = rowsToPose(
+      photo,
+      poseToVariantRow(pose),
+      contoursToRows(pose.photoId, pose.contours),
+    );
+    expect(back.landmarks?.face).toEqual([0.5, 0.2, 0.52, 0.2]);
+    expect(back.rawLandmarks).toEqual(raw);
+    expect(poseToPhotoRow({ ...back, source: pose.source }).landmarks_json).toBe(JSON.stringify(raw));
+  });
+
   it('màu và độ dày nét mặt lưu ở cột lines_color / lines_width', () => {
     const row = poseToVariantRow(pose);
     expect(row.lines_color).toBe('#ffd60a');

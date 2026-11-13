@@ -3,7 +3,9 @@ import {
   contoursToSvgPath,
   downsampleMask,
   type Grid,
+  insideContours,
   personAreaRatio,
+  segmentsInContours,
   signedArea,
   simplifyClosed,
   traceContours,
@@ -133,5 +135,36 @@ describe('contoursToSvgPath', () => {
     expect(d.match(/M/g)).toHaveLength(1);
     const nums = d.match(/-?\d+(\.\d+)?/g)!.map(Number);
     expect(Math.max(...nums)).toBeLessThanOrEqual(200);
+  });
+});
+
+describe('segmentsInContours', () => {
+  const box = (x0: number, y0: number, x1: number, y1: number, isHole = false) => ({
+    isHole,
+    points: [
+      { x: x0, y: y0 },
+      { x: x1, y: y0 },
+      { x: x1, y: y1 },
+      { x: x0, y: y1 },
+    ],
+  });
+  const person = [box(0.2, 0.1, 0.8, 0.9), box(0.4, 0.4, 0.6, 0.6, true)];
+
+  it('điểm trong người, trong lỗ và ngoài', () => {
+    expect(insideContours(person, 0.3, 0.3)).toBe(true);
+    expect(insideContours(person, 0.5, 0.5)).toBe(false);
+    expect(insideContours(person, 0.9, 0.5)).toBe(false);
+  });
+
+  it('bỏ đoạn đã nằm ngoài người, giữ đoạn sát viền', () => {
+    const inside = [0.3, 0.2, 0.32, 0.2];
+    const nearEdge = [0.805, 0.5, 0.805, 0.52];
+    const erased = [0.9, 0.2, 0.95, 0.2];
+    expect(segmentsInContours([...inside, ...nearEdge, ...erased], person)).toEqual([
+      ...inside,
+      ...nearEdge,
+    ]);
+    expect(segmentsInContours(erased, person)).toBeNull();
+    expect(segmentsInContours(null, person)).toBeNull();
   });
 });

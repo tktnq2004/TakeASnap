@@ -7,6 +7,7 @@ import {
   FlipHorizontal2,
   Grid3x3,
   type LucideIcon,
+  Pencil,
   PersonStanding,
   Ruler,
   Settings,
@@ -498,6 +499,12 @@ function CameraBody() {
           ]}
         >
           <BarButton
+            icon={Pencil}
+            label={t.camera.editPose}
+            onPress={() => router.push(`/editor/${pose.id}?from=camera`)}
+            onScrim
+          />
+          <BarButton
             icon={Contrast}
             label={t.camera.opacity(pct)}
             onPress={store().cycleOpacity}
@@ -580,7 +587,7 @@ function CameraBody() {
   );
 }
 
-const railHeight = size.iconButton * 3 + space[2] * 2;
+const railHeight = size.iconButton * 4 + space[2] * 3;
 
 /** Phần ngoài khung ngắm phủ nền đặc: ảnh lưu chỉ là phần trong khung (BR-02). */
 function FrameMask({ frame, root }: { frame: Rect; root: { width: number; height: number } }) {

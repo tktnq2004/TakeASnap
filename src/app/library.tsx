@@ -144,7 +144,10 @@ export default function LibraryScreen() {
         setPicking(a);
         return;
       }
-      await finish(a, a.people.map((_, i) => i));
+      await finish(
+        a,
+        a.people.map((_, i) => i),
+      );
     });
 
   const finish = async (a: ImageAnalysis, chosen: number[]) => {
@@ -207,51 +210,53 @@ export default function LibraryScreen() {
           style={styles.working}
         />
       ) : (
-      <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space[5] }}>
-        {tab === 'samples' &&
-          sampleGroups.map((g) => (
-            <View key={g} style={styles.group}>
-              <Text style={[type.head, styles.ink, styles.groupTitle]}>{t.library.groups[g]}</Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.rowContent}
-              >
-                {sampleLibrary
-                  .filter((p) => p.sampleGroup === g)
-                  .map((p) => (
-                    <PoseTile
-                      key={p.id}
-                      pose={p}
-                      width={SAMPLE_W}
-                      height={SAMPLE_H}
-                      plain
-                      onPress={() => pickForCamera(p)}
-                      onLongPress={() => showActions(p, false)}
-                    />
-                  ))}
-              </ScrollView>
-            </View>
-          ))}
+        <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space[5] }}>
+          {tab === 'samples' &&
+            sampleGroups.map((g) => (
+              <View key={g} style={styles.group}>
+                <Text style={[type.head, styles.ink, styles.groupTitle]}>
+                  {t.library.groups[g]}
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.rowContent}
+                >
+                  {sampleLibrary
+                    .filter((p) => p.sampleGroup === g)
+                    .map((p) => (
+                      <PoseTile
+                        key={p.id}
+                        pose={p}
+                        width={SAMPLE_W}
+                        height={SAMPLE_H}
+                        plain
+                        onPress={() => pickForCamera(p)}
+                        onLongPress={() => showActions(p, false)}
+                      />
+                    ))}
+                </ScrollView>
+              </View>
+            ))}
 
-        {tab === 'mine' &&
-          (mine.length === 0 ? (
-            <Text style={[type.body, styles.muted, styles.empty]}>{t.library.empty}</Text>
-          ) : (
-            <View style={styles.grid}>
-              {mine.map((p) => (
-                <PoseTile
-                  key={p.id}
-                  pose={p}
-                  width={gridW}
-                  height={gridW * 1.33}
-                  onPress={() => pickForCamera(p)}
-                  onLongPress={() => showActions(p, true)}
-                />
-              ))}
-            </View>
-          ))}
-      </ScrollView>
+          {tab === 'mine' &&
+            (mine.length === 0 ? (
+              <Text style={[type.body, styles.muted, styles.empty]}>{t.library.empty}</Text>
+            ) : (
+              <View style={styles.grid}>
+                {mine.map((p) => (
+                  <PoseTile
+                    key={p.id}
+                    pose={p}
+                    width={gridW}
+                    height={gridW * 1.33}
+                    onPress={() => pickForCamera(p)}
+                    onLongPress={() => showActions(p, true)}
+                  />
+                ))}
+              </View>
+            ))}
+        </ScrollView>
       )}
 
       {/* Nút ghim ở đáy; đang xử lý thì thay bằng dòng trạng thái (design.md §6.6). */}
