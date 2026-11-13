@@ -213,7 +213,7 @@ Cấm:
 | Ẩn tạm | `eye-off` |
 | Xóa | `trash-2` |
 | Hoàn tác / làm lại | `undo-2` / `redo-2` |
-| Đóng / quay lại | `x` / `chevron-left` |
+| Đóng / quay lại | `x` / `corner-up-left` + chữ "Quay lại" (`BackButton`) |
 | Cài đặt | `settings` |
 
 ---
@@ -227,6 +227,8 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `Button` `variant="primary"` | cao 48, `radius.full`, nền `accent`, chữ `accentInk`. **Mỗi màn chỉ một nút primary** |
 | `Button` `variant="secondary"` | cao 48, `radius.full`, nền trong suốt, viền 1 px `line`, chữ `ink` |
 | `Button` `variant="text"` | chữ `ink`, gạch chân 1 px, cho thao tác phụ ("Chọn ảnh khác") |
+| `Button` `variant="danger"` | cao 48, `radius.full`, nền trong suốt, viền 1 px `danger`, chữ `danger`; chỉ cho xóa không hoàn tác được ("Xóa n pose") |
+| `BackButton` | mũi tên `corner-up-left` + chữ "Quay lại", cao 44; đầu màn Chỉnh pose, tiêu đề vẫn căn giữa màn |
 | `IconButton` | 44×44, `radius.full`; trên camera có đĩa `scrim`; trạng thái bật: glyph `accent` |
 | `Chip` | cao 32, `radius.sm`, chữ `num`; dùng cho zoom (`0.5×` `1×` `2×`) và độ hiện overlay |
 | `Segmented` | thanh 40, ô `radius.sm`, vạch chỉ báo trượt; dùng cho tab Viền / Phủ / Người / Sửa nét |
@@ -234,7 +236,7 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `Switch` | switch hệ thống, màu bật = `accent` |
 | `Swatch` | ô màu 36, `radius.sm`; đang chọn: vòng 2 px `ink` cách 2 px |
 | `Sheet` | `expo-router` `presentation: 'formSheet'` (detent 0.88), dự phòng `@gorhom/bottom-sheet` nếu Android không ổn; nền `surface`, có tay kéo, không nảy; không tự làm sheet bằng Animated |
-| `PoseTile` | ô `radius.md`, **ảnh gốc đầy đủ màu** (người + nền). Pose mẫu: thêm viền trắng 1.5 px. Pose của bạn: thêm style của chính bản đó (độ dày thu về ≤ 2 px). Chạm = sửa (Phase 2: dùng để chụp); nhấn giữ = xóa |
+| `PoseTile` | ô `radius.md`, **ảnh gốc đầy đủ màu** (người + nền). Pose mẫu: thêm viền trắng 1.5 px. Pose của bạn: thêm style của chính bản đó (độ dày thu về ≤ 2 px). Chạm = dùng để chụp; nhấn giữ = menu. Chế độ chọn: vòng tròn 22 px góc trên phải (viền `ink` trên `scrim`); đã chọn = đĩa `accent` có dấu tích + viền ô 2 px `accent` |
 | `StatusLine` | một dòng `label` `muted` + spinner 16 px khi đang chạy; không bao giờ che nội dung |
 
 Một panel điều khiển có **chiều cao cố định**: đổi tab trong Chỉnh pose không làm khung preview co giãn.
@@ -406,7 +408,7 @@ Hiện khi ảnh có từ 2 người trở lên, phủ lên Thư viện: tiêu �
 | Viền | Bộ chọn **[Viền | Mặt]** + công tắc cùng hàng · Độ dày (viền 1–12 px, mặt 0.5–5 px) · Màu, **riêng cho từng cái**. Đang chỉnh Mặt mà ảnh không có mặt → dòng `label` muted "Không thấy mặt…" |
 | Phủ | Hiện lớp phủ · Độ đậm 0–100% · Màu |
 | Ảnh | Độ hiện người 0–100% · Độ hiện nền 0–100% |
-| Sửa nét | **[Thêm | Xóa]** + nút Hoàn tác, Làm lại cùng hàng · Cỡ cọ 8–64 px · dòng `label` muted hướng dẫn. Vẽ thẳng lên preview: nét đang vẽ là `accent` (thêm) hoặc `danger` (xóa) mờ 50%, nhấc tay thì viền vẽ lại |
+| Sửa nét | **[Thêm | Xóa | Khôi phục]** + nút Hoàn tác, Làm lại cùng hàng · Cỡ cọ 8–64 px · dòng `label` muted hướng dẫn. Vẽ thẳng lên preview: nét đang vẽ là `accent` (thêm), `danger` (xóa) hoặc `ink` (khôi phục) mờ 50%, nhấc tay thì viền vẽ lại |
 
 **Viền và Mặt chung tab, chỉnh riêng** (góp ý lần 3): một thanh kéo chỉ đổi một thứ. Ống tay chân (góp ý lần 2) đã bỏ vì nét ước lượng chưa đủ tốt.
 

@@ -320,15 +320,43 @@ async function getLandmarkers() {
   // CPU: kết quả là toạ độ điểm (không đọc mask từ GPU), ổn định trên mọi máy, đủ nhanh.
   const base = async (key) => Object.assign({ delegate: 'CPU' }, await modelOptions(key));
   faceLm = await mp.FaceLandmarker.createFromOptions(fileset, {
-    baseOptions: await base('face'), runningMode: 'IMAGE', numFaces: MAX_FACES,
+    baseOptions: await base('face'), runningMode: 'IMAGE', numFaces: MAX_PEOPLE,
   });
   bodyLm = await mp.PoseLandmarker.createFromOptions(fileset, {
-    baseOptions: await base('body'), runningMode: 'IMAGE', numPoses: MAX_FACES,
+    baseOptions: await base('body'), runningMode: 'IMAGE', numPoses: MAX_PEOPLE,
   });
   return now() - t0;
 }
 
-const MAX_FACES = 4;
+const MAX_PEOPLE = 6;
+// Tâm thân (vai + hông) và bề ngang vai, chuẩn hóa: để nhận ra cùng một người ở hai lần dò.
+function torso(b) {
+  const x = (b[11].x + b[12].x + b[23].x + b[24].x) / 4;
+  const y = (b[11].y + b[12].y + b[23].y + b[24].y) / 4;
+  return { x: x, y: y, w: Math.hypot(b[11].x - b[12].x, b[11].y - b[12].y) };
+}
+function sameBody(a, b) {
+  const p = torso(a), q = torso(b);
+  return Math.hypot(p.x - q.x, p.y - q.y) < Math.max(p.w, q.w, 0.02) * 0.6;
+}
+// Bộ dò khung xương hay bỏ sót người đứng sát người khác: dò thêm trên 3 dải dọc chồng nhau
+// (mỗi dải nửa bề ngang ảnh), gộp những khung xương chưa có.
+function bodiesInStrips(img, bodies) {
+  const W = img.naturalWidth, H = img.naturalHeight;
+  const sw = Math.round(W / 2);
+  const out = bodies.slice();
+  for (const sx of [0, Math.round(W / 4), W - sw]) {
+    if (out.length >= MAX_PEOPLE) break;
+    const c = document.createElement('canvas');
+    c.width = sw; c.height = H;
+    c.getContext('2d').drawImage(img, sx, 0, sw, H, 0, 0, sw, H);
+    for (const b of bodyLm.detect(c).landmarks || []) {
+      const m = b.map((q) => ({ x: (sx + q.x * sw) / W, y: q.y, visibility: q.visibility }));
+      if (out.length < MAX_PEOPLE && !out.some((o) => sameBody(o, m))) out.push(m);
+    }
+  }
+  return out;
+}
 // Điểm (chuẩn hóa) nằm trong khung bao của mặt, nới 20% mỗi phía.
 function faceHas(f, x, y) {
   let x0 = 1, y0 = 1, x1 = 0, y1 = 0;
@@ -364,7 +392,7 @@ async function runLandmarks(img) {
   const loadMs = await getLandmarkers();
   const t0 = now();
   const W = img.naturalWidth, H = img.naturalHeight;
-  const bodies = bodyLm.detect(img).landmarks || [];
+  const bodies = bodiesInStrips(img, bodyLm.detect(img).landmarks || []);
   const body = bodies[0] || null;
   // Ảnh nhiều người: lấy mọi mặt, app giữ lại mặt của người được chọn (Phase 3).
   const faces = (faceLm.detect(img).faceLandmarks || []).slice();
@@ -384,7 +412,8 @@ async function runLandmarks(img) {
     const found = (faceLm.detect(c).faceLandmarks || [])
       .map((f) => f.map((q) => ({ x: (sx + q.x * side) / W, y: (sy + q.y * side) / H })))
       .find((f) => faceHas(f, b[0].x, b[0].y));
-    if (found) faces.push(found);
+    // Hai khung xương của cùng một người (dò trên dải bị cắt ngang người) không thêm mặt hai lần.
+    if (found && !faces.some((e) => faceHas(e, found[1].x, found[1].y))) faces.push(found);
   }
   return {
     face: faces.length ? faces.flatMap((f) => segments(f, faceConnections(), 0)) : null,

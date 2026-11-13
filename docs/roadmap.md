@@ -379,12 +379,14 @@ docs/
 
 **Góp ý lần 1:** cọ Xóa bỏ được viền nhưng nét mặt vẫn còn → nét mặt lọc theo viền đã sửa (`segmentsInContours`), lọc khi vẽ nên nét gốc vẫn lưu, tô lại thì hiện lại. Hai người đứng sát thành một vùng và mất nét mặt → WebView dò tối đa 4 khung xương và dò lại vùng đầu cho từng khung chưa có mặt. Rail overlay trên Camera thêm nút Chỉnh pose (mở thẳng màn Chỉnh pose; lưu thành bản mới thì Camera dùng luôn bản đó, giữ vị trí).
 
+**Góp ý lần 2:** tô lại vùng đã xóa thì viền theo nét cọ chứ không theo dáng người → cọ **Khôi phục** tô lại theo viền lúc tạo pose (migration v5 `photos.original_contours_json`, ghi lần sửa đầu). Ảnh trên 2 người chỉ có 2 nét mặt → dò khung xương thêm trên 3 dải dọc chồng nhau, tối đa 6 người. Nút quay lại có chữ (`BackButton`). Chọn nhiều để xóa trong "Pose của bạn", vuốt ngang chọn cả dải (`src/features/pose/selection.ts`, `MineGrid`); chưa tự cuộn khi kéo tới mép màn.
+
 - Chọn người: `src/engine/regions.ts` chia mask thành vùng liền nhau (mỗi vùng ≥ 2% ảnh là một người), `PersonPicker` phủ lên Thư viện. Trang WebView nay dò tối đa 4 mặt để giữ được nét mặt của người được chọn.
 - Sửa nét: `src/engine/brush.ts` dựng lưới 512 từ viền đang có (pose mẫu không có mask PNG), cọ có khử răng cưa, lịch sử 30 bước. Viền đã sửa ghi vào ảnh gốc, cột `photos.contours_edited` (migration v4) để bản chép pose mẫu không bị viền mẫu đè lại.
 
 - [x] Màn Thư viện: Pose mẫu theo nhóm, Pose của bạn, Thêm ảnh từ máy (từ Phase 1–2)
 - [x] Chọn người khi ảnh có nhiều người (chạm vào vùng người)
-- [ ] Sửa nét: cọ thêm / xóa trên mask, hoàn tác 30 bước, tính lại contour khi nhấc tay — chờ thử lại cọ Xóa
+- [ ] Sửa nét: cọ thêm / xóa trên mask, hoàn tác 30 bước, tính lại contour khi nhấc tay — cọ Xóa đạt, chờ thử cọ Khôi phục
 - [x] Tạo bản sao từ pose mẫu, xóa có xác nhận (từ Phase 1–2)
 - [x] Trạng thái rỗng, đang xử lý, lỗi theo [business-flow §10](business-flow.md#10-trạng-thái-và-lỗi)
 - [ ] Chạy trọn chức năng 1 + 2 khi không có internet — chờ thử (Wi-Fi nội bộ không ra internet, xem phase3-test.md lần 2)

@@ -128,6 +128,9 @@ export const processing = { imageOpacity: 0.6 } as const;
 /** Màn Chọn người: người đã chọn phủ màu nhấn và viền ink; chưa chọn chỉ có viền mờ. */
 export const personPick = { fill: 0.35, strokeOn: 2, strokeOff: 1.5 } as const;
 
+/** Chọn nhiều pose: dấu chọn tròn ở góc ô, ô đã chọn có viền màu nhấn. */
+export const tileSelect = { mark: 22, markInset: 6, ring: 1.5, border: 2, check: 14 } as const;
+
 /** Nét lưới khung ngắm: nét sáng 1 px kẹp giữa hai viền tối 1 px. */
 export const gridLine = { width: 1, halo: 1 } as const;
 

@@ -19,6 +19,7 @@ import {
   type PhotoRow,
   poseToPhotoRow,
   poseToVariantRow,
+  rowsToContours,
   rowsToPose,
   styleToColumns,
   type VariantRow,
@@ -82,6 +83,7 @@ async function loadPoses(db: SQLiteDatabase, variants: VariantRow[]): Promise<Po
               ? {
                   landmarks: landmarksForContours(sample.landmarks, pose.contours),
                   rawLandmarks: sample.landmarks,
+                  originalContours: sample.contours,
                 }
               : { landmarks: sample.landmarks }),
           }
@@ -126,6 +128,24 @@ async function insertContours(db: SQLiteDatabase, photoId: string, contours: Con
 
 /** Viền đã Sửa nét: thay viền của ảnh gốc (mọi bản của ảnh dùng chung viền) và đánh dấu đã sửa. */
 async function writeContours(db: SQLiteDatabase, photoId: string, contours: Contour[]) {
+  // Lần sửa đầu: giữ viền lúc tạo pose cho cọ Khôi phục.
+  const photo = await db.getFirstAsync<{ original_contours_json: string | null }>(
+    'SELECT original_contours_json FROM photos WHERE id = ?',
+    photoId,
+  );
+  if (photo && photo.original_contours_json == null) {
+    const old = await db.getAllAsync<ContourRow>(
+      'SELECT * FROM photo_contours WHERE photo_id = ? ORDER BY idx',
+      photoId,
+    );
+    if (old.length) {
+      await db.runAsync(
+        'UPDATE photos SET original_contours_json = ? WHERE id = ?',
+        JSON.stringify(rowsToContours(old)),
+        photoId,
+      );
+    }
+  }
   await db.runAsync('DELETE FROM photo_contours WHERE photo_id = ?', photoId);
   await insertContours(db, photoId, contours);
   await db.runAsync(

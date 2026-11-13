@@ -64,6 +64,22 @@ describe('applyStroke', () => {
     expect(g[50 * 100 + 50]).toBe(0);
     expect(g[50 * 100 + 30]).toBe(1);
   });
+
+  it('cọ khôi phục chỉ tô lại phần thuộc dáng người gốc', () => {
+    const source = rasterizeContours([square], 100, 100);
+    const g = source.slice();
+    applyStroke(g, 100, 100, { mode: 'erase', radius: 10, points: [50, 50] });
+    expect(g[50 * 100 + 50]).toBe(0);
+    // Nét to tràn ra ngoài hình vuông: chỉ phần trong hình vuông được tô lại.
+    applyStroke(g, 100, 100, { mode: 'restore', radius: 30, points: [50, 50] }, source);
+    expect(g[50 * 100 + 50]).toBe(1);
+    expect(g[50 * 100 + 22]).toBe(0);
+    expect(sum(g)).toBeCloseTo(sum(source), 0);
+    // Thiếu lưới gốc thì không làm gì.
+    const before = sum(g);
+    applyStroke(g, 100, 100, { mode: 'restore', radius: 30, points: [10, 10] });
+    expect(sum(g)).toBe(before);
+  });
 });
 
 describe('MaskHistory', () => {

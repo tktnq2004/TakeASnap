@@ -7,8 +7,8 @@ import { PressableScale } from './PressableScale';
 type Props = {
   label: string;
   onPress: () => void;
-  /** Mỗi màn chỉ một nút primary (design.md §4). */
-  variant?: 'primary' | 'secondary' | 'text';
+  /** Mỗi màn chỉ một nút primary (design.md §4). `danger`: thao tác xóa không hoàn tác được. */
+  variant?: 'primary' | 'secondary' | 'text' | 'danger';
   disabled?: boolean;
   fullWidth?: boolean;
 };
@@ -26,6 +26,7 @@ export function Button({ label, onPress, variant = 'primary', disabled, fullWidt
         variant === 'primary' && styles.primary,
         variant === 'secondary' && styles.secondary,
         variant === 'text' && styles.textOnly,
+        variant === 'danger' && styles.danger,
         fullWidth && styles.fullWidth,
         disabled && styles.disabled,
       ]}
@@ -33,7 +34,14 @@ export function Button({ label, onPress, variant = 'primary', disabled, fullWidt
       <Text
         style={[
           type.button,
-          { color: variant === 'primary' ? color.accentInk : color.ink },
+          {
+            color:
+              variant === 'primary'
+                ? color.accentInk
+                : variant === 'danger'
+                  ? color.danger
+                  : color.ink,
+          },
           variant === 'text' && styles.underline,
         ]}
         maxFontSizeMultiplier={1.3}
@@ -54,6 +62,7 @@ const styles = StyleSheet.create({
   },
   primary: { backgroundColor: color.accent },
   secondary: { borderWidth: 1, borderColor: color.line },
+  danger: { borderWidth: 1, borderColor: color.danger },
   textOnly: { paddingHorizontal: space[2], minHeight: size.tap },
   underline: { textDecorationLine: 'underline' },
   fullWidth: { alignSelf: 'stretch' },

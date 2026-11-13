@@ -80,6 +80,8 @@ export type Pose = {
    * lại từ đây, để tô lại vùng mặt thì nét mặt hiện lại.
    */
   rawLandmarks?: Landmarks | null;
+  /** Viền lúc tạo pose, cho cọ Khôi phục. Không có = viền hiện tại chính là viền gốc. */
+  originalContours?: Contour[];
   /** Nhóm của pose mẫu; null với ảnh của người dùng. */
   sampleGroup: string | null;
   /** Mask PNG trong Paths.document (Sửa nét ở Phase 3); pose mẫu không có. */

@@ -67,23 +67,23 @@ Ngày thử:
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 5.1 | Sửa nét, cọ Xóa tô lên **mặt** rồi nhấc tay | Viền và nét mặt ở vùng đó cùng mất | | | |
-| 5.2 | Hoàn tác bước vừa xóa | Viền và nét mặt hiện lại | | | |
-| 5.3 | Xóa mặt, "Lưu pose", mở lại pose đó; xem cả ô Thư viện và overlay Camera | Không còn nét mặt ở vùng đã xóa | | | |
-| 5.4 | Mở lại pose ở 5.3, cọ Thêm tô lại vùng mặt | Nét mặt hiện lại | | | |
-| 5.5 | **Thêm lại** ảnh hai người đứng sát (ảnh cũ đã lưu không tự cập nhật) | Vẫn một vùng, nhưng có nét mặt của từng người | | | |
+| 5.1 | Sửa nét, cọ Xóa tô lên **mặt** rồi nhấc tay | Viền và nét mặt ở vùng đó cùng mất | đạt | đạt | |
+| 5.2 | Hoàn tác bước vừa xóa | Viền và nét mặt hiện lại |đạt | đạt | |
+| 5.3 | Xóa mặt, "Lưu pose", mở lại pose đó; xem cả ô Thư viện và overlay Camera | Không còn nét mặt ở vùng đã xóa |đạt | đạt | |
+| 5.4 | Mở lại pose ở 5.3, cọ Thêm tô lại vùng mặt | Nét mặt hiện lại |đạt |đạt | nhưng lúc này nó sẽ vẽ viền theo nét cọ vẽ thêm, không tự nhận ra dáng người và vẽ viền theo dáng người nữa|
+| 5.5 | **Thêm lại** ảnh hai người đứng sát (ảnh cũ đã lưu không tự cập nhật) | Vẫn một vùng, nhưng có nét mặt của từng người |đạt | đạt| nhưng trên 2 người thì chỉ có thể vẽ 2 người |
 | 5.6 | Ảnh hai, ba người đứng tách, mặt nhỏ (toàn thân) → chọn một người | Có nét mặt của người được chọn | | | |
 
 ## 6. Nút Chỉnh pose trên Camera
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 6.1 | Chọn một pose cho Camera | Rail bên phải có 4 nút, nút trên cùng là cây bút | | | |
-| 6.2 | Bấm cây bút | Mở Chỉnh pose của đúng pose đang dùng | | | |
-| 6.3 | Đổi màu viền → "Lưu pose" | Về Camera, overlay đổi theo, vị trí và lật ngang giữ nguyên | | | |
-| 6.4 | Bấm cây bút → "Lưu thành bản mới" | Về Camera, overlay là bản mới, vị trí giữ nguyên | | | |
-| 6.5 | Dùng một **pose mẫu**, bấm cây bút, sửa rồi lưu | Về Camera với bản mới trong "Pose của bạn", vị trí giữ nguyên | | | |
-| 6.6 | Bấm cây bút rồi bấm quay lại (không lưu) | Về Camera, pose không đổi | | | |
+| 6.1 | Chọn một pose cho Camera | Rail bên phải có 4 nút, nút trên cùng là cây bút | đạt| đạt| |
+| 6.2 | Bấm cây bút | Mở Chỉnh pose của đúng pose đang dùng |đạt |đạt | |
+| 6.3 | Đổi màu viền → "Lưu pose" | Về Camera, overlay đổi theo, vị trí và lật ngang giữ nguyên | đạt | đạt | |
+| 6.4 | Bấm cây bút → "Lưu thành bản mới" | Về Camera, overlay là bản mới, vị trí giữ nguyên |đạt | đạt | |
+| 6.5 | Dùng một **pose mẫu**, bấm cây bút, sửa rồi lưu | Về Camera với bản mới trong "Pose của bạn", vị trí giữ nguyên |đạt | đạt| |
+| 6.6 | Bấm cây bút rồi bấm quay lại (không lưu) | Về Camera, pose không đổi |đạt |đạt | thay vì chỉ có < hãy thêm chữ quay lại và mũi tên quay đầu để dễ nhìn |
 
 ## 7. Không có internet (thay cho chế độ máy bay)
 
@@ -97,3 +97,58 @@ Trước khi rút mạng: đã tạo ít nhất một pose từ ảnh trong máy
 | 7.2 | Chụp theo pose, lưu ảnh | Như khi có mạng | | | |
 | 7.3 | Thêm ảnh từ máy, chọn người, sửa nét, lưu | Như khi có mạng | | | |
 
+Giữ lại mục 7 test sau 
+
+- Thêm multi detele trong pose của bạn để dọn nhanh, có khả năng chọn trượt theo ngón tay giống album của iphone
+
+---
+
+# Lần 3 — thử lại sau góp ý lần 2
+
+Đã sửa: cọ **Khôi phục** tô lại đúng dáng người (5.4); dò thêm người khi ảnh có trên 2 người (5.5); nút "Quay lại" có chữ (6.6); chọn nhiều pose để xóa (góp ý).
+
+Ngày thử: 
+
+## 8. Cọ Khôi phục
+
+Ảnh đã Sửa nét **trước** bản này không có viền gốc, nên Khôi phục chỉ tô lại tới viền lúc mở màn. Thử với pose mới tạo hoặc pose mẫu.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 8.1 | Tab Sửa nét | Có [Thêm \| Xóa \| Khôi phục], nút hoàn tác và làm lại vẫn nằm cùng hàng, không bị chật | | | |
+| 8.2 | Xóa mặt, rồi chọn Khôi phục, tô cọ to phủ cả vùng mặt và nền quanh đó | Viền và nét mặt quay lại đúng dáng người, phần nền bị tô không thành người | | | |
+| 8.3 | Xóa mặt, "Lưu pose", mở lại, Khôi phục vùng mặt | Như 8.2 (viền gốc vẫn còn sau khi lưu) | | | |
+| 8.4 | Pose mẫu: Xóa một tay rồi Khôi phục | Tay quay lại đúng dáng | | | |
+| 8.5 | Khôi phục rồi hoàn tác | Quay về lúc trước khi khôi phục | | | |
+
+## 9. Nhiều người
+
+**Thêm lại** ảnh (ảnh đã lưu không tự cập nhật).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 9.1 | Ảnh 3 người trở lên đứng sát nhau | Có nét mặt của từng người (ghi lại mấy người, mấy mặt) | | | |
+| 9.2 | Ảnh 2, 3 người đứng tách, mặt nhỏ (toàn thân) → chọn một người | Có nét mặt của người được chọn (mục 5.6 lần trước) | | | |
+| 9.3 | Ảnh một người | Thời gian xử lý không chậm đi rõ so với trước | | | |
+
+## 10. Nút Quay lại
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 10.1 | Mở Chỉnh pose | Góc trái có mũi tên quay đầu + chữ "Quay lại"; tiêu đề "Chỉnh pose" vẫn ở giữa | | | |
+| 10.2 | Bấm "Quay lại" | Về màn trước, không lưu | | | |
+
+## 11. Chọn nhiều để xóa
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 11.1 | Thư viện → "Pose của bạn" | Đầu màn có chữ "Chọn pose" cạnh nút X. Tab Pose mẫu thì không có | | | |
+| 11.2 | Bấm "Chọn pose" | Tiêu đề thành "Chọn pose để xóa", mỗi ô có vòng tròn ở góc, đáy là nút đỏ "Xóa 0 pose" (mờ) | | | |
+| 11.3 | Chạm vài ô | Ô có dấu tích cam và viền cam, rung nhẹ; tiêu đề "Đã chọn n pose" | | | |
+| 11.4 | Đặt ngón tay lên một ô, vuốt **ngang** rồi kéo xuống các hàng dưới | Cả dải từ ô đầu tới ô dưới ngón tay được chọn ngay trong lúc kéo | | | |
+| 11.5 | Bắt đầu vuốt từ một ô **đã chọn** | Cả dải bị bỏ chọn | | | |
+| 11.6 | Vuốt **dọc** trên lưới | Danh sách cuộn, không chọn ô nào | | | |
+| 11.7 | "Xóa n pose" → Hủy, rồi lại → Xóa | Hủy thì không mất gì; Xóa thì các ô biến mất, thoát chế độ chọn | | | |
+| 11.8 | Xóa pose đang dùng trên Camera | Về Camera không còn overlay | | | |
+| 11.9 | Đang chọn thì bấm "Hủy" hoặc đổi sang tab Pose mẫu | Thoát chế độ chọn, bỏ hết dấu chọn | | | |
+| 11.10 | Ngoài chế độ chọn: chạm ô, giữ lâu ô | Như cũ: chạm = dùng để chụp, giữ = menu | | | |

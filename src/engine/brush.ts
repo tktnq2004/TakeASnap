@@ -1,5 +1,5 @@
 /**
- * Sửa nét (business-flow §5.2, Phase 3): cọ thêm / cọ xóa trên lưới mask, hoàn tác 30 bước.
+ * Sửa nét (business-flow §5.2, Phase 3): cọ thêm / xóa / khôi phục trên lưới mask, hoàn tác 30 bước.
  * Lưới dựng lại từ viền đang có (pose mẫu không có mask PNG), nên mọi pose sửa được như nhau.
  * Nhấc ngón tay thì dò viền lại bằng `buildContours`.
  *
@@ -7,7 +7,8 @@
  */
 import type { Contour, Grid } from './contour';
 
-export type BrushMode = 'add' | 'erase';
+/** `restore`: chỉ tô lại phần thuộc dáng người gốc (lưới `source`), không tô ra nền. */
+export type BrushMode = 'add' | 'erase' | 'restore';
 
 /** Một nét cọ, tọa độ theo ô lưới. */
 export type Stroke = {
@@ -77,12 +78,22 @@ export function rasterizeContours(
   return out;
 }
 
-/** Áp một nét cọ lên lưới (sửa tại chỗ). Mép cọ khử răng cưa. */
-export function applyStroke(data: Float32Array, width: number, height: number, s: Stroke) {
+/**
+ * Áp một nét cọ lên lưới (sửa tại chỗ). Mép cọ khử răng cưa. Cọ khôi phục cần `source` (lưới dáng
+ * người gốc, cùng kích thước); thiếu thì không làm gì.
+ */
+export function applyStroke(
+  data: Float32Array,
+  width: number,
+  height: number,
+  s: Stroke,
+  source?: Float32Array,
+) {
   const p = s.points;
   if (p.length < 2) return;
+  if (s.mode === 'restore' && !source) return;
   const step = Math.max(0.5, s.radius * 0.35);
-  stamp(data, width, height, p[0]!, p[1]!, s);
+  stamp(data, width, height, p[0]!, p[1]!, s, source);
   for (let i = 2; i + 1 < p.length; i += 2) {
     const ax = p[i - 2]!;
     const ay = p[i - 1]!;
@@ -90,12 +101,20 @@ export function applyStroke(data: Float32Array, width: number, height: number, s
     const by = p[i + 1]!;
     const n = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / step));
     for (let k = 1; k <= n; k++) {
-      stamp(data, width, height, ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n, s);
+      stamp(data, width, height, ax + ((bx - ax) * k) / n, ay + ((by - ay) * k) / n, s, source);
     }
   }
 }
 
-function stamp(data: Float32Array, w: number, h: number, cx: number, cy: number, s: Stroke) {
+function stamp(
+  data: Float32Array,
+  w: number,
+  h: number,
+  cx: number,
+  cy: number,
+  s: Stroke,
+  source?: Float32Array,
+) {
   const r = s.radius;
   const y0 = Math.max(0, Math.floor(cy - r - 1));
   const y1 = Math.min(h - 1, Math.ceil(cy + r + 1));
@@ -107,7 +126,9 @@ function stamp(data: Float32Array, w: number, h: number, cx: number, cy: number,
       const cover = Math.min(1, Math.max(0, r + 0.5 - d));
       if (cover <= 0) continue;
       const i = y * w + x;
-      data[i] = s.mode === 'add' ? Math.max(data[i]!, cover) : Math.min(data[i]!, 1 - cover);
+      if (s.mode === 'add') data[i] = Math.max(data[i]!, cover);
+      else if (s.mode === 'erase') data[i] = Math.min(data[i]!, 1 - cover);
+      else data[i] = Math.max(data[i]!, Math.min(cover, source![i]!));
     }
   }
 }
@@ -124,11 +145,15 @@ export class MaskHistory {
   /** Đã có nét bị nung vào lưới gốc (vượt giới hạn hoàn tác). */
   private baked = false;
 
+  /**
+   * @param source lưới dáng người gốc cho cọ khôi phục (viền lúc tạo pose, trước mọi lần sửa).
+   */
   constructor(
     base: Float32Array,
     readonly width: number,
     readonly height: number,
     private readonly limit = 30,
+    private readonly source?: Float32Array,
   ) {
     this.base = base.slice();
     this.current = base.slice();
@@ -154,9 +179,9 @@ export class MaskHistory {
   push(s: Stroke) {
     this.strokes.push(s);
     this.undone = [];
-    applyStroke(this.current, this.width, this.height, s);
+    applyStroke(this.current, this.width, this.height, s, this.source);
     if (this.strokes.length > this.limit) {
-      applyStroke(this.base, this.width, this.height, this.strokes.shift()!);
+      applyStroke(this.base, this.width, this.height, this.strokes.shift()!, this.source);
       this.baked = true;
     }
   }
@@ -172,11 +197,12 @@ export class MaskHistory {
     const s = this.undone.pop();
     if (!s) return;
     this.strokes.push(s);
-    applyStroke(this.current, this.width, this.height, s);
+    applyStroke(this.current, this.width, this.height, s, this.source);
   }
 
   private replay() {
     this.current = this.base.slice();
-    for (const s of this.strokes) applyStroke(this.current, this.width, this.height, s);
+    for (const s of this.strokes)
+      applyStroke(this.current, this.width, this.height, s, this.source);
   }
 }

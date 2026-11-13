@@ -1,4 +1,5 @@
 export { AnimatedText } from './AnimatedText';
+export { BackButton } from './BackButton';
 export { Button } from './Button';
 export { IconButton } from './IconButton';
 export { PressableScale } from './PressableScale';

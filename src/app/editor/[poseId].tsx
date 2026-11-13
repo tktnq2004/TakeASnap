@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { ChevronLeft, Redo2, Undo2 } from 'lucide-react-native';
+import { Redo2, Undo2 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
@@ -29,7 +29,15 @@ import {
 } from '@/features/pose/types';
 import { haptic } from '@/lib/haptics';
 import { useGoBack } from '@/lib/useGoBack';
-import { Button, IconButton, Segmented, Slider, SwatchRow, ToggleRow } from '@/ui/components';
+import {
+  BackButton,
+  Button,
+  IconButton,
+  Segmented,
+  Slider,
+  SwatchRow,
+  ToggleRow,
+} from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, radius, refineBrush, size, space, type } from '@/ui/tokens';
 
@@ -51,6 +59,7 @@ type LineTarget = (typeof lineTargets)[number]['key'];
 const brushModes = [
   { key: 'add', label: t.editor.brushAdd },
   { key: 'erase', label: t.editor.brushErase },
+  { key: 'restore', label: t.editor.brushRestore },
 ] as const;
 
 /** Hoàn tác tối đa 30 bước (business-flow §5.2). */
@@ -178,7 +187,11 @@ export default function EditorScreen() {
     let h = historyRef.current;
     if (!h) {
       const base = rasterizeContours(contours ?? pose.contours, g.width, g.height);
-      h = new MaskHistory(base, g.width, g.height, REFINE_UNDO);
+      // Dáng người gốc cho cọ Khôi phục: viền lúc tạo pose (chưa sửa lần nào thì là viền hiện tại).
+      const source = pose.originalContours
+        ? rasterizeContours(pose.originalContours, g.width, g.height)
+        : rasterizeContours(pose.contours, g.width, g.height);
+      h = new MaskHistory(base, g.width, g.height, REFINE_UNDO, source);
       historyRef.current = h;
     }
     const kx = g.width / r.w;
@@ -251,11 +264,13 @@ export default function EditorScreen() {
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
       <View style={styles.header}>
-        <IconButton icon={ChevronLeft} label={t.common.back} onPress={goBack} />
-        <Text accessibilityRole="header" style={[type.head, styles.ink]}>
-          {t.editor.title}
-        </Text>
-        <View style={styles.headerSpacer} />
+        {/* Tiêu đề căn giữa màn, không theo bề rộng nút Quay lại. */}
+        <View pointerEvents="none" style={styles.headerTitle}>
+          <Text accessibilityRole="header" style={[type.head, styles.ink]}>
+            {t.editor.title}
+          </Text>
+        </View>
+        <BackButton onPress={goBack} />
       </View>
 
       <View
@@ -436,9 +451,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: space[2],
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
-  headerSpacer: { width: size.iconButton },
+  headerTitle: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   ink: { color: color.ink },
   muted: { color: color.muted },
   center: { textAlign: 'center', marginTop: space[7] },

@@ -8,13 +8,14 @@ import {
   Alert,
   Image,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   useWindowDimensions,
   View,
 } from 'react-native';
+// Cuộn dọc dùng ScrollView của Gesture Handler: vuốt ngang chọn pose thắng cuộn, vuốt dọc thì cuộn.
+import { ScrollView as GestureScrollView } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
@@ -27,15 +28,18 @@ import {
   PoseCreateError,
   savePose,
 } from '@/features/pose/createFromImage';
+import { MineGrid } from '@/features/pose/MineGrid';
 import { PersonPicker } from '@/features/pose/PersonPicker';
-import { PoseCanvas } from '@/features/pose/PoseCanvas';
+import { PoseTile } from '@/features/pose/PoseTile';
 import { deleteVariant, listUserPoses } from '@/features/pose/repository';
 import { sampleGroups, sampleLibrary } from '@/features/pose/samples';
+import { applyRange } from '@/features/pose/selection';
 import type { Pose } from '@/features/pose/types';
+import { haptic } from '@/lib/haptics';
 import { useGoBack } from '@/lib/useGoBack';
 import { Button, IconButton, Segmented } from '@/ui/components';
 import { t } from '@/ui/strings';
-import { color, processing, radius, size, space, type } from '@/ui/tokens';
+import { color, processing, size, space, type } from '@/ui/tokens';
 
 const tabs = [
   { key: 'samples', label: t.library.tabSamples },
@@ -67,6 +71,9 @@ export default function LibraryScreen() {
   /** Ảnh có nhiều người: đang chờ chọn người. */
   const [picking, setPicking] = useState<ImageAnalysis | null>(null);
   const pickContours = useMemo(() => (picking ? peopleContours(picking) : []), [picking]);
+  /** Chọn nhiều để xóa (góp ý Phase 3), chỉ ở "Pose của bạn". */
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const { segmentForPose } = useSegmenter();
   const goBack = useGoBack();
 
@@ -76,20 +83,63 @@ export default function LibraryScreen() {
     }, [db]),
   );
 
+  const remove = async (ids: string[]) => {
+    for (const id of ids) {
+      await deleteVariant(db, id);
+      clearPlacement(id);
+      if (useCameraStore.getState().poseId === id) useCameraStore.getState().clearPose();
+    }
+    setMine((list) => list.filter((x) => !ids.includes(x.id)));
+  };
+
   const confirmDelete = (p: Pose) =>
     Alert.alert(t.library.remove, t.library.removeConfirm, [
+      { text: t.common.cancel, style: 'cancel' },
+      { text: t.library.remove, style: 'destructive', onPress: () => remove([p.id]) },
+    ]);
+
+  const startSelecting = () => {
+    setSelected(new Set());
+    setSelecting(true);
+  };
+  const stopSelecting = () => {
+    setSelecting(false);
+    setSelected(new Set());
+  };
+  const toggle = (p: Pose) => {
+    haptic.select();
+    setSelected((s) => {
+      const out = new Set(s);
+      if (out.has(p.id)) out.delete(p.id);
+      else out.add(p.id);
+      return out;
+    });
+  };
+  const selectRange = (a: number, b: number, select: boolean) => {
+    haptic.select();
+    const ids = mine.map((p) => p.id);
+    setSelected((s) => applyRange(s, ids, a, b, select));
+  };
+  const confirmDeleteSelected = () => {
+    const ids = mine.filter((p) => selected.has(p.id)).map((p) => p.id);
+    if (!ids.length) return;
+    Alert.alert(t.library.removeMany(ids.length), t.library.removeManyConfirm(ids.length), [
       { text: t.common.cancel, style: 'cancel' },
       {
         text: t.library.remove,
         style: 'destructive',
         onPress: async () => {
-          await deleteVariant(db, p.id);
-          clearPlacement(p.id);
-          if (useCameraStore.getState().poseId === p.id) useCameraStore.getState().clearPose();
-          setMine((list) => list.filter((x) => x.id !== p.id));
+          await remove(ids);
+          stopSelecting();
         },
       },
     ]);
+  };
+
+  const changeTab = (k: 'samples' | 'mine') => {
+    if (selecting) stopSelecting();
+    setTab(k);
+  };
 
   const pickForCamera = (p: Pose) => {
     useCameraStore.getState().selectPose(p.id);
@@ -193,13 +243,29 @@ export default function LibraryScreen() {
           { paddingTop: Platform.OS === 'ios' ? space[4] : insets.top + space[2] },
         ]}
       >
-        <Text accessibilityRole="header" style={[type.title, styles.ink]}>
-          {t.library.title}
+        <Text
+          accessibilityRole="header"
+          style={[type.title, styles.ink, styles.title]}
+          numberOfLines={1}
+        >
+          {selecting ? t.library.selectedCount(selected.size) : t.library.title}
         </Text>
-        <IconButton icon={X} label={t.common.close} onPress={goBack} />
+        {selecting ? (
+          <Button label={t.common.cancel} onPress={stopSelecting} variant="text" />
+        ) : (
+          <View style={styles.headerActions}>
+            {tab === 'mine' && mine.length > 0 && !work && (
+              <Button label={t.library.selectMode} onPress={startSelecting} variant="text" />
+            )}
+            <IconButton icon={X} label={t.common.close} onPress={goBack} />
+          </View>
+        )}
       </View>
       <View style={styles.tabs}>
-        <Segmented options={tabs} value={tab} onChange={setTab} />
+        <Segmented options={tabs} value={tab} onChange={changeTab} />
+        {selecting && (
+          <Text style={[type.label, styles.muted, styles.selectHint]}>{t.library.selectHint}</Text>
+        )}
       </View>
 
       {work ? (
@@ -210,7 +276,7 @@ export default function LibraryScreen() {
           style={styles.working}
         />
       ) : (
-        <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space[5] }}>
+        <GestureScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space[5] }}>
           {tab === 'samples' &&
             sampleGroups.map((g) => (
               <View key={g} style={styles.group}>
@@ -243,25 +309,36 @@ export default function LibraryScreen() {
             (mine.length === 0 ? (
               <Text style={[type.body, styles.muted, styles.empty]}>{t.library.empty}</Text>
             ) : (
-              <View style={styles.grid}>
-                {mine.map((p) => (
-                  <PoseTile
-                    key={p.id}
-                    pose={p}
-                    width={gridW}
-                    height={gridW * 1.33}
-                    onPress={() => pickForCamera(p)}
-                    onLongPress={() => showActions(p, true)}
-                  />
-                ))}
-              </View>
+              <MineGrid
+                poses={mine}
+                layout={{
+                  cols: MINE_COLS,
+                  tileW: gridW,
+                  tileH: gridW * 1.33,
+                  gap: MINE_GAP,
+                  padX: size.gutter,
+                }}
+                selecting={selecting}
+                selected={selected}
+                onPress={selecting ? toggle : pickForCamera}
+                onLongPress={(p) => showActions(p, true)}
+                onRange={selectRange}
+              />
             ))}
-        </ScrollView>
+        </GestureScrollView>
       )}
 
       {/* Nút ghim ở đáy; đang xử lý thì thay bằng dòng trạng thái (design.md §6.6). */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + space[3] }]}>
-        {progress ? (
+        {selecting ? (
+          <Button
+            label={t.library.removeMany(selected.size)}
+            onPress={confirmDeleteSelected}
+            variant="danger"
+            disabled={selected.size === 0}
+            fullWidth
+          />
+        ) : progress ? (
           <View style={styles.status} accessibilityLiveRegion="polite">
             <ActivityIndicator size="small" color={color.muted} />
             <Text style={[type.label, styles.muted]}>{progressText(progress)}</Text>
@@ -317,63 +394,6 @@ function errorKind(e: unknown): ErrorKind {
   return 'segmentFailed';
 }
 
-/**
- * Ô pose: luôn là ẢNH GỐC đầy đủ màu (người + nền), vì người dùng chọn pose nhờ nhìn cả người
- * mẫu lẫn bối cảnh (góp ý Phase 1).
- * - `plain` (Pose mẫu): chỉ thêm viền trắng mảnh.
- * - Pose của bạn: phủ style của chính bản đó lên ảnh gốc (thu nhỏ độ dày cho vừa ô), để các bản
- *   từ cùng một ảnh vẫn phân biệt được.
- */
-function PoseTile({
-  pose,
-  width,
-  height,
-  plain,
-  onPress,
-  onLongPress,
-}: {
-  pose: Pose;
-  width: number;
-  height: number;
-  plain?: boolean;
-  onPress: () => void;
-  onLongPress: () => void;
-}) {
-  const s = pose.style;
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t.library.use}
-      accessibilityHint={t.library.longPressHint}
-      onPress={onPress}
-      onLongPress={onLongPress}
-      style={[styles.tile, { width, height }]}
-    >
-      <PoseCanvas
-        fit="cover"
-        source={pose.source}
-        imageWidth={pose.width}
-        imageHeight={pose.height}
-        contours={pose.contours}
-        landmarks={pose.landmarks}
-        width={width}
-        height={height}
-        subjectOpacity={1}
-        backgroundOpacity={1}
-        outlineEnabled={plain ? true : s.outlineEnabled}
-        outlineColor={plain ? '#ffffff' : s.outlineColor}
-        outlineWidth={plain ? 1.5 : Math.min(s.outlineWidth, 2)}
-        fillEnabled={plain ? false : s.fillEnabled}
-        fillColor={s.fillColor}
-        fillOpacity={s.fillOpacity}
-        faceEnabled={plain ? false : s.faceEnabled}
-        faceColor={s.faceColor}
-        faceWidth={Math.min(s.faceWidth, 1)}
-      />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg },
   header: {
@@ -385,17 +405,14 @@ const styles = StyleSheet.create({
     paddingBottom: space[2],
   },
   tabs: { paddingHorizontal: size.gutter, paddingBottom: space[4] },
+  title: { flexShrink: 1 },
+  headerActions: { flexDirection: 'row', alignItems: 'center' },
+  selectHint: { marginTop: space[2] },
   ink: { color: color.ink },
   muted: { color: color.muted },
   group: { marginBottom: space[5] },
   groupTitle: { paddingHorizontal: size.gutter, marginBottom: space[3] },
   rowContent: { paddingHorizontal: size.gutter, gap: space[3] },
-  grid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: MINE_GAP,
-    paddingHorizontal: size.gutter,
-  },
   footer: {
     paddingHorizontal: size.gutter,
     paddingTop: space[3],
@@ -410,7 +427,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: space[2],
   },
-  tile: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: color.surface },
   working: { flex: 1, opacity: processing.imageOpacity, marginHorizontal: size.gutter },
   empty: { paddingHorizontal: size.gutter },
 });

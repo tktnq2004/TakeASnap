@@ -19,6 +19,8 @@ export type PhotoRow = {
   landmarks_json: string | null;
   /** 1 = viền đã Sửa nét (v4). Không có khi chèn mới: DB mặc định 0. */
   contours_edited?: number;
+  /** Viền lúc tạo pose, JSON Contour[] (v5). Ghi lần đầu Sửa nét. */
+  original_contours_json?: string | null;
   created_at: string;
 };
 
@@ -172,6 +174,9 @@ export function rowsToPose(photo: PhotoRow, variant: VariantRow, contours: Conto
     ...(photo.contours_edited
       ? { landmarks: landmarksForContours(landmarks, outline), rawLandmarks: landmarks }
       : { landmarks }),
+    ...(photo.original_contours_json
+      ? { originalContours: JSON.parse(photo.original_contours_json) as Contour[] }
+      : {}),
     sampleGroup: photo.sample_group,
     maskUri: photo.mask_uri,
     style: rowToStyle(variant),

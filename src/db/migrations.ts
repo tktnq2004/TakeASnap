@@ -185,6 +185,11 @@ const steps: string[] = [
   `
   ALTER TABLE photos ADD COLUMN contours_edited INTEGER NOT NULL DEFAULT 0;
   `,
+  // v5 — cọ Khôi phục (góp ý Phase 3): viền lúc tạo pose, ghi lần đầu Sửa nét. NULL = chưa sửa
+  // (viền hiện tại là viền gốc) hoặc ảnh đã sửa trước bản này.
+  `
+  ALTER TABLE photos ADD COLUMN original_contours_json TEXT;
+  `,
 ];
 
 export const SCHEMA_VERSION = steps.length;
