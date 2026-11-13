@@ -408,7 +408,7 @@ Hiện khi ảnh có từ 2 người trở lên, phủ lên Thư viện: tiêu �
 | Viền | Bộ chọn **[Viền | Mặt]** + công tắc cùng hàng · Độ dày (viền 1–12 px, mặt 0.5–5 px) · Màu, **riêng cho từng cái**. Đang chỉnh Mặt mà ảnh không có mặt → dòng `label` muted "Không thấy mặt…" |
 | Phủ | Hiện lớp phủ · Độ đậm 0–100% · Màu |
 | Ảnh | Độ hiện người 0–100% · Độ hiện nền 0–100% |
-| Sửa nét | **[Thêm | Xóa | Khôi phục]** + nút Hoàn tác, Làm lại cùng hàng · Cỡ cọ 8–64 px · dòng `label` muted hướng dẫn. Vẽ thẳng lên preview: nét đang vẽ là `accent` (thêm), `danger` (xóa) hoặc `ink` (khôi phục) mờ 50%, nhấc tay thì viền vẽ lại |
+| Sửa nét | **[Thêm | Xóa]** + nút Hoàn tác, Làm lại cùng hàng · Cỡ cọ 8–64 px · dòng `label` muted hướng dẫn. Vẽ thẳng lên preview: nét đang vẽ là `accent` (thêm) hoặc `danger` (xóa) mờ 50%, nhấc tay thì viền vẽ lại (Thêm lên người thì theo dáng người) |
 
 **Viền và Mặt chung tab, chỉnh riêng** (góp ý lần 3): một thanh kéo chỉ đổi một thứ. Ống tay chân (góp ý lần 2) đã bỏ vì nét ước lượng chưa đủ tốt.
 

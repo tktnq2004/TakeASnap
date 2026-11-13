@@ -19,7 +19,7 @@ type Props = {
 
 /**
  * Lớp Sửa nét đặt trên preview Chỉnh pose (business-flow §5.2). Nét đang vẽ hiện ngay trên UI
- * thread (màu nhấn = thêm, màu nguy hiểm = xóa, màu chữ = khôi phục); viền chỉ tính lại khi nhấc ngón tay, nên không
+ * thread (màu nhấn = thêm, màu nguy hiểm = xóa); viền chỉ tính lại khi nhấc ngón tay, nên không
  * có setState trong lúc vẽ.
  */
 export function RefineLayer({ mode, size, live, onStroke }: Props) {
@@ -67,7 +67,7 @@ export function RefineLayer({ mode, size, live, onStroke }: Props) {
             strokeWidth={strokeWidth}
             strokeCap="round"
             strokeJoin="round"
-            color={mode === 'add' ? color.accent : mode === 'erase' ? color.danger : color.ink}
+            color={mode === 'add' ? color.accent : color.danger}
             opacity={refineBrush.liveOpacity}
           />
         </Canvas>

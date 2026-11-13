@@ -19,7 +19,10 @@ export type PhotoRow = {
   landmarks_json: string | null;
   /** 1 = viền đã Sửa nét (v4). Không có khi chèn mới: DB mặc định 0. */
   contours_edited?: number;
-  /** Viền lúc tạo pose, JSON Contour[] (v5). Ghi lần đầu Sửa nét. */
+  /**
+   * Dáng mọi người trong ảnh lúc tạo pose, JSON Contour[] (v5), cho cọ Thêm. Ảnh tạo trước bản này
+   * thì ghi lần đầu Sửa nét (viền lúc đó).
+   */
   original_contours_json?: string | null;
   created_at: string;
 };
@@ -134,8 +137,9 @@ export function poseToPhotoRow(p: Pose & { source: string }): PhotoRow {
     height: p.height,
     bbox_json: JSON.stringify(bboxOf(p.contours)),
     sample_group: p.sampleGroup,
-    // Luôn lưu nét gốc; bản đã lọc theo viền Sửa nét chỉ để vẽ.
+    // Luôn lưu nét gốc; bản đã lọc theo viền chỉ để vẽ.
     landmarks_json: lm ? JSON.stringify(lm) : null,
+    original_contours_json: p.originalContours ? JSON.stringify(p.originalContours) : null,
     created_at: p.createdAt,
   };
 }
@@ -171,7 +175,8 @@ export function rowsToPose(photo: PhotoRow, variant: VariantRow, contours: Conto
     width: photo.width,
     height: photo.height,
     contours: outline,
-    ...(photo.contours_edited
+    // Viền khác dáng gốc (đã Sửa nét, hoặc chỉ chọn một số người): nét mặt lọc theo viền.
+    ...(photo.contours_edited || photo.original_contours_json
       ? { landmarks: landmarksForContours(landmarks, outline), rawLandmarks: landmarks }
       : { landmarks }),
     ...(photo.original_contours_json

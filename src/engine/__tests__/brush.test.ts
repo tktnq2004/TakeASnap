@@ -1,4 +1,4 @@
-import { MaskHistory, applyStroke, rasterizeContours, refineGridSize } from '../brush';
+import { applyStroke, brushSource, MaskHistory, rasterizeContours, refineGridSize } from '../brush';
 import { buildContours, type Contour, personAreaRatio } from '../contour';
 
 const sum = (a: Float32Array) => a.reduce((s, v) => s + v, 0);
@@ -64,21 +64,50 @@ describe('applyStroke', () => {
     expect(g[50 * 100 + 50]).toBe(0);
     expect(g[50 * 100 + 30]).toBe(1);
   });
+});
 
-  it('cọ khôi phục chỉ tô lại phần thuộc dáng người gốc', () => {
-    const source = rasterizeContours([square], 100, 100);
-    const g = source.slice();
-    applyStroke(g, 100, 100, { mode: 'erase', radius: 10, points: [50, 50] });
-    expect(g[50 * 100 + 50]).toBe(0);
-    // Nét to tràn ra ngoài hình vuông: chỉ phần trong hình vuông được tô lại.
-    applyStroke(g, 100, 100, { mode: 'restore', radius: 30, points: [50, 50] }, source);
-    expect(g[50 * 100 + 50]).toBe(1);
-    expect(g[50 * 100 + 22]).toBe(0);
-    expect(sum(g)).toBeCloseTo(sum(source), 0);
-    // Thiếu lưới gốc thì không làm gì.
-    const before = sum(g);
-    applyStroke(g, 100, 100, { mode: 'restore', radius: 30, points: [10, 10] });
-    expect(sum(g)).toBe(before);
+describe('cọ Thêm nhận ra người', () => {
+  const rect = (x0: number, y0: number, x1: number, y1: number): Contour => ({
+    isHole: false,
+    points: [
+      { x: x0 / 100, y: y0 / 100 },
+      { x: x1 / 100, y: y0 / 100 },
+      { x: x1 / 100, y: y1 / 100 },
+      { x: x0 / 100, y: y1 / 100 },
+    ],
+  });
+  // Hai người: A bên trái (đã chọn), B bên phải (chưa chọn).
+  const A = rect(10, 20, 40, 80);
+  const B = rect(60, 20, 90, 80);
+  const source = () => brushSource(rasterizeContours([A, B], 100, 100), 100, 100);
+  const at = (g: Float32Array, x: number, y: number) => g[y * 100 + x]!;
+
+  it('tô lên người chưa chọn đủ nhiều thì hiện cả người đó', () => {
+    const g = rasterizeContours([A], 100, 100);
+    applyStroke(g, 100, 100, { mode: 'add', radius: 6, points: [75, 25, 75, 75] }, source());
+    expect(at(g, 62, 22)).toBe(1);
+    expect(at(g, 88, 78)).toBe(1);
+    // Nền quanh B không thành người.
+    expect(at(g, 95, 50)).toBe(0);
+  });
+
+  it('tô lại vùng đã xóa thì theo dáng người, không tô ra nền, không hiện lại vùng xóa khác', () => {
+    const g = rasterizeContours([A, B], 100, 100);
+    applyStroke(g, 100, 100, { mode: 'erase', radius: 10, points: [25, 25] });
+    applyStroke(g, 100, 100, { mode: 'erase', radius: 3, points: [37, 70] });
+    expect(at(g, 25, 25)).toBe(0);
+    applyStroke(g, 100, 100, { mode: 'add', radius: 12, points: [25, 25] }, source());
+    expect(at(g, 25, 25)).toBe(1);
+    expect(at(g, 25, 14)).toBe(0);
+    expect(at(g, 37, 70)).toBe(0);
+  });
+
+  it('tô chủ yếu lên nền thì nới viền theo nét cọ', () => {
+    const g = rasterizeContours([A], 100, 100);
+    applyStroke(g, 100, 100, { mode: 'add', radius: 4, points: [42, 50, 55, 50] }, source());
+    expect(at(g, 50, 50)).toBe(1);
+    // B không bị hiện vì nét chỉ chạm mép.
+    expect(at(g, 75, 50)).toBe(0);
   });
 });
 

@@ -80,7 +80,7 @@ export type Pose = {
    * lại từ đây, để tô lại vùng mặt thì nét mặt hiện lại.
    */
   rawLandmarks?: Landmarks | null;
-  /** Viền lúc tạo pose, cho cọ Khôi phục. Không có = viền hiện tại chính là viền gốc. */
+  /** Dáng mọi người trong ảnh lúc tạo pose, cho cọ Thêm. Không có = dùng viền hiện tại. */
   originalContours?: Contour[];
   /** Nhóm của pose mẫu; null với ảnh của người dùng. */
   sampleGroup: string | null;

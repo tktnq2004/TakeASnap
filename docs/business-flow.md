@@ -181,14 +181,14 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 | | | Độ đậm | 0–100% | 40% |
 | **Ảnh** | Người | Độ hiện của người trong ảnh gốc | 0–100% | 0% |
 | | Nền | Độ hiện của nền trong ảnh gốc (phần ngoài người) | 0–100% | 0% |
-| **Sửa nét** | Viền | Cọ **[Thêm | Xóa | Khôi phục]** vẽ thẳng lên ảnh, hoàn tác / làm lại 30 bước | cỡ cọ 8–64 px | Thêm · 24 px |
+| **Sửa nét** | Viền | Cọ **[Thêm | Xóa]** vẽ thẳng lên ảnh, hoàn tác / làm lại 30 bước | cỡ cọ 8–64 px | Thêm · 24 px |
 
 - **Nét mặt cho biết hướng mặt:** có nét mặt (viền mặt, mắt, lông mày, mũi, môi) nghĩa là người mẫu quay mặt về ống kính; không có nghĩa là quay lưng. Khi không thấy mặt, dòng ghi chú dưới hàng chip ghi rõ. Giới hạn của model: mặt nghiêng hẳn, cúi xuống hoặc bị tay che có thể không được nhận ra.
 - **Viền và nét mặt chung tab nhưng chỉnh riêng:** mỗi cái có công tắc, thanh độ dày và màu riêng; không có thanh kéo nào đổi cả hai cùng lúc.
 - **Tay chân nằm trên thân:** đã thử vẽ "ống tay, ống chân" (hai nét dọc tay chân, ước lượng từ khung xương + mask) nhưng nét chưa đủ tốt nên **đã bỏ** (góp ý lần 3). Muốn thấy tay chân đặt trên người thì tăng độ hiện người ở tab Ảnh.
 - Nét mặt lấy từ MediaPipe FaceLandmarker. Ảnh toàn thân có mặt nhỏ thì app dò lại trên vùng đầu đã phóng to.
 - Mọi thay đổi hiện ngay khi kéo slider, không có nút "Áp dụng". Khi sửa nét bằng cọ, viền được tính lại lúc nhấc ngón tay.
-- **Sửa nét:** Thêm và Xóa tô tự do theo nét cọ; **Khôi phục** chỉ tô lại phần thuộc dáng người lúc tạo pose (viền gốc lưu ở `photos.original_contours_json` lần sửa đầu), nên tô lại vùng mặt đã xóa thì viền theo đúng dáng người. Nét mặt nằm trên vùng đã xóa thì ẩn theo. Nét đang vẽ hiện mờ (màu nhấn = thêm, màu đỏ = xóa, màu chữ = khôi phục); nhấc ngón tay thì viền, phủ và ảnh người vẽ lại theo hình mới. Viền là của **ảnh gốc** nên đổi cho mọi bản của ảnh đó. Pose mẫu đã sửa nét được lưu thành một ảnh chép mới, không đổi các bản chép trước. Không lưu được nếu vùng người còn dưới 2% ảnh (BR-06).
+- **Sửa nét:** cọ **Thêm** nhận ra người: app giữ dáng **mọi người** trong ảnh lúc tạo pose (`photos.original_contours_json`, kể cả người không được chọn). Nét tô chủ yếu lên người thì chỉ phần thuộc dáng người được thêm (tô lại vùng mặt đã xóa thì viền theo đúng dáng); người đang thiếu (chưa chọn, hoặc đã xóa gần hết) mà nét tô lộ ra từ 25% thì hiện cả người, kèm nét mặt. Nét tô chủ yếu lên nền thì nới viền theo nét cọ. Cọ **Xóa** bỏ đúng vùng tô; nét mặt nằm trên vùng đã xóa thì ẩn theo. Nét đang vẽ hiện mờ (màu nhấn = thêm, màu đỏ = xóa); nhấc ngón tay thì viền, phủ và ảnh người vẽ lại theo hình mới. Viền là của **ảnh gốc** nên đổi cho mọi bản của ảnh đó. Pose mẫu đã sửa nét được lưu thành một ảnh chép mới, không đổi các bản chép trước. Không lưu được nếu vùng người còn dưới 2% ảnh (BR-06).
 - **Lưu:** "Lưu pose" ghi đè bản đang sửa; "Lưu thành bản mới" thêm một bản khác cho **cùng ảnh gốc**. Với pose mẫu chỉ có "Lưu pose", và nút này luôn thêm bản vào "Pose của bạn" (BR-09).
 
 ### 5.3 Thư viện pose

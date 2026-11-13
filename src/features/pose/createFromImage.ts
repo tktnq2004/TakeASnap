@@ -97,6 +97,9 @@ export async function savePose(
         face: keepSegmentsOnPeople(seg.landmarks.face, a.labeling, chosen, PERSON_SLOP),
         bodyPoints: keepBodyOnPeople(seg.landmarks.bodyPoints, a.labeling, chosen, PERSON_SLOP),
       };
+  // Dáng và nét mặt của MỌI người trong ảnh: cọ Thêm ở Sửa nét hiện lại được người chưa chọn,
+  // kèm nét mặt của họ (góp ý Phase 3).
+  const everyone = all ? contours : buildContours(a.grid, { maxSide: CONTOUR_SIDE });
 
   onProgress?.({ stage: 'save' });
   const photoId = newId('ph');
@@ -120,6 +123,8 @@ export async function savePose(
     height: seg.prepared.height,
     contours,
     landmarks,
+    rawLandmarks: seg.landmarks,
+    originalContours: everyone,
     sampleGroup: null,
     maskUri: mask.uri,
     style: DEFAULT_STYLE,

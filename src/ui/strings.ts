@@ -104,10 +104,9 @@ export const t = {
     tabRefine: 'Sửa nét',
     brushAdd: 'Thêm',
     brushErase: 'Xóa',
-    brushRestore: 'Khôi phục',
     brushSize: 'Cỡ cọ',
     refineHint:
-      'Thêm và Xóa tô tự do, Khôi phục tô lại đúng dáng người gốc. Viền vẽ lại khi nhấc ngón tay.',
+      'Thêm lên người thì hiện đúng dáng người, kể cả người chưa chọn; thêm ra nền thì nới viền theo nét. Viền vẽ lại khi nhấc ngón tay.',
     refineShared: 'Viền đã sửa dùng chung cho mọi bản của ảnh này.',
     refineTooSmallTitle: 'Vùng người còn quá nhỏ',
     refineTooSmall: 'Pose cần vùng người chiếm ít nhất 2% ảnh. Hoàn tác bớt nét xóa rồi lưu lại.',

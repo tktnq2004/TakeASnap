@@ -97,8 +97,8 @@ async function insertPhoto(db: SQLiteDatabase, pose: Pose & { source: string }) 
   const r = poseToPhotoRow(pose);
   await db.runAsync(
     `INSERT INTO photos
-      (id, origin, sample_id, source_uri, mask_uri, width, height, bbox_json, sample_group, landmarks_json, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, origin, sample_id, source_uri, mask_uri, width, height, bbox_json, sample_group, landmarks_json, original_contours_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     r.id,
     r.origin,
     r.sample_id,
@@ -109,6 +109,7 @@ async function insertPhoto(db: SQLiteDatabase, pose: Pose & { source: string }) 
     r.bbox_json,
     r.sample_group,
     r.landmarks_json,
+    r.original_contours_json ?? null,
     r.created_at,
   );
   await insertContours(db, pose.photoId, pose.contours);
@@ -128,7 +129,7 @@ async function insertContours(db: SQLiteDatabase, photoId: string, contours: Con
 
 /** Viền đã Sửa nét: thay viền của ảnh gốc (mọi bản của ảnh dùng chung viền) và đánh dấu đã sửa. */
 async function writeContours(db: SQLiteDatabase, photoId: string, contours: Contour[]) {
-  // Lần sửa đầu: giữ viền lúc tạo pose cho cọ Khôi phục.
+  // Ảnh tạo trước v5 chưa có dáng gốc: lần sửa đầu giữ viền lúc đó cho cọ Thêm.
   const photo = await db.getFirstAsync<{ original_contours_json: string | null }>(
     'SELECT original_contours_json FROM photos WHERE id = ?',
     photoId,

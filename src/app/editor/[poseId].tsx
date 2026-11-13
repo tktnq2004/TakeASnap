@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   type BrushMode,
+  brushSource,
   MaskHistory,
   rasterizeContours,
   REFINE_SIDE,
@@ -59,7 +60,6 @@ type LineTarget = (typeof lineTargets)[number]['key'];
 const brushModes = [
   { key: 'add', label: t.editor.brushAdd },
   { key: 'erase', label: t.editor.brushErase },
-  { key: 'restore', label: t.editor.brushRestore },
 ] as const;
 
 /** Hoàn tác tối đa 30 bước (business-flow §5.2). */
@@ -187,10 +187,12 @@ export default function EditorScreen() {
     let h = historyRef.current;
     if (!h) {
       const base = rasterizeContours(contours ?? pose.contours, g.width, g.height);
-      // Dáng người gốc cho cọ Khôi phục: viền lúc tạo pose (chưa sửa lần nào thì là viền hiện tại).
-      const source = pose.originalContours
-        ? rasterizeContours(pose.originalContours, g.width, g.height)
-        : rasterizeContours(pose.contours, g.width, g.height);
+      // Dáng mọi người lúc tạo pose, để cọ Thêm nhận ra người. Ảnh cũ chưa có thì dùng viền hiện tại.
+      const source = brushSource(
+        rasterizeContours(pose.originalContours ?? pose.contours, g.width, g.height),
+        g.width,
+        g.height,
+      );
       h = new MaskHistory(base, g.width, g.height, REFINE_UNDO, source);
       historyRef.current = h;
     }
