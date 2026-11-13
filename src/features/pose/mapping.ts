@@ -17,6 +17,8 @@ export type PhotoRow = {
   bbox_json: string;
   sample_group: string | null;
   landmarks_json: string | null;
+  /** 1 = viền đã Sửa nét (v4). Không có khi chèn mới: DB mặc định 0. */
+  contours_edited?: number;
   created_at: string;
 };
 

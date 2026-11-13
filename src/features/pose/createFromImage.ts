@@ -1,19 +1,35 @@
 /**
- * Ảnh trong máy → pose mới trong "Pose của bạn" (business-flow §5.1).
- * Tách người (WebView, offline sau lần tải gói đầu) → dò viền → kiểm tra BR-06 → lưu file vào
- * Paths.document/poses/<photoId>/ (BR-08) → lưu ảnh gốc + một bản pose style mặc định.
+ * Ảnh trong máy → pose mới trong "Pose của bạn" (business-flow §5.1), hai bước:
+ * 1. `analyzeImage`: tách người (WebView, offline sau lần tải gói đầu) → chia mask thành từng
+ *    người → kiểm tra BR-06.
+ * 2. `savePose`: (sau khi chọn người nếu ảnh có nhiều người) dò viền → lưu file vào
+ *    Paths.document/poses/<photoId>/ (BR-08) → lưu ảnh gốc + một bản pose style mặc định.
  */
 import { File } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { buildContours, personAreaRatio } from '@/engine/contour';
+import { buildContours, type Contour, type Grid, personAreaRatio } from '@/engine/contour';
+import {
+  groupPeople,
+  keepBodyOnPeople,
+  keepSegmentsOnPeople,
+  type Labeling,
+  labelRegions,
+  maskForPeople,
+  type Person,
+} from '@/engine/regions';
 import type { PoseProgress, PoseSegmentation } from '@/engine/segmentation/SegmenterProvider';
 
 import { newId, photoDir, savePhotoAndVariant } from './repository';
 import { DEFAULT_STYLE, type Pose } from './types';
 
-/** BR-06: người phải chiếm ít nhất 2% ảnh. */
+/** BR-06: người phải chiếm ít nhất 2% ảnh. Cũng là ngưỡng để coi một vùng là một người. */
 export const MIN_PERSON_RATIO = 0.02;
+
+/** Chạm hụt hoặc nét mặt lệch mép người trong khoảng này (ô lưới 512) vẫn tính là trên người. */
+export const PERSON_SLOP = 6;
+
+const CONTOUR_SIDE = 512;
 
 export type CreateErrorCode = 'noPerson' | 'personTooSmall';
 
@@ -25,24 +41,62 @@ export class PoseCreateError extends Error {
 
 export type CreateProgress = PoseProgress | { stage: 'contour' | 'save' };
 
-export async function createPoseFromImage(
-  db: SQLiteDatabase,
+export type ImageAnalysis = {
+  seg: PoseSegmentation;
+  grid: Grid;
+  labeling: Labeling;
+  /** Xếp trái sang phải. Từ 2 người trở lên thì hỏi chọn người (business-flow §5.1). */
+  people: Person[];
+};
+
+export async function analyzeImage(
   segmentForPose: (
     input: { uri: string; width: number; height: number },
     onProgress?: (p: PoseProgress) => void,
   ) => Promise<PoseSegmentation>,
   input: { uri: string; width: number; height: number },
   onProgress?: (p: CreateProgress) => void,
-): Promise<Pose> {
+): Promise<ImageAnalysis> {
   const seg = await segmentForPose(input, onProgress);
-
-  onProgress?.({ stage: 'contour' });
   const { width, height, data } = seg.grid;
   const prob = new Float32Array(data.length);
   for (let i = 0; i < data.length; i++) prob[i] = data[i]! / 255;
-  const contours = buildContours({ width, height, data: prob }, { maxSide: 512 });
+  const grid = { width, height, data: prob };
+  const labeling = labelRegions(grid);
+  const people = groupPeople(labeling, MIN_PERSON_RATIO);
+  if (!people.length) {
+    throw new PoseCreateError(labeling.regions.length ? 'personTooSmall' : 'noPerson');
+  }
+  return { seg, grid, labeling, people };
+}
+
+/** Viền của từng người, để vẽ lên màn chọn người. */
+export function peopleContours(a: ImageAnalysis): Contour[][] {
+  return a.people.map((p) =>
+    buildContours(maskForPeople(a.grid, a.labeling, [p]), { maxSide: CONTOUR_SIDE }),
+  );
+}
+
+/** Lưu pose với những người đã chọn (mặc định: tất cả). */
+export async function savePose(
+  db: SQLiteDatabase,
+  a: ImageAnalysis,
+  chosen: Person[] = a.people,
+  onProgress?: (p: CreateProgress) => void,
+): Promise<Pose> {
+  const { seg } = a;
+  onProgress?.({ stage: 'contour' });
+  const all = chosen.length === a.people.length;
+  const grid = all ? a.grid : maskForPeople(a.grid, a.labeling, chosen);
+  const contours = buildContours(grid, { maxSide: CONTOUR_SIDE });
   if (!contours.length) throw new PoseCreateError('noPerson');
   if (personAreaRatio(contours) < MIN_PERSON_RATIO) throw new PoseCreateError('personTooSmall');
+  const landmarks = all
+    ? seg.landmarks
+    : {
+        face: keepSegmentsOnPeople(seg.landmarks.face, a.labeling, chosen, PERSON_SLOP),
+        bodyPoints: keepBodyOnPeople(seg.landmarks.bodyPoints, a.labeling, chosen, PERSON_SLOP),
+      };
 
   onProgress?.({ stage: 'save' });
   const photoId = newId('ph');
@@ -50,6 +104,7 @@ export async function createPoseFromImage(
   dir.create({ intermediates: true, idempotent: true });
   const source = new File(dir, 'source.jpg');
   await new File(seg.prepared.uri).copy(source);
+  // Mask gốc của model (mọi người trong ảnh). Hình dáng đã chọn / đã sửa nằm trong viền.
   const mask = new File(dir, 'mask.png');
   mask.create();
   await mask.write(seg.maskBase64, { encoding: 'base64' });
@@ -64,7 +119,7 @@ export async function createPoseFromImage(
     width: seg.prepared.width,
     height: seg.prepared.height,
     contours,
-    landmarks: seg.landmarks,
+    landmarks,
     sampleGroup: null,
     maskUri: mask.uri,
     style: DEFAULT_STYLE,

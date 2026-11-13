@@ -320,7 +320,7 @@ async function getLandmarkers() {
   // CPU: kết quả là toạ độ điểm (không đọc mask từ GPU), ổn định trên mọi máy, đủ nhanh.
   const base = async (key) => Object.assign({ delegate: 'CPU' }, await modelOptions(key));
   faceLm = await mp.FaceLandmarker.createFromOptions(fileset, {
-    baseOptions: await base('face'), runningMode: 'IMAGE', numFaces: 1,
+    baseOptions: await base('face'), runningMode: 'IMAGE', numFaces: MAX_FACES,
   });
   bodyLm = await mp.PoseLandmarker.createFromOptions(fileset, {
     baseOptions: await base('body'), runningMode: 'IMAGE', numPoses: 1,
@@ -328,6 +328,7 @@ async function getLandmarkers() {
   return now() - t0;
 }
 
+const MAX_FACES = 4;
 const NOSE = [[168, 6], [6, 197], [197, 195], [195, 5], [5, 4], [98, 97], [97, 2], [2, 326], [326, 327]];
 function faceConnections() {
   const F = mp.FaceLandmarker;
@@ -354,8 +355,9 @@ async function runLandmarks(img) {
   const t0 = now();
   const W = img.naturalWidth, H = img.naturalHeight;
   const body = bodyLm.detect(img).landmarks[0] || null;
-  let face = faceLm.detect(img).faceLandmarks[0] || null;
-  if (!face && body && (body[0].visibility ?? 1) > 0.5) {
+  // Ảnh nhiều người: lấy mọi mặt, app giữ lại mặt của người được chọn (Phase 3).
+  let faces = faceLm.detect(img).faceLandmarks || [];
+  if (!faces.length && body && (body[0].visibility ?? 1) > 0.5) {
     const sh = Math.hypot((body[11].x - body[12].x) * W, (body[11].y - body[12].y) * H);
     const ear = Math.hypot((body[7].x - body[8].x) * W, (body[7].y - body[8].y) * H);
     const side = Math.max(ear * 2.2, sh * 0.9, 48);
@@ -364,10 +366,10 @@ async function runLandmarks(img) {
     c.width = 512; c.height = 512;
     c.getContext('2d').drawImage(img, sx, sy, side, side, 0, 0, 512, 512);
     const f = faceLm.detect(c).faceLandmarks[0];
-    if (f) face = f.map((q) => ({ x: (sx + q.x * side) / W, y: (sy + q.y * side) / H }));
+    if (f) faces = [f.map((q) => ({ x: (sx + q.x * side) / W, y: (sy + q.y * side) / H }))];
   }
   return {
-    face: face ? segments(face, faceConnections(), 0) : null,
+    face: faces.length ? faces.flatMap((f) => segments(f, faceConnections(), 0)) : null,
     // 33 khớp phẳng [x, y, visibility, …] chuẩn hóa; giữ cho tính năng khớp dáng sau này.
     bodyPoints: body
       ? body.flatMap((p) => [r4(p.x), r4(p.y), r4(p.visibility ?? 1)])

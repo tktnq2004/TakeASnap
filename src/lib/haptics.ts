@@ -18,6 +18,8 @@ export const haptic = {
   capture: () => safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)),
   snap: () => safe(() => Haptics.selectionAsync()),
   levelReached: () => safe(() => Haptics.selectionAsync()),
+  /** Chọn / bỏ chọn một người trên màn Chọn người. */
+  select: () => safe(() => Haptics.selectionAsync()),
   enterTrash: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)),
   saved: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
 };

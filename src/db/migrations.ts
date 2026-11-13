@@ -181,6 +181,10 @@ const steps: string[] = [
   CREATE INDEX variants_updated_at ON pose_variants (updated_at DESC);
   CREATE INDEX photos_sample_id ON photos (sample_id);
   `,
+  // v4 — Sửa nét (Phase 3): ảnh đã sửa viền thì không lấy lại viền mới nhất của pose mẫu.
+  `
+  ALTER TABLE photos ADD COLUMN contours_edited INTEGER NOT NULL DEFAULT 0;
+  `,
 ];
 
 export const SCHEMA_VERSION = steps.length;

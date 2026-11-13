@@ -190,6 +190,7 @@ Cấm:
 | Overlay hít vào 0°/90° | `selection` |
 | Overlay vào vùng xóa | `notificationWarning` (một lần mỗi lần vào) |
 | Thước cân bằng chuyển sang thẳng | `selection` |
+| Chọn / bỏ chọn người (Chọn người) | `selection` |
 | Lưu pose / lưu ảnh xong | `notificationSuccess` |
 
 ### 3.7 Icon
@@ -371,6 +372,12 @@ Mọi ô hiện **ảnh gốc đầy đủ màu**: người dùng chọn pose nh
 
 Tab "Pose của bạn" là lưới phẳng **4 cột**, gap 8, **mỗi bản pose một ô**; ô vẽ style của chính bản đó lên ảnh gốc để các bản từ cùng một ảnh phân biệt được. Khi trống: một dòng `body` "Chưa có pose nào. Thêm một ảnh có người để lấy dáng." và nút primary "Thêm ảnh từ máy".
 
+#### Chọn người (trong Thư viện)
+
+Hiện khi ảnh có từ 2 người trở lên, phủ lên Thư viện: tiêu đề "Chọn người" + nút X (hủy), dòng gợi ý, ảnh đặt kiểu contain với viền từng người. Chạm vào người để chọn / bỏ chọn: người đã chọn phủ `accent` 35% và viền `ink` 2 px, chưa chọn chỉ có viền `guide` 1.5 px. Đáy: "Chọn tất cả" (secondary) và "Dùng người đã chọn" (primary, tắt khi chưa chọn ai).
+
+**Đang xử lý:** danh sách được thay bằng ảnh vừa chọn, mờ 60%, dòng trạng thái ở đáy (§6.6). **Lỗi:** hộp thoại kèm hành động theo business-flow §10.3: "Chọn ảnh khác" (không có người, người quá nhỏ), "Thử tải lại" (tải bộ tách người lỗi), "Thử lại" (tách người lỗi).
+
 ### 6.4 Chỉnh pose
 
 ```
@@ -383,7 +390,7 @@ Tab "Pose của bạn" là lưới phẳng **4 cột**, gap 8, **mỗi bản pos
 │░▒░▒░▒░▒░▒░▒ │    │ ▒░▒░▒░▒░▒░▒░▒│  dày riêng
 │▒░▒░▒░▒░▒░▒░ ╰┬──┬╯ ░▒░▒░▒░▒░▒░▒░│
 ├──────────────────────────────────┤  panel cao cố định 410 (height, không phải minHeight)
-│ [ Viền | Phủ | Ảnh ]             │
+│ [ Viền | Phủ | Ảnh | Sửa nét ]   │
 │                                  │
 │ [ Viền | Mặt ]            [on]   │  đang chỉnh cái nào + công tắc của nó
 │ Độ dày ─────●──────────── 3 px  │
@@ -398,7 +405,7 @@ Tab "Pose của bạn" là lưới phẳng **4 cột**, gap 8, **mỗi bản pos
 | Viền | Bộ chọn **[Viền | Mặt]** + công tắc cùng hàng · Độ dày (viền 1–12 px, mặt 0.5–5 px) · Màu, **riêng cho từng cái**. Đang chỉnh Mặt mà ảnh không có mặt → dòng `label` muted "Không thấy mặt…" |
 | Phủ | Hiện lớp phủ · Độ đậm 0–100% · Màu |
 | Ảnh | Độ hiện người 0–100% · Độ hiện nền 0–100% |
-| Sửa nét (Phase 3) | Thêm / Xóa (segmented) · Cỡ cọ 8–64 px · vẽ trực tiếp lên preview |
+| Sửa nét | **[Thêm | Xóa]** + nút Hoàn tác, Làm lại cùng hàng · Cỡ cọ 8–64 px · dòng `label` muted hướng dẫn. Vẽ thẳng lên preview: nét đang vẽ là `accent` (thêm) hoặc `danger` (xóa) mờ 50%, nhấc tay thì viền vẽ lại |
 
 **Viền và Mặt chung tab, chỉnh riêng** (góp ý lần 3): một thanh kéo chỉ đổi một thứ. Ống tay chân (góp ý lần 2) đã bỏ vì nét ước lượng chưa đủ tốt.
 

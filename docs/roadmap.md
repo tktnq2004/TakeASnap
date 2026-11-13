@@ -375,11 +375,17 @@ docs/
 
 ### Phase 3 — Thư viện pose và Sửa nét (1–2 tuần)
 
-- [ ] Màn Thư viện: Pose mẫu theo nhóm, Pose của bạn, Thêm ảnh từ máy
-- [ ] Chọn người khi ảnh có nhiều người (chạm vào vùng người)
-- [ ] Sửa nét: cọ thêm / xóa trên mask, hoàn tác 30 bước, tính lại contour khi nhấc tay
-- [ ] Tạo bản sao từ pose mẫu, xóa có xác nhận
-- [ ] Trạng thái rỗng, đang xử lý, lỗi theo [business-flow §10](business-flow.md#10-trạng-thái-và-lỗi)
+**Trạng thái:** đã viết code, typecheck, lint, unit test và bundle iOS + Android đều qua. **Chưa thử trên máy thật**, phiếu kiểm tra ở [phase3-test.md](phase3-test.md).
+
+- Chọn người: `src/engine/regions.ts` chia mask thành vùng liền nhau (mỗi vùng ≥ 2% ảnh là một người), `PersonPicker` phủ lên Thư viện. Trang WebView nay dò tối đa 4 mặt để giữ được nét mặt của người được chọn.
+- Sửa nét: `src/engine/brush.ts` dựng lưới 512 từ viền đang có (pose mẫu không có mask PNG), cọ có khử răng cưa, lịch sử 30 bước. Viền đã sửa ghi vào ảnh gốc, cột `photos.contours_edited` (migration v4) để bản chép pose mẫu không bị viền mẫu đè lại.
+
+- [x] Màn Thư viện: Pose mẫu theo nhóm, Pose của bạn, Thêm ảnh từ máy (từ Phase 1–2)
+- [ ] Chọn người khi ảnh có nhiều người (chạm vào vùng người) — chờ thử trên máy
+- [ ] Sửa nét: cọ thêm / xóa trên mask, hoàn tác 30 bước, tính lại contour khi nhấc tay — chờ thử trên máy
+- [x] Tạo bản sao từ pose mẫu, xóa có xác nhận (từ Phase 1–2)
+- [ ] Trạng thái rỗng, đang xử lý, lỗi theo [business-flow §10](business-flow.md#10-trạng-thái-và-lỗi) — chờ thử trên máy
+- [ ] Chạy trọn chức năng 1 + 2 ở chế độ máy bay — chờ thử trên máy
 
 **Xong khi:** chức năng 1 + 2 chạy trọn vẹn ở chế độ máy bay. **Đây là mốc portfolio tối thiểu:** dừng ở đây vẫn có một app hoàn chỉnh để trình bày.
 

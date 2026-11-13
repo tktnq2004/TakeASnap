@@ -1,13 +1,23 @@
 import { useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, Redo2, Undo2 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import {
+  type BrushMode,
+  MaskHistory,
+  rasterizeContours,
+  REFINE_SIDE,
+  refineGridSize,
+} from '@/engine/brush';
+import { buildContours, type Contour, personAreaRatio } from '@/engine/contour';
+import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
-import { createVariant, getPose, updateStyle } from '@/features/pose/repository';
+import { RefineLayer } from '@/features/pose/RefineLayer';
+import { getPose, saveEdits } from '@/features/pose/repository';
 import {
   DEFAULT_STYLE,
   isSampleId,
@@ -19,12 +29,13 @@ import { haptic } from '@/lib/haptics';
 import { useGoBack } from '@/lib/useGoBack';
 import { Button, IconButton, Segmented, Slider, SwatchRow, ToggleRow } from '@/ui/components';
 import { t } from '@/ui/strings';
-import { color, radius, size, space, type } from '@/ui/tokens';
+import { color, radius, refineBrush, size, space, type } from '@/ui/tokens';
 
 const tabs = [
   { key: 'outline', label: t.editor.tabOutline },
   { key: 'fill', label: t.editor.tabFill },
   { key: 'image', label: t.editor.tabImage },
+  { key: 'refine', label: t.editor.tabRefine },
 ] as const;
 type Tab = (typeof tabs)[number]['key'];
 
@@ -34,6 +45,14 @@ const lineTargets = [
   { key: 'face', label: t.editor.targetFace },
 ] as const;
 type LineTarget = (typeof lineTargets)[number]['key'];
+
+const brushModes = [
+  { key: 'add', label: t.editor.brushAdd },
+  { key: 'erase', label: t.editor.brushErase },
+] as const;
+
+/** Hoàn tác tối đa 30 bước (business-flow §5.2). */
+const REFINE_UNDO = 30;
 
 /**
  * Panel cao CỐ ĐỊNH để đổi tab không làm preview co giãn (design.md §4). Tab cao nhất là Viền:
@@ -49,6 +68,10 @@ const percent = (v: number) => {
 const px = (v: number) => {
   'worklet';
   return `${v.toFixed(1)} px`;
+};
+const pxInt = (v: number) => {
+  'worklet';
+  return `${Math.round(v)} px`;
 };
 
 /** Màn Chỉnh pose (business-flow §5.2, design.md §6.4). */
@@ -78,6 +101,19 @@ export default function EditorScreen() {
   const fillOpacity = useSharedValue(DEFAULT_STYLE.fillOpacity);
   const subjectOpacity = useSharedValue(DEFAULT_STYLE.subjectOpacity);
   const backgroundOpacity = useSharedValue(DEFAULT_STYLE.backgroundOpacity);
+
+  // Sửa nét: lưới mask + lịch sử chỉ tạo khi vẽ nét đầu tiên. `contours` null = chưa sửa.
+  const [contours, setContours] = useState<Contour[] | null>(null);
+  const [brushMode, setBrushMode] = useState<BrushMode>('add');
+  const [hist, setHist] = useState({ canUndo: false, canRedo: false });
+  const brushSize = useSharedValue<number>(refineBrush.initial);
+  const live = useSharedValue<number[]>([]);
+  const historyRef = useRef<MaskHistory | null>(null);
+
+  // Viền mới đã vẽ xong thì mới xóa nét đang vẽ, để không chớp giữa hai lần vẽ.
+  useEffect(() => {
+    live.set([]);
+  }, [contours, live]);
 
   useEffect(() => {
     let alive = true;
@@ -117,15 +153,66 @@ export default function EditorScreen() {
     faceWidth: faceWidth.get(),
   });
 
+  // Ảnh đặt kiểu contain trong vùng preview (cùng phép tính với PoseCanvas).
+  const imageRect = () => {
+    if (!pose) return { x: 0, y: 0, w: 0, h: 0 };
+    const k = Math.min(area.w / pose.width, area.h / pose.height);
+    const w = pose.width * k;
+    const h = pose.height * k;
+    return { x: (area.w - w) / 2, y: (area.h - h) / 2, w, h };
+  };
+
+  const showHistory = (h: MaskHistory) => {
+    setContours(buildContours(h.grid, { maxSide: REFINE_SIDE }));
+    setHist({ canUndo: h.canUndo, canRedo: h.canRedo });
+  };
+
+  const onStroke = (points: number[], diameter: number) => {
+    if (!pose) return;
+    const r = imageRect();
+    if (r.w <= 0) return;
+    const g = refineGridSize(pose.width, pose.height);
+    let h = historyRef.current;
+    if (!h) {
+      const base = rasterizeContours(contours ?? pose.contours, g.width, g.height);
+      h = new MaskHistory(base, g.width, g.height, REFINE_UNDO);
+      historyRef.current = h;
+    }
+    const kx = g.width / r.w;
+    const ky = g.height / r.h;
+    h.push({
+      mode: brushMode,
+      radius: (diameter / 2) * kx,
+      points: points.map((v, i) => (i % 2 === 0 ? (v - r.x) * kx : (v - r.y) * ky)),
+    });
+    showHistory(h);
+  };
+
+  const undo = () => {
+    const h = historyRef.current;
+    if (!h) return;
+    h.undo();
+    showHistory(h);
+  };
+  const redo = () => {
+    const h = historyRef.current;
+    if (!h) return;
+    h.redo();
+    showHistory(h);
+  };
+
   const save = async (asNew: boolean) => {
     // Ref chứ không phải state: hai lần chạm nhanh chạy trước khi state kịp re-render.
     if (!pose || savingRef.current) return;
+    const edited = historyRef.current?.edited ? contours : null;
+    if (edited && personAreaRatio(edited) < MIN_PERSON_RATIO) {
+      Alert.alert(t.editor.refineTooSmallTitle, t.editor.refineTooSmall);
+      return;
+    }
     savingRef.current = true;
     setSaving(true);
     try {
-      // Pose mẫu chỉ đọc (BR-09): lưu luôn là thêm bản vào "Pose của bạn".
-      if (asNew || isSampleId(pose.id)) await createVariant(db, pose, currentStyle());
-      else await updateStyle(db, pose.id, currentStyle());
+      await saveEdits(db, pose, currentStyle(), { asNew, contours: edited });
       haptic.saved();
       goBack();
     } catch {
@@ -168,7 +255,7 @@ export default function EditorScreen() {
             source={pose.source}
             imageWidth={pose.width}
             imageHeight={pose.height}
-            contours={pose.contours}
+            contours={contours ?? pose.contours}
             landmarks={lm}
             width={area.w}
             height={area.h}
@@ -184,6 +271,14 @@ export default function EditorScreen() {
             faceColor={faceColor}
             faceWidth={faceWidth}
             checker
+          />
+        )}
+        {pose && area.w > 0 && tab === 'refine' && (
+          <RefineLayer
+            mode={brushMode}
+            size={brushSize}
+            live={live}
+            onStroke={onStroke}
           />
         )}
         {pose === null && (
@@ -264,6 +359,38 @@ export default function EditorScreen() {
                 step={0.01}
                 format={percent}
               />
+            </>
+          )}
+          {tab === 'refine' && (
+            <>
+              <View style={styles.targetRow}>
+                <View style={styles.targetSeg}>
+                  <Segmented options={brushModes} value={brushMode} onChange={setBrushMode} />
+                </View>
+                <IconButton
+                  icon={Undo2}
+                  label={t.editor.undo}
+                  onPress={undo}
+                  disabled={!hist.canUndo}
+                />
+                <IconButton
+                  icon={Redo2}
+                  label={t.editor.redo}
+                  onPress={redo}
+                  disabled={!hist.canRedo}
+                />
+              </View>
+              <Slider
+                label={t.editor.brushSize}
+                value={brushSize}
+                min={refineBrush.min}
+                max={refineBrush.max}
+                step={refineBrush.step}
+                format={pxInt}
+              />
+              <Text style={[type.label, styles.muted]}>
+                {isSample ? t.editor.refineHint : `${t.editor.refineHint} ${t.editor.refineShared}`}
+              </Text>
             </>
           )}
         </View>

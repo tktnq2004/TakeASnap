@@ -14,17 +14,19 @@ type Props = {
   active?: boolean;
   /** Đặt trên khung ngắm: thêm đĩa scrim để đọc được trên mọi cảnh. */
   onScrim?: boolean;
+  disabled?: boolean;
 };
 
-export function IconButton({ icon: Icon, label, onPress, active, onScrim }: Props) {
+export function IconButton({ icon: Icon, label, onPress, active, onScrim, disabled }: Props) {
   return (
     <PressableScale
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ selected: !!active }}
+      accessibilityState={{ selected: !!active, disabled: !!disabled }}
       hitSlop={4}
+      disabled={disabled}
       onPress={onPress}
-      style={[styles.base, onScrim && styles.scrim]}
+      style={[styles.base, onScrim && styles.scrim, disabled && styles.disabled]}
     >
       <Icon size={size.icon} strokeWidth={1.75} color={active ? color.accent : color.ink} />
     </PressableScale>
@@ -40,4 +42,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   scrim: { backgroundColor: color.scrim },
+  disabled: { opacity: 0.4 },
 });

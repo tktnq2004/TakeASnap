@@ -119,6 +119,15 @@ export const cameraZoom = {
 } as const;
 
 /** Thước cân bằng (business-flow §4.3): đổi màu nhấn khi lệch dưới `levelDeg`. */
+/** Sửa nét (business-flow §5.2): cỡ cọ 8–64 px màn hình; nét đang vẽ hiện mờ 50%. */
+export const refineBrush = { min: 8, max: 64, step: 1, initial: 24, liveOpacity: 0.5 } as const;
+
+/** Đang xử lý ảnh: ảnh vẫn hiện, mờ 60% (design.md §6.6). */
+export const processing = { imageOpacity: 0.6 } as const;
+
+/** Màn Chọn người: người đã chọn phủ màu nhấn và viền ink; chưa chọn chỉ có viền mờ. */
+export const personPick = { fill: 0.35, strokeOn: 2, strokeOff: 1.5 } as const;
+
 /** Nét lưới khung ngắm: nét sáng 1 px kẹp giữa hai viền tối 1 px. */
 export const gridLine = { width: 1, halo: 1 } as const;
 

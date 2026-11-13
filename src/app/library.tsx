@@ -2,10 +2,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { X } from 'lucide-react-native';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -19,10 +20,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
 import { clearPlacement, useCameraStore } from '@/features/camera/cameraStore';
 import {
+  analyzeImage,
   type CreateProgress,
-  createPoseFromImage,
+  type ImageAnalysis,
+  peopleContours,
   PoseCreateError,
+  savePose,
 } from '@/features/pose/createFromImage';
+import { PersonPicker } from '@/features/pose/PersonPicker';
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
 import { deleteVariant, listUserPoses } from '@/features/pose/repository';
 import { sampleGroups, sampleLibrary } from '@/features/pose/samples';
@@ -30,12 +35,14 @@ import type { Pose } from '@/features/pose/types';
 import { useGoBack } from '@/lib/useGoBack';
 import { Button, IconButton, Segmented } from '@/ui/components';
 import { t } from '@/ui/strings';
-import { color, radius, size, space, type } from '@/ui/tokens';
+import { color, processing, radius, size, space, type } from '@/ui/tokens';
 
 const tabs = [
   { key: 'samples', label: t.library.tabSamples },
   { key: 'mine', label: t.library.tabMine },
 ] as const;
+
+type Picked = { uri: string; width: number; height: number };
 
 const SAMPLE_W = 104;
 const SAMPLE_H = 138;
@@ -55,6 +62,11 @@ export default function LibraryScreen() {
   const [tab, setTab] = useState<'samples' | 'mine'>('samples');
   const [mine, setMine] = useState<Pose[]>([]);
   const [progress, setProgress] = useState<CreateProgress | null>(null);
+  /** Ảnh đang xử lý: hiện mờ thay cho danh sách (design.md §6.6). */
+  const [work, setWork] = useState<Picked | null>(null);
+  /** Ảnh có nhiều người: đang chờ chọn người. */
+  const [picking, setPicking] = useState<ImageAnalysis | null>(null);
+  const pickContours = useMemo(() => (picking ? peopleContours(picking) : []), [picking]);
   const { segmentForPose } = useSegmenter();
   const goBack = useGoBack();
 
@@ -107,21 +119,61 @@ export default function LibraryScreen() {
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
     const a = res.canceled ? null : res.assets[0];
     if (!a) return;
-    setProgress({ stage: 'segment' });
+    processImage({ uri: a.uri, width: a.width, height: a.height });
+  };
+
+  // Luồng tách người (business-flow §10.1). Lỗi nào cũng báo kèm việc làm tiếp (§10.3).
+  const run = async (img: Picked, task: () => Promise<void>) => {
     try {
-      const pose = await createPoseFromImage(
-        db,
-        segmentForPose,
-        { uri: a.uri, width: a.width, height: a.height },
-        setProgress,
-      );
-      setTab('mine');
-      router.push(`/editor/${pose.id}`);
+      await task();
     } catch (e) {
-      Alert.alert(t.errors.title, errorMessage(e));
+      setPicking(null);
+      setWork(null);
+      showError(e, img);
     } finally {
       setProgress(null);
     }
+  };
+
+  const processImage = (img: Picked) =>
+    run(img, async () => {
+      setWork(img);
+      setProgress({ stage: 'segment' });
+      const a = await analyzeImage(segmentForPose, img, setProgress);
+      if (a.people.length > 1) {
+        setPicking(a);
+        return;
+      }
+      await finish(a, a.people.map((_, i) => i));
+    });
+
+  const finish = async (a: ImageAnalysis, chosen: number[]) => {
+    setPicking(null);
+    setProgress({ stage: 'contour' });
+    const pose = await savePose(
+      db,
+      a,
+      chosen.map((i) => a.people[i]!),
+      setProgress,
+    );
+    setWork(null);
+    setTab('mine');
+    router.push(`/editor/${pose.id}`);
+  };
+
+  const showError = (e: unknown, img: Picked) => {
+    const kind = errorKind(e);
+    const action =
+      kind === 'noPerson' || kind === 'personTooSmall'
+        ? { text: t.library.chooseAnother, onPress: addFromDevice }
+        : {
+            text: kind === 'downloadFailed' ? t.library.retryDownload : t.common.retry,
+            onPress: () => processImage(img),
+          };
+    Alert.alert(t.errors.title, t.errors[kind], [
+      { text: t.common.cancel, style: 'cancel' },
+      action,
+    ]);
   };
 
   // "Pose của bạn": 4 ảnh một hàng (góp ý lần 3).
@@ -147,6 +199,14 @@ export default function LibraryScreen() {
         <Segmented options={tabs} value={tab} onChange={setTab} />
       </View>
 
+      {work ? (
+        <Image
+          source={{ uri: work.uri }}
+          resizeMode="contain"
+          accessibilityIgnoresInvertColors
+          style={styles.working}
+        />
+      ) : (
       <ScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space[5] }}>
         {tab === 'samples' &&
           sampleGroups.map((g) => (
@@ -192,6 +252,7 @@ export default function LibraryScreen() {
             </View>
           ))}
       </ScrollView>
+      )}
 
       {/* Nút ghim ở đáy; đang xử lý thì thay bằng dòng trạng thái (design.md §6.6). */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + space[3] }]}>
@@ -204,6 +265,21 @@ export default function LibraryScreen() {
           <Button label={t.library.addFromDevice} onPress={addFromDevice} fullWidth />
         )}
       </View>
+
+      {picking && (
+        <PersonPicker
+          analysis={picking}
+          contours={pickContours}
+          onConfirm={(chosen) => {
+            const img = work;
+            if (img) run(img, () => finish(picking, chosen));
+          }}
+          onCancel={() => {
+            setPicking(null);
+            setWork(null);
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -227,11 +303,13 @@ function progressText(p: CreateProgress): string {
 
 const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
 
-function errorMessage(e: unknown): string {
-  if (e instanceof PoseCreateError) return t.errors[e.code];
+type ErrorKind = 'noPerson' | 'personTooSmall' | 'downloadFailed' | 'segmentFailed';
+
+function errorKind(e: unknown): ErrorKind {
+  if (e instanceof PoseCreateError) return e.code;
   const msg = e instanceof Error ? e.message : String(e);
-  if (/tải|network|internet|offline|timed out|Hủy/i.test(msg)) return t.errors.downloadFailed;
-  return t.errors.segmentFailed;
+  if (/tải|network|internet|offline|timed out|Hủy/i.test(msg)) return 'downloadFailed';
+  return 'segmentFailed';
 }
 
 /**
@@ -328,5 +406,6 @@ const styles = StyleSheet.create({
     gap: space[2],
   },
   tile: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: color.surface },
+  working: { flex: 1, opacity: processing.imageOpacity, marginHorizontal: size.gutter },
   empty: { paddingHorizontal: size.gutter },
 });
