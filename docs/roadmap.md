@@ -38,7 +38,7 @@ Phần tách người đi qua interface `Segmenter` (§3.3). Khi có điều ki�
 | Code backend bị mất | Không cần backend nữa. Mọi thứ nằm trong một repo |
 | Cử chỉ chồng chéo, giật | `react-native-gesture-handler` Gesture API + `react-native-reanimated` shared value, chạy trên UI thread. **Không có setState nào trong lúc cử chỉ đang diễn ra** (riêng zoom camera, xem §3.5) |
 | Viền không đổi được độ dày | Viền vẽ từ **contour vector** bằng Skia, đổi độ dày và màu realtime |
-| Thay nền chỉ dán ảnh lên | Pipeline Skia trên máy: mask mềm, khớp màu, relight giả lập, light wrap, bóng tiếp xúc và bóng đổ. Có **cổng quyết định** để cắt chức năng nếu không đạt (Phase 4) |
+| Thay nền chỉ dán ảnh lên | Pipeline Skia trên máy: mask mềm, khớp màu, relight giả lập, light wrap, bóng tiếp xúc và bóng đổ. Có **cổng quyết định** để cắt chức năng nếu không đạt (Phase 5) |
 | Flash auto giả, crop sai | `expo-camera` dùng `flash="auto"` gốc; crop theo kích thước ảnh thật, không theo % màn hình |
 | Điều hướng bằng `useState` trong `App.tsx` | **`expo-router`** |
 | Lưu metadata bằng file JSON | **`expo-sqlite`**. File ảnh nằm trong `documentDirectory` |
@@ -271,7 +271,7 @@ src/
       _layout.tsx             # stepper 4 bước
       subject.tsx  background.tsx  place.tsx  result.tsx
     settings.tsx
-    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 4
+    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 5
   features/
     camera/                   # CameraLayer (memo), controls, overlay, capture
     pose/                     # library, editor, repository
@@ -316,7 +316,7 @@ docs/
 - [x] **Spike C — Skia overlay:** viền + phủ + ảnh trên 1 canvas, slider độ dày ở 60 fps *(iOS và Android emulator: UI ≥ 58)*
 - [x] **Spike D — giới hạn Expo Go:** album, haptics, `formSheet` *(iOS 5/5. Android: haptics có, sheet tốt; lưu album lỗi quyền AUDIO → đã sửa, chờ đo lại)*
 - [x] `src/ui/tokens.ts`, `src/ui/strings.ts` và component nền: Button, IconButton, Slider, Segmented, Swatch, Screen (sheet dùng `formSheet` của expo-router)
-- [x] `useTransformGesture` + toán biến đổi có unit test (dùng lại ở Phase 2 và Phase 4)
+- [x] `useTransformGesture` + toán biến đổi có unit test (dùng lại ở Phase 2 và Phase 5)
 - [x] Schema SQLite v1 + migration
 - [x] CI: typecheck + lint + unit test (GitHub Actions)
 
@@ -400,10 +400,41 @@ docs/
 
 **Xong khi:** chức năng 1 + 2 chạy trọn vẹn ở chế độ máy bay. **Đây là mốc portfolio tối thiểu:** dừng ở đây vẫn có một app hoàn chỉnh để trình bày.
 
-### Phase 4 — Thay nền (timebox 3 tuần, có cổng quyết định)
+### Phase 4 — Giao diện chụp ảnh và giao diện chung (1–2 tuần)
+
+**Vì sao làm trước Thay nền:** sau Phase 1–3, mỗi màn được dựng khi cần nên giao diện chưa liền một khối: nút bánh răng trên Camera vẫn mở màn thử nghiệm, chưa có chỗ chọn chế độ "Chụp theo pose · Thay nền", ảnh vừa chụp chưa xem được, đầu màn mỗi nơi một kiểu (X, chữ "Quay lại"). Thay nền là luồng mới nhiều bước nhất; chốt khung chung trước để Phase 5 chỉ thêm nội dung vào khung có sẵn, không phải sửa lại.
+
+Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-màn-hình), [§4.5](business-flow.md#45-chọn-chế-độ-và-ảnh-vừa-chụp) và [§7.3–7.4](business-flow.md#73-khung-giao-diện-chung).
+
+**Bước 1 — Định hình (duyệt trước khi viết code)**
+
+- [ ] Chụp màn hình mọi màn hiện có trên iPhone và Android, ghi các chỗ chưa thống nhất (đầu màn, nút, khoảng cách, chữ, trạng thái rỗng / lỗi)
+- [ ] 2–3 hướng giao diện cho màn Camera và khung chung, dựng bản mẫu xem được trên điện thoại (trang HTML), người dùng chọn một hướng
+- [ ] Cập nhật [design.md](design.md) theo hướng đã chọn: token, component, bố cục từng màn (§6), kể cả màn mới (Cài đặt, Xem ảnh vừa chụp, khung Thay nền)
+
+**Bước 2 — Khung chung**
+
+- [ ] Điều hướng thống nhất: Camera là màn gốc; Thư viện, Chỉnh pose, Thay nền, Cài đặt mở cùng một kiểu; một kiểu đầu màn (tiêu đề + Quay lại hoặc Đóng)
+- [ ] Màn **Cài đặt** thay nút bánh răng đang mở màn thử nghiệm (business-flow §7.4). Màn thử nghiệm (spike B) chỉ còn hiện trong bản dev, giữ tới hết Phase 5
+- [ ] Một component chung cho trạng thái rỗng, lỗi, thiếu quyền
+- [ ] Chuyển màn và motion thống nhất theo design.md §3.5
+- [ ] Icon app, splash (chuyển từ Phase 6 lên đây vì là một phần của giao diện chung)
+
+**Bước 3 — Màn Camera**
+
+- [ ] Chọn chế độ "Chụp theo pose · Thay nền" ở đáy Camera (còn lại từ Phase 2); chế độ Thay nền mở khung 4 bước, nội dung các bước làm ở Phase 5
+- [ ] Chạm ảnh vừa chụp → màn **Xem ảnh vừa chụp** (business-flow §4.5)
+- [ ] Phản hồi khi chụp: hiệu ứng màn trập ngắn + rung, theo design.md
+- [ ] Gợi ý lần đầu mở app (business-flow §7.2): nút pose gợi ý một lần
+- [ ] Rà bố cục thanh trên, rail, vùng dưới ở cả 3 tỉ lệ khung, máy màn nhỏ và Android
+- [ ] Màn xin quyền camera theo giao diện mới
+
+**Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; Thay nền có sẵn khung để Phase 5 điền nội dung; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.
+
+### Phase 5 — Thay nền (timebox 3 tuần, có cổng quyết định)
 
 - [ ] Phân tích nền (§3.6 bước 2–3)
-- [ ] Stepper 4 bước, bước Vị trí dùng `useTransformGesture`
+- [ ] Nội dung 4 bước trong khung đã dựng ở Phase 4, bước Vị trí dùng `useTransformGesture`
 - [ ] Pipeline Skia 10 bước, preview tức thì ở độ phân giải màn hình
 - [ ] Vòng chỉnh hướng sáng, độ mềm/đậm bóng, mức khớp màu
 - [ ] Xuất độ phân giải gốc (tối đa 12 MP), giữ để so sánh với ảnh trước khi xử lý, lưu album
@@ -415,15 +446,14 @@ docs/
 |---|---|
 | ≥ 3/5 | Làm tiếp tuần 3, hoàn thiện |
 | 2–3/5 | Thu hẹp phạm vi: chỉ giữ cảnh **ngoài trời râm và trong nhà** (ánh sáng mềm, dễ khớp); app gợi ý chọn nền có ánh sáng mềm |
-| < 2/5 | **Bỏ chức năng Thay nền.** Ghi lại thử nghiệm vào case study (đã thử gì, vì sao chưa đạt), chuyển sang Phase 5 |
+| < 2/5 | **Bỏ chức năng Thay nền.** Ghi lại thử nghiệm vào case study (đã thử gì, vì sao chưa đạt), chuyển sang Phase 6 |
 
 **Xong khi:** đạt ≥ 3/5 trên cả 30 cặp (hoặc phạm vi đã thu hẹp); xuất ảnh dưới 5 s.
 
-### Phase 5 — Hoàn thiện portfolio (1–2 tuần)
+### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 
 - [ ] Hiệu năng: mở app tới khi thấy preview dưới 2 s; bộ nhớ ổn định khi mở ảnh 12 MP
 - [ ] Accessibility: nhãn cho mọi nút icon (VoiceOver, TalkBack), cỡ chữ hệ thống, tôn trọng Reduce Motion
-- [ ] Icon app, splash
 - [ ] **Video demo** 60–90 s quay trên iPhone: chọn pose → chỉnh → chụp theo → (thay nền); thêm vài giây trên Android để chứng minh chạy hai nền tảng
 - [ ] **Case study** trong README: vấn đề của bản cũ, cách sửa hệ cử chỉ, contour vector, tách người offline bằng WebView, pipeline thay nền, số đo trước/sau
 - [ ] Ảnh/GIF trước–sau cho từng chức năng
@@ -453,5 +483,5 @@ docs/
 | Expo Go chỉ chạy SDK mới nhất | Chắc chắn | Khi App Store cập nhật Expo Go thì nâng SDK; không dùng thư viện ngoài danh sách của Expo Go |
 | Expo Go trên Android giới hạn quyền thư viện ảnh | Trung bình | Spike D; dự phòng: lưu bằng `saveToLibraryAsync` không cần album riêng |
 | Zoom camera qua state làm giật overlay | Thấp–trung bình | `CameraLayer` cô lập (§3.5); spike A |
-| Thay nền trên máy không đủ tự nhiên | **Cao** | Cổng quyết định ở Phase 4; Phase 3 đã là mốc portfolio tối thiểu |
+| Thay nền trên máy không đủ tự nhiên | **Cao** | Cổng quyết định ở Phase 5; Phase 3 đã là mốc portfolio tối thiểu |
 | Mất code lần nữa | Đã xảy ra | Push lên GitHub từ ngày đầu; CI chạy trên mỗi push |

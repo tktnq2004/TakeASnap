@@ -8,7 +8,7 @@ import { color, radius, size, space, type } from '@/ui/tokens';
 
 /**
  * Màn thử nghiệm, mở bằng nút cài đặt trên Camera. Sau Phase 2 chỉ còn spike B (tách người): công
- * cụ đo RMBG cho cổng quyết định Thay nền ở Phase 4, xóa khi xong Phase 4.
+ * cụ đo RMBG cho cổng quyết định Thay nền ở Phase 5, xóa khi xong Phase 5.
  */
 const spikes: { href: Href; title: string }[] = [
   { href: '/spike/segment', title: t.spike.segmentTitle },

@@ -102,7 +102,7 @@ Mỗi model chạy "25 ảnh mẫu" một lần. Thời gian đọc ở bảng t
 | DeepLab |mediapipe-gpu |5.4s |72ms |148ms |182ms |0 |gọt ko sát model, còn quá nhiều chi tiết thừa |
 | RMBG | Báo lỗi |
 
-Mục tiêu (roadmap Phase 1): pose có trong **dưới 4 s** mỗi ảnh. Thay nền: dưới 5 s cả vòng (Phase 4).
+Mục tiêu (roadmap Phase 1): pose có trong **dưới 4 s** mỗi ảnh. Thay nền: dưới 5 s cả vòng (Phase 5).
 
 Nhận xét lần đo 1:
 - MediaPipe trên iPhone rất nhanh: Multiclass ~105 ms cả vòng, dư xa mục tiêu 4 s.

@@ -13,7 +13,7 @@ App camera chụp theo dáng mẫu. App tách dáng người từ một ảnh, �
 |---|---|---|
 | 1 | **Chụp theo pose** | Camera đủ điều khiển (đổi camera, flash, lưới, thước cân bằng, zoom, hẹn giờ, tỉ lệ khung). Có một lớp pose trên khung ngắm để kéo, phóng to và xoay cho khớp. Ảnh lưu vào album không kèm pose |
 | 2 | **Tạo và chỉnh pose** | Chọn ảnh mẫu hoặc ảnh trong máy → tách người → chỉnh 3 lớp: **viền** (bật/tắt, độ dày, màu), **phủ** (bật/tắt, màu, độ đậm), **người** (độ hiện) → lưu vào thư viện pose |
-| 3 | **Thay nền** | Chọn ảnh người và ảnh nền → đặt vị trí, tỉ lệ → tạo ảnh ghép có khớp màu, relight giả lập, bóng tiếp xúc và bóng đổ. Xử lý trên máy; có cổng quyết định giữ hay bỏ ở Phase 4 |
+| 3 | **Thay nền** | Chọn ảnh người và ảnh nền → đặt vị trí, tỉ lệ → tạo ảnh ghép có khớp màu, relight giả lập, bóng tiếp xúc và bóng đổ. Xử lý trên máy; có cổng quyết định giữ hay bỏ ở Phase 5 |
 
 ## Tài liệu
 
@@ -103,4 +103,4 @@ Bản cũ (`legacy-v0`) cũng chạy bằng `npx expo start`, nhưng cần serve
 
 Đồ án portfolio, phi thương mại.
 - 25 ảnh pose mẫu trong `src/assets/images/`: dùng cho mục đích portfolio.
-- Model và thư viện bên thứ ba: ghi đầy đủ ở Phase 5.
+- Model và thư viện bên thứ ba: ghi đầy đủ ở Phase 6.

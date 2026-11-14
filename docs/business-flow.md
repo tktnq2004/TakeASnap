@@ -59,6 +59,8 @@ flowchart TD
     Library -- "Sửa" --> Editor
     Editor -- "Lưu pose" --> Camera
 
+    Camera -- "Nút Chỉnh pose" --> Editor
+    Camera -- "Nút Cài đặt" --> Settings[Cài đặt]
     Camera -- "Chế độ Thay nền" --> C1[Bước 1: Chọn ảnh người]
     C1 --> C2[Bước 2: Chọn ảnh nền]
     C2 --> C3[Bước 3: Đặt vị trí]
@@ -66,8 +68,11 @@ flowchart TD
     C4 -- "Lưu vào Ảnh" --> Photos[(Album TakeASnap)]
 
     Camera -- "Chụp" --> Photos
-    Camera -- "Ảnh vừa chụp" --> Photos
+    Camera -- "Ảnh vừa chụp" --> Review[Xem ảnh vừa chụp]
+    Review --> Photos
 ```
+
+Camera là màn gốc: mọi màn khác mở từ Camera và đóng lại về Camera. Khung giao diện chung ở [§7.3](#73-khung-giao-diện-chung), làm ở [roadmap Phase 4](roadmap.md#phase-4--giao-diện-chụp-ảnh-và-giao-diện-chung-12-tuần).
 
 ---
 
@@ -132,6 +137,14 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 - **Lật ngang**: soi gương dáng (dáng tay trái thành tay phải).
 - **Ẩn tạm**: giữ nút để ẩn overlay, thả ra để hiện lại, dùng khi cần nhìn rõ người thật.
 - **Gỡ pose**: xóa overlay khỏi khung. Pose vẫn còn trong thư viện.
+
+---
+
+### 4.5 Chọn chế độ và ảnh vừa chụp
+
+- **Chọn chế độ**: dưới nút chụp có hai chế độ "Chụp theo pose · Thay nền". Chạm vào tên chế độ hoặc vuốt ngang trên vùng dưới để đổi. Chế độ Thay nền mở luồng 4 bước ở [§6.2](#62-luồng-chính); đóng luồng thì về lại chế độ Chụp theo pose, overlay và vị trí pose giữ nguyên.
+- **Ảnh vừa chụp**: ô nhỏ bên trái nút chụp hiện ảnh mới nhất. Chạm vào mở màn **Xem ảnh vừa chụp**: các ảnh chụp trong lần mở app này, vuốt ngang để xem ảnh trước, có nút Chia sẻ và Xóa (xóa khỏi album, có xác nhận). Chưa chụp ảnh nào thì ô trống và không bấm được.
+- **Phản hồi khi chụp**: màn trập tối nhanh trong khoảng một khung hình, rung nhẹ khi đã lưu xong. Lưu lỗi thì báo theo [§10.3](#103-thông-báo-lỗi).
 
 ---
 
@@ -205,7 +218,7 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 
 ### 6.1 Mục tiêu chất lượng
 
-Ảnh ghép đạt yêu cầu khi người xem **không chỉ ra được ngay đâu là ảnh ghép**. Có 6 tiêu chí, dùng để chấm điểm (xem [roadmap.md](roadmap.md), Phase 4):
+Ảnh ghép đạt yêu cầu khi người xem **không chỉ ra được ngay đâu là ảnh ghép**. Có 6 tiêu chí, dùng để chấm điểm (xem [roadmap.md](roadmap.md), Phase 5):
 
 1. **Viền**: tóc và mép áo mềm, không còn viền màu của nền cũ.
 2. **Tỉ lệ và phối cảnh**: người to nhỏ đúng với vị trí đứng trong cảnh, chân chạm mặt đất.
@@ -236,7 +249,7 @@ flowchart TD
 - Toàn bộ xử lý trên điện thoại, không gửi ảnh đi đâu. Mục tiêu xuất ảnh dưới 5 s.
 - Không có relight bằng model AI (cần GPU). App dùng **relight giả lập**: tô sáng/tối theo hướng sáng và thêm viền sáng ở phía nguồn sáng.
 - Kết quả tốt nhất với nền có **ánh sáng mềm** (trong nhà, ngoài trời râm). Nền nắng gắt và cảnh đêm khó khớp hơn.
-- Chức năng này có **cổng quyết định** ở [roadmap Phase 4](roadmap.md#phase-4--thay-nền-timebox-3-tuần-có-cổng-quyết-định): có thể bị thu hẹp chỉ còn nền ánh sáng mềm, hoặc bị bỏ khỏi v1.
+- Chức năng này có **cổng quyết định** ở [roadmap Phase 5](roadmap.md#phase-5--thay-nền-timebox-3-tuần-có-cổng-quyết-định): có thể bị thu hẹp chỉ còn nền ánh sáng mềm, hoặc bị bỏ khỏi v1.
 
 ---
 
@@ -257,6 +270,28 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 1. Xin quyền camera, một màn, một câu giải thích.
 2. Vào thẳng Camera. Không có onboarding nhiều trang.
 3. Nút pose nhấp nháy một lần duy nhất để chỉ chỗ chọn pose. Gợi ý: "Chọn một pose để chụp theo".
+
+### 7.3 Khung giao diện chung
+
+Làm ở roadmap Phase 4, trước Thay nền. Giao diện cụ thể chốt ở bước 1 của phase đó (bản mẫu để chọn) rồi ghi vào [design.md](design.md).
+
+- **Một màn gốc**: Camera. Thư viện pose, Chỉnh pose, Thay nền, Cài đặt, Xem ảnh vừa chụp đều mở từ Camera và đóng về Camera.
+- **Một kiểu đầu màn**: tiêu đề ở giữa; bên trái "Quay lại" khi màn là một bước trong luồng (Chỉnh pose, các bước Thay nền), bên phải nút Đóng khi màn mở đè lên Camera (Thư viện, Cài đặt, Xem ảnh vừa chụp).
+- **Một kiểu cho trạng thái rỗng, lỗi, thiếu quyền**: một câu nói chuyện gì đã xảy ra, một nút làm tiếp ([§10](#10-trạng-thái-và-lỗi)).
+- **Một kiểu chuyển màn và chuyển động** cho mọi màn, theo design.md.
+- **Icon app và màn mở app** cùng ngôn ngữ với giao diện trong app.
+
+### 7.4 Cài đặt
+
+Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện tại).
+
+| Nhóm | Mục | Giá trị |
+|---|---|---|
+| Chụp | Ảnh camera trước | Lưu như thật (mặc định) / Lưu soi gương như lúc xem |
+| Chụp | Rung phản hồi | Bật (mặc định) / Tắt |
+| Dung lượng | Bộ tách người, bộ Thay nền | Dung lượng đã tải; nút Xóa (lần dùng sau tải lại, [§11](#11-online--offline)) |
+| Giới thiệu | Phiên bản, nguồn ảnh mẫu, giấy phép model | Chỉ đọc |
+| Nhà phát triển | Màn thử nghiệm | Chỉ hiện trong bản dev |
 
 ---
 
