@@ -62,9 +62,6 @@ const brushModes = [
   { key: 'erase', label: t.editor.brushErase },
 ] as const;
 
-/** Hoàn tác tối đa 30 bước (business-flow §5.2). */
-const REFINE_UNDO = 30;
-
 /**
  * Panel cao CỐ ĐỊNH để đổi tab không làm preview co giãn (design.md §4). Tab cao nhất là Viền:
  * tab 40 + hàng [Viền | Mặt] + công tắc 44 + slider 76 + 2 hàng màu 92 + ghi chú 26 + nút 48 +
@@ -193,7 +190,8 @@ export default function EditorScreen() {
         g.width,
         g.height,
       );
-      h = new MaskHistory(base, g.width, g.height, REFINE_UNDO, source);
+      // Hoàn tác không giới hạn trong một lần sửa (góp ý Phase 3, mục 13.3).
+      h = new MaskHistory(base, g.width, g.height, Infinity, source);
       historyRef.current = h;
     }
     const kx = g.width / r.w;

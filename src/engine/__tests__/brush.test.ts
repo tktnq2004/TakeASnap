@@ -157,7 +157,17 @@ describe('MaskHistory', () => {
     }
   });
 
-  it('giữ tối đa 30 bước, nét cũ hơn vẫn còn trên lưới', () => {
+  it('mặc định không giới hạn: hoàn tác hết là về lưới ban đầu', () => {
+    const h = new MaskHistory(new Float32Array(100), 10, 10);
+    for (let i = 0; i < 60; i++)
+      h.push({ mode: 'add', radius: 0.5, points: [(i % 10) + 0.5, 0.5] });
+    for (let i = 0; i < 60; i++) h.undo();
+    expect(h.canUndo).toBe(false);
+    expect(h.edited).toBe(false);
+    expect(Array.from(h.grid.data).every((v) => v === 0)).toBe(true);
+  });
+
+  it('có giới hạn thì giữ tối đa `limit` bước, nét cũ hơn vẫn còn trên lưới', () => {
     const h = new MaskHistory(new Float32Array(100), 10, 10, 30);
     h.push(add(1));
     for (let i = 0; i < 30; i++) h.push({ mode: 'add', radius: 0.5, points: [8.5, 0.5] });

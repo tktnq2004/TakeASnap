@@ -1,5 +1,5 @@
 /**
- * Sửa nét (business-flow §5.2, Phase 3): cọ thêm / xóa trên lưới mask, hoàn tác 30 bước.
+ * Sửa nét (business-flow §5.2, Phase 3): cọ thêm / xóa trên lưới mask, hoàn tác không giới hạn.
  * Lưới dựng lại từ viền đang có (pose mẫu không có mask PNG), nên mọi pose sửa được như nhau.
  * Nhấc ngón tay thì dò viền lại bằng `buildContours`.
  *
@@ -261,9 +261,10 @@ function stamp(cov: Float32Array, w: number, h: number, cx: number, cy: number, 
 }
 
 /**
- * Lịch sử nét cọ: hoàn tác / làm lại tối đa `limit` bước. Mỗi bước chỉ ghi các ô nét đó đã đổi
- * (giá trị trước và sau), nên hoàn tác / làm lại chỉ ghi trả các ô đó, không chạy lại các nét
- * (góp ý Phase 3: chạy lại 20–30 nét cọ Thêm mất 0,5–1 giây). Quá giới hạn thì bỏ bước cũ nhất.
+ * Lịch sử nét cọ: hoàn tác / làm lại, mặc định không giới hạn (hoàn tác hết là về viền lúc mở màn).
+ * Mỗi bước chỉ ghi các ô nét đó đã đổi (giá trị trước và sau), nên tốn ít bộ nhớ và hoàn tác /
+ * làm lại chỉ ghi trả các ô đó, không chạy lại các nét (góp ý Phase 3: chạy lại 20–30 nét cọ Thêm
+ * mất 0,5–1 giây). Có `limit` thì quá giới hạn bỏ bước cũ nhất.
  */
 export class MaskHistory {
   private current: Float32Array;
@@ -279,7 +280,7 @@ export class MaskHistory {
     base: Float32Array,
     readonly width: number,
     readonly height: number,
-    private readonly limit = 30,
+    private readonly limit = Infinity,
     private readonly source?: BrushSource,
   ) {
     this.current = base.slice();

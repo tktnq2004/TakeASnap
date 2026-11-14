@@ -385,12 +385,14 @@ docs/
 
 **Góp ý lần 4:** cọ Thêm nhận ra người đạt cả iPhone và Android. Sau 20–30 nét, hoàn tác chậm 0,5–1 giây vì chạy lại mọi nét từ lưới gốc → `MaskHistory` ghi các ô mỗi nét đã đổi (trước / sau), hoàn tác / làm lại chỉ ghi trả các ô đó.
 
+**Góp ý lần 5:** hoàn tác nhanh và 13.4 (người không chọn không lộ ra) đạt. Hoàn tác hết vẫn không về viền gốc vì giới hạn 30 bước → bỏ giới hạn (người dùng chọn), hoàn tác hết là về viền lúc mở màn.
+
 - Chọn người: `src/engine/regions.ts` chia mask thành vùng liền nhau (mỗi vùng ≥ 2% ảnh là một người), `PersonPicker` phủ lên Thư viện. Trang WebView nay dò tối đa 4 mặt để giữ được nét mặt của người được chọn.
-- Sửa nét: `src/engine/brush.ts` dựng lưới 512 từ viền đang có (pose mẫu không có mask PNG), cọ có khử răng cưa, lịch sử 30 bước. Viền đã sửa ghi vào ảnh gốc, cột `photos.contours_edited` (migration v4) để bản chép pose mẫu không bị viền mẫu đè lại.
+- Sửa nét: `src/engine/brush.ts` dựng lưới 512 từ viền đang có (pose mẫu không có mask PNG), cọ có khử răng cưa, hoàn tác không giới hạn (mỗi bước chỉ lưu các ô đã đổi). Viền đã sửa ghi vào ảnh gốc, cột `photos.contours_edited` (migration v4) để bản chép pose mẫu không bị viền mẫu đè lại.
 
 - [x] Màn Thư viện: Pose mẫu theo nhóm, Pose của bạn, Thêm ảnh từ máy (từ Phase 1–2)
 - [x] Chọn người khi ảnh có nhiều người (chạm vào vùng người)
-- [ ] Sửa nét: cọ thêm / xóa trên mask, hoàn tác 30 bước, tính lại contour khi nhấc tay — cọ Thêm và Xóa đạt (lần 4), chờ thử lại hoàn tác nhanh
+- [ ] Sửa nét: cọ thêm / xóa trên mask, hoàn tác, tính lại contour khi nhấc tay — cọ Thêm, Xóa, hoàn tác nhanh đạt; chờ thử hoàn tác không giới hạn
 - [x] Tạo bản sao từ pose mẫu, xóa có xác nhận (từ Phase 1–2)
 - [x] Trạng thái rỗng, đang xử lý, lỗi theo [business-flow §10](business-flow.md#10-trạng-thái-và-lỗi)
 - [ ] Chạy trọn chức năng 1 + 2 khi không có internet — chờ thử (Wi-Fi nội bộ không ra internet, xem phase3-test.md lần 2)

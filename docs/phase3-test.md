@@ -191,7 +191,21 @@ Ngày thử:
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 13.1 | Vẽ khoảng 30 nét Thêm / Xóa xen kẽ, rồi bấm hoàn tác liên tục | Mỗi lần bấm, viền đổi gần như ngay (nhanh như lúc nhấc tay sau một nét), không chậm dần | | | |
+| 13.1 | Vẽ khoảng 30 nét Thêm / Xóa xen kẽ, rồi bấm hoàn tác liên tục | Mỗi lần bấm, viền đổi gần như ngay (nhanh như lúc nhấc tay sau một nét), không chậm dần | đạt| đạt | |
 | 13.2 | Làm lại liên tục tới hết | Như 13.1; viền về đúng như trước khi hoàn tác | | | |
-| 13.3 | Vẽ hơn 30 nét rồi hoàn tác tới hết | Dừng ở bước thứ 30 (nút hoàn tác mờ đi); các nét cũ hơn vẫn còn trên viền | | | |
-| 13.4 | (Viết lại mục 12.10) Thư viện → Thêm ảnh từ máy → ảnh có 4 người → ở màn Chọn người chỉ chạm chọn 3 người → "Dùng người đã chọn" → ở Chỉnh pose **không** mở tab Sửa nét, bấm "Lưu pose" luôn → xem ô pose đó trong Thư viện và overlay trên Camera | Chỉ có viền và nét mặt của 3 người đã chọn; người thứ 4 không có viền, không có nét mặt | | | |
+| 13.3 | Vẽ hơn 30 nét rồi hoàn tác tới hết | Dừng ở bước thứ 30 (nút hoàn tác mờ đi); các nét cũ hơn vẫn còn trên viền | | | có vẻ như bạn còn dùng thêm cách xóa bớt các stack dưới, vì khi undo hết thì nó là pose đã bị chỉnh sửa khác chứ không phải pose gốc trước khi sửa |
+| 13.4 | (Viết lại mục 12.10) Thư viện → Thêm ảnh từ máy → ảnh có 4 người → ở màn Chọn người chỉ chạm chọn 3 người → "Dùng người đã chọn" → ở Chỉnh pose **không** mở tab Sửa nét, bấm "Lưu pose" luôn → xem ô pose đó trong Thư viện và overlay trên Camera | Chỉ có viền và nét mặt của 3 người đã chọn; người thứ 4 không có viền, không có nét mặt |đạt |dạt | |
+
+---
+
+# Lần 6 — hoàn tác không giới hạn
+
+Đã sửa 13.3 theo lựa chọn của bạn: bỏ giới hạn 30 bước. Hoàn tác hết là về đúng viền lúc mở màn Chỉnh pose.
+
+Ngày thử: 
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 14.1 | Mở một pose, vẽ hơn 40 nét Thêm / Xóa, rồi hoàn tác tới hết | Nút hoàn tác chỉ mờ đi khi đã về đúng viền lúc mở màn; mỗi lần bấm vẫn nhanh | | | |
+| 14.2 | Làm lại tới hết | Về đúng viền sau nét cuối cùng | | | |
+| 14.3 | Hoàn tác hết rồi bấm "Lưu pose" | Viền không đổi so với trước khi mở màn | | | |
