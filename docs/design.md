@@ -59,7 +59,7 @@ export const color = {
   dangerInk:   '#FFFFFF',
 
   // camera (nền tối)
-  camBg:       '#05070D', // nền quanh khung ngắm, màn xin quyền
+  camBg:       '#05070D', // nền quanh khung ngắm
   camInk:      '#FFFFFF',
   camMuted:    'rgba(255,255,255,0.7)',
   camGlass:    'rgba(255,255,255,0.12)', // cụm nút trên thanh trên, cụm zoom, nút đổi camera
@@ -191,7 +191,7 @@ export const motion = {
 
 Cấm:
 - `spring` có nảy hoặc vượt đích.
-- Chuyển động tự chạy khi người dùng không chạm. Ngoại lệ duy nhất: vòng sáng quanh nút pose **một lần** khi mở app lần đầu.
+- Chuyển động tự chạy khi người dùng không chạm.
 - Loader che màn hình. Khi đang xử lý: giữ nguyên màn, hiện các bước cụ thể (§6.8).
 - Khi bật Reduce Motion: sheet, bảng, menu đổi ngay; mọi chuyển động thả về đích thành tức thì. Cử chỉ vẫn đi theo ngón tay.
 
@@ -225,10 +225,10 @@ Cấm:
 | Mở thêm công cụ | `chevron-down` (xoay 180° khi đang mở) |
 | Lưới · Thước cân bằng | `grid-3x3` · `ruler` |
 | Cài đặt | `settings` |
-| Nút pose | thumbnail pose đang dùng; chưa có thì `person-standing` trên nền `accent` |
+| Nút pose | thumbnail pose đang dùng; chưa có pose thì `plus` |
 | Chỉnh pose · Độ hiện · Lật ngang · Giữ để ẩn | `pencil` · `contrast` · `flip-horizontal-2` · `eye-off` |
 | Gỡ pose, xóa | `trash-2` |
-| Tab Viền · Phủ · Ảnh · Sửa nét | `pen-tool` · `droplet` · `image` · `brush` |
+| Tab Viền · Phủ · Nền · Cọ | `pen-tool` · `droplet` · `image` · `brush` |
 | Cọ Thêm · Xóa | `plus` · `eraser` |
 | Hoàn tác / làm lại | `undo-2` / `redo-2` |
 | Mở Bảng màu · Lấy màu từ ảnh | `plus` · `pipette` |
@@ -251,7 +251,7 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `Button` `soft` | cao 52, `full`, nền `accentSoft`, chữ `accent` ("Chọn tất cả") |
 | `Button` `danger` | cao 52, `full`, nền `danger`, chữ `dangerInk` + icon `trash-2`; chỉ cho xóa hàng loạt không hoàn tác được |
 | `Button` `dangerText` | nền trong suốt hoặc `surface`, chữ `danger` + icon ("Xóa ảnh", "Xóa bộ tách") |
-| `Button` `text` | chữ `accent`, không nền ("Mở thư viện pose" ở màn xin quyền) |
+| `Button` `text` | chữ `accent`, không nền |
 | `BackButton` | cao 44, `full`, nền `surface`, icon `corner-up-left` `accent` + chữ "Quay lại" |
 | `CloseButton` | 44×44, `full`, nền `surface`, icon `x` `ink` |
 | `IconButton` | 44×44, `full`. Trên camera: nền trong suốt bên trong cụm kính; đang bật: nền `accent`. Có thể mang `Badge` |
@@ -272,7 +272,7 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `ContextMenu` | menu pose: nền mờ (blur 12 + `bg` 62%), ô phóng to 150×200, menu 250 rộng nền `surface` `lg` + 2, hàng 52, mục nguy hiểm tách bằng dải 8 px `bg` |
 | `ColorPopover` | Bảng màu: 306 rộng, `lg`, bóng, mũi tên chỉ vào ô màu tự chọn (§6.11) |
 | `StatusSteps` | danh sách bước đang xử lý: xong = đĩa `accent` có dấu tích, đang chạy = vòng quay, chưa tới = vòng xám; chữ `label` |
-| `PermissionView` | một icon 44 trong đĩa 96, một câu `title` 26, một câu `body`, nút primary + nút text; dùng chung cho thiếu quyền camera và quyền ảnh |
+| `EmptyState` | một câu `body` nói chuyện gì đã xảy ra + một nút làm tiếp; dùng chung cho trống, lỗi, thiếu quyền. Không icon minh họa, không câu hướng dẫn thêm |
 
 Panel điều khiển của Chỉnh pose có **chiều cao cố định** (222): đổi tab không làm preview co giãn.
 
@@ -298,7 +298,6 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 |---|---|
 | Nút chụp (a11y) | Chụp ảnh |
 | Nút pose (a11y) | Mở thư viện pose |
-| Gợi ý lần đầu | Chọn một pose để chụp theo |
 | Mở / đóng bảng công cụ (a11y) | Mở thêm công cụ / Thu gọn công cụ |
 | Cột công cụ (a11y) | Cột công cụ pose, kéo để dời chỗ |
 | Vùng xóa | Thả để gỡ pose |
@@ -307,11 +306,13 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 | Menu pose mẫu | Dùng để chụp · Tạo bản sao để sửa |
 | Menu, cách hủy | Chạm ra ngoài để hủy |
 | Chọn nhiều | Đã chọn n pose · Hủy · Chọn tất cả · Xóa n pose |
+| Chọn người | Chọn những pose bạn muốn. Có thể chọn nhiều pose. · Chọn tất cả · Dùng người đã chọn |
+| Chỉnh pose, tab | Viền · Phủ · Nền · Cọ |
 | Chỉnh pose, nút | Lưu thành bản mới · Lưu pose |
 | Bảng màu | Mã màu · Lấy màu từ ảnh · Gần đây |
 | Xem ảnh vừa chụp | Ảnh n trên m · Xóa ảnh · Chia sẻ ảnh |
 | Cài đặt | Chụp · Dung lượng · Giới thiệu; Lưu như thật / Lưu soi gương; Rung phản hồi; Xóa bộ tách |
-| Xin quyền camera | TakeASnap cần camera để chụp theo pose. · Ảnh chỉ xử lý trên máy của bạn, không gửi lên mạng. · Cho phép dùng camera · Mở thư viện pose |
+| Thiếu quyền camera (trong khung ngắm) | TakeASnap cần camera để chụp theo pose. · Mở Cài đặt |
 | Thay nền, bước 1–4 | Ảnh người · Ảnh nền · Vị trí · Kết quả |
 | Thay nền, nút | Tạo ảnh · Lưu vào Ảnh · Chỉnh lại |
 
@@ -357,7 +358,7 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
   - Vị trí lưu vào cài đặt máy, lần mở sau giữ nguyên.
   - Cột sang trái thì nhãn và thanh độ hiện mở về phía phải.
 - **Độ hiện:** chạm = đổi nhanh 100% → 60% → 30%. **Giữ 300 ms** = cột biến thành thanh dọc cao 320 ngay tại chỗ, núm trắng 32 nằm dưới ngón tay ở giá trị hiện tại; kéo lên tăng, kéo xuống giảm (0–100%, bước 5); số % trong nhãn `accent` hiện phía bên kia cột để ngón tay không che. Thả tay: giữ giá trị, thanh thu về thành cột. Cả thao tác một ngón.
-- **Zoom (`ZoomControl`):**
+- **Zoom (`ZoomControl`)** — kiểu lúc kéo đang chọn lại ở vòng 4 (vòng cung, thước cuộn kim giữa, thanh mảnh, một nút); bên dưới là bản vòng 3:
   - Lúc nghỉ: 4 nút `0,5 · 1× · 2 · 3` trong cụm kính; nút đang dùng to 44, chữ `camAccent`, mang giá trị thật (vd `1,4×`).
   - Chạm nút = nhảy tới mức đó. Đặt ngón lên cụm rồi kéo ngang = thước vạch 320×48 hiện tại chỗ (0,5×–5×, bước 0,1, nhãn `1,0×` nền `accent` trên vạch đang chọn); thả tay thì về 4 nút.
   - Camera trước và Android không có ống góc rộng: bỏ nút `0,5`.
@@ -365,10 +366,10 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 - **Hàng chụp:** Ảnh vừa chụp 54 bo 17 viền 2 trắng 80% · nút chụp 82 · Đổi camera 54 nền `camGlass`. Lề hai bên 40.
 - **Ở tỉ lệ 9:16** khung ngắm tràn ra sau thanh trên và cụm zoom: mọi nút đã có nền kính nên vẫn đọc được.
 
-### 6.2 Camera — lần đầu, chưa có pose
+### 6.2 Camera — chưa có pose
 
-- Cột chỉ còn nút pose: icon `person-standing` trắng trên nền `accent`, viền `camAccent`.
-- Mở app lần đầu: vòng sáng `camAccent` 60% quanh nút pose một lần, kèm bóng chữ trắng "Chọn một pose để chụp theo" chỉ vào nút. Chạm bất kỳ đâu thì bóng chữ tắt và không hiện lại.
+- Lần đầu mở app, hoặc khi đã gỡ pose: cột chỉ còn nút pose là **ô tròn 44 có dấu cộng** (icon `plus` trắng, viền 2 px `camAccent`, nền trong). Chạm mở Thư viện pose.
+- Không có gợi ý, bóng chữ hay hiệu ứng chỉ chỗ.
 - Chưa chụp ảnh nào: ô ảnh vừa chụp chỉ có viền trắng 25%, không bấm được.
 
 ### 6.3 Camera — đang kéo pose
@@ -377,9 +378,11 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 - Cột công cụ và hàng chụp mờ còn 25%; cụm zoom được thay bằng **vùng xóa** 74 (vòng `danger` 3 px, nền `danger` 25%, icon `trash-2` 28) + chữ "Thả để gỡ pose".
 - Ngón tay vào vùng xóa: overlay nhuộm đỏ, thu nhỏ về phía thùng rác, rung cảnh báo. Thả lúc đó thì gỡ pose; kéo ra thì trở lại như cũ.
 
-### 6.4 Màn xin quyền camera
+### 6.4 Quyền camera
 
-Nền `camBg` (nối liền với Camera). `PermissionView` giữa màn: đĩa 96 `accent` 20% với icon `camera` 44 `camAccent`; câu "TakeASnap cần camera để chụp theo pose." (`title` 26); câu phụ "Ảnh chỉ xử lý trên máy của bạn, không gửi lên mạng." Đáy: primary "Cho phép dùng camera" và text "Mở thư viện pose". Đã bị từ chối: nút primary thành "Mở Cài đặt" (`Linking.openSettings()`).
+Không có màn riêng: mở app lần đầu thì gọi thẳng hộp thoại xin quyền của máy (`useCameraPermissions` của `expo-camera`). Camera vẫn vẽ đủ thanh trên, cột công cụ và hàng chụp trong lúc chờ.
+
+Đã bị từ chối (hộp thoại không hiện lại được): trong khung ngắm tối chỉ có `EmptyState`: "TakeASnap cần camera để chụp theo pose." và nút "Mở Cài đặt" (`Linking.openSettings()`). Thư viện pose vẫn mở được bằng nút pose.
 
 ### 6.5 Thư viện pose (mở đè lên Camera)
 
@@ -388,7 +391,7 @@ Nền `camBg` (nối liền với Camera). `PermissionView` giữa màn: đĩa 9
 │ Thư viện pose                (x) │  title 30, CloseButton
 │ ( [ Pose mẫu ] Pose của bạn  )   │  Segmented trên rãnh trắng, ô 46
 │ ╭──────────────────────────────╮ │
-│ │ Quán cà phê  6 pose          │ │  GroupCard: tên nhóm head + số pose muted
+│ │ Quán cà phê                  │ │  GroupCard: tên nhóm head, không đếm số pose
 │ │ ┌───┐ ┌───┐ ┌───┐ ┌──        │ │  PoseTile 110×146 cuộn ngang, tràn mép phải card
 │ │ └───┘ └───┘ └───┘ └──        │ │
 │ ╰──────────────────────────────╯ │
@@ -405,7 +408,7 @@ Nền `camBg` (nối liền với Camera). `PermissionView` giữa màn: đĩa 9
 
 - Lưới phẳng **4 cột**, khe 6, mỗi bản pose một ô (vẽ style của chính bản đó).
 - Trống: một dòng `body` "Chưa có pose nào. Thêm một ảnh có người để lấy dáng." và nút primary "Thêm ảnh từ máy".
-- **Chọn nhiều:** vào bằng "Chọn pose" (hoặc vuốt ngang qua các ô, như Ảnh của iPhone). Tiêu đề đổi thành "Đã chọn n pose" + nút "Hủy" (`secondary` nhỏ, chữ `accent`); dưới tab có dòng gợi ý `hint`. `FloatingBar` ở đáy: "Chọn tất cả" (`soft`) và "Xóa n pose" (`danger`, rộng 1.3 phần). Xóa có hộp thoại xác nhận.
+- **Chọn nhiều:** vào bằng "Chọn pose" (hoặc vuốt ngang qua các ô, như Ảnh của iPhone). Tiêu đề đổi thành "Đã chọn n pose" + nút "Hủy" (`secondary` nhỏ, chữ `accent`); không có dòng hướng dẫn. `FloatingBar` ở đáy: "Chọn tất cả" (`soft`) và "Xóa n pose" (`danger`, rộng 1.3 phần). Xóa có hộp thoại xác nhận.
 
 ### 6.7 Menu pose (giữ một ô)
 
@@ -417,7 +420,7 @@ Nền `camBg` (nối liền với Camera). `PermissionView` giữa màn: đĩa 9
 
 ### 6.8 Chọn người và Đang xử lý (trong luồng Thêm ảnh từ máy)
 
-- **Chọn người** (ảnh có từ 2 người): tiêu đề "Chọn người" + `CloseButton` (hủy), gợi ý "Chạm vào người muốn lấy dáng. Chọn được nhiều người.", ảnh 366×488 bo 24. Người đã chọn: phủ `accent` 35%, viền `ink` 2 px, đĩa dấu tích trên đầu; chưa chọn: viền trắng 1.5 px. Đáy: "Chọn tất cả" (`secondary`) + "Dùng người đã chọn" (primary, tắt khi chưa chọn ai).
+- **Chọn người** (ảnh có từ 2 người): tiêu đề "Chọn người" + `CloseButton` (hủy), dòng `hint` "Chọn những pose bạn muốn. Có thể chọn nhiều pose.", ảnh 366×488 bo 24. Người đã chọn: phủ `accent` 35%, viền `ink` 2 px, đĩa dấu tích trên đầu; chưa chọn: viền trắng 1.5 px. Đáy: "Chọn tất cả" (`secondary`) + "Dùng người đã chọn" (primary, tắt khi chưa chọn ai).
 - **Đang xử lý:** giữ đầu màn Thư viện; ảnh vừa chọn 288×384 mờ 60% với một vạch quét `accent`; dưới là `StatusSteps` trong card trắng:
 
 | Bước | Chữ |
@@ -427,7 +430,7 @@ Nền `camBg` (nối liền với Camera). `PermissionView` giữa màn: đĩa 9
 | Nét mặt | Tìm nét mặt |
 | Contour | Vẽ dáng |
 
-  Dòng `hint` ở đáy: "Ảnh chỉ xử lý trên máy, không gửi lên mạng." Lỗi: hộp thoại theo business-flow §10.3 ("Chọn ảnh khác", "Thử tải lại", "Thử lại").
+  Không có dòng chú thích nào khác. Lỗi: hộp thoại theo business-flow §10.3 ("Chọn ảnh khác", "Thử tải lại", "Thử lại").
 
 ### 6.9 Chỉnh pose
 
@@ -439,7 +442,7 @@ Nền `camBg` (nối liền với Camera). `PermissionView` giữa màn: đĩa 9
 ││░▒░▒░▒░▒░▒░▒╭┴⊙⊙┴╮░▒░▒░▒░▒░▒░▒░▒││  không kéo / pinch
 ││▒░▒░▒░▒░▒░▒░╰┬──┬╯▒░▒░▒░▒░▒░▒░▒░││
 │╰────────────────────────────────╯│
-│ [Viền] (Phủ) (Ảnh) (Sửa nét)     │  Chip, top 458
+│ [Viền] (Phủ) (Nền) (Cọ)          │  Chip, top 458
 │╭────────────────────────────────╮│  panel trắng, cao cố định 222, bo 28
 ││ [Viền|Mặt]        Hiện viền [●]││
 ││ ● ○ ● ● ● ● (+)                ││  Swatch; (+) mở Bảng màu
@@ -452,12 +455,13 @@ Nền `camBg` (nối liền với Camera). `PermissionView` giữa màn: đĩa 9
 
 | Tab | Nội dung panel |
 |---|---|
-| Viền | `[Viền \| Mặt]` + công tắc cùng hàng · màu · Độ dày (viền 1–12 px, mặt 0.5–5 px), riêng cho từng cái. Đang chỉnh Mặt mà ảnh không có mặt: dòng `hint` "Không thấy mặt…" |
+| Viền | `[Viền \| Mặt]` + công tắc cùng hàng · màu · Độ dày (viền 1–12 px, mặt 0.5–5 px), riêng cho từng cái. Ảnh không có mặt: ô "Mặt" tắt (chữ `faint`, không bấm được), không có dòng chú thích |
 | Phủ | Hiện lớp phủ (công tắc) · màu (mặc định cam) · Độ đậm 0–100% |
-| Ảnh | Độ hiện người · Độ hiện nền (0–100%) · gợi ý "Tăng độ hiện người để thấy tay chân đặt trên thân." |
-| Sửa nét | `[+ Thêm \| ⌫ Xóa]` + Hoàn tác, Làm lại (nút tròn 40 nền `surfaceAlt`, tắt = icon `faint`) · Cỡ cọ 8–64 px · gợi ý `hint` 13. Nét đang vẽ `accent` (thêm) hoặc `danger` (xóa) mờ 50%, con trỏ cọ là vòng trắng viền tối |
+| Nền | Độ hiện người · Độ hiện nền (0–100%) |
+| Cọ | `[+ Thêm \| ⌫ Xóa]` + Hoàn tác, Làm lại (nút tròn 40 nền `surfaceAlt`, tắt = icon `faint`) · Cỡ cọ 8–64 px. Nét đang vẽ `accent` (thêm) hoặc `danger` (xóa) mờ 50%, con trỏ cọ là vòng trắng viền tối |
 
-- **Hoàn tác / Làm lại chỉ có ở tab Sửa nét**, vì chỉ nét cọ mới có lịch sử. Đầu màn không có nút hoàn tác.
+- **Không có chú thích hay hướng dẫn** nào trong màn Chỉnh pose.
+- **Hoàn tác / Làm lại chỉ có ở tab Cọ**, vì chỉ nét cọ mới có lịch sử. Đầu màn không có nút hoàn tác.
 - Pose mẫu: chỉ một nút "Lưu pose" rộng hết hàng.
 - Nhãn nút phụ trên máy hẹp có thể rút còn "Lưu bản mới" (chuỗi riêng trong `strings.ts`).
 

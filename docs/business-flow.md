@@ -48,7 +48,7 @@ Trong UI chỉ dùng chữ **"pose"**. Không dùng "segment" hay "form" (bản 
 ```mermaid
 flowchart TD
     Launch([Mở app]) --> Perm{Đã có quyền camera?}
-    Perm -- Chưa --> PermScreen[Màn xin quyền]
+    Perm -- Chưa --> PermScreen[Hộp thoại xin quyền của máy]
     PermScreen --> Camera
     Perm -- Có --> Camera[Camera<br/>màn chính]
 
@@ -193,16 +193,16 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 | **Phủ** | Phủ | Bật/tắt | on/off | on |
 | | | Màu | 7 màu có sẵn + Bảng màu (chọn tự do, mã HEX, lấy màu từ ảnh, 6 màu gần đây) | Cam |
 | | | Độ đậm | 0–100% | 40% |
-| **Ảnh** | Người | Độ hiện của người trong ảnh gốc | 0–100% | 0% |
+| **Nền** | Người | Độ hiện của người trong ảnh gốc | 0–100% | 0% |
 | | Nền | Độ hiện của nền trong ảnh gốc (phần ngoài người) | 0–100% | 0% |
-| **Sửa nét** | Viền | Cọ **[Thêm | Xóa]** vẽ thẳng lên ảnh, hoàn tác / làm lại không giới hạn trong một lần sửa (hoàn tác hết là về viền lúc mở màn) | cỡ cọ 8–64 px | Thêm · 24 px |
+| **Cọ** | Viền | Cọ **[Thêm | Xóa]** vẽ thẳng lên ảnh, hoàn tác / làm lại không giới hạn trong một lần sửa (hoàn tác hết là về viền lúc mở màn) | cỡ cọ 8–64 px | Thêm · 24 px |
 
-- **Nét mặt cho biết hướng mặt:** có nét mặt (viền mặt, mắt, lông mày, mũi, môi) nghĩa là người mẫu quay mặt về ống kính; không có nghĩa là quay lưng. Khi không thấy mặt, dòng ghi chú dưới hàng chip ghi rõ. Giới hạn của model: mặt nghiêng hẳn, cúi xuống hoặc bị tay che có thể không được nhận ra.
+- **Nét mặt cho biết hướng mặt:** có nét mặt (viền mặt, mắt, lông mày, mũi, môi) nghĩa là người mẫu quay mặt về ống kính; không có nghĩa là quay lưng. Khi không thấy mặt, ô "Mặt" trong tab Viền tắt (Phase 4 bỏ dòng ghi chú). Giới hạn của model: mặt nghiêng hẳn, cúi xuống hoặc bị tay che có thể không được nhận ra.
 - **Viền và nét mặt chung tab nhưng chỉnh riêng:** mỗi cái có công tắc, thanh độ dày và màu riêng; không có thanh kéo nào đổi cả hai cùng lúc.
-- **Tay chân nằm trên thân:** đã thử vẽ "ống tay, ống chân" (hai nét dọc tay chân, ước lượng từ khung xương + mask) nhưng nét chưa đủ tốt nên **đã bỏ** (góp ý lần 3). Muốn thấy tay chân đặt trên người thì tăng độ hiện người ở tab Ảnh.
+- **Tay chân nằm trên thân:** đã thử vẽ "ống tay, ống chân" (hai nét dọc tay chân, ước lượng từ khung xương + mask) nhưng nét chưa đủ tốt nên **đã bỏ** (góp ý lần 3). Muốn thấy tay chân đặt trên người thì tăng độ hiện người ở tab Nền.
 - Nét mặt lấy từ MediaPipe FaceLandmarker. Ảnh toàn thân có mặt nhỏ thì app dò lại trên vùng đầu đã phóng to.
 - Mọi thay đổi hiện ngay khi kéo slider, không có nút "Áp dụng". Khi sửa nét bằng cọ, viền được tính lại lúc nhấc ngón tay.
-- **Sửa nét:** cọ **Thêm** nhận ra người: app giữ dáng **mọi người** trong ảnh lúc tạo pose (`photos.original_contours_json`, kể cả người không được chọn). Nét tô chủ yếu lên người thì chỉ phần thuộc dáng người được thêm (tô lại vùng mặt đã xóa thì viền theo đúng dáng); người đang thiếu (chưa chọn, hoặc đã xóa gần hết) mà nét tô lộ ra từ 25% thì hiện cả người, kèm nét mặt. Nét tô chủ yếu lên nền thì nới viền theo nét cọ. Cọ **Xóa** bỏ đúng vùng tô; nét mặt nằm trên vùng đã xóa thì ẩn theo. Nét đang vẽ hiện mờ (màu nhấn = thêm, màu đỏ = xóa); nhấc ngón tay thì viền, phủ và ảnh người vẽ lại theo hình mới. Viền là của **ảnh gốc** nên đổi cho mọi bản của ảnh đó. Pose mẫu đã sửa nét được lưu thành một ảnh chép mới, không đổi các bản chép trước. Không lưu được nếu vùng người còn dưới 2% ảnh (BR-06).
+- **Cọ** (bản trước gọi là Sửa nét): cọ **Thêm** nhận ra người: app giữ dáng **mọi người** trong ảnh lúc tạo pose (`photos.original_contours_json`, kể cả người không được chọn). Nét tô chủ yếu lên người thì chỉ phần thuộc dáng người được thêm (tô lại vùng mặt đã xóa thì viền theo đúng dáng); người đang thiếu (chưa chọn, hoặc đã xóa gần hết) mà nét tô lộ ra từ 25% thì hiện cả người, kèm nét mặt. Nét tô chủ yếu lên nền thì nới viền theo nét cọ. Cọ **Xóa** bỏ đúng vùng tô; nét mặt nằm trên vùng đã xóa thì ẩn theo. Nét đang vẽ hiện mờ (màu nhấn = thêm, màu đỏ = xóa); nhấc ngón tay thì viền, phủ và ảnh người vẽ lại theo hình mới. Viền là của **ảnh gốc** nên đổi cho mọi bản của ảnh đó. Pose mẫu đã sửa nét được lưu thành một ảnh chép mới, không đổi các bản chép trước. Không lưu được nếu vùng người còn dưới 2% ảnh (BR-06).
 - **Lưu:** "Lưu pose" ghi đè bản đang sửa; "Lưu thành bản mới" thêm một bản khác cho **cùng ảnh gốc**. Với pose mẫu chỉ có "Lưu pose", và nút này luôn thêm bản vào "Pose của bạn" (BR-09).
 
 ### 5.3 Thư viện pose
@@ -260,7 +260,7 @@ flowchart TD
 
 | Quyền | Xin khi nào | Nếu bị từ chối |
 |---|---|---|
-| Camera | Lần đầu mở app | Màn giải thích + nút "Mở Cài đặt" (`Linking.openSettings()`). App vẫn vào được Thư viện pose và Thay nền |
+| Camera | Lần đầu mở app, bằng hộp thoại của máy (không có màn riêng) | Trong khung ngắm: một câu + nút "Mở Cài đặt" (`Linking.openSettings()`). App vẫn vào được Thư viện pose và Thay nền |
 | Ảnh (đọc) | Lần đầu chọn ảnh từ máy | Dùng image picker của hệ thống. Không cần quyền đọc toàn bộ thư viện |
 | Ảnh (ghi) | Lần đầu lưu ảnh | Báo không lưu được, giữ ảnh tạm, cho thử lại |
 
@@ -268,9 +268,9 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 
 ### 7.2 Lần đầu mở app
 
-1. Xin quyền camera, một màn, một câu giải thích.
+1. Hộp thoại xin quyền camera của máy.
 2. Vào thẳng Camera. Không có onboarding nhiều trang.
-3. Nút pose có vòng sáng một lần duy nhất kèm bóng chữ "Chọn một pose để chụp theo". Chạm bất kỳ đâu thì tắt.
+3. Chưa có pose thì nút pose là ô tròn có dấu cộng. Không có gợi ý hay hướng dẫn.
 
 ### 7.3 Khung giao diện chung
 

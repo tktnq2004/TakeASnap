@@ -427,12 +427,13 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [ ] Zoom nút nhanh 0,5 · 1× · 2 · 3, giữ và kéo ngang thì thành thước
 - [ ] Cột công cụ dọc kéo được: lên xuống, quăng trái/phải dính mép, kẹp trong khung ngắm, nhớ vị trí
 - [ ] Giữ nút độ hiện: cột thành thanh kéo tại chỗ, một ngón, thả tay trở lại
-- [ ] Thư viện, Pose của bạn, Menu pose, Chỉnh pose (4 tab, hoàn tác trong Sửa nét), Bảng màu theo design.md §6.5–6.10
+- [ ] Thư viện, Pose của bạn, Menu pose, Chỉnh pose (4 tab Viền · Phủ · Nền · Cọ, hoàn tác trong Cọ, không chú thích), Bảng màu theo design.md §6.5–6.10
 - [ ] Chạm ảnh vừa chụp → màn **Xem ảnh vừa chụp** (business-flow §4.5)
 - [ ] Phản hồi khi chụp: hiệu ứng màn trập ngắn + rung, theo design.md
-- [ ] Gợi ý lần đầu mở app (business-flow §7.2): nút pose gợi ý một lần
+- [ ] Chưa có pose: nút pose là ô tròn dấu cộng, không gợi ý (business-flow §7.2)
 - [ ] Rà bố cục thanh trên, rail, vùng dưới ở cả 3 tỉ lệ khung, máy màn nhỏ và Android
-- [ ] Màn xin quyền camera theo giao diện mới
+- [ ] Quyền camera: hộp thoại của máy, bị từ chối thì một câu + "Mở Cài đặt" trong khung ngắm (design.md §6.4)
+- [ ] Thanh zoom: kiểu chốt ở vòng 4 trên canvas (đang chọn)
 
 **Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; Thay nền có sẵn khung để Phase 5 điền nội dung; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.
 
