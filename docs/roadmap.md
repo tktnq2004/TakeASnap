@@ -1,4 +1,4 @@
-# TakeASnap — Roadmap rebuild
+# SnapShot — Roadmap rebuild
 
 > Kế hoạch làm lại toàn bộ dự án: rút kinh nghiệm từ bản cũ, chốt kiến trúc mới và chia việc theo phase. Mỗi phase có tiêu chí hoàn thành đo được.
 > Nghiệp vụ ở [business-flow.md](business-flow.md), giao diện ở [design.md](design.md).
@@ -433,7 +433,8 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [ ] Chưa có pose: nút pose là ô tròn dấu cộng, không gợi ý (business-flow §7.2)
 - [ ] Rà bố cục thanh trên, rail, vùng dưới ở cả 3 tỉ lệ khung, máy màn nhỏ và Android
 - [ ] Quyền camera: hộp thoại của máy, bị từ chối thì một câu + "Mở Cài đặt" trong khung ngắm (design.md §6.4)
-- [ ] Thanh zoom: kiểu chốt ở vòng 4 trên canvas (đang chọn)
+- [ ] Thanh zoom: 4 nút nhanh, kéo ngang thành thước cuộn kim giữa (design.md §6.1)
+- [x] Đổi tên app thành **SnapShot**: tên hiển thị, slug, scheme, album ảnh, chuỗi giao diện (đã đổi trong code và tài liệu; file SQLite giữ tên `takeasnap.db` để không mất dữ liệu)
 
 **Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; Thay nền có sẵn khung để Phase 5 điền nội dung; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.
 

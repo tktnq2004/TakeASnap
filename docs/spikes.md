@@ -1,4 +1,4 @@
-# TakeASnap — Kết quả spike Phase 0
+# SnapShot — Kết quả spike Phase 0 (lúc đó app tên TakeASnap)
 
 > Ghi số đo trên máy thật. Mở app bằng Expo Go → màn "Phase 0 · Spike" → chọn từng spike.
 > Kế hoạch spike ở [roadmap.md Phase 0](roadmap.md#phase-0--nền-móng-và-spike-12-tuần).

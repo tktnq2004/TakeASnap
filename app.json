@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "TakeASnap",
-    "slug": "takeasnap",
-    "scheme": "takeasnap",
+    "name": "SnapShot",
+    "slug": "snapshot",
+    "scheme": "snapshot",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -11,9 +11,9 @@
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "TakeASnap cần camera để chụp theo pose.",
-        "NSPhotoLibraryUsageDescription": "TakeASnap cần đọc ảnh để lấy dáng từ ảnh của bạn.",
-        "NSPhotoLibraryAddUsageDescription": "TakeASnap cần quyền lưu ảnh vào album TakeASnap."
+        "NSCameraUsageDescription": "SnapShot cần camera để chụp theo pose.",
+        "NSPhotoLibraryUsageDescription": "SnapShot cần đọc ảnh để lấy dáng từ ảnh của bạn.",
+        "NSPhotoLibraryAddUsageDescription": "SnapShot cần quyền lưu ảnh vào album SnapShot."
       }
     },
     "android": {

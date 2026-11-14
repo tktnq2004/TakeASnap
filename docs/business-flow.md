@@ -1,4 +1,4 @@
-# TakeASnap — Business flow
+# SnapShot — Business flow
 
 > Tài liệu nghiệp vụ cho bản rebuild. Mô tả **app làm gì, cho ai, theo luồng nào và theo quy tắc nào**.
 > Cách làm kỹ thuật ở [roadmap.md](roadmap.md), giao diện ở [design.md](design.md).
@@ -7,7 +7,7 @@
 
 ## 1. Sản phẩm trong một câu
 
-**TakeASnap là app camera chụp theo dáng mẫu:** tách dáng người từ một ảnh mẫu, đặt dáng đó lên khung ngắm làm lớp hướng dẫn, rồi chụp người thật theo đúng dáng. Ngoài ra app có công cụ ghép người vào nền mới với ánh sáng và bóng đổ khớp cảnh.
+**SnapShot là app camera chụp theo dáng mẫu:** tách dáng người từ một ảnh mẫu, đặt dáng đó lên khung ngắm làm lớp hướng dẫn, rồi chụp người thật theo đúng dáng. Ngoài ra app có công cụ ghép người vào nền mới với ánh sáng và bóng đổ khớp cảnh.
 
 Phạm vi v1: **iOS và Android (chạy trong Expo Go), chỉ tiếng Việt, chạy hoàn toàn trên máy, không có server**, là đồ án portfolio.
 
@@ -65,7 +65,7 @@ flowchart TD
     C1 --> C2[Bước 2: Chọn ảnh nền]
     C2 --> C3[Bước 3: Đặt vị trí]
     C3 -- "Tạo ảnh" --> C4[Bước 4: Kết quả]
-    C4 -- "Lưu vào Ảnh" --> Photos[(Album TakeASnap)]
+    C4 -- "Lưu vào Ảnh" --> Photos[(Album SnapShot)]
 
     Camera -- "Chụp" --> Photos
     Camera -- "Ảnh vừa chụp" --> Review[Xem ảnh vừa chụp]
@@ -240,7 +240,7 @@ flowchart TD
     ADJ --> PRE[Xem trước tức thì]
     PRE -- "Tạo ảnh" --> OUT[Render full độ phân giải]
     OUT --> S4[Bước 4: Kết quả]
-    S4 -- "Lưu vào Ảnh" --> SAVE[(Album TakeASnap)]
+    S4 -- "Lưu vào Ảnh" --> SAVE[(Album SnapShot)]
     S4 -- "Giữ để so sánh" --> CMP[Hiện ảnh trước khi xử lý]
     S4 -- "Chỉnh lại" --> S3
 ```
@@ -301,7 +301,7 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 | Mã | Quy tắc |
 |---|---|
 | BR-01 | Ảnh chụp ở chức năng 1 **không bao giờ** kèm overlay. Overlay chỉ để hướng dẫn |
-| BR-02 | Ảnh lưu vào album "TakeASnap" đúng tỉ lệ khung đang chọn. Vùng ảnh lưu trùng đúng vùng thấy trên khung ngắm |
+| BR-02 | Ảnh lưu vào album "SnapShot" đúng tỉ lệ khung đang chọn. Vùng ảnh lưu trùng đúng vùng thấy trên khung ngắm |
 | BR-03 | Mọi xử lý ảnh (tách người, phân tích nền, ghép ảnh) chạy **hoàn toàn trên máy**. Ảnh không bao giờ được gửi đi. Kết nối mạng duy nhất là tải bộ tách người (BR-13) |
 | BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu; gói Thay nền (~111 MB nếu máy có WebGPU, ~56 MB nếu không) khi Thay nền lần đầu. Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
 | BR-04 | Ảnh ghép xuất ra đúng độ phân giải gốc của ảnh nền. Người trong ảnh không bị phóng quá 1.5× độ phân giải gốc của ảnh người (vượt quá thì báo "Ảnh người sẽ bị vỡ nét ở cỡ này") |
@@ -439,7 +439,7 @@ Mỗi thông báo nói **chuyện gì xảy ra** và **làm gì tiếp**, không
 | Tải bộ tách người lỗi | Chưa tải được bộ tách người. Kiểm tra kết nối mạng rồi thử lại. | Thử tải lại |
 | Không đoán được hướng sáng | Chưa xác định được hướng sáng của nền. Xoay vòng Hướng sáng để chọn. | (vòng xoay được làm nổi) |
 | Ghép ảnh hết bộ nhớ | Ảnh nền quá lớn để ghép. Thử lại ở 12 MP. | Thử lại ở 12 MP |
-| Thiếu quyền camera | TakeASnap cần camera để chụp theo pose. | Mở Cài đặt |
+| Thiếu quyền camera | SnapShot cần camera để chụp theo pose. | Mở Cài đặt |
 
 ---
 

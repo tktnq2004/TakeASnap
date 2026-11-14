@@ -1,4 +1,4 @@
-# TakeASnap — Design system
+# SnapShot — Design system
 
 > Bản Phase 4: giao diện xanh dương – trắng, chốt qua 3 vòng chọn trên canvas thiết kế (5 phong cách → 5 bố cục mỗi màn → bản ghép).
 > Hệ thống, copy và motion vẫn theo **tasteskill 2.5** (`.claude/skills/design-taste-frontend`); quy tắc màn hình di động lấy từ skill `imagegen-frontend-mobile` (vùng an toàn, chữ đủ to, ít khung lồng khung).
@@ -258,7 +258,7 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `Badge` | 18 cao, nền trắng, chữ `accent` `badge`, góc trên phải nút |
 | `GlassGroup` | cụm nút camera: nền `camGlass`, `full`, đệm 4, khe 2 |
 | `ToolRail` | cột công cụ pose: rộng 52, nền `camScrim`, `full`, đệm 4, khe 4, vạch nắm 22×4 ở đầu. Kéo dọc tự do, quăng ngang dính mép trái/phải, luôn kẹp trong khung ngắm, nhớ vị trí (§6.1) |
-| `ZoomControl` | 4 nút 0,5 · 1× · 2 · 3 trong `GlassGroup`; kéo ngang thì thành thước vạch 320×48 (§6.1) |
+| `ZoomControl` | 4 nút 0,5 · 1× · 2 · 3 trong `GlassGroup`; kéo ngang thì thành **thước cuộn kim giữa** 330×56 (§6.1) |
 | `Shutter` | 82, vòng 5 px trắng, đĩa `accent` |
 | `Chip` | cao 42, `full`, nền `surface`, icon 18 `accent` + chữ `label`; đang chọn: nền `accent`, chữ và icon trắng. Tab của Chỉnh pose |
 | `Segmented` | rãnh `surface` (trên `bg`) hoặc `surfaceAlt` (trong card), đệm 3–4, ô `full`; đang chọn: nền `accent` chữ trắng. Pose mẫu / Pose của bạn, Viền / Mặt, Thêm / Xóa, Lưới |
@@ -312,7 +312,7 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 | Bảng màu | Mã màu · Lấy màu từ ảnh · Gần đây |
 | Xem ảnh vừa chụp | Ảnh n trên m · Xóa ảnh · Chia sẻ ảnh |
 | Cài đặt | Chụp · Dung lượng · Giới thiệu; Lưu như thật / Lưu soi gương; Rung phản hồi; Xóa bộ tách |
-| Thiếu quyền camera (trong khung ngắm) | TakeASnap cần camera để chụp theo pose. · Mở Cài đặt |
+| Thiếu quyền camera (trong khung ngắm) | SnapShot cần camera để chụp theo pose. · Mở Cài đặt |
 | Thay nền, bước 1–4 | Ảnh người · Ảnh nền · Vị trí · Kết quả |
 | Thay nền, nút | Tạo ảnh · Lưu vào Ảnh · Chỉnh lại |
 
@@ -358,9 +358,12 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
   - Vị trí lưu vào cài đặt máy, lần mở sau giữ nguyên.
   - Cột sang trái thì nhãn và thanh độ hiện mở về phía phải.
 - **Độ hiện:** chạm = đổi nhanh 100% → 60% → 30%. **Giữ 300 ms** = cột biến thành thanh dọc cao 320 ngay tại chỗ, núm trắng 32 nằm dưới ngón tay ở giá trị hiện tại; kéo lên tăng, kéo xuống giảm (0–100%, bước 5); số % trong nhãn `accent` hiện phía bên kia cột để ngón tay không che. Thả tay: giữ giá trị, thanh thu về thành cột. Cả thao tác một ngón.
-- **Zoom (`ZoomControl`)** — kiểu lúc kéo đang chọn lại ở vòng 4 (vòng cung, thước cuộn kim giữa, thanh mảnh, một nút); bên dưới là bản vòng 3:
+- **Zoom (`ZoomControl`)** — thước cuộn kim giữa (chọn ở vòng 4, kiểu B):
   - Lúc nghỉ: 4 nút `0,5 · 1× · 2 · 3` trong cụm kính; nút đang dùng to 44, chữ `camAccent`, mang giá trị thật (vd `1,4×`).
-  - Chạm nút = nhảy tới mức đó. Đặt ngón lên cụm rồi kéo ngang = thước vạch 320×48 hiện tại chỗ (0,5×–5×, bước 0,1, nhãn `1,0×` nền `accent` trên vạch đang chọn); thả tay thì về 4 nút.
+  - Chạm nút = nhảy tới mức đó.
+  - Đặt ngón lên cụm rồi kéo ngang = 4 nút đổi thành **thước cuộn** 330×56 tại chỗ (nền `camScrim`, bo `full`). **Kim đứng yên ở giữa** (3×30, `camAccent`); thước chạy dưới kim theo ngón tay, kéo sang trái là tăng zoom. Thước theo thang log (mỗi lần gấp đôi cách nhau 70 px), vạch nhỏ mỗi 0,1, vạch lớn kèm số ở 0,5 · 1 · 2 · 3 · 5; vạch và số mờ dần về hai mép.
+  - Giá trị hiện trong nhãn `accent` ngay trên kim (`1,4×`), luôn ở giữa nên mắt không phải đuổi theo.
+  - 0,5×–5×, bước 0,1; đi qua mốc 0,5 · 1 · 2 · 3 thì rung `selection`. Thả tay: giữ mức zoom, thước thu về 4 nút.
   - Camera trước và Android không có ống góc rộng: bỏ nút `0,5`.
   - Pinch ngoài pose vẫn zoom như cũ.
 - **Hàng chụp:** Ảnh vừa chụp 54 bo 17 viền 2 trắng 80% · nút chụp 82 · Đổi camera 54 nền `camGlass`. Lề hai bên 40.
@@ -382,7 +385,7 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 
 Không có màn riêng: mở app lần đầu thì gọi thẳng hộp thoại xin quyền của máy (`useCameraPermissions` của `expo-camera`). Camera vẫn vẽ đủ thanh trên, cột công cụ và hàng chụp trong lúc chờ.
 
-Đã bị từ chối (hộp thoại không hiện lại được): trong khung ngắm tối chỉ có `EmptyState`: "TakeASnap cần camera để chụp theo pose." và nút "Mở Cài đặt" (`Linking.openSettings()`). Thư viện pose vẫn mở được bằng nút pose.
+Đã bị từ chối (hộp thoại không hiện lại được): trong khung ngắm tối chỉ có `EmptyState`: "SnapShot cần camera để chụp theo pose." và nút "Mở Cài đặt" (`Linking.openSettings()`). Thư viện pose vẫn mở được bằng nút pose.
 
 ### 6.5 Thư viện pose (mở đè lên Camera)
 

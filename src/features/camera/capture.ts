@@ -1,5 +1,5 @@
 /**
- * Chụp → cắt đúng vùng khung ngắm → lưu album "TakeASnap" (business-flow §4.1, BR-01, BR-02).
+ * Chụp → cắt đúng vùng khung ngắm → lưu album "SnapShot" (business-flow §4.1, BR-01, BR-02).
  * Overlay là view riêng nằm trên preview nên ảnh chụp không bao giờ kèm overlay.
  */
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
@@ -7,7 +7,8 @@ import { Album, Asset, requestPermissionsAsync } from 'expo-media-library';
 
 import { frameToPhotoCrop, type Rect } from './frame';
 
-export const ALBUM = 'TakeASnap';
+/** Album lưu ảnh. App đổi tên từ TakeASnap ở Phase 4; ảnh chụp trước đó vẫn ở album cũ. */
+export const ALBUM = 'SnapShot';
 
 export class PhotoPermissionError extends Error {}
 

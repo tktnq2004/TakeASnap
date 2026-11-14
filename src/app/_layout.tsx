@@ -20,6 +20,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
+      {/* Giữ tên file cũ (từ hồi app tên TakeASnap) để không mất pose đã lưu. */}
       <SQLiteProvider databaseName="takeasnap.db" onInit={migrate}>
         {/* WebView tách người chế độ local (roadmap §3.7): gắn một lần, nạp model khi cần. */}
         <SegmenterProvider>

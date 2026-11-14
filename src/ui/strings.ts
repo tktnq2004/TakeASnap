@@ -4,7 +4,7 @@
  */
 export const t = {
   app: {
-    name: 'TakeASnap',
+    name: 'SnapShot',
   },
   common: {
     close: 'Đóng',
@@ -29,10 +29,10 @@ export const t = {
     editPose: 'Chỉnh pose',
     dropToRemove: 'Thả để gỡ pose',
     levelReached: 'Máy đã thẳng',
-    permissionTitle: 'TakeASnap cần camera để chụp theo pose.',
+    permissionTitle: 'SnapShot cần camera để chụp theo pose.',
     permissionAllow: 'Cho phép dùng camera',
     photoPermissionTitle: 'Chưa có quyền lưu ảnh',
-    photoPermission: 'TakeASnap cần quyền ảnh để lưu vào album TakeASnap.',
+    photoPermission: 'SnapShot cần quyền ảnh để lưu vào album SnapShot.',
     gridOff: 'Lưới tắt',
     grid3: 'Lưới 3×3',
     grid4: 'Lưới 4×4',
@@ -127,7 +127,7 @@ export const t = {
     contouring: 'Đang vẽ dáng',
     savingPose: 'Đang lưu pose',
     analyzing: 'Đang đo ánh sáng của nền',
-    saved: 'Đã lưu vào album TakeASnap',
+    saved: 'Đã lưu vào album SnapShot',
   },
   errors: {
     noPerson: 'Không tìm thấy người trong ảnh. Chọn ảnh có người nhìn rõ.',
