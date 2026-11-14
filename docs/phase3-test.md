@@ -170,13 +170,28 @@ Ngày thử:
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 12.1 | Tab Sửa nét | Chỉ còn [Thêm \| Xóa], dòng hướng dẫn mới | | | |
-| 12.2 | Ảnh 4 người, chọn 3 → Sửa nét, Thêm tô lên người thứ 4 (tô khoảng 1/4 người trở lên) | Nhấc tay thì hiện cả người thứ 4 đúng dáng, có nét mặt | | | |
-| 12.3 | Như 12.2 nhưng chỉ chạm một nét nhỏ lên người thứ 4 | Chỉ phần vừa tô hiện ra (theo dáng); tô thêm cho đủ thì hiện cả người | | | |
-| 12.4 | Xóa mặt một người, rồi Thêm tô cọ to phủ vùng mặt và cả nền quanh đó | Viền và nét mặt quay lại đúng dáng, nền không thành người | | | |
-| 12.5 | Xóa một tay và xóa mặt; Thêm chỉ tô lại mặt | Mặt quay lại, tay vẫn bị xóa | | | |
-| 12.6 | Thêm tô ra nền xa người | Viền nở theo nét cọ như trước (mục 3.2) | | | |
-| 12.7 | Sửa như 12.2, "Lưu pose", mở lại; xem ô Thư viện và overlay Camera | Người thứ 4 và nét mặt vẫn còn | | | |
-| 12.8 | Pose mẫu: Xóa một tay rồi Thêm tô lại | Tay quay lại đúng dáng | | | |
-| 12.9 | Thêm rồi hoàn tác, làm lại | Viền về đúng từng bước | | | |
-| 12.10 | Ảnh 4 người, chọn 3, lưu **không** sửa nét | Pose chỉ có 3 người và 3 nét mặt (người thứ 4 không lộ ra) | | | |
+| 12.1 | Tab Sửa nét | Chỉ còn [Thêm \| Xóa], dòng hướng dẫn mới |đạt | đạt |  |
+| 12.2 | Ảnh 4 người, chọn 3 → Sửa nét, Thêm tô lên người thứ 4 (tô khoảng 1/4 người trở lên) | Nhấc tay thì hiện cả người thứ 4 đúng dáng, có nét mặt | đạt | đạt | |
+| 12.3 | Như 12.2 nhưng chỉ chạm một nét nhỏ lên người thứ 4 | Chỉ phần vừa tô hiện ra (theo dáng); tô thêm cho đủ thì hiện cả người | đạt |đạt | |
+| 12.4 | Xóa mặt một người, rồi Thêm tô cọ to phủ vùng mặt và cả nền quanh đó | Viền và nét mặt quay lại đúng dáng, nền không thành người |đạt |đạt | |
+| 12.5 | Xóa một tay và xóa mặt; Thêm chỉ tô lại mặt | Mặt quay lại, tay vẫn bị xóa | đạt | đạt| |
+| 12.6 | Thêm tô ra nền xa người | Viền nở theo nét cọ như trước (mục 3.2) |đạt |đạt | |
+| 12.7 | Sửa như 12.2, "Lưu pose", mở lại; xem ô Thư viện và overlay Camera | Người thứ 4 và nét mặt vẫn còn | đạt | đạt | |
+| 12.8 | Pose mẫu: Xóa một tay rồi Thêm tô lại | Tay quay lại đúng dáng |đạt |đạt | |
+| 12.9 | Thêm rồi hoàn tác, làm lại | Viền về đúng từng bước | đạt| đạt| phát sinh 1 vấn đề: khi thêm/xóa quá nhiều, tôi không biết lí do vì đâu, nhưng có vẻ stack undo quá lớn, sau khoảng 20-30 lần stack undo thì undo sẽ bị delay khoảng 0.5 - 1s mới quay trở lại |
+| 12.10 | Ảnh 4 người, chọn 3, lưu **không** sửa nét | Pose chỉ có 3 người và 3 nét mặt (người thứ 4 không lộ ra) |không hiểu  | | |
+
+---
+
+# Lần 5 — hoàn tác nhanh
+
+Đã sửa 12.9: trước đây mỗi lần hoàn tác, app dựng lại lưới từ đầu và chạy lại mọi nét còn lại (tới 30 nét), nên càng nhiều nét càng chậm. Nay mỗi nét chỉ ghi lại các ô nó đã đổi; hoàn tác / làm lại chỉ ghi trả các ô đó, nhanh như nhau dù đã vẽ bao nhiêu nét.
+
+Ngày thử: 
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 13.1 | Vẽ khoảng 30 nét Thêm / Xóa xen kẽ, rồi bấm hoàn tác liên tục | Mỗi lần bấm, viền đổi gần như ngay (nhanh như lúc nhấc tay sau một nét), không chậm dần | | | |
+| 13.2 | Làm lại liên tục tới hết | Như 13.1; viền về đúng như trước khi hoàn tác | | | |
+| 13.3 | Vẽ hơn 30 nét rồi hoàn tác tới hết | Dừng ở bước thứ 30 (nút hoàn tác mờ đi); các nét cũ hơn vẫn còn trên viền | | | |
+| 13.4 | (Viết lại mục 12.10) Thư viện → Thêm ảnh từ máy → ảnh có 4 người → ở màn Chọn người chỉ chạm chọn 3 người → "Dùng người đã chọn" → ở Chỉnh pose **không** mở tab Sửa nét, bấm "Lưu pose" luôn → xem ô pose đó trong Thư viện và overlay trên Camera | Chỉ có viền và nét mặt của 3 người đã chọn; người thứ 4 không có viền, không có nét mặt | | | |

@@ -130,6 +130,33 @@ describe('MaskHistory', () => {
     expect(h.canRedo).toBe(false);
   });
 
+  it('hoàn tác hết rồi làm lại hết về đúng từng lưới, kể cả nét Thêm nhận ra người', () => {
+    const square2: Contour = {
+      isHole: false,
+      points: square.points.map((p) => ({ x: p.x * 0.5 + 0.5, y: p.y })),
+    };
+    const src = rasterizeContours([square, square2], 40, 40);
+    const base = rasterizeContours([square], 40, 40);
+    const h = new MaskHistory(base, 40, 40, 30, brushSource(src, 40, 40));
+    const states: Float32Array[] = [base.slice()];
+    for (let i = 0; i < 12; i++) {
+      h.push({
+        mode: i % 3 === 2 ? 'erase' : 'add',
+        radius: 2,
+        points: [5 + i * 2.5, 20, 30, 20 + i],
+      });
+      states.push((h.grid.data as Float32Array).slice());
+    }
+    for (let i = 12; i > 0; i--) {
+      h.undo();
+      expect(Array.from(h.grid.data)).toEqual(Array.from(states[i - 1]!));
+    }
+    for (let i = 1; i <= 12; i++) {
+      h.redo();
+      expect(Array.from(h.grid.data)).toEqual(Array.from(states[i]!));
+    }
+  });
+
   it('giữ tối đa 30 bước, nét cũ hơn vẫn còn trên lưới', () => {
     const h = new MaskHistory(new Float32Array(100), 10, 10, 30);
     h.push(add(1));

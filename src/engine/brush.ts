@@ -261,16 +261,16 @@ function stamp(cov: Float32Array, w: number, h: number, cx: number, cy: number, 
 }
 
 /**
- * Lịch sử nét cọ: hoàn tác / làm lại tối đa `limit` bước. Quá giới hạn thì nét cũ nhất được "nung"
- * vào lưới gốc. Hoàn tác = dựng lại từ lưới gốc với các nét còn lại (≤ 30 nét, nhanh).
+ * Lịch sử nét cọ: hoàn tác / làm lại tối đa `limit` bước. Mỗi bước chỉ ghi các ô nét đó đã đổi
+ * (giá trị trước và sau), nên hoàn tác / làm lại chỉ ghi trả các ô đó, không chạy lại các nét
+ * (góp ý Phase 3: chạy lại 20–30 nét cọ Thêm mất 0,5–1 giây). Quá giới hạn thì bỏ bước cũ nhất.
  */
 export class MaskHistory {
-  private base: Float32Array;
   private current: Float32Array;
-  private strokes: Stroke[] = [];
-  private undone: Stroke[] = [];
-  /** Đã có nét bị nung vào lưới gốc (vượt giới hạn hoàn tác). */
-  private baked = false;
+  private done: Change[] = [];
+  private undone: Change[] = [];
+  /** Đã bỏ bước cũ nhất (vượt giới hạn hoàn tác): lưới vẫn khác lưới ban đầu. */
+  private dropped = false;
 
   /**
    * @param source dáng mọi người trong ảnh lúc tạo pose, để cọ Thêm nhận ra người (`brushSource`).
@@ -282,7 +282,6 @@ export class MaskHistory {
     private readonly limit = 30,
     private readonly source?: BrushSource,
   ) {
-    this.base = base.slice();
     this.current = base.slice();
   }
 
@@ -291,7 +290,7 @@ export class MaskHistory {
   }
 
   get canUndo() {
-    return this.strokes.length > 0;
+    return this.done.length > 0;
   }
 
   get canRedo() {
@@ -300,36 +299,50 @@ export class MaskHistory {
 
   /** Đã có nét nào còn hiệu lực (để biết pose có bị sửa viền không). */
   get edited() {
-    return this.strokes.length > 0 || this.baked;
+    return this.done.length > 0 || this.dropped;
   }
 
   push(s: Stroke) {
-    this.strokes.push(s);
-    this.undone = [];
+    const before = this.current.slice();
     applyStroke(this.current, this.width, this.height, s, this.source);
-    if (this.strokes.length > this.limit) {
-      applyStroke(this.base, this.width, this.height, this.strokes.shift()!, this.source);
-      this.baked = true;
+    this.done.push(diff(before, this.current));
+    this.undone = [];
+    if (this.done.length > this.limit) {
+      this.done.shift();
+      this.dropped = true;
     }
   }
 
   undo() {
-    const s = this.strokes.pop();
-    if (!s) return;
-    this.undone.push(s);
-    this.replay();
+    const c = this.done.pop();
+    if (!c) return;
+    for (let k = 0; k < c.index.length; k++) this.current[c.index[k]!] = c.before[k]!;
+    this.undone.push(c);
   }
 
   redo() {
-    const s = this.undone.pop();
-    if (!s) return;
-    this.strokes.push(s);
-    applyStroke(this.current, this.width, this.height, s, this.source);
+    const c = this.undone.pop();
+    if (!c) return;
+    for (let k = 0; k < c.index.length; k++) this.current[c.index[k]!] = c.after[k]!;
+    this.done.push(c);
   }
+}
 
-  private replay() {
-    this.current = this.base.slice();
-    for (const s of this.strokes)
-      applyStroke(this.current, this.width, this.height, s, this.source);
+/** Các ô một nét cọ đã đổi. */
+type Change = { index: Int32Array; before: Float32Array; after: Float32Array };
+
+function diff(a: Float32Array, b: Float32Array): Change {
+  let n = 0;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) n++;
+  const index = new Int32Array(n);
+  const before = new Float32Array(n);
+  const after = new Float32Array(n);
+  for (let i = 0, k = 0; i < a.length; i++) {
+    if (a[i] === b[i]) continue;
+    index[k] = i;
+    before[k] = a[i]!;
+    after[k] = b[i]!;
+    k++;
   }
+  return { index, before, after };
 }
