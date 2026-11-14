@@ -136,7 +136,7 @@ Mọi thư viện dưới đây đều có sẵn trong Expo Go hoặc là JS thu
 | State | `zustand` cho state phiên, SQLite cho dữ liệu lưu | |
 | Lưu trữ | `expo-sqlite`, `expo-file-system`, `expo-media-library`, `expo-image-manipulator` | |
 | Sheet | `presentation: 'formSheet'` của expo-router; dự phòng `@gorhom/bottom-sheet` | Kiểm tra trên Android ở Phase 0 |
-| Font | `@expo-google-fonts/urbanist`, `@expo-google-fonts/dm-mono` | Theo deal ở design.md |
+| Font | `@expo-google-fonts/nunito` (Phase 4, thay Urbanist + DM Mono) | Theo design.md §3.3 |
 | Icon | `lucide-react-native` | Một bộ chung cho cả hai nền tảng |
 | Haptics | `expo-haptics` qua `src/lib/haptics.ts` | Có trong Expo Go trên iOS (spike D); Android chưa đo |
 | Chuỗi giao diện | `src/ui/strings.ts` | Chỉ tiếng Việt |
@@ -408,21 +408,26 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 **Bước 1 — Định hình (duyệt trước khi viết code)**
 
-- [ ] Chụp màn hình mọi màn hiện có trên iPhone và Android, ghi các chỗ chưa thống nhất (đầu màn, nút, khoảng cách, chữ, trạng thái rỗng / lỗi)
-- [ ] 2–3 hướng giao diện cho màn Camera và khung chung, dựng bản mẫu xem được trên điện thoại (trang HTML), người dùng chọn một hướng
-- [ ] Cập nhật [design.md](design.md) theo hướng đã chọn: token, component, bố cục từng màn (§6), kể cả màn mới (Cài đặt, Xem ảnh vừa chụp, khung Thay nền)
+- [x] Rà các màn hiện có: làm trên canvas thiết kế thay cho chụp màn hình (đầu màn, nút, chữ, trạng thái rỗng / lỗi đều vẽ lại theo một hệ)
+- [x] Chọn hướng trên canvas thiết kế, 3 vòng: 5 phong cách (chọn xanh dương – trắng, bo tròn thân thiện) → 5 bố cục mỗi màn → bản ghép và gợi ý camera một ngón (zoom nút nhanh, giữ để kéo độ hiện, cột công cụ kéo được)
+- [x] Cập nhật [design.md](design.md): token, component, bố cục 13 màn (§6), kể cả màn mới (Cài đặt, Xem ảnh vừa chụp, xin quyền, khung Thay nền)
 
 **Bước 2 — Khung chung**
 
 - [ ] Điều hướng thống nhất: Camera là màn gốc; Thư viện, Chỉnh pose, Thay nền, Cài đặt mở cùng một kiểu; một kiểu đầu màn (tiêu đề + Quay lại hoặc Đóng)
 - [ ] Màn **Cài đặt** thay nút bánh răng đang mở màn thử nghiệm (business-flow §7.4). Màn thử nghiệm (spike B) chỉ còn hiện trong bản dev, giữ tới hết Phase 5
 - [ ] Một component chung cho trạng thái rỗng, lỗi, thiếu quyền
+- [ ] Token mới (màu xanh – trắng, Nunito, radius, kích thước) trong `src/ui/tokens.ts`; component theo design.md §4; sửa các chú thích trong code còn trỏ số mục design.md cũ
 - [ ] Chuyển màn và motion thống nhất theo design.md §3.5
 - [ ] Icon app, splash (chuyển từ Phase 6 lên đây vì là một phần của giao diện chung)
 
 **Bước 3 — Màn Camera**
 
-- [ ] Chọn chế độ "Chụp theo pose · Thay nền" ở đáy Camera (còn lại từ Phase 2); chế độ Thay nền mở khung 4 bước, nội dung các bước làm ở Phase 5
+- [ ] Bố cục Camera mới (design.md §6.1–6.3): thanh trên + bảng mở thêm, khung ngắm bo góc, hàng chụp; bỏ hàng chọn chế độ (chỗ vào Thay nền chốt ở Phase 5)
+- [ ] Zoom nút nhanh 0,5 · 1× · 2 · 3, giữ và kéo ngang thì thành thước
+- [ ] Cột công cụ dọc kéo được: lên xuống, quăng trái/phải dính mép, kẹp trong khung ngắm, nhớ vị trí
+- [ ] Giữ nút độ hiện: cột thành thanh kéo tại chỗ, một ngón, thả tay trở lại
+- [ ] Thư viện, Pose của bạn, Menu pose, Chỉnh pose (4 tab, hoàn tác trong Sửa nét), Bảng màu theo design.md §6.5–6.10
 - [ ] Chạm ảnh vừa chụp → màn **Xem ảnh vừa chụp** (business-flow §4.5)
 - [ ] Phản hồi khi chụp: hiệu ứng màn trập ngắn + rung, theo design.md
 - [ ] Gợi ý lần đầu mở app (business-flow §7.2): nút pose gợi ý một lần

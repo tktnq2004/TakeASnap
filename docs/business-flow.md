@@ -61,7 +61,7 @@ flowchart TD
 
     Camera -- "Nút Chỉnh pose" --> Editor
     Camera -- "Nút Cài đặt" --> Settings[Cài đặt]
-    Camera -- "Chế độ Thay nền" --> C1[Bước 1: Chọn ảnh người]
+    Camera -- "Thay nền (chỗ vào chốt ở Phase 5)" --> C1[Bước 1: Chọn ảnh người]
     C1 --> C2[Bước 2: Chọn ảnh nền]
     C2 --> C3[Bước 3: Đặt vị trí]
     C3 -- "Tạo ảnh" --> C4[Bước 4: Kết quả]
@@ -128,21 +128,22 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 | Thước cân bằng | bật / tắt | Đổi sang màu nhấn khi máy lệch dưới 1° |
 | Tỉ lệ khung | 3:4 / 9:16 / 1:1 | Khung ngắm hiển thị đúng vùng ảnh sẽ được lưu |
 | Hẹn giờ | tắt / 3 s / 10 s | Cho người chụp tự đặt máy |
-| Zoom | thanh kéo 0,5×–5×, bước 0,1 + pinch ngoài pose | Dưới 1× chỉ có trên iPhone có ống góc rộng (đổi ống qua `selectedLens`); camera trước và Android bắt đầu từ 1×. Số hiển thị là ước lượng vì `expo-camera` không cho đọc zoom tối đa thật |
+| Zoom | 4 nút nhanh 0,5 · 1× · 2 · 3; giữ và kéo ngang trên cụm nút thì thành thước 0,5×–5×, bước 0,1, thả tay về lại 4 nút (Phase 4) + pinch ngoài pose | Dưới 1× chỉ có trên iPhone có ống góc rộng (đổi ống qua `selectedLens`); camera trước và Android bắt đầu từ 1×. Số hiển thị là ước lượng vì `expo-camera` không cho đọc zoom tối đa thật |
 
 ### 4.4 Điều khiển nhanh cho overlay (khi đang có pose)
 
 - **Chỉnh pose**: mở thẳng màn Chỉnh pose cho pose đang dùng (góp ý Phase 3). Lưu thì quay về Camera; lưu thành bản mới (hoặc sửa pose mẫu) thì Camera dùng luôn bản mới, giữ vị trí và lật ngang.
-- **Độ hiện overlay**: 3 mức chạm nhanh 100% / 60% / 30%.
+- **Độ hiện overlay**: chạm để đổi nhanh 100% / 60% / 30%. **Giữ nút** thì cột công cụ biến thành thanh kéo dọc ngay tại chỗ, kéo lên xuống bằng chính ngón đó (0–100%), thả tay thì cột trở lại (góp ý Phase 4: mọi thao tác bằng một ngón, không phải với sang bên).
 - **Lật ngang**: soi gương dáng (dáng tay trái thành tay phải).
 - **Ẩn tạm**: giữ nút để ẩn overlay, thả ra để hiện lại, dùng khi cần nhìn rõ người thật.
-- **Gỡ pose**: xóa overlay khỏi khung. Pose vẫn còn trong thư viện.
+- **Gỡ pose**: kéo pose vào thùng rác để xóa overlay khỏi khung. Pose vẫn còn trong thư viện.
+- **Cột công cụ dời được** (Phase 4): các nút trên nằm trong một cột dọc. Kéo cột lên xuống, quăng sang trái hoặc phải thì cột dính vào mép đó; cột luôn nằm trong khung ngắm và giữ vị trí cho lần mở sau. Thay cho chế độ tay trái.
 
 ---
 
-### 4.5 Chọn chế độ và ảnh vừa chụp
+### 4.5 Chỗ vào Thay nền và ảnh vừa chụp
 
-- **Chọn chế độ**: dưới nút chụp có hai chế độ "Chụp theo pose · Thay nền". Chạm vào tên chế độ hoặc vuốt ngang trên vùng dưới để đổi. Chế độ Thay nền mở luồng 4 bước ở [§6.2](#62-luồng-chính); đóng luồng thì về lại chế độ Chụp theo pose, overlay và vị trí pose giữ nguyên.
+- **Chỗ vào Thay nền**: Phase 4 bỏ hàng chọn chế độ "Chụp theo pose · Thay nền" dưới nút chụp cho vùng dưới gọn hơn. Chỗ vào mới (nút trên thanh trên, mục trong Cài đặt, hay vuốt ngang khung ngắm) chốt ở Phase 5. Dù vào từ đâu, Thay nền mở luồng 4 bước ở [§6.2](#62-luồng-chính); đóng luồng thì về Camera, overlay và vị trí pose giữ nguyên.
 - **Ảnh vừa chụp**: ô nhỏ bên trái nút chụp hiện ảnh mới nhất. Chạm vào mở màn **Xem ảnh vừa chụp**: các ảnh chụp trong lần mở app này, vuốt ngang để xem ảnh trước, có nút Chia sẻ và Xóa (xóa khỏi album, có xác nhận). Chưa chụp ảnh nào thì ô trống và không bấm được.
 - **Phản hồi khi chụp**: màn trập tối nhanh trong khoảng một khung hình, rung nhẹ khi đã lưu xong. Lưu lỗi thì báo theo [§10.3](#103-thông-báo-lỗi).
 
@@ -186,11 +187,11 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 |---|---|---|---|---|
 | **Viền** | | Bộ chọn **[Viền | Mặt]**: chọn đang chỉnh cái nào; công tắc, độ dày và màu bên dưới đổi theo | — | Viền |
 | | Viền | Bật/tắt · Độ dày | on/off · 1–12 px (theo pixel màn hình, giữ nguyên khi zoom overlay) | on · 3 px |
-| | | Màu | 8 màu có sẵn | Trắng |
+| | | Màu | 7 màu có sẵn + Bảng màu | Trắng |
 | | Nét mặt | Bật/tắt · Độ dày | on/off · 0.5–5 px | on · 1.5 px |
-| | | Màu | 8 màu có sẵn | Trắng |
+| | | Màu | 7 màu có sẵn + Bảng màu | Trắng |
 | **Phủ** | Phủ | Bật/tắt | on/off | on |
-| | | Màu | 8 màu có sẵn | Cam |
+| | | Màu | 7 màu có sẵn + Bảng màu (chọn tự do, mã HEX, lấy màu từ ảnh, 6 màu gần đây) | Cam |
 | | | Độ đậm | 0–100% | 40% |
 | **Ảnh** | Người | Độ hiện của người trong ảnh gốc | 0–100% | 0% |
 | | Nền | Độ hiện của nền trong ảnh gốc (phần ngoài người) | 0–100% | 0% |
@@ -269,14 +270,14 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 
 1. Xin quyền camera, một màn, một câu giải thích.
 2. Vào thẳng Camera. Không có onboarding nhiều trang.
-3. Nút pose nhấp nháy một lần duy nhất để chỉ chỗ chọn pose. Gợi ý: "Chọn một pose để chụp theo".
+3. Nút pose có vòng sáng một lần duy nhất kèm bóng chữ "Chọn một pose để chụp theo". Chạm bất kỳ đâu thì tắt.
 
 ### 7.3 Khung giao diện chung
 
 Làm ở roadmap Phase 4, trước Thay nền. Giao diện cụ thể chốt ở bước 1 của phase đó (bản mẫu để chọn) rồi ghi vào [design.md](design.md).
 
 - **Một màn gốc**: Camera. Thư viện pose, Chỉnh pose, Thay nền, Cài đặt, Xem ảnh vừa chụp đều mở từ Camera và đóng về Camera.
-- **Một kiểu đầu màn**: tiêu đề ở giữa; bên trái "Quay lại" khi màn là một bước trong luồng (Chỉnh pose, các bước Thay nền), bên phải nút Đóng khi màn mở đè lên Camera (Thư viện, Cài đặt, Xem ảnh vừa chụp).
+- **Hai kiểu đầu màn, cố định theo loại màn**: màn mở đè lên Camera (Thư viện, Cài đặt, Xem ảnh vừa chụp, Chọn người) có tiêu đề to bên trái và nút Đóng bên phải; màn là một bước trong luồng (Chỉnh pose, các bước Thay nền) có "Quay lại" bên trái và tên màn ở giữa.
 - **Một kiểu cho trạng thái rỗng, lỗi, thiếu quyền**: một câu nói chuyện gì đã xảy ra, một nút làm tiếp ([§10](#10-trạng-thái-và-lỗi)).
 - **Một kiểu chuyển màn và chuyển động** cho mọi màn, theo design.md.
 - **Icon app và màn mở app** cùng ngôn ngữ với giao diện trong app.
