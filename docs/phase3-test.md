@@ -206,6 +206,6 @@ Ngày thử:
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 14.1 | Mở một pose, vẽ hơn 40 nét Thêm / Xóa, rồi hoàn tác tới hết | Nút hoàn tác chỉ mờ đi khi đã về đúng viền lúc mở màn; mỗi lần bấm vẫn nhanh | | | |
-| 14.2 | Làm lại tới hết | Về đúng viền sau nét cuối cùng | | | |
-| 14.3 | Hoàn tác hết rồi bấm "Lưu pose" | Viền không đổi so với trước khi mở màn | | | |
+| 14.1 | Mở một pose, vẽ hơn 40 nét Thêm / Xóa, rồi hoàn tác tới hết | Nút hoàn tác chỉ mờ đi khi đã về đúng viền lúc mở màn; mỗi lần bấm vẫn nhanh | đạt|đạt | |
+| 14.2 | Làm lại tới hết | Về đúng viền sau nét cuối cùng |đạt |đạt | |
+| 14.3 | Hoàn tác hết rồi bấm "Lưu pose" | Viền không đổi so với trước khi mở màn |đạt |đạt | |

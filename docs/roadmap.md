@@ -375,7 +375,7 @@ docs/
 
 ### Phase 3 — Thư viện pose và Sửa nét (1–2 tuần)
 
-**Trạng thái:** lần thử 1 trên iPhone 15 Pro Max và Android emulator đạt gần hết, kết quả ở [phase3-test.md](phase3-test.md). Chế độ máy bay chưa thử được vì Expo Go cần Metro qua mạng.
+**Trạng thái: xong chức năng**, đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a sau 6 lần thử, kết quả ở [phase3-test.md](phase3-test.md). **Còn để sau:** thử chạy khi không có internet (mục 7 phiếu thử; Expo Go cần Metro qua mạng nội bộ nên phải thử bằng Wi-Fi không ra internet). Để lại: chọn trượt chưa tự cuộn khi kéo tới mép màn; ảnh đám đông mặt nhỏ có thể thiếu nét mặt.
 
 **Góp ý lần 1:** cọ Xóa bỏ được viền nhưng nét mặt vẫn còn → nét mặt lọc theo viền đã sửa (`segmentsInContours`), lọc khi vẽ nên nét gốc vẫn lưu, tô lại thì hiện lại. Hai người đứng sát thành một vùng và mất nét mặt → WebView dò tối đa 4 khung xương và dò lại vùng đầu cho từng khung chưa có mặt. Rail overlay trên Camera thêm nút Chỉnh pose (mở thẳng màn Chỉnh pose; lưu thành bản mới thì Camera dùng luôn bản đó, giữ vị trí).
 
@@ -385,17 +385,18 @@ docs/
 
 **Góp ý lần 4:** cọ Thêm nhận ra người đạt cả iPhone và Android. Sau 20–30 nét, hoàn tác chậm 0,5–1 giây vì chạy lại mọi nét từ lưới gốc → `MaskHistory` ghi các ô mỗi nét đã đổi (trước / sau), hoàn tác / làm lại chỉ ghi trả các ô đó.
 
-**Góp ý lần 5:** hoàn tác nhanh và 13.4 (người không chọn không lộ ra) đạt. Hoàn tác hết vẫn không về viền gốc vì giới hạn 30 bước → bỏ giới hạn (người dùng chọn), hoàn tác hết là về viền lúc mở màn.
+**Góp ý lần 5:** hoàn tác nhanh và 13.4 (người không chọn không lộ ra) đạt. Hoàn tác hết vẫn không về viền gốc vì giới hạn 30 bước → bỏ giới hạn (người dùng chọn), hoàn tác hết là về viền lúc mở màn. Lần 6: đạt.
 
-- Chọn người: `src/engine/regions.ts` chia mask thành vùng liền nhau (mỗi vùng ≥ 2% ảnh là một người), `PersonPicker` phủ lên Thư viện. Trang WebView nay dò tối đa 4 mặt để giữ được nét mặt của người được chọn.
+- Chọn người: `src/engine/regions.ts` chia mask thành vùng liền nhau (mỗi vùng ≥ 2% ảnh là một người), `PersonPicker` phủ lên Thư viện. Trang WebView dò tối đa 6 người (thêm 3 dải dọc) và dò lại vùng đầu cho từng người để giữ được nét mặt.
 - Sửa nét: `src/engine/brush.ts` dựng lưới 512 từ viền đang có (pose mẫu không có mask PNG), cọ có khử răng cưa, hoàn tác không giới hạn (mỗi bước chỉ lưu các ô đã đổi). Viền đã sửa ghi vào ảnh gốc, cột `photos.contours_edited` (migration v4) để bản chép pose mẫu không bị viền mẫu đè lại.
 
 - [x] Màn Thư viện: Pose mẫu theo nhóm, Pose của bạn, Thêm ảnh từ máy (từ Phase 1–2)
 - [x] Chọn người khi ảnh có nhiều người (chạm vào vùng người)
-- [ ] Sửa nét: cọ thêm / xóa trên mask, hoàn tác, tính lại contour khi nhấc tay — cọ Thêm, Xóa, hoàn tác nhanh đạt; chờ thử hoàn tác không giới hạn
+- [x] Sửa nét: cọ Thêm (nhận ra người) / Xóa, hoàn tác không giới hạn, tính lại contour khi nhấc tay
 - [x] Tạo bản sao từ pose mẫu, xóa có xác nhận (từ Phase 1–2)
 - [x] Trạng thái rỗng, đang xử lý, lỗi theo [business-flow §10](business-flow.md#10-trạng-thái-và-lỗi)
-- [ ] Chạy trọn chức năng 1 + 2 khi không có internet — chờ thử (Wi-Fi nội bộ không ra internet, xem phase3-test.md lần 2)
+- [x] Thêm (góp ý): nút Chỉnh pose trên Camera, nút Quay lại có chữ, chọn nhiều pose để xóa
+- [ ] Chạy trọn chức năng 1 + 2 khi không có internet — để sau (Wi-Fi nội bộ không ra internet, xem phase3-test.md mục 7)
 
 **Xong khi:** chức năng 1 + 2 chạy trọn vẹn ở chế độ máy bay. **Đây là mốc portfolio tối thiểu:** dừng ở đây vẫn có một app hoàn chỉnh để trình bày.
 
