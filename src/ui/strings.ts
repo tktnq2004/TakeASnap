@@ -132,6 +132,15 @@ export const t = {
     undo: 'Hoàn tác',
     redo: 'Làm lại',
   },
+  review: {
+    title: 'Ảnh vừa chụp',
+    counter: (i: number, n: number, time: string) => `Ảnh ${i} trên ${n} · ${time}`,
+    remove: 'Xóa ảnh',
+    removeConfirm: 'Xóa ảnh này khỏi album SnapShot? Không hoàn tác được.',
+    removeFailed: 'Chưa xóa được ảnh. Thử lại sau.',
+    share: 'Chia sẻ ảnh',
+    shareUnavailable: 'Máy này chưa chia sẻ được ảnh.',
+  },
   status: {
     downloadingModel: 'Đang tải bộ tách người',
     loadingModel: 'Đang nạp bộ tách người',

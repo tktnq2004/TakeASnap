@@ -36,6 +36,8 @@ export default function RootLayout() {
             {/* Thư viện pose: modal trên Camera (iOS: thẻ trượt lên; Android: toàn màn hình).
                 formSheet có detent làm vỡ bố cục: ảnh đè lên tiêu đề và tab (góp ý Phase 2). */}
             <Stack.Screen name="library" options={{ presentation: 'modal' }} />
+            {/* Xem ảnh vừa chụp: mở đè lên Camera như Thư viện (design.md §6.12). */}
+            <Stack.Screen name="review" options={{ presentation: 'modal' }} />
             {/* Chỉnh pose mở từ sheet nên phải là modal để hiện được trên sheet. */}
             <Stack.Screen name="editor/[poseId]" options={{ presentation: 'fullScreenModal' }} />
           </Stack>

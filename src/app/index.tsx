@@ -40,11 +40,17 @@ import {
   useCameraStore,
 } from '@/features/camera/cameraStore';
 import { CameraTopBar, TOP_BAR_H } from '@/features/camera/CameraTopBar';
-import { cropToFrame, PhotoPermissionError, saveToAlbum } from '@/features/camera/capture';
+import {
+  cropToFrame,
+  PhotoPermissionError,
+  saveToAlbum,
+  type Shot,
+} from '@/features/camera/capture';
 import { ASPECTS, type Rect, viewfinderRect } from '@/features/camera/frame';
 import { FrameGrid, LevelGuide } from '@/features/camera/FrameGuides';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
 import { PoseOverlay } from '@/features/camera/PoseOverlay';
+import { useSessionPhotos } from '@/features/camera/sessionPhotos';
 import { ToolRail } from '@/features/camera/ToolRail';
 import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
@@ -127,7 +133,8 @@ function CameraBody() {
   const [pose, setPose] = useState<Pose | null>(null);
   const [busy, setBusy] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
-  const [lastPhoto, setLastPhoto] = useState<string | null>(null);
+  // Ảnh vừa chụp: ảnh mới nhất đã lưu trong lần mở app này; chạm để mở màn Xem ảnh vừa chụp.
+  const lastPhoto = useSessionPhotos((s) => s.photos[s.photos.length - 1]?.uri ?? null);
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ---- Bố cục (design.md §6.1): thanh trên, khung ngắm, zoom, hàng chụp ----
@@ -308,9 +315,10 @@ function CameraBody() {
   const flashOpacity = useSharedValue(0);
   const flashStyle = useAnimatedStyle(() => ({ opacity: flashOpacity.get() }));
 
-  const save = async (uri: string) => {
+  const save = async (shot: Shot) => {
     try {
-      await saveToAlbum(uri);
+      const assetId = await saveToAlbum(shot.uri);
+      useSessionPhotos.getState().add({ ...shot, assetId });
       haptic.saved();
     } catch (e) {
       if (e instanceof PhotoPermissionError) {
@@ -323,7 +331,7 @@ function CameraBody() {
       // BR-12: ảnh đã cắt vẫn nằm trong file tạm, cho thử lại.
       Alert.alert(t.errors.saveFailed, undefined, [
         { text: t.common.cancel, style: 'cancel' },
-        { text: t.common.retry, onPress: () => save(uri) },
+        { text: t.common.retry, onPress: () => save(shot) },
       ]);
     }
   };
@@ -342,8 +350,7 @@ function CameraBody() {
       );
       const pic = await cam.takePictureAsync({ quality: 1, shutterSound: true });
       const out = await cropToFrame(pic, frame, root);
-      setLastPhoto(out.uri);
-      await save(out.uri);
+      await save(out);
     } catch {
       Alert.alert(t.errors.saveFailed);
     } finally {
@@ -494,17 +501,21 @@ function CameraBody() {
         style={[styles.shutterRow, { bottom: shutterBottom }, shutterRowStyle]}
         pointerEvents="box-none"
       >
-        <View
-          style={[styles.thumb, lastPhoto ? styles.thumbOn : styles.thumbEmpty]}
-          accessible
+        <PressableScale
+          accessibilityRole="button"
           accessibilityLabel={t.camera.lastPhoto}
+          accessibilityState={{ disabled: !lastPhoto }}
+          disabled={!lastPhoto}
+          hitSlop={4}
+          onPress={() => router.push('/review')}
+          style={[styles.thumb, lastPhoto ? styles.thumbOn : styles.thumbEmpty]}
         >
           {busy ? (
             <ActivityIndicator size="small" color={color.camInk} />
           ) : lastPhoto ? (
             <Image source={{ uri: lastPhoto }} style={styles.thumbImage} />
           ) : null}
-        </View>
+        </PressableScale>
 
         <PressableScale
           accessibilityRole="button"

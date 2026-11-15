@@ -33,17 +33,24 @@ export async function cropToFrame(
 }
 
 /**
- * Lưu vào album riêng. Chỉ xin quyền ảnh: mặc định SDK 58 xin cả âm thanh, Expo Go trên Android
- * không khai báo quyền đó nên bị từ chối (spike D).
+ * Lưu vào album riêng, trả về mã ảnh trong thư viện (để Xem ảnh vừa chụp xóa được). Chỉ xin quyền
+ * ảnh: mặc định SDK 58 xin cả âm thanh, Expo Go trên Android không khai báo quyền đó nên bị từ
+ * chối (spike D).
  */
-export async function saveToAlbum(uri: string): Promise<void> {
+export async function saveToAlbum(uri: string): Promise<string> {
   const perm = await requestPermissionsAsync(false, ['photo']);
   if (perm.status !== 'granted') throw new PhotoPermissionError('photo permission');
   const album = await Album.get(ALBUM);
   if (album) {
-    await Asset.create(uri, album);
-  } else {
-    const asset = await Asset.create(uri);
-    await Album.create(ALBUM, [asset]);
+    const asset = await Asset.create(uri, album);
+    return asset.id;
   }
+  const asset = await Asset.create(uri);
+  await Album.create(ALBUM, [asset]);
+  return asset.id;
+}
+
+/** Xóa một ảnh khỏi thư viện ảnh của máy (iOS hỏi xác nhận thêm một lần). */
+export async function deleteFromLibrary(assetId: string): Promise<void> {
+  await new Asset(assetId).delete();
 }

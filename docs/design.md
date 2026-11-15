@@ -495,7 +495,8 @@ Nhóm "Nhà phát triển" (Màn thử nghiệm) chỉ hiện trong bản dev.
 
 - Đầu màn: "Ảnh vừa chụp" + dòng `hint` "Ảnh 3 trên 5 · 14:32", `CloseButton`.
 - Ảnh 366 rộng đúng tỉ lệ chụp, bo 24, bóng nhẹ; vuốt ngang để xem ảnh trước. Chấm trang dưới ảnh (đang xem = vạch 18 `accent`).
-- Đáy: "Xóa ảnh" (`dangerText` trên nền `surface`, có xác nhận, xóa khỏi album) và "Chia sẻ ảnh" (primary, mở bảng chia sẻ hệ thống).
+- Đáy: "Xóa ảnh" (`dangerText` trên nền `surface`, có xác nhận, xóa khỏi album; iOS hỏi thêm một lần bằng hộp thoại của máy) và "Chia sẻ ảnh" (primary, bảng chia sẻ của máy qua `expo-sharing`).
+- Danh sách ảnh chỉ giữ trong lần mở app (`sessionPhotos`); ô ảnh vừa chụp trên Camera tắt khi chưa có ảnh. Xóa hết ảnh thì màn tự đóng.
 
 ### 6.13 Thay nền (Phase 5)
 
