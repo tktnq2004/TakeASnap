@@ -1,5 +1,6 @@
 import {
   Contrast,
+  Eye,
   EyeOff,
   FlipHorizontal2,
   type LucideIcon,
@@ -220,10 +221,9 @@ export function ToolRail(p: Props) {
               active={p.mirrored}
             />
             <RailButton
-              icon={EyeOff}
-              label={t.camera.holdToHide}
-              onPressIn={() => p.onHide(true)}
-              onPressOut={() => p.onHide(false)}
+              icon={p.hidden ? Eye : EyeOff}
+              label={p.hidden ? t.camera.showPose : t.camera.hidePose}
+              onPress={() => p.onHide(!p.hidden)}
               active={p.hidden}
             />
           </>

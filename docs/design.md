@@ -226,7 +226,7 @@ Cấm:
 | Lưới · Thước cân bằng | `grid-3x3` · `ruler` |
 | Cài đặt | `settings` |
 | Nút pose | thumbnail pose đang dùng; chưa có pose thì `plus` |
-| Chỉnh pose · Độ hiện · Lật ngang · Giữ để ẩn | `pencil` · `contrast` · `flip-horizontal-2` · `eye-off` |
+| Chỉnh pose · Độ hiện · Lật ngang · Ẩn / hiện pose | `pencil` · `contrast` · `flip-horizontal-2` · `eye-off` (đang ẩn: `eye`, nền `accent`) |
 | Gỡ pose, xóa | `trash-2` |
 | Tab Viền · Phủ · Nền · Cọ | `pen-tool` · `droplet` · `image` · `brush` |
 | Cọ Thêm · Xóa | `plus` · `eraser` |
@@ -337,7 +337,7 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 ││·········│  │  pose ·······│[▣]│││  giữa khung ngắm:
 ││········╭┴──┴╮············│ ✎ │││    vạch nắm · nút pose · Chỉnh pose
 ││──── ╱╱╱╱╱╱ ────··········│ ◐ │││    · Độ hiện (huy hiệu %) · Lật ngang
-││·········│  │·············│ ⇋ │││    · Giữ để ẩn
+││·········│  │·············│ ⇋ │││    · Ẩn / hiện pose
 ││·········╰──╯·············│ ⊘ │││
 ││··························· ╰──╯ ││  thước cân bằng: 2 vạch trắng cố định,
 │╰────────────────────────────────╯│  vạch giữa vàng nghiêng theo máy

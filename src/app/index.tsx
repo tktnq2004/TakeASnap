@@ -118,7 +118,11 @@ function CameraBody() {
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [lenses, setLenses] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
-  const [hidden, setHidden] = useState(false);
+  // Ẩn pose: nút bật / tắt (góp ý Phase 4, thay cho giữ để ẩn). Nhớ theo id pose nên đổi pose
+  // thì pose mới luôn hiện.
+  const [hiddenFor, setHiddenFor] = useState<string | null>(null);
+  const hidden = poseId != null && hiddenFor === poseId;
+  const setHidden = (h: boolean) => setHiddenFor(h ? poseId : null);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [pose, setPose] = useState<Pose | null>(null);
   const [busy, setBusy] = useState(false);

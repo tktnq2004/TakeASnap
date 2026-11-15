@@ -135,7 +135,7 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 - **Chỉnh pose**: mở thẳng màn Chỉnh pose cho pose đang dùng (góp ý Phase 3). Lưu thì quay về Camera; lưu thành bản mới (hoặc sửa pose mẫu) thì Camera dùng luôn bản mới, giữ vị trí và lật ngang.
 - **Độ hiện overlay**: chạm để đổi nhanh 100% / 60% / 30%. **Giữ nút** thì cột công cụ biến thành thanh kéo dọc gọn trong cột, kéo lên xuống bằng chính ngón đó (0–100%, tính theo quãng kéo), thả tay thì cột trở lại (góp ý Phase 4: mọi thao tác bằng một ngón, không phải với sang bên).
 - **Lật ngang**: soi gương dáng (dáng tay trái thành tay phải).
-- **Ẩn tạm**: giữ nút để ẩn overlay, thả ra để hiện lại, dùng khi cần nhìn rõ người thật.
+- **Ẩn / hiện pose**: chạm để ẩn overlay, chạm lần nữa để hiện lại (Phase 4: thay cho giữ để ẩn), dùng khi cần nhìn rõ người thật. Đổi pose thì pose mới luôn hiện.
 - **Gỡ pose**: kéo pose vào thùng rác để xóa overlay khỏi khung. Pose vẫn còn trong thư viện.
 - **Cột công cụ dời được** (Phase 4): các nút trên nằm trong một cột dọc. Kéo cột lên xuống, quăng sang trái hoặc phải thì cột dính vào mép đó; cột luôn nằm trong khung ngắm và giữ vị trí cho lần mở sau. Thay cho chế độ tay trái.
 
