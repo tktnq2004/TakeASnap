@@ -357,7 +357,7 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
   - Luôn kẹp trong khung ngắm (cách mép khung 6). Đổi tỉ lệ khung thì kẹp lại.
   - Vị trí lưu vào cài đặt máy, lần mở sau giữ nguyên.
   - Cột sang trái thì nhãn và thanh độ hiện mở về phía phải.
-- **Độ hiện:** chạm = đổi nhanh 100% → 60% → 30%. **Giữ 300 ms** = cột biến thành thanh dọc cao 320 ngay tại chỗ, núm trắng 32 nằm dưới ngón tay ở giá trị hiện tại; kéo lên tăng, kéo xuống giảm (0–100%, bước 5); số % trong nhãn `accent` hiện phía bên kia cột để ngón tay không che. Thả tay: giữ giá trị, thanh thu về thành cột. Cả thao tác một ngón.
+- **Độ hiện:** chạm = đổi nhanh 100% → 60% → 30%. **Giữ 300 ms** = các nút trong cột nhường chỗ cho thanh kéo dọc **gọn trong khung cột** (không lấn ra ngoài); số % ở đầu cột. Kéo lên tăng, kéo xuống giảm (0–100%, bước 5), tính theo quãng ngón tay đi, không cần ngón tay nằm đúng chỗ núm (góp ý Phase 4). Thả tay: giữ giá trị, cột trở lại. Cả thao tác một ngón.
 - **Zoom (`ZoomControl`)** — thước cuộn kim giữa (chọn ở vòng 4, kiểu B):
   - Lúc nghỉ: 4 nút `0,5 · 1× · 2 · 3` trong cụm kính; nút đang dùng to 44, chữ `camAccent`, mang giá trị thật (vd `1,4×`).
   - Chạm nút = nhảy tới mức đó.
@@ -365,6 +365,7 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
   - Giá trị hiện trong nhãn `accent` ngay trên kim (`1,4×`), luôn ở giữa nên mắt không phải đuổi theo.
   - 0,5×–5×, bước 0,1; đi qua mốc 0,5 · 1 · 2 · 3 thì rung `selection`. Thả tay: giữ mức zoom, thước thu về 4 nút.
   - Camera trước và Android không có ống góc rộng: bỏ nút `0,5`.
+  - iPhone có camera ảo (Triple / Dual Wide): app luôn dùng camera ảo, máy tự chuyển ống khi zoom nên không chớp khi qua 1×. Máy chỉ có ống rời vẫn phải đổi ống, còn chớp.
   - Pinch ngoài pose vẫn zoom như cũ.
 - **Hàng chụp:** Ảnh vừa chụp 54 bo 17 viền 2 trắng 80% · nút chụp 82 · Đổi camera 54 nền `camGlass`. Lề hai bên 40.
 - **Ở tỉ lệ 9:16** khung ngắm tràn ra sau thanh trên và cụm zoom: mọi nút đã có nền kính nên vẫn đọc được.

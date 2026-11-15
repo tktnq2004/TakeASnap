@@ -60,15 +60,16 @@ type Props = {
   onHide: (hidden: boolean) => void;
 };
 
-/** Tâm nút độ hiện tính từ mép trên cột (nút thứ 3, sau nút pose và Chỉnh pose). */
-const OPACITY_CENTER = R.pad + R.grip + 2 * (R.gap + R.item) + R.gap + R.item / 2;
-
 const railHeight = (items: number) => R.pad * 2 + R.grip + items * (R.gap + R.item);
+
+/** Rãnh thanh độ hiện: nằm gọn trong cột, chừa chỗ cho số % ở trên và nửa núm ở dưới. */
+const sliderTrack = (railH: number) => railH - R.sliderTop - R.sliderBottom;
 
 /**
  * Cột công cụ pose (design.md §6.1). Kéo vạch nắm để dời cột lên xuống; quăng sang trái hoặc phải
  * thì cột dính vào mép đó; luôn nằm trong khung ngắm; nhớ vị trí. Giữ nút độ hiện thì cột thành
- * thanh kéo dọc ngay tại chỗ, một ngón kéo lên xuống, thả tay thì cột trở lại.
+ * thanh kéo dọc gọn trong cột (góp ý Phase 4); kéo lên tăng, kéo xuống giảm, tính theo quãng ngón
+ * tay đi chứ không theo chỗ ngón tay đặt; thả tay thì cột trở lại.
  * Chưa có pose: cột chỉ còn ô tròn dấu cộng.
  */
 export function ToolRail(p: Props) {
@@ -78,6 +79,7 @@ export function ToolRail(p: Props) {
   const { frame, opacity, dim, onOpacityEnd, onCycleOpacity } = p;
   const items = p.pose ? 5 : 1;
   const railH = railHeight(items);
+  const trackH = sliderTrack(railH);
 
   const left = useSharedValue(railLeft(side, frame, R.width, R.inset));
   const top = useSharedValue(railTopFromY(railY, frame, railH, R.inset));
@@ -147,7 +149,7 @@ export function ToolRail(p: Props) {
     },
     onUpdate: (e) => {
       'worklet';
-      opacity.set(opacityFromDrag(start.get(), e.translationY, R.track));
+      opacity.set(opacityFromDrag(start.get(), e.translationY, trackH));
     },
     onFinalize: () => {
       'worklet';
@@ -174,15 +176,10 @@ export function ToolRail(p: Props) {
   }));
   const sliderStyle = useAnimatedStyle(() => ({
     opacity: withTiming(adjusting.get() ? 1 : 0, { duration: motion.in, easing: ease }),
-    // Núm nằm đúng dưới ngón tay ở giá trị lúc bắt đầu giữ.
-    top: OPACITY_CENTER - (1 - start.get()) * R.track - R.sliderPad,
   }));
-  const fillStyle = useAnimatedStyle(() => ({ height: opacity.get() * R.track }));
+  const fillStyle = useAnimatedStyle(() => ({ height: opacity.get() * trackH }));
   const thumbStyle = useAnimatedStyle(() => ({
-    top: R.sliderPad + (1 - opacity.get()) * R.track - R.thumb / 2,
-  }));
-  const bubbleStyle = useAnimatedStyle(() => ({
-    top: R.sliderPad + (1 - opacity.get()) * R.track - BUBBLE_H / 2,
+    top: R.sliderTop + (1 - opacity.get()) * trackH - R.thumb / 2,
   }));
   const pctText = useDerivedValue(() => formatPercent(opacity.get()));
   const pct = Math.round(savedOpacity * 100);
@@ -190,14 +187,14 @@ export function ToolRail(p: Props) {
   return (
     <Animated.View style={[styles.rail, { height: railH }, railStyle]}>
       <GestureDetector gesture={move}>
-        <View
-          style={styles.grip}
+        <Animated.View
+          style={[styles.grip, bodyStyle]}
           accessible
           accessibilityLabel={t.camera.railGrip}
           accessibilityRole="adjustable"
         >
           <View style={styles.gripBar} />
-        </View>
+        </Animated.View>
       </GestureDetector>
 
       <Animated.View style={[styles.body, bodyStyle]}>
@@ -236,19 +233,11 @@ export function ToolRail(p: Props) {
       {/* Thanh độ hiện: thay chỗ cột trong lúc giữ nút. */}
       {p.pose && (
         <Animated.View pointerEvents="none" style={[styles.slider, sliderStyle]}>
-          <View style={styles.track}>
+          <AnimatedText text={pctText} style={[type.num, styles.pct]} />
+          <View style={[styles.track, { height: trackH }]}>
             <Animated.View style={[styles.fill, fillStyle]} />
           </View>
           <Animated.View style={[styles.thumb, thumbStyle]} />
-          <Animated.View
-            style={[
-              styles.bubble,
-              side === 'right' ? styles.bubbleLeft : styles.bubbleRight,
-              bubbleStyle,
-            ]}
-          >
-            <AnimatedText text={pctText} style={[type.label, styles.bubbleText]} />
-          </Animated.View>
         </Animated.View>
       )}
     </Animated.View>
@@ -324,8 +313,6 @@ function PoseButton({ pose, onPress }: { pose: Pose | null; onPress: () => void 
   );
 }
 
-const BUBBLE_H = 36;
-
 const styles = StyleSheet.create({
   rail: {
     position: 'absolute',
@@ -369,20 +356,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  slider: {
-    position: 'absolute',
-    left: 0,
-    width: R.width,
-    height: R.track + R.sliderPad * 2,
-    borderRadius: radius.full,
-    backgroundColor: color.camScrim,
-    alignItems: 'center',
-  },
+  // Phủ đúng khung cột (nền cột đã có), không lấn ra ngoài.
+  slider: { ...StyleSheet.absoluteFill, alignItems: 'center' },
   track: {
     position: 'absolute',
-    top: R.sliderPad,
+    top: R.sliderTop,
     width: 8,
-    height: R.track,
     borderRadius: 4,
     backgroundColor: color.camLine,
     justifyContent: 'flex-end',
@@ -396,15 +375,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: color.camInk,
   },
-  bubble: {
+  pct: {
     position: 'absolute',
-    height: BUBBLE_H,
-    paddingHorizontal: 14,
-    borderRadius: radius.full,
-    backgroundColor: color.accent,
-    justifyContent: 'center',
+    top: R.pad + 4,
+    left: 0,
+    right: 0,
+    textAlign: 'center',
+    color: color.camInk,
   },
-  bubbleLeft: { right: R.width + 8 },
-  bubbleRight: { left: R.width + 8 },
-  bubbleText: { color: color.accentInk, minWidth: 40, textAlign: 'center' },
 });

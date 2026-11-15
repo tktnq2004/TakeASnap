@@ -17,6 +17,14 @@ import { type ZoomConfig, zoomTarget } from './zoom';
 
 export const ULTRA_WIDE_LENS = 'AVCaptureDeviceTypeBuiltInUltraWideCamera';
 const WIDE_LENS = 'AVCaptureDeviceTypeBuiltInWideAngleCamera';
+/**
+ * Camera ảo của iPhone gộp nhiều ống (expo-camera liệt kê chúng trong danh sách ống). Chọn camera
+ * ảo thì máy tự chuyển ống khi zoom, giống app Camera gốc: không chớp khi qua mốc 1×.
+ */
+const VIRTUAL_LENSES = [
+  'AVCaptureDeviceTypeBuiltInTripleCamera',
+  'AVCaptureDeviceTypeBuiltInDualWideCamera',
+];
 
 type Props = {
   cameraRef: Ref<CameraView>;
@@ -56,10 +64,14 @@ export const CameraLayer = memo(function CameraLayer({
   const ios = Platform.OS === 'ios';
   const interval = ios ? cameraZoom.minIntervalMsIos : cameraZoom.minIntervalMsAndroid;
   const hasUltraWide = ios && facing === 'back' && lenses.includes(ULTRA_WIDE_LENS);
+  const virtualLens =
+    ios && facing === 'back' ? VIRTUAL_LENSES.find((l) => lenses.includes(l)) : undefined;
   const config: ZoomConfig = {
     platform: ios ? 'ios' : 'android',
     hasUltraWide,
+    virtual: virtualLens != null,
     iosMaxFactor: cameraZoom.iosMaxFactor,
+    iosVirtualMaxFactor: cameraZoom.iosVirtualMaxFactor,
     androidMaxRatio: cameraZoom.androidMaxRatio,
     precision: cameraZoom.precision,
   };
@@ -96,14 +108,17 @@ export const CameraLayer = memo(function CameraLayer({
     },
   );
 
-  // Ghi rõ ống chính khi có, để quay từ ống góc rộng về được chắc chắn.
+  // Có camera ảo thì luôn dùng nó. Không có thì đổi ống thật: ghi rõ ống chính khi có, để quay từ
+  // ống góc rộng về được chắc chắn (máy cũ vẫn còn chớp khi qua 1×).
   const lens = !ios
     ? undefined
-    : zoom.ultra && hasUltraWide
-      ? ULTRA_WIDE_LENS
-      : lenses.includes(WIDE_LENS)
-        ? WIDE_LENS
-        : undefined;
+    : virtualLens
+      ? virtualLens
+      : zoom.ultra && hasUltraWide
+        ? ULTRA_WIDE_LENS
+        : lenses.includes(WIDE_LENS)
+          ? WIDE_LENS
+          : undefined;
 
   return (
     <CameraView

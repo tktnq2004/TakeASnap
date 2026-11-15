@@ -159,6 +159,8 @@ export const cameraZoom = {
   max: 5,
   step: 0.1,
   iosMaxFactor: 123.75,
+  /** Camera ảo (Triple / Dual Wide): zoom tối đa tính từ ống góc rộng, giả định như ống chính. */
+  iosVirtualMaxFactor: 123.75,
   androidMaxRatio: 8,
   precision: 0.0005,
   /**
@@ -207,7 +209,7 @@ export const editor = { panelHeight: 232, panelPad: 18, panelGap: 14, chipGap: 8
 
 /**
  * Cột công cụ pose trên Camera (design.md §6.1): rộng 52, đệm 4, nút 44; vạch nắm ở đầu cột để
- * kéo. Giữ nút độ hiện thì cột thành thanh kéo cao `track`.
+ * kéo. Giữ nút độ hiện thì cột thành thanh kéo gọn trong cột.
  */
 export const cameraRail = {
   width: 52,
@@ -217,9 +219,10 @@ export const cameraRail = {
   grip: 14,
   /** Cách mép khung ngắm. */
   inset: 6,
-  track: 230,
-  thumb: 32,
-  sliderPad: 20,
+  thumb: 28,
+  /** Thanh độ hiện trong cột: chừa trên cho số %, dưới cho nửa núm. */
+  sliderTop: 40,
+  sliderBottom: 18,
   /** Khi đang kéo pose: cột và hàng chụp mờ còn chừng này. */
   dimOpacity: 0.25,
 } as const;

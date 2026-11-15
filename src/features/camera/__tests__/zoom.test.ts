@@ -62,3 +62,25 @@ describe('formatZoom', () => {
     expect(formatZoom(0.1 * 13)).toBe('1,3×');
   });
 });
+
+describe('zoomTarget trên camera ảo iOS (không chớp khi qua 1×)', () => {
+  const v: ZoomConfig = { ...ios, virtual: true, iosVirtualMaxFactor: 100 };
+
+  it('không bao giờ đổi ống: máy tự chuyển ống bên trong camera ảo', () => {
+    expect(zoomTarget(0.5, v).ultra).toBe(false);
+    expect(zoomTarget(0.9, v).ultra).toBe(false);
+    expect(zoomTarget(1, v).ultra).toBe(false);
+  });
+
+  it('0,5× là hệ số thiết bị 1 (ống góc rộng), 1× là hệ số 2', () => {
+    expect(zoomTarget(0.5, v).prop).toBeCloseTo(0, 3);
+    expect(zoomTarget(1, v).prop).toBeCloseTo(Math.log(2) / Math.log(100), 3);
+  });
+
+  it('đi qua 0,9× → 1× là một bước liền, không nhảy', () => {
+    const a = zoomTarget(0.9, v).prop;
+    const b = zoomTarget(1, v).prop;
+    expect(b).toBeGreaterThan(a);
+    expect(b - a).toBeLessThan(0.03);
+  });
+});

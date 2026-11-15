@@ -344,7 +344,7 @@ docs/
 
 ### Phase 2 — Camera và overlay (2–3 tuần)
 
-**Trạng thái: xong.** Đạt cả ma trận cử chỉ trên iPhone 15 Pro Max và Android emulator Pixel_8a sau hai lần thử, kết quả ở [phase2-test.md](phase2-test.md). Emulator không thử được crop ảnh và thước cân bằng (đã đạt trên iPhone). Để lại: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (Phase 4); số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`); qua mốc 1× trên iPhone còn chớp vì đổi ống vật lý.
+**Trạng thái: xong.** Đạt cả ma trận cử chỉ trên iPhone 15 Pro Max và Android emulator Pixel_8a sau hai lần thử, kết quả ở [phase2-test.md](phase2-test.md). Emulator không thử được crop ảnh và thước cân bằng (đã đạt trên iPhone). Để lại: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (Phase 4); số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`); qua mốc 1× trên iPhone còn chớp vì đổi ống vật lý (Phase 4: đã chuyển sang camera ảo Triple / Dual Wide, máy tự chuyển ống nên hết chớp; máy chỉ có ống rời vẫn còn).
 
 **Góp ý lần 1 (iPhone):** flash "bật" không nháy → dùng đèn trong lúc chụp; thư viện formSheet vỡ bố cục → modal; bỏ chế độ chỉnh riêng: chạm vào pose là kéo ngay, vùng nhận cử chỉ cả màn hình; vùng xóa ăn theo ngón tay, có hiệu ứng mờ và thu nhỏ về thùng rác.
 
