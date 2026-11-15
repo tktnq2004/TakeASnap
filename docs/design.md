@@ -489,7 +489,11 @@ Tiêu đề "Cài đặt" + `CloseButton`. Ba `SettingsGroup`, mỗi nhóm có t
 | DUNG LƯỢNG | Bộ tách người, dung lượng `hint` + nút `dangerText` "Xóa bộ tách" · Bộ Thay nền, "Chưa tải" hoặc dung lượng |
 | GIỚI THIỆU | Phiên bản · Nguồn ảnh mẫu › · Giấy phép model › |
 
-Nhóm "Nhà phát triển" (Màn thử nghiệm) chỉ hiện trong bản dev.
+Nhóm "Nhà phát triển" (Màn thử nghiệm) chỉ hiện trong bản dev (`__DEV__`).
+
+- "Ảnh camera trước" đổi prop `mirror` của camera; "Rung phản hồi" tắt mọi lệnh rung trong `src/lib/haptics.ts`. Cả hai nhớ qua các lần mở app (`settingsStore`).
+- "Xóa bộ tách" xóa thư mục `Paths.document/models/pose`, có xác nhận; dung lượng đọc từ file thật trong máy. Bộ Thay nền ghi "Chưa tải" tới Phase 5.
+- "Nguồn ảnh mẫu", "Giấy phép model" mở hộp thoại ngắn; trang ghi nguồn đầy đủ làm ở Phase 6.
 
 ### 6.12 Xem ảnh vừa chụp (mở đè lên Camera)
 

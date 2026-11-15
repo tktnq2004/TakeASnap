@@ -30,6 +30,8 @@ type Props = {
   cameraRef: Ref<CameraView>;
   facing: CameraType;
   flash: FlashMode;
+  /** Camera trước: lưu ảnh soi gương như lúc xem (Cài đặt). */
+  mirror: boolean;
   /** Hệ số zoom hiển thị (0,5×…5×) trên UI thread; pinch và thanh kéo cùng ghi vào đây. */
   factor: SharedValue<number>;
   /** Tăng mỗi khi pinch/kéo kết thúc: luôn gửi giá trị cuối, kể cả khi đang trong khoảng chờ. */
@@ -52,6 +54,7 @@ export const CameraLayer = memo(function CameraLayer({
   cameraRef,
   facing,
   flash,
+  mirror,
   factor,
   settle,
   lenses,
@@ -126,6 +129,7 @@ export const CameraLayer = memo(function CameraLayer({
       style={StyleSheet.absoluteFill}
       facing={facing}
       flash={flash}
+      mirror={mirror}
       zoom={zoom.prop}
       ratio="4:3"
       selectedLens={lens}

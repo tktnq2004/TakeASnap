@@ -38,6 +38,8 @@ export default function RootLayout() {
             <Stack.Screen name="library" options={{ presentation: 'modal' }} />
             {/* Xem ảnh vừa chụp: mở đè lên Camera như Thư viện (design.md §6.12). */}
             <Stack.Screen name="review" options={{ presentation: 'modal' }} />
+            {/* Cài đặt: mở đè lên Camera bằng nút bánh răng (design.md §6.11). */}
+            <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
             {/* Chỉnh pose mở từ sheet nên phải là modal để hiện được trên sheet. */}
             <Stack.Screen name="editor/[poseId]" options={{ presentation: 'fullScreenModal' }} />
           </Stack>

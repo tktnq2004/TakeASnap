@@ -115,7 +115,7 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
         </View>
         <PressableScale
           accessibilityRole="button"
-          accessibilityLabel={t.camera.openSpikes}
+          accessibilityLabel={t.settings.title}
           hitSlop={4}
           onPress={onSettings}
           style={[styles.glass, styles.settings]}

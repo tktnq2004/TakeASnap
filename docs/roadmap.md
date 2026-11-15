@@ -414,8 +414,8 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 **Bước 2 — Khung chung**
 
-- [ ] Điều hướng thống nhất: Camera là màn gốc; Thư viện, Chỉnh pose, Thay nền, Cài đặt mở cùng một kiểu; một kiểu đầu màn (tiêu đề + Quay lại hoặc Đóng)
-- [ ] Màn **Cài đặt** thay nút bánh răng đang mở màn thử nghiệm (business-flow §7.4). Màn thử nghiệm (spike B) chỉ còn hiện trong bản dev, giữ tới hết Phase 5
+- [x] Điều hướng thống nhất: Camera là màn gốc; Thư viện, Chỉnh pose, Thay nền, Cài đặt mở cùng một kiểu; một kiểu đầu màn (tiêu đề + Quay lại hoặc Đóng)
+- [x] Màn **Cài đặt** thay nút bánh răng đang mở màn thử nghiệm (business-flow §7.4). Màn thử nghiệm (spike B) chỉ còn hiện trong bản dev, giữ tới hết Phase 5
 - [x] Một component chung cho trạng thái rỗng, lỗi, thiếu quyền (`EmptyState`)
 - [x] Token mới (màu xanh – trắng, camera `cam*`, Nunito, radius, kích thước, bóng lớp nổi) trong `src/ui/tokens.ts`; bỏ Urbanist và DM Mono
 - [x] Component theo design.md §4: `Button` 6 kiểu, `BackButton`, `CloseButton`, `OverlayHeader` / `FlowHeader`, `Chip`, `Segmented` (2 tông, ô tắt được), `Slider`, `Swatch`, `Toggle`, `EmptyState`

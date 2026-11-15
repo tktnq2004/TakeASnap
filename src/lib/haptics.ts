@@ -7,10 +7,13 @@
 import { requireOptionalNativeModule } from 'expo';
 import * as Haptics from 'expo-haptics';
 
+import { useSettings } from '@/features/settings/settingsStore';
+
 export const hapticsAvailable = requireOptionalNativeModule('ExpoHaptics') != null;
 
 function safe(run: () => Promise<void>) {
-  if (!hapticsAvailable) return;
+  // Tắt trong Cài đặt (business-flow §7.4) thì không rung.
+  if (!hapticsAvailable || !useSettings.getState().haptics) return;
   run().catch(() => {});
 }
 

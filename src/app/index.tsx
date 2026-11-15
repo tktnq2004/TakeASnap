@@ -58,6 +58,7 @@ import { ZoomControl, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
+import { useSettings } from '@/features/settings/settingsStore';
 import { haptic } from '@/lib/haptics';
 import { EmptyState, PressableScale } from '@/ui/components';
 import { ease, easeIO } from '@/ui/easing';
@@ -118,6 +119,7 @@ function CameraBody() {
   const poseId = useCameraStore((s) => s.poseId);
   const storedOpacity = useCameraStore((s) => s.opacity);
   const mirrored = useCameraStore((s) => s.mirrored);
+  const frontMirror = useSettings((s) => s.frontMirror);
   const store = useCameraStore.getState;
 
   const [root, setRoot] = useState({ width: 0, height: 0 });
@@ -411,6 +413,7 @@ function CameraBody() {
         cameraRef={cameraRef}
         facing={facing}
         flash={flash}
+        mirror={frontMirror}
         factor={factor}
         settle={settle}
         lenses={lenses}
@@ -543,7 +546,7 @@ function CameraBody() {
         top={barTop}
         open={toolsOpen}
         onToggleOpen={() => setToolsOpen((o) => !o)}
-        onSettings={() => router.push('/spike')}
+        onSettings={() => router.push('/settings')}
       />
     </View>
   );

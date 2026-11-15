@@ -84,6 +84,19 @@ export async function downloadPack(
   );
 }
 
+/** Dung lượng gói đang nằm trong máy (cả file đang tải dở), byte. Chưa tải thì 0. */
+export function packDiskBytes(pack: ModelPack): number {
+  const dir = packDir(pack);
+  if (!dir.exists) return 0;
+  return dir.list().reduce((sum, e) => sum + (e instanceof File ? (e.size ?? 0) : 0), 0);
+}
+
+/** Xóa cả gói khỏi máy (Cài đặt, business-flow §7.4). Lần dùng sau sẽ tải lại. */
+export function deletePack(pack: ModelPack): void {
+  const dir = packDir(pack);
+  if (dir.exists) dir.delete();
+}
+
 /** Đọc một file của gói thành base64 (để gửi vào WebView). */
 export function readPackFileBase64(pack: ModelPack, name: string): Promise<string> {
   return packFile(pack, name).base64();
