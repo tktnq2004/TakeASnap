@@ -107,7 +107,8 @@ export const size = {
   iconSmall: 18,
   shutter: 82,
   thumb: 54,
-  swatch: 36,
+  /** 7 màu sẵn + ô màu tự chọn vừa một hàng trong panel 330. */
+  swatch: 32,
   segmented: 54,
   switchW: 52,
   switchH: 32,
@@ -217,6 +218,16 @@ export const poseMenu = {
   band: 8,
   gap: 12,
   blur: 30,
+} as const;
+
+/** Bảng màu (design.md §6.10): bảng nổi 306 rộng, mũi tên chỉ vào ô màu tự chọn. */
+export const colorPopover = {
+  width: 306,
+  pad: 14,
+  svHeight: 112,
+  hueHeight: 12,
+  thumb: 24,
+  arrow: 8,
 } as const;
 
 /** Chỉnh pose (design.md §6.9): panel trắng cao cố định, preview bo góc. */

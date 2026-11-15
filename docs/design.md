@@ -264,7 +264,7 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `Segmented` | rãnh `surface` (trên `bg`) hoặc `surfaceAlt` (trong card), đệm 3–4, ô `full`; đang chọn: nền `accent` chữ trắng. Pose mẫu / Pose của bạn, Viền / Mặt, Thêm / Xóa, Lưới |
 | `Slider` | rãnh 10 `accentSoft`, phần đã chọn `accent`, núm 28 trắng viền 4 `accent`. Nhãn `label` trái, giá trị `num` trong nhãn tròn `accentSoft` bên phải |
 | `Switch` | 52×32, bật `accent`, tắt `#D5DDEA`, núm trắng 26 |
-| `Swatch` | 36 tròn; màu trắng có viền 2 px `#DCE6F7`; đang chọn: vòng 3 px trắng + 2 px `accent` |
+| `Swatch` | 32 tròn (7 màu sẵn + ô màu tự chọn vừa một hàng 330); màu trắng có viền 2 px `#DCE6F7`; đang chọn: vòng 2 px `accent` cách 2 px |
 | `PoseTile` | ảnh gốc đầy đủ màu. Thư viện: 110×146 bo 18. Lưới 4 cột: bo 16. Pose mẫu thêm viền trắng 1.5 px; pose của bạn vẽ style của chính bản đó (độ dày ≤ 2 px). Chạm = dùng để chụp; giữ = menu. Chế độ chọn: vòng 24 góc trên phải; đã chọn = viền 3 px `accent` + phủ `accent` 15% + đĩa `accent` có dấu tích |
 | `GroupCard` | nền `surface`, `xl`, đệm 16 (phải 0 để hàng ảnh tràn mép) |
 | `SettingsGroup` | nền `surface`, `lg`, hàng cao ≥ 56, hairline `line` thụt 16 |
@@ -474,8 +474,9 @@ Không có màn riêng: mở app lần đầu thì gọi thẳng hộp thoại x
 
 - Mở khi chạm ô dấu cộng hoặc ô màu tự chọn trong hàng màu. Bảng `ColorPopover` 306 rộng nổi trên panel, mũi tên chỉ đúng ô màu; nền sau phủ `ink` 12%.
 - Nội dung: ô chọn độ sáng / độ đậm 112 cao · thanh hue 12 · hàng "Mã màu" (ô nhập HEX) + nút `pipette` "Lấy màu từ ảnh" · "Gần đây" 6 ô 30.
-- Đổi màu hiện ngay trên preview phía trên (bảng không che hết pose). Chạm ra ngoài là xong, không có nút "Áp dụng".
-- Màu đã chọn thay ô dấu cộng bằng ô màu đó (vòng chọn), ô dấu cộng dời sang phải nếu còn chỗ.
+- Kéo trên ô sáng / đậm hoặc thanh màu thì preview đổi màu ngay (màu đi qua shared value, không re-render); thả tay mới ghi vào pose. Bảng không che hết pose. Chạm ra ngoài là xong, không có nút "Áp dụng". Màu khác lúc mở thì được đưa vào "Gần đây" (nhớ qua các lần mở app).
+- Ô cuối hàng màu: dấu cộng; màu đang dùng không thuộc 7 màu sẵn thì ô cuối hiện chính màu đó (đang chọn), chạm vào mở lại Bảng màu.
+- **Lấy màu từ ảnh:** chạm nút `pipette` thì bảng tạm ẩn, preview có viền `accent` 2 px; chạm vào ảnh để lấy màu đúng điểm ảnh gốc đó, rồi bảng mở lại với màu mới.
 
 ### 6.11 Cài đặt (mở đè lên Camera)
 

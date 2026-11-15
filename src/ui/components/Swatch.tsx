@@ -30,7 +30,7 @@ export function Swatch({ value, name, selected, onPress }: Props) {
 }
 
 const RING = 2;
-const GAP = 3;
+const GAP = 2;
 
 const styles = StyleSheet.create({
   ring: {

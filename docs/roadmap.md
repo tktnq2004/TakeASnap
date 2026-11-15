@@ -431,7 +431,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [x] Giữ nút độ hiện: cột thành thanh kéo tại chỗ, một ngón, thả tay trở lại
 - [x] Thư viện (thẻ nhóm, nút nổi, các bước đang xử lý), Pose của bạn (thanh nổi Chọn tất cả · Xóa n pose), Chọn người, Chỉnh pose (4 tab Viền · Phủ · Nền · Cọ, hoàn tác trong Cọ, không chú thích, ô Mặt tắt khi không có mặt) theo design.md §6.5–6.9
 - [x] Menu pose kiểu menu cạnh ô (design.md §6.7), thay cho hộp thoại hệ thống
-- [ ] Bảng màu nổi cạnh ô màu (design.md §6.10), thêm ô dấu cộng vào hàng màu
+- [x] Bảng màu nổi cạnh ô màu (design.md §6.10), thêm ô dấu cộng vào hàng màu
 - [ ] Chạm ảnh vừa chụp → màn **Xem ảnh vừa chụp** (business-flow §4.5)
 - [ ] Phản hồi khi chụp: hiệu ứng màn trập ngắn + rung, theo design.md
 - [x] Chưa có pose: nút pose là ô tròn dấu cộng, không gợi ý (business-flow §7.2)

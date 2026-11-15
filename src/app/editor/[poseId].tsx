@@ -12,7 +12,8 @@ import {
   Undo2,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { AlphaType, ColorType, useImage } from '@shopify/react-native-skia';
+import { Alert, type HostInstance, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,7 +29,9 @@ import { buildContours, type Contour, personAreaRatio } from '@/engine/contour';
 import { useCameraStore } from '@/features/camera/cameraStore';
 import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
 import { landmarksForContours } from '@/features/pose/mapping';
+import { ColorPopover } from '@/features/pose/ColorPopover';
 import { PoseCanvas } from '@/features/pose/PoseCanvas';
+import { loadRecentColors, saveRecentColor } from '@/features/pose/recentColors';
 import { RefineLayer } from '@/features/pose/RefineLayer';
 import { getPose, saveEdits } from '@/features/pose/repository';
 import {
@@ -51,6 +54,8 @@ import {
   Toggle,
   ToggleRow,
 } from '@/ui/components';
+import { rgbToHex } from '@/ui/colorMath';
+import type { SlotRect } from '@/ui/components/SwatchRow';
 import { t } from '@/ui/strings';
 import { color, editor, radius, refineBrush, size, space, type } from '@/ui/tokens';
 
@@ -88,6 +93,9 @@ const pxInt = (v: number) => {
   return `${Math.round(v)} px`;
 };
 
+type ColorTarget = 'outline' | 'face' | 'fill';
+type PaletteState = { target: ColorTarget; initial: string; anchor: SlotRect };
+
 /** Màn Chỉnh pose (business-flow §5.2, design.md §6.9). */
 export default function EditorScreen() {
   // from=camera: mở từ nút Chỉnh pose trên Camera; lưu thành bản mới thì Camera dùng luôn bản đó.
@@ -102,6 +110,8 @@ export default function EditorScreen() {
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
   const goBack = useGoBack();
+  const rootRef = useRef<HostInstance>(null);
+  const [rootSize, setRootSize] = useState({ width: 0, height: 0 });
 
   // Bật/tắt và màu đổi bằng chạm → state. Giá trị kéo slider → shared value (không re-render khi
   // kéo, roadmap §3.4).
@@ -124,6 +134,15 @@ export default function EditorScreen() {
   const brushSize = useSharedValue<number>(refineBrush.initial);
   const live = useSharedValue<number[]>([]);
   const historyRef = useRef<MaskHistory | null>(null);
+
+  // Bảng màu (design.md §6.10): đang mở cho viền, mặt hay phủ. Trong lúc mở, preview đọc màu từ
+  // `liveColor` (đổi theo ngón tay trên UI thread); thả tay mới ghi vào state.
+  const [palette, setPalette] = useState<PaletteState | null>(null);
+  /** Đang lấy màu từ ảnh: bảng tạm ẩn, chạm vào preview để lấy màu, rồi bảng mở lại. */
+  const [picking, setPicking] = useState<PaletteState | null>(null);
+  const [recent, setRecent] = useState<string[]>(loadRecentColors);
+  const liveColor = useSharedValue('#FFFFFF');
+  const skImage = useImage(pose?.source);
 
   // Viền mới đã vẽ xong thì mới xóa nét đang vẽ, để không chớp giữa hai lần vẽ.
   useEffect(() => {
@@ -175,6 +194,58 @@ export default function EditorScreen() {
     const w = pose.width * k;
     const h = pose.height * k;
     return { x: (area.w - w) / 2, y: (area.h - h) / 2, w, h };
+  };
+
+  const colorOf = (target: ColorTarget) =>
+    target === 'outline' ? outlineColor : target === 'face' ? faceColor : fillColor;
+  const setColorOf = (target: ColorTarget, hex: string) => {
+    if (target === 'outline') setOutlineColor(hex);
+    else if (target === 'face') setFaceColor(hex);
+    else setFillColor(hex);
+  };
+
+  const openPalette = (target: ColorTarget, r: SlotRect) =>
+    rootRef.current?.measureInWindow((ox, oy) => {
+      const initial = colorOf(target);
+      liveColor.set(initial);
+      setPalette({ target, initial, anchor: { ...r, x: r.x - ox, y: r.y - oy } });
+    });
+
+  const closePalette = () => {
+    if (palette) {
+      const now = colorOf(palette.target);
+      if (now.toUpperCase() !== palette.initial.toUpperCase()) setRecent(saveRecentColor(now));
+    }
+    setPalette(null);
+  };
+
+  const startPipette = () => {
+    setPicking(palette);
+    setPalette(null);
+  };
+
+  // Lấy màu đúng điểm ảnh gốc dưới ngón tay.
+  const pickAt = (x: number, y: number) => {
+    const back = picking;
+    setPicking(null);
+    if (!back) return;
+    const r = imageRect();
+    if (skImage && r.w > 0 && x >= r.x && y >= r.y && x <= r.x + r.w && y <= r.y + r.h) {
+      const px = Math.min(skImage.width() - 1, Math.floor(((x - r.x) / r.w) * skImage.width()));
+      const py = Math.min(skImage.height() - 1, Math.floor(((y - r.y) / r.h) * skImage.height()));
+      const rgba = skImage.readPixels(px, py, {
+        width: 1,
+        height: 1,
+        colorType: ColorType.RGBA_8888,
+        alphaType: AlphaType.Unpremul,
+      });
+      if (rgba && rgba.length >= 3) {
+        const hex = rgbToHex(rgba[0]!, rgba[1]!, rgba[2]!);
+        setColorOf(back.target, hex);
+        liveColor.set(hex);
+      }
+    }
+    setPalette(back);
   };
 
   const showHistory = (h: MaskHistory) => {
@@ -260,15 +331,22 @@ export default function EditorScreen() {
   // Ảnh không có mặt: ô "Mặt" tắt thay cho dòng ghi chú (góp ý Phase 4).
   const hasFace = !!lm?.face;
   const editingFace = hasFace && lineTarget === 'face';
+  const colorTarget = palette?.target ?? picking?.target ?? null;
   const targets = lineTargets.map((o) => (o.key === 'face' ? { ...o, disabled: !hasFace } : o));
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top }]}>
+    <View
+      ref={rootRef}
+      style={[styles.root, { paddingTop: insets.top }]}
+      onLayout={(e) =>
+        setRootSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })
+      }
+    >
       <StatusBar style="dark" />
       <FlowHeader title={t.editor.title} onBack={goBack} />
 
       <View
-        style={styles.preview}
+        style={[styles.preview, picking && styles.previewPicking]}
         onLayout={(e) => setArea({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
       >
         {pose && area.w > 0 && (
@@ -282,21 +360,29 @@ export default function EditorScreen() {
             width={area.w}
             height={area.h}
             outlineEnabled={outlineEnabled}
-            outlineColor={outlineColor}
+            outlineColor={colorTarget === 'outline' ? liveColor : outlineColor}
             outlineWidth={outlineWidth}
             fillEnabled={fillEnabled}
-            fillColor={fillColor}
+            fillColor={colorTarget === 'fill' ? liveColor : fillColor}
             fillOpacity={fillOpacity}
             subjectOpacity={subjectOpacity}
             backgroundOpacity={backgroundOpacity}
             faceEnabled={faceEnabled}
-            faceColor={faceColor}
+            faceColor={colorTarget === 'face' ? liveColor : faceColor}
             faceWidth={faceWidth}
             checker
           />
         )}
         {pose && area.w > 0 && tab === 'refine' && (
           <RefineLayer mode={brushMode} size={brushSize} live={live} onStroke={onStroke} />
+        )}
+        {picking && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t.editor.pipette}
+            style={StyleSheet.absoluteFill}
+            onPress={(e) => pickAt(e.nativeEvent.locationX, e.nativeEvent.locationY)}
+          />
         )}
         {pose === null && (
           <Text style={[type.body, styles.muted, styles.center]}>{t.editor.notFound}</Text>
@@ -338,6 +424,7 @@ export default function EditorScreen() {
               label={t.editor.color}
               value={editingFace ? faceColor : outlineColor}
               onChange={editingFace ? setFaceColor : setOutlineColor}
+              onOpenPalette={(r) => openPalette(editingFace ? 'face' : 'outline', r)}
             />
             <Slider
               key={editingFace ? 'face' : 'outline'}
@@ -353,7 +440,12 @@ export default function EditorScreen() {
         {tab === 'fill' && (
           <>
             <ToggleRow label={t.editor.showFill} value={fillEnabled} onChange={setFillEnabled} />
-            <SwatchRow label={t.editor.color} value={fillColor} onChange={setFillColor} />
+            <SwatchRow
+              label={t.editor.color}
+              value={fillColor}
+              onChange={setFillColor}
+              onOpenPalette={(r) => openPalette('fill', r)}
+            />
             <Slider
               label={t.editor.strength}
               value={fillOpacity}
@@ -442,6 +534,19 @@ export default function EditorScreen() {
           />
         </View>
       </View>
+
+      {palette && (
+        <ColorPopover
+          anchor={palette.anchor}
+          area={rootSize}
+          initial={colorOf(palette.target)}
+          live={liveColor}
+          recent={recent}
+          onCommit={(hex) => setColorOf(palette.target, hex)}
+          onPipette={startPipette}
+          onClose={closePalette}
+        />
+      )}
     </View>
   );
 }
@@ -451,6 +556,7 @@ const styles = StyleSheet.create({
   muted: { color: color.muted },
   center: { textAlign: 'center', marginTop: space[8] },
   // Preview co theo chiều cao còn lại; panel cao cố định để đổi tab không làm preview nhảy.
+  previewPicking: { borderWidth: 2, borderColor: color.accent },
   preview: {
     flex: 1,
     marginHorizontal: size.edge,
