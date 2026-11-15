@@ -6,7 +6,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { space } from '@/ui/tokens';
 
-import { type DragRange, PoseTile } from './PoseTile';
+import { type DragRange, PoseTile, type TileRect } from './PoseTile';
 import { type GridLayout, tileIndexAt } from './selection';
 import type { Pose } from './types';
 
@@ -16,7 +16,7 @@ type Props = {
   selecting: boolean;
   selected: ReadonlySet<string>;
   onPress: (p: Pose) => void;
-  onLongPress: (p: Pose) => void;
+  onLongPress: (p: Pose, rect: TileRect) => void;
   /** Nhấc ngón tay sau khi vuốt chọn: dải ô [a, b] và chọn hay bỏ chọn. */
   onRange: (a: number, b: number, select: boolean) => void;
 };
@@ -83,7 +83,7 @@ export function MineGrid({
             width={layout.tileW}
             height={layout.tileH}
             onPress={() => onPress(p)}
-            onLongPress={() => onLongPress(p)}
+            onLongPress={(r) => onLongPress(p, r)}
             selecting={selecting}
             selected={selected.has(p.id)}
             index={i}

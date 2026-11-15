@@ -87,7 +87,9 @@ describe('pose ↔ dòng SQLite', () => {
     );
     expect(back.landmarks?.face).toEqual([0.5, 0.2, 0.52, 0.2]);
     expect(back.rawLandmarks).toEqual(raw);
-    expect(poseToPhotoRow({ ...back, source: pose.source }).landmarks_json).toBe(JSON.stringify(raw));
+    expect(poseToPhotoRow({ ...back, source: pose.source }).landmarks_json).toBe(
+      JSON.stringify(raw),
+    );
   });
 
   it('màu và độ dày nét mặt lưu ở cột lines_color / lines_width', () => {

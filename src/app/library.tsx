@@ -3,10 +3,11 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { Check, ImagePlus } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  type HostInstance,
   Image,
   Platform,
   ScrollView,
@@ -31,7 +32,8 @@ import {
 } from '@/features/pose/createFromImage';
 import { MineGrid } from '@/features/pose/MineGrid';
 import { PersonPicker } from '@/features/pose/PersonPicker';
-import { PoseTile } from '@/features/pose/PoseTile';
+import { PoseMenu } from '@/features/pose/PoseMenu';
+import { PoseTile, type TileRect } from '@/features/pose/PoseTile';
 import { deleteVariant, listUserPoses } from '@/features/pose/repository';
 import { sampleGroups, sampleLibrary } from '@/features/pose/samples';
 import { applyRange } from '@/features/pose/selection';
@@ -58,7 +60,10 @@ export default function LibraryScreen() {
   const db = useSQLiteContext();
   const insets = useSafeAreaInsets();
   const { width: screenW } = useWindowDimensions();
+  const rootRef = useRef<HostInstance>(null);
   const [rootW, setRootW] = useState(0);
+  const [rootH, setRootH] = useState(0);
+  const [menu, setMenu] = useState<{ pose: Pose; mine: boolean; from: TileRect } | null>(null);
   const [tab, setTab] = useState<'samples' | 'mine'>('samples');
   const [mine, setMine] = useState<Pose[]>([]);
   const [progress, setProgress] = useState<CreateProgress | null>(null);
@@ -150,22 +155,13 @@ export default function LibraryScreen() {
 
   const openEditor = (p: Pose) => router.push(`/editor/${p.id}`);
 
-  // Giữ lâu: pose mẫu chỉ sửa được (thành bản sao, BR-09); pose của bạn có thêm Xóa.
-  const showActions = (p: Pose, mineTile: boolean) =>
-    Alert.alert(t.library.title, undefined, [
-      { text: t.library.use, onPress: () => pickForCamera(p) },
-      { text: mineTile ? t.library.edit : t.library.duplicate, onPress: () => openEditor(p) },
-      ...(mineTile
-        ? [
-            {
-              text: t.library.remove,
-              style: 'destructive' as const,
-              onPress: () => confirmDelete(p),
-            },
-          ]
-        : []),
-      { text: t.common.cancel, style: 'cancel' as const },
-    ]);
+  // Giữ lâu: menu pose cạnh ô (design.md §6.7). Pose mẫu chỉ sửa được thành bản sao (BR-09);
+  // pose của bạn có thêm Xóa. Vị trí ô đo trong cửa sổ, đổi sang khung của màn này (modal iOS
+  // không bắt đầu ở mép trên cửa sổ).
+  const showActions = (p: Pose, mine: boolean, r: TileRect) =>
+    rootRef.current?.measureInWindow((ox, oy) =>
+      setMenu({ pose: p, mine, from: { ...r, x: r.x - ox, y: r.y - oy } }),
+    );
 
   const addFromDevice = async () => {
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
@@ -249,7 +245,14 @@ export default function LibraryScreen() {
   const canSelect = tab === 'mine' && mine.length > 0 && !work;
 
   return (
-    <View style={styles.root} onLayout={(e) => setRootW(e.nativeEvent.layout.width)}>
+    <View
+      ref={rootRef}
+      style={styles.root}
+      onLayout={(e) => {
+        setRootW(e.nativeEvent.layout.width);
+        setRootH(e.nativeEvent.layout.height);
+      }}
+    >
       {/* iOS: thẻ modal nằm trên Camera tối, thanh trạng thái vẫn chữ sáng. */}
       <StatusBar style={Platform.OS === 'ios' ? 'light' : 'dark'} />
       <View style={{ paddingTop: top }}>
@@ -314,7 +317,7 @@ export default function LibraryScreen() {
                         corner={library.sampleRadius}
                         plain
                         onPress={() => pickForCamera(p)}
-                        onLongPress={() => showActions(p, false)}
+                        onLongPress={(r) => showActions(p, false, r)}
                       />
                     ))}
                 </ScrollView>
@@ -337,7 +340,7 @@ export default function LibraryScreen() {
                 selecting={selecting}
                 selected={selected}
                 onPress={selecting ? toggle : pickForCamera}
-                onLongPress={(p) => showActions(p, true)}
+                onLongPress={(p, r) => showActions(p, true, r)}
                 onRange={selectRange}
               />
             ))}
@@ -380,6 +383,20 @@ export default function LibraryScreen() {
             setPicking(null);
             setWork(null);
           }}
+        />
+      )}
+
+      {menu && (
+        <PoseMenu
+          pose={menu.pose}
+          mine={menu.mine}
+          from={menu.from}
+          area={{ width: rootW, height: rootH }}
+          insets={{ top: Platform.OS === 'ios' ? space[2] : insets.top, bottom: insets.bottom }}
+          onUse={() => pickForCamera(menu.pose)}
+          onEdit={() => openEditor(menu.pose)}
+          onDelete={() => confirmDelete(menu.pose)}
+          onClose={() => setMenu(null)}
         />
       )}
     </View>

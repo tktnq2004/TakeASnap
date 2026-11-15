@@ -27,6 +27,9 @@ export const color = {
   swatchEdge: '#DCE6F7',
   /** Bóng của lớp nổi (nút nổi, thanh nổi, menu). */
   shadow: '#10213F',
+  /** Nền sau menu pose: trên lớp làm mờ (iOS) hoặc thay cho lớp làm mờ (Android). */
+  menuScrim: 'rgba(238,243,255,0.62)',
+  menuScrimSolid: 'rgba(238,243,255,0.9)',
 
   // Camera (nền tối).
   camBg: '#05070D',
@@ -202,6 +205,18 @@ export const library = {
   mineGap: 6,
   /** Chừa đáy danh sách để ô cuối không nằm dưới nút nổi. */
   listBottom: 110,
+} as const;
+
+/** Menu pose (design.md §6.7): ô nổi lên phóng to, menu ngay dưới ô. */
+export const poseMenu = {
+  liftW: 150,
+  liftH: 200,
+  liftRadius: 22,
+  width: 250,
+  row: 52,
+  band: 8,
+  gap: 12,
+  blur: 30,
 } as const;
 
 /** Chỉnh pose (design.md §6.9): panel trắng cao cố định, preview bo góc. */

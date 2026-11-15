@@ -21,5 +21,7 @@ export const haptic = {
   /** Chọn / bỏ chọn một người trên màn Chọn người. */
   select: () => safe(() => Haptics.selectionAsync()),
   enterTrash: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)),
+  /** Giữ ô pose mở menu. */
+  menu: () => safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)),
   saved: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
 };

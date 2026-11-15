@@ -420,7 +420,8 @@ Không có màn riêng: mở app lần đầu thì gọi thẳng hộp thoại x
 - Pose của bạn: **Dùng để chụp** (chữ `accent`, icon `camera`) · Sửa pose (`pencil`) · dải 8 px · **Xóa pose** (chữ `danger`, `trash-2`).
 - Pose mẫu: Dùng để chụp · Tạo bản sao để sửa. Không có Xóa.
 - Dòng `hint` "Chạm ra ngoài để hủy" ở đáy. Ô gần đáy màn thì menu mở lên phía trên ô.
-- Làm bằng `Modal` + `expo-blur` (`BlurView`, có trong Expo Go). Không dùng menu ngữ cảnh native.
+- Lớp phủ ngay trong màn Thư viện (không mở màn mới). iOS làm mờ bằng `BlurView` của `expo-blur` (có trong Expo Go) cộng lớp `menuScrim`; Android dùng lớp `menuScrimSolid` sáng 90%, vì làm mờ thật trên Android phải bọc cả nội dung trong `BlurTargetView`. Không dùng menu ngữ cảnh native.
+- Ô nổi phóng từ đúng chỗ ô trong lưới (140 ms), menu hiện mờ dần ngay dưới; chọn một mục hoặc chạm ra ngoài thì thu về rồi mới làm việc đó. Rung `impactMedium` khi mở.
 
 ### 6.8 Chọn người và Đang xử lý (trong luồng Thêm ảnh từ máy)
 

@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react-native';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { useRef } from 'react';
+import { type HostInstance, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
 import { t } from '@/ui/strings';
@@ -8,6 +9,9 @@ import { color, radius, tileSelect } from '@/ui/tokens';
 import { PoseCanvas } from './PoseCanvas';
 import { inRange } from './selection';
 import type { Pose } from './types';
+
+/** Vị trí ô trong cửa sổ, để menu pose nổi lên đúng chỗ ô (design.md §6.7). */
+export type TileRect = { x: number; y: number; width: number; height: number };
 
 /** Dải đang vuốt chọn (selection.ts). start = -1: không vuốt. */
 export type DragRange = { start: number; end: number; select: boolean };
@@ -20,7 +24,8 @@ type Props = {
   corner?: number;
   plain?: boolean;
   onPress: () => void;
-  onLongPress?: () => void;
+  /** Giữ lâu: nhận vị trí ô trong cửa sổ. */
+  onLongPress?: (rect: TileRect) => void;
   /** Đang ở chế độ chọn nhiều: hiện dấu chọn ở góc. */
   selecting?: boolean;
   selected?: boolean;
@@ -49,14 +54,18 @@ export function PoseTile({
   drag,
 }: Props) {
   const s = pose.style;
+  const ref = useRef<HostInstance>(null);
+  const longPress = () =>
+    ref.current?.measureInWindow((x, y, w, h) => onLongPress?.({ x, y, width: w, height: h }));
   return (
     <Pressable
+      ref={ref}
       accessibilityRole={selecting ? 'checkbox' : 'button'}
       accessibilityLabel={selecting ? t.library.selectTile : t.library.use}
       accessibilityHint={selecting ? undefined : t.library.longPressHint}
       accessibilityState={selecting ? { checked: !!selected } : undefined}
       onPress={onPress}
-      onLongPress={selecting ? undefined : onLongPress}
+      onLongPress={selecting || !onLongPress ? undefined : longPress}
       style={[styles.tile, { width, height, borderRadius: corner }]}
     >
       <PoseCanvas
