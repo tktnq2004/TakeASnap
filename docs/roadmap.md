@@ -421,7 +421,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [x] Component theo design.md §4: `Button` 6 kiểu, `BackButton`, `CloseButton`, `OverlayHeader` / `FlowHeader`, `Chip`, `Segmented` (2 tông, ô tắt được), `Slider`, `Swatch`, `Toggle`, `EmptyState`
 - [ ] Sửa các chú thích trong code còn trỏ số mục design.md cũ (làm dần khi sửa từng màn)
 - [ ] Chuyển màn và motion thống nhất theo design.md §3.5
-- [ ] Icon app, splash (chuyển từ Phase 6 lên đây vì là một phần của giao diện chung)
+- [x] Icon app, màn mở app (design.md §6.14): chữ S trong khung ngắm, bóng chữ S là dáng mẫu; nền đen, chữ trắng, bóng xanh nhạt
 
 **Bước 3 — Màn Camera**
 

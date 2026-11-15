@@ -529,6 +529,17 @@ Kết quả: ảnh ghép chiếm hết vùng trên; giữ ngón tay lên ảnh �
 
 ---
 
+### 6.14 Logo, icon app và màn mở app
+
+Chốt qua `logo-design-skill` (canvas thiết kế, trang "Icon chốt + màn mở app").
+
+- **Dấu:** chữ S tròn nét (người đang tạo dáng, chấm là đầu) đứng trong hai góc khung ngắm; phía sau là **bóng chữ S** lệch lên trái — dáng mẫu mà người thật đang khớp vào. Nói đúng việc app làm: camera + chụp theo dáng mẫu, và là chữ S của SnapShot.
+- **Màu:** nền `camBg` `#05070D`, chữ S và khung trắng, bóng xanh nhạt `#60A5FA` (`camAccent`). Icon và màn mở app cùng một kiểu nên mở app vào Camera tối không bị chớp.
+- **Bản gốc:** `assets/brand/` (`mark-on-dark.svg`, `mark-on-light.svg` — chữ S đen cho nền sáng, `icon.svg`). Dấu dựng trên lưới 256, nét đều, góc tay và chân không lệch góc chuẩn.
+- **File trong app:** `assets/icon.png` (1024, kín nền, không bo góc); Android `android-icon-foreground.png` (dấu chiếm 62% để nằm trong vùng an toàn), nền là màu `#05070D`, `android-icon-monochrome.png` (một màu, bỏ bóng để không dính khối); `splash-icon.png` (dấu + chữ SnapShot Nunito ExtraBold, nền trong suốt); `favicon.png`.
+- **Màn mở app:** plugin `expo-splash-screen` trong `app.json`, ảnh rộng 220, nền `#05070D`. Expo Go không hiện màn này (hiện icon thay); xem đúng khi build bản preview / production.
+- Chữ S và bóng là nét tròn (stroke); khi cần bản cắt in, chuyển nét thành hình.
+
 ## 7. Accessibility
 
 - Vùng chạm nhỏ nhất 44×44, kể cả ô màu (36 + hitSlop 4) và nút zoom (38 + hitSlop 3).
