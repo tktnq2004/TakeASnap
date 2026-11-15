@@ -1,5 +1,4 @@
 import {
-  ChevronDown,
   ChevronUp,
   Contrast,
   Eye,
@@ -18,9 +17,11 @@ import {
   useTapGesture,
 } from 'react-native-gesture-handler';
 import Animated, {
+  interpolate,
   type SharedValue,
   useAnimatedStyle,
   useDerivedValue,
+  useReducedMotion,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
@@ -90,7 +91,12 @@ export function ToolRail(p: Props) {
   const full = p.pose != null && !collapsed;
   const items = full ? 5 : 1;
   const railH = railHeight(items, p.pose != null);
-  const trackH = sliderTrack(railH);
+  const trackH = sliderTrack(railHeight(5, true));
+  const reduceMotion = useReducedMotion();
+  /** Chiều cao cột chạy hiệu ứng: thu gọn thì cuộn lên, mở thì xổ xuống. */
+  const height = useSharedValue(railH);
+  /** 1 = cột mở hết, 0 = thu gọn. Mũi tên và các nút phụ chạy theo. */
+  const expanded = useSharedValue(full ? 1 : 0);
 
   const left = useSharedValue(railLeft(side, frame, R.width, R.inset));
   const top = useSharedValue(railTopFromY(railY, frame, railH, R.inset));
@@ -103,16 +109,24 @@ export function ToolRail(p: Props) {
   // Khung đổi cỡ (đổi tỉ lệ) hoặc số nút đổi: đặt lại cột theo vị trí đã lưu, kẹp trong khung.
   // Vị trí vừa lưu do chính lần kéo này: cột đang trượt về mép, không đặt lại kẻo mất chuyển động.
   const fromDrag = useRef(false);
+  const mounted = useRef(false);
   const { x: fx, y: fy, width: fw, height: fh } = frame;
   useEffect(() => {
+    const anim = mounted.current && !reduceMotion;
+    mounted.current = true;
+    const cfg = { duration: motion.panel, easing: easeIO };
+    height.set(anim ? withTiming(railH, cfg) : railH);
+    expanded.set(anim ? withTiming(full ? 1 : 0, cfg) : full ? 1 : 0);
     if (fromDrag.current) {
       fromDrag.current = false;
       return;
     }
     const f = { x: fx, y: fy, width: fw, height: fh };
     left.set(railLeft(side, f, R.width, R.inset));
-    top.set(railTopFromY(railY, f, railH, R.inset));
-  }, [side, railY, fx, fy, fw, fh, railH, left, top]);
+    // Mép trên đứng yên; chỉ dịch khi cột mở ra mà chạm mép dưới khung (kẹp), dịch có hiệu ứng.
+    const to = railTopFromY(railY, f, railH, R.inset);
+    top.set(anim ? withTiming(to, cfg) : to);
+  }, [side, railY, fx, fy, fw, fh, railH, full, left, top, height, expanded, reduceMotion]);
 
   const saveRail = (s: RailSide, y: number) => {
     haptic.snap();
@@ -147,7 +161,7 @@ export function ToolRail(p: Props) {
           easing: easeIO,
         }),
       );
-      scheduleOnRN(saveRail, s, railYFromTop(top.get(), frame, railH));
+      scheduleOnRN(saveRail, s, railYFromTop(top.get(), frame));
     },
   });
 
@@ -183,6 +197,7 @@ export function ToolRail(p: Props) {
   const railStyle = useAnimatedStyle(() => ({
     left: left.get(),
     top: top.get(),
+    height: height.get(),
     opacity: withTiming(dim.get() ? R.dimOpacity : 1, { duration: motion.in, easing: ease }),
   }));
   const bodyStyle = useAnimatedStyle(() => ({
@@ -195,15 +210,19 @@ export function ToolRail(p: Props) {
   const thumbStyle = useAnimatedStyle(() => ({
     top: R.sliderTop + (1 - opacity.get()) * trackH - R.thumb / 2,
   }));
+  const extrasStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(expanded.get(), [0, 0.6, 1], [0, 0.2, 1]),
+    transform: [{ translateY: interpolate(expanded.get(), [0, 1], [-12, 0]) }],
+  }));
+  const chevronStyle = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(expanded.get(), [0, 1], [180, 0])}deg` }],
+  }));
   const pctText = useDerivedValue(() => formatPercent(opacity.get()));
   const pct = Math.round(savedOpacity * 100);
 
   return (
     <GestureDetector gesture={move}>
-      <Animated.View
-        style={[styles.rail, { height: railH }, railStyle]}
-        accessibilityLabel={t.camera.railGrip}
-      >
+      <Animated.View style={[styles.rail, railStyle]} accessibilityLabel={t.camera.railGrip}>
         {/* Nút thu gọn / mở cột (thay cho vạch nắm). Kéo ở đâu trên cột cũng dời được cột. */}
         {p.pose && (
           <Animated.View style={bodyStyle}>
@@ -214,19 +233,21 @@ export function ToolRail(p: Props) {
               onPress={useCameraStore.getState().toggleRailCollapsed}
               style={styles.toggle}
             >
-              {collapsed ? (
-                <ChevronDown size={size.iconSmall} strokeWidth={2.5} color={color.camInk} />
-              ) : (
+              <Animated.View style={chevronStyle}>
                 <ChevronUp size={size.iconSmall} strokeWidth={2.5} color={color.camInk} />
-              )}
+              </Animated.View>
             </PressableScale>
           </Animated.View>
         )}
 
         <Animated.View style={[styles.body, bodyStyle]}>
           <PoseButton pose={p.pose} onPress={p.onOpenLibrary} />
-          {full && (
-            <>
+          {/* Các nút phụ luôn gắn sẵn để chạy hiệu ứng; thu gọn thì bị cột cắt và không nhận chạm. */}
+          {p.pose && (
+            <Animated.View
+              style={[styles.extras, extrasStyle]}
+              pointerEvents={full ? 'auto' : 'none'}
+            >
               <RailButton icon={Pencil} label={t.camera.editPose} onPress={p.onEdit} />
               <GestureDetector gesture={opacityGesture}>
                 <View
@@ -251,7 +272,7 @@ export function ToolRail(p: Props) {
                 onPress={() => p.onHide(!p.hidden)}
                 active={p.hidden}
               />
-            </>
+            </Animated.View>
           )}
         </Animated.View>
 
@@ -342,6 +363,7 @@ function PoseButton({ pose, onPress }: { pose: Pose | null; onPress: () => void 
 const styles = StyleSheet.create({
   rail: {
     position: 'absolute',
+    overflow: 'hidden',
     width: R.width,
     padding: R.pad,
     borderRadius: radius.full,
@@ -355,6 +377,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   body: { gap: R.gap },
+  extras: { gap: R.gap },
   button: {
     width: R.item,
     height: R.item,

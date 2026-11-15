@@ -41,7 +41,7 @@ type State = {
   opacity: number;
   mirrored: boolean;
   railSide: RailSide;
-  /** Tâm cột theo chiều cao khung ngắm, 0 = mép trên, 1 = mép dưới. */
+  /** Mép trên của cột theo chiều cao khung ngắm, 0 = mép trên khung, 1 = mép dưới. */
   railY: number;
   /** Cột công cụ thu gọn: chỉ còn nút chọn pose. */
   railCollapsed: boolean;
@@ -89,7 +89,7 @@ export const useCameraStore = create<State & Actions>()(
       opacity: 1,
       mirrored: false,
       railSide: 'right',
-      railY: 0.5,
+      railY: 0.25,
       railCollapsed: false,
       cycleFlash: () => set((s) => ({ flash: next(['off', 'auto', 'on'] as const, s.flash) })),
       cycleGrid: () => set((s) => ({ grid: next(['off', '3', '4'] as const, s.grid) })),
@@ -117,7 +117,7 @@ export const useCameraStore = create<State & Actions>()(
     }),
     {
       name: 'camera',
-      version: 2,
+      version: 3,
       storage: syncStorage,
       // v1 lưu độ hiện là mức 0/1/2; v2 lưu giá trị 0..1 và vị trí cột công cụ.
       migrate: (old, version) => {
@@ -128,8 +128,12 @@ export const useCameraStore = create<State & Actions>()(
             ...rest,
             opacity: OVERLAY_OPACITY[opacityLevel ?? 0],
             railSide: 'right',
-            railY: 0.5,
+            railY: 0.25,
           } as State;
+        }
+        // v2 lưu tâm cột; v3 lưu mép trên (cột cao ~ nửa khung).
+        if (version < 3 && typeof o.railY === 'number') {
+          return { ...o, railY: Math.max(0, o.railY - 0.25) } as State;
         }
         return o as State;
       },

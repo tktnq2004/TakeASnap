@@ -52,7 +52,11 @@ describe('cột công cụ', () => {
 
   it('lưu rồi đọc lại vị trí ra đúng chỗ', () => {
     const top = railTopFromY(0.3, frame, 264, 6);
-    expect(railYFromTop(top, frame, 264)).toBeCloseTo(0.3);
+    expect(railYFromTop(top, frame)).toBeCloseTo(0.3);
+  });
+
+  it('thu gọn / mở cột thì mép trên đứng yên', () => {
+    expect(railTopFromY(0.3, frame, 276, 6)).toBe(railTopFromY(0.3, frame, 84, 6));
   });
 });
 

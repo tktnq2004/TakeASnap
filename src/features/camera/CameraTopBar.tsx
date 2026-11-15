@@ -8,12 +8,21 @@ import {
   Zap,
   ZapOff,
 } from 'lucide-react-native';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  interpolate,
+  type SharedValue,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
 import { PressableScale } from '@/ui/components';
+import { easeIO } from '@/ui/easing';
 import { t } from '@/ui/strings';
-import { color, radius, size, space, type } from '@/ui/tokens';
+import { color, motion, radius, size, space, type } from '@/ui/tokens';
 
 import { type FlashMode, type GridMode, type TimerSec, useCameraStore } from './cameraStore';
 
@@ -28,16 +37,30 @@ type Props = {
 export const TOP_BAR_H = size.iconButton + 8;
 
 /**
- * Thanh trên của Camera (design.md §6.1): cụm kính Thước cân bằng · Tỉ lệ · Mở thêm bên trái, Cài
- * đặt bên phải. Mở thêm: bảng Đèn flash, Hẹn giờ, Lưới (góp ý Phase 4). Flash hoặc hẹn giờ đang
- * bật thì nút Mở thêm có chấm báo, để biết mà không phải mở bảng.
+ * Thanh trên của Camera (design.md §6.1, góp ý Phase 4): cụm kính Đèn flash · Hẹn giờ · Lưới ·
+ * Thước cân bằng · Tỉ lệ · Mở thêm bên trái, Cài đặt bên phải. Chạm nút trên thanh để đổi nhanh;
+ * Mở thêm thả xuống bảng chọn thẳng giá trị cho Đèn flash, Hẹn giờ, Lưới.
  */
 export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
   const flash = useCameraStore((s) => s.flash);
   const timer = useCameraStore((s) => s.timer);
+  const grid = useCameraStore((s) => s.grid);
   const level = useCameraStore((s) => s.level);
   const aspect = useCameraStore((s) => s.aspect);
   const store = useCameraStore.getState;
+
+  // 0 = bảng thu, 1 = bảng thả xuống hết. Mũi tên Mở thêm xoay theo.
+  const reduceMotion = useReducedMotion();
+  const progress = useSharedValue(open ? 1 : 0);
+  useEffect(() => {
+    const to = open ? 1 : 0;
+    progress.set(reduceMotion ? to : withTiming(to, { duration: motion.panel, easing: easeIO }));
+  }, [open, progress, reduceMotion]);
+
+  const flashLabel =
+    flash === 'off' ? t.camera.flashOff : flash === 'on' ? t.camera.flashOn : t.camera.flashAuto;
+  const gridLabel =
+    grid === 'off' ? t.camera.gridOff : grid === '3' ? t.camera.grid3 : t.camera.grid4;
 
   return (
     <>
@@ -52,6 +75,27 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
       <View style={[styles.bar, { top }]} pointerEvents="box-none">
         <View style={styles.glass}>
           <BarButton
+            icon={flash === 'off' ? ZapOff : Zap}
+            label={flashLabel}
+            onPress={store().cycleFlash}
+            active={flash !== 'off'}
+            badge={flash === 'auto' ? 'A' : undefined}
+          />
+          <BarButton
+            icon={Timer}
+            label={timer === 0 ? t.camera.timerOff : t.camera.timerSec(timer)}
+            onPress={store().cycleTimer}
+            active={timer > 0}
+            badge={timer > 0 ? String(timer) : undefined}
+          />
+          <BarButton
+            icon={Grid3x3}
+            label={gridLabel}
+            onPress={store().cycleGrid}
+            active={grid !== 'off'}
+            badge={grid === 'off' ? undefined : grid}
+          />
+          <BarButton
             icon={Ruler}
             label={level ? t.camera.levelOn : t.camera.levelOff}
             onPress={store().toggleLevel}
@@ -61,14 +105,13 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
             <Text style={[type.label, styles.ink]}>{aspect}</Text>
           </BarButton>
           <BarButton
-            icon={ChevronDown}
             label={open ? t.camera.lessTools : t.camera.moreTools}
             onPress={onToggleOpen}
             active={open}
-            flip={open}
             soft
-            dot={!open && (flash !== 'off' || timer > 0)}
-          />
+          >
+            <Chevron progress={progress} />
+          </BarButton>
         </View>
         <PressableScale
           accessibilityRole="button"
@@ -81,8 +124,19 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
         </PressableScale>
       </View>
 
-      {open && <ToolsPanel top={top + TOP_BAR_H + space[1]} />}
+      <ToolsPanel top={top + TOP_BAR_H + space[1]} open={open} progress={progress} />
     </>
+  );
+}
+
+function Chevron({ progress }: { progress: SharedValue<number> }) {
+  const style = useAnimatedStyle(() => ({
+    transform: [{ rotate: `${interpolate(progress.get(), [0, 1], [0, 180])}deg` }],
+  }));
+  return (
+    <Animated.View style={style}>
+      <ChevronDown size={size.icon} strokeWidth={2} color={color.camInk} />
+    </Animated.View>
   );
 }
 
@@ -104,35 +158,68 @@ const GRID_OPTIONS: { key: GridMode; label: string }[] = [
   { key: '4', label: '4×4' },
 ];
 
-function ToolsPanel({ top }: { top: number }) {
+/**
+ * Bảng mở thêm: thả xuống từ dưới thanh trên (cao dần từ 0, các hàng trượt xuống và hiện dần),
+ * thu lên khi đóng. Luôn gắn sẵn để chạy được hiệu ứng đóng; lúc thu thì không nhận chạm.
+ */
+function ToolsPanel({
+  top,
+  open,
+  progress,
+}: {
+  top: number;
+  open: boolean;
+  progress: SharedValue<number>;
+}) {
   const flash = useCameraStore((s) => s.flash);
   const timer = useCameraStore((s) => s.timer);
   const grid = useCameraStore((s) => s.grid);
   const store = useCameraStore.getState;
+  const [contentH, setContentH] = useState(0);
+
+  const shellStyle = useAnimatedStyle(() => ({
+    height: progress.get() * contentH,
+    opacity: interpolate(progress.get(), [0, 0.25, 1], [0, 1, 1]),
+  }));
+  const rowsStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(progress.get(), [0, 0.5, 1], [0, 0, 1]),
+    transform: [{ translateY: interpolate(progress.get(), [0, 1], [-12, 0]) }],
+  }));
+
   return (
-    <View style={[styles.panel, { top }]}>
-      <PanelRow
-        icon={flash === 'off' ? ZapOff : Zap}
-        label={t.camera.flash}
-        options={FLASH_OPTIONS}
-        value={flash}
-        onChange={store().setFlash}
-      />
-      <PanelRow
-        icon={Timer}
-        label={t.camera.timer}
-        options={TIMER_OPTIONS}
-        value={timer}
-        onChange={store().setTimer}
-      />
-      <PanelRow
-        icon={Grid3x3}
-        label={t.camera.grid}
-        options={GRID_OPTIONS}
-        value={grid}
-        onChange={store().setGrid}
-      />
-    </View>
+    <Animated.View
+      pointerEvents={open ? 'auto' : 'none'}
+      accessibilityElementsHidden={!open}
+      importantForAccessibility={open ? 'auto' : 'no-hide-descendants'}
+      style={[styles.panel, { top }, shellStyle]}
+    >
+      <Animated.View
+        style={[styles.panelInner, rowsStyle]}
+        onLayout={(e) => setContentH(e.nativeEvent.layout.height)}
+      >
+        <PanelRow
+          icon={flash === 'off' ? ZapOff : Zap}
+          label={t.camera.flash}
+          options={FLASH_OPTIONS}
+          value={flash}
+          onChange={store().setFlash}
+        />
+        <PanelRow
+          icon={Timer}
+          label={t.camera.timer}
+          options={TIMER_OPTIONS}
+          value={timer}
+          onChange={store().setTimer}
+        />
+        <PanelRow
+          icon={Grid3x3}
+          label={t.camera.grid}
+          options={GRID_OPTIONS}
+          value={grid}
+          onChange={store().setGrid}
+        />
+      </Animated.View>
+    </Animated.View>
   );
 }
 
@@ -184,9 +271,7 @@ function BarButton({
   active,
   badge,
   wide,
-  flip,
   soft,
-  dot,
   children,
 }: {
   icon?: LucideIcon;
@@ -195,12 +280,8 @@ function BarButton({
   active?: boolean;
   badge?: string;
   wide?: boolean;
-  /** Mũi tên xoay ngược khi bảng đang mở. */
-  flip?: boolean;
   /** Nền mờ nhẹ cho nút Mở thêm. */
   soft?: boolean;
-  /** Chấm báo: có cài đặt đang bật nằm trong bảng mở thêm. */
-  dot?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -217,14 +298,9 @@ function BarButton({
         active && styles.buttonOn,
       ]}
     >
-      {Icon && (
-        <View style={flip && styles.flip}>
-          <Icon size={size.icon} strokeWidth={2} color={color.camInk} />
-        </View>
-      )}
+      {Icon && <Icon size={size.icon} strokeWidth={2} color={color.camInk} />}
       {children}
       {badge && <Text style={styles.badge}>{badge}</Text>}
-      {dot && <View style={styles.dot} />}
     </PressableScale>
   );
 }
@@ -262,7 +338,6 @@ const styles = StyleSheet.create({
   buttonWide: { width: size.iconButton + 8 },
   buttonSoft: { backgroundColor: 'rgba(255,255,255,0.18)' },
   buttonOn: { backgroundColor: color.accent },
-  flip: { transform: [{ rotate: '180deg' }] },
   badge: {
     position: 'absolute',
     right: 0,
@@ -277,15 +352,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     ...type.badge,
   },
-  dot: {
-    position: 'absolute',
-    right: 6,
-    top: 6,
-    width: 8,
-    height: 8,
-    borderRadius: radius.full,
-    backgroundColor: color.camWarn,
-  },
   ink: { color: color.camInk },
   muted: { color: color.camMuted },
   panel: {
@@ -293,10 +359,18 @@ const styles = StyleSheet.create({
     left: size.edge,
     right: size.edge,
     maxWidth: 360,
-    paddingVertical: space[2],
-    paddingHorizontal: space[4],
+    overflow: 'hidden',
     borderRadius: radius.xl,
     backgroundColor: color.camPanel,
+  },
+  // Không bị khung co lại: đo được chiều cao thật để thả xuống đúng tới đó.
+  panelInner: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    paddingVertical: space[2],
+    paddingHorizontal: space[4],
   },
   row: {
     height: 48,

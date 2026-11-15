@@ -28,17 +28,20 @@ export function clampRailTop(top: number, frame: Rect, railH: number, inset: num
   return Math.min(max, Math.max(min, top));
 }
 
-/** Mép trên của cột từ vị trí đã lưu (tâm cột theo tỉ lệ chiều cao khung). */
+/**
+ * Mép trên của cột từ vị trí đã lưu (mép trên theo tỉ lệ chiều cao khung). Lưu mép trên chứ không
+ * lưu tâm, để thu gọn / mở cột thì mép trên đứng yên, cột cuộn lên / xổ xuống (góp ý Phase 4).
+ */
 export function railTopFromY(y: number, frame: Rect, railH: number, inset: number): number {
   'worklet';
-  return clampRailTop(frame.y + y * frame.height - railH / 2, frame, railH, inset);
+  return clampRailTop(frame.y + y * frame.height, frame, railH, inset);
 }
 
-/** Ngược lại: mép trên → tâm cột theo tỉ lệ chiều cao khung, để lưu. */
-export function railYFromTop(top: number, frame: Rect, railH: number): number {
+/** Ngược lại: mép trên → tỉ lệ chiều cao khung, để lưu. */
+export function railYFromTop(top: number, frame: Rect): number {
   'worklet';
-  if (frame.height <= 0) return 0.5;
-  return Math.min(1, Math.max(0, (top + railH / 2 - frame.y) / frame.height));
+  if (frame.height <= 0) return 0.25;
+  return Math.min(1, Math.max(0, (top - frame.y) / frame.height));
 }
 
 /**

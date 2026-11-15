@@ -348,12 +348,12 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 ```
 
 - **Không còn hàng chọn chế độ** dưới nút chụp (vòng 3). Chỗ vào Thay nền quyết ở Phase 5.
-- **Thanh trên** (góp ý Phase 4): Thước cân bằng (bật / tắt, mặc định bật), Tỉ lệ (chữ `3:4`, chạm để đổi 3:4 → 9:16 → 1:1), nút Mở thêm công cụ. Flash hoặc hẹn giờ đang bật thì nút Mở thêm có chấm vàng `camWarn`. Cài đặt tách riêng bên phải.
-- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Ba hàng cao 48: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]`, Lưới `[Tắt | 3×3 | 4×4]`. Chạm ra ngoài hoặc nút ⌃ thì thu gọn.
+- **Thanh trên** (góp ý Phase 4): Đèn flash (huy hiệu "A" khi tự động), Hẹn giờ (huy hiệu số giây), Lưới (huy hiệu 3 / 4), Thước cân bằng (mặc định bật), Tỉ lệ (chữ `3:4`), nút Mở thêm. Chạm nút trên thanh để đổi nhanh. Cài đặt tách riêng bên phải.
+- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Ba hàng cao 48 để chọn thẳng giá trị: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]`, Lưới `[Tắt | 3×3 | 4×4]`. **Thả xuống** cao dần từ 0 trong 200 ms `easeIO`, các hàng trượt xuống 12 px và hiện dần; **kéo lên** ngược lại; mũi tên xoay 180° theo. Chạm ra ngoài hoặc nút ⌃ thì thu lên.
 - **Thước cân bằng:** vạch giữa 80×2 màu `camWarn` xoay theo độ nghiêng; lệch dưới 1° thì ba vạch nối thẳng, đổi `camAccent`, rung `selection`.
 - **Cột công cụ (`ToolRail`):**
   - Chạm nhanh một nút = bấm nút. Kéo ở **bất kỳ đâu trên cột** (ngón đi quá 10 px) = dời cột; khi đó lượt chạm của nút bị hủy nên thả tay không bấm nhầm.
-  - **Thu gọn** (góp ý Phase 4): nút ⌃ ở đầu cột thu cột lại, chỉ còn nút chọn pose; nút ⌄ mở lại. Trạng thái thu gọn được nhớ.
+  - **Thu gọn** (góp ý Phase 4): nút ⌃ ở đầu cột thu cột lại, chỉ còn nút chọn pose; nút ⌄ mở lại. **Mép trên cột đứng yên**: thu gọn thì cột cuộn lên, mở thì xổ xuống (200 ms `easeIO`, các nút phụ mờ dần và trượt 12 px; mũi tên xoay theo). Vị trí lưu là mép trên cột; mở ra mà chạm mép dưới khung thì cột dịch lên vừa đủ. Trạng thái thu gọn được nhớ.
   - Kéo dọc tự do; thả với vận tốc ngang thì cột trôi rồi dính mép trái hoặc phải; thả chậm thì dính mép gần hơn.
   - Luôn kẹp trong khung ngắm (cách mép khung 6). Đổi tỉ lệ khung thì kẹp lại.
   - Vị trí lưu vào cài đặt máy, lần mở sau giữ nguyên.
