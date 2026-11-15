@@ -61,13 +61,16 @@ type Props = {
   onHide: (hidden: boolean) => void;
 };
 
+/** Ngón tay đi quá chừng này mới tính là kéo cột (dưới mức đó là chạm nút). */
+const DRAG_SLOP = 10;
+
 const railHeight = (items: number) => R.pad * 2 + R.grip + items * (R.gap + R.item);
 
 /** Rãnh thanh độ hiện: nằm gọn trong cột, chừa chỗ cho số % ở trên và nửa núm ở dưới. */
 const sliderTrack = (railH: number) => railH - R.sliderTop - R.sliderBottom;
 
 /**
- * Cột công cụ pose (design.md §6.1). Kéo vạch nắm để dời cột lên xuống; quăng sang trái hoặc phải
+ * Cột công cụ pose (design.md §6.1). Kéo ở bất kỳ đâu trên cột để dời cột lên xuống; quăng sang trái hoặc phải
  * thì cột dính vào mép đó; luôn nằm trong khung ngắm; nhớ vị trí. Giữ nút độ hiện thì cột thành
  * thanh kéo dọc gọn trong cột (góp ý Phase 4); kéo lên tăng, kéo xuống giảm, tính theo quãng ngón
  * tay đi chứ không theo chỗ ngón tay đặt; thả tay thì cột trở lại.
@@ -110,9 +113,11 @@ export function ToolRail(p: Props) {
     useCameraStore.getState().setRail(s, y);
   };
 
+  // Kéo từ bất kỳ đâu trên cột (góp ý Phase 4): ngón đi quá 10 px mới tính là kéo. Lúc đó Gesture
+  // Handler hủy lượt chạm của nút bên dưới nên thả tay không bấm nhầm; chạm nhanh vẫn là bấm nút.
   const move = usePanGesture({
-    minDistance: 0,
-    hitSlop: { top: 12, left: 4, right: 4, bottom: 4 },
+    activeOffsetX: [-DRAG_SLOP, DRAG_SLOP],
+    activeOffsetY: [-DRAG_SLOP, DRAG_SLOP],
     onActivate: () => {
       'worklet';
       sx.set(left.get());
@@ -160,6 +165,7 @@ export function ToolRail(p: Props) {
     },
   });
   const tap = useTapGesture({
+    maxDistance: DRAG_SLOP,
     onActivate: () => {
       'worklet';
       scheduleOnRN(onCycleOpacity);
@@ -186,61 +192,60 @@ export function ToolRail(p: Props) {
   const pct = Math.round(savedOpacity * 100);
 
   return (
-    <Animated.View style={[styles.rail, { height: railH }, railStyle]}>
-      <GestureDetector gesture={move}>
-        <Animated.View
-          style={[styles.grip, bodyStyle]}
-          accessible
-          accessibilityLabel={t.camera.railGrip}
-          accessibilityRole="adjustable"
-        >
+    <GestureDetector gesture={move}>
+      <Animated.View
+        style={[styles.rail, { height: railH }, railStyle]}
+        accessibilityLabel={t.camera.railGrip}
+      >
+        {/* Vạch nắm chỉ để báo cột kéo được; kéo ở đâu trên cột cũng được. */}
+        <Animated.View style={[styles.grip, bodyStyle]}>
           <View style={styles.gripBar} />
         </Animated.View>
-      </GestureDetector>
 
-      <Animated.View style={[styles.body, bodyStyle]}>
-        <PoseButton pose={p.pose} onPress={p.onOpenLibrary} />
+        <Animated.View style={[styles.body, bodyStyle]}>
+          <PoseButton pose={p.pose} onPress={p.onOpenLibrary} />
+          {p.pose && (
+            <>
+              <RailButton icon={Pencil} label={t.camera.editPose} onPress={p.onEdit} />
+              <GestureDetector gesture={opacityGesture}>
+                <View
+                  style={styles.button}
+                  accessible
+                  accessibilityRole="button"
+                  accessibilityLabel={t.camera.opacity(pct)}
+                >
+                  <Contrast size={size.icon} strokeWidth={2} color={color.camInk} />
+                  {pct < 100 && <Text style={styles.badge}>{pct}</Text>}
+                </View>
+              </GestureDetector>
+              <RailButton
+                icon={FlipHorizontal2}
+                label={t.camera.mirror}
+                onPress={p.onToggleMirror}
+                active={p.mirrored}
+              />
+              <RailButton
+                icon={p.hidden ? Eye : EyeOff}
+                label={p.hidden ? t.camera.showPose : t.camera.hidePose}
+                onPress={() => p.onHide(!p.hidden)}
+                active={p.hidden}
+              />
+            </>
+          )}
+        </Animated.View>
+
+        {/* Thanh độ hiện: thay chỗ cột trong lúc giữ nút. */}
         {p.pose && (
-          <>
-            <RailButton icon={Pencil} label={t.camera.editPose} onPress={p.onEdit} />
-            <GestureDetector gesture={opacityGesture}>
-              <View
-                style={styles.button}
-                accessible
-                accessibilityRole="button"
-                accessibilityLabel={t.camera.opacity(pct)}
-              >
-                <Contrast size={size.icon} strokeWidth={2} color={color.camInk} />
-                {pct < 100 && <Text style={styles.badge}>{pct}</Text>}
-              </View>
-            </GestureDetector>
-            <RailButton
-              icon={FlipHorizontal2}
-              label={t.camera.mirror}
-              onPress={p.onToggleMirror}
-              active={p.mirrored}
-            />
-            <RailButton
-              icon={p.hidden ? Eye : EyeOff}
-              label={p.hidden ? t.camera.showPose : t.camera.hidePose}
-              onPress={() => p.onHide(!p.hidden)}
-              active={p.hidden}
-            />
-          </>
+          <Animated.View pointerEvents="none" style={[styles.slider, sliderStyle]}>
+            <AnimatedText text={pctText} style={[type.num, styles.pct]} />
+            <View style={[styles.track, { height: trackH }]}>
+              <Animated.View style={[styles.fill, fillStyle]} />
+            </View>
+            <Animated.View style={[styles.thumb, thumbStyle]} />
+          </Animated.View>
         )}
       </Animated.View>
-
-      {/* Thanh độ hiện: thay chỗ cột trong lúc giữ nút. */}
-      {p.pose && (
-        <Animated.View pointerEvents="none" style={[styles.slider, sliderStyle]}>
-          <AnimatedText text={pctText} style={[type.num, styles.pct]} />
-          <View style={[styles.track, { height: trackH }]}>
-            <Animated.View style={[styles.fill, fillStyle]} />
-          </View>
-          <Animated.View style={[styles.thumb, thumbStyle]} />
-        </Animated.View>
-      )}
-    </Animated.View>
+    </GestureDetector>
   );
 }
 

@@ -352,7 +352,7 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 - **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng 300, bo 24, ngay dưới thanh trên. Hai hàng cao 48: Lưới `[Tắt | 3×3 | 4×4]`, Thước cân bằng (công tắc). Chạm ra ngoài hoặc nút ⌃ thì thu gọn.
 - **Thước cân bằng:** vạch giữa 80×2 màu `camWarn` xoay theo độ nghiêng; lệch dưới 1° thì ba vạch nối thẳng, đổi `camAccent`, rung `selection`.
 - **Cột công cụ (`ToolRail`):**
-  - Chạm nhanh một nút = bấm nút. Kéo **vạch nắm** trên đầu cột = dời cột (chỉ vạch nắm, để thả tay sau khi kéo không bấm nhầm nút).
+  - Chạm nhanh một nút = bấm nút. Kéo ở **bất kỳ đâu trên cột** (ngón đi quá 10 px) = dời cột; khi đó lượt chạm của nút bị hủy nên thả tay không bấm nhầm. Vạch nắm trên đầu cột chỉ để báo cột kéo được.
   - Kéo dọc tự do; thả với vận tốc ngang thì cột trôi rồi dính mép trái hoặc phải; thả chậm thì dính mép gần hơn.
   - Luôn kẹp trong khung ngắm (cách mép khung 6). Đổi tỉ lệ khung thì kẹp lại.
   - Vị trí lưu vào cài đặt máy, lần mở sau giữ nguyên.
