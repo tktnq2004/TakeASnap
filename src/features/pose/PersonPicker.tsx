@@ -1,5 +1,4 @@
 import { Canvas, Group, Image, Path, useImage } from '@shopify/react-native-skia';
-import { X } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import {
   type GestureResponderEvent,
@@ -14,9 +13,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { Contour } from '@/engine/contour';
 import { personAt } from '@/engine/regions';
 import { haptic } from '@/lib/haptics';
-import { Button, IconButton } from '@/ui/components';
+import { Button, CloseButton, OverlayHeader } from '@/ui/components';
 import { t } from '@/ui/strings';
-import { color, personPick, size, space, type } from '@/ui/tokens';
+import { color, personPick, radius, size, space, type } from '@/ui/tokens';
 
 import { type ImageAnalysis, PERSON_SLOP } from './createFromImage';
 import { makePosePath } from './PoseCanvas';
@@ -71,12 +70,12 @@ export function PersonPicker({ analysis, contours, onConfirm, onCancel }: Props)
           { paddingTop: Platform.OS === 'ios' ? space[4] : insets.top + space[2] },
         ]}
       >
-        <Text accessibilityRole="header" style={[type.title, styles.ink]}>
-          {t.library.pickTitle}
-        </Text>
-        <IconButton icon={X} label={t.common.cancel} onPress={onCancel} />
+        <OverlayHeader
+          title={t.library.pickTitle}
+          right={<CloseButton onPress={onCancel} label={t.common.cancel} />}
+        />
       </View>
-      <Text style={[type.body, styles.muted, styles.hint]}>{t.library.pickHint}</Text>
+      <Text style={[type.hint, styles.muted, styles.hint]}>{t.library.pickHint}</Text>
 
       <Pressable
         accessibilityRole="image"
@@ -118,7 +117,7 @@ export function PersonPicker({ analysis, contours, onConfirm, onCancel }: Props)
             fullWidth
           />
         </View>
-        <View style={styles.action}>
+        <View style={styles.actionPrimary}>
           <Button
             label={t.library.pickUse}
             onPress={() => onConfirm(chosen)}
@@ -133,22 +132,22 @@ export function PersonPicker({ analysis, contours, onConfirm, onCancel }: Props)
 
 const styles = StyleSheet.create({
   root: { ...StyleSheet.absoluteFill, backgroundColor: color.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingLeft: size.gutter,
-    paddingRight: size.gutter - space[2],
-  },
+  header: { paddingBottom: space[2] },
   hint: { paddingHorizontal: size.gutter, paddingBottom: space[3] },
-  ink: { color: color.ink },
   muted: { color: color.muted },
-  preview: { flex: 1 },
+  preview: {
+    flex: 1,
+    marginHorizontal: size.edge,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    backgroundColor: color.ink,
+  },
   footer: {
     flexDirection: 'row',
-    gap: space[3],
-    paddingHorizontal: size.gutter,
+    gap: space[2],
+    paddingHorizontal: size.edge,
     paddingTop: space[3],
   },
   action: { flex: 1 },
+  actionPrimary: { flex: 1.4 },
 });

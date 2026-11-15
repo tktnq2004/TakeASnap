@@ -16,6 +16,8 @@ type Props = {
   pose: Pose;
   width: number;
   height: number;
+  /** Bo góc ô; mặc định `radius.md` (lưới 4 cột). */
+  corner?: number;
   plain?: boolean;
   onPress: () => void;
   onLongPress?: () => void;
@@ -37,6 +39,7 @@ export function PoseTile({
   pose,
   width,
   height,
+  corner = radius.md,
   plain,
   onPress,
   onLongPress,
@@ -54,7 +57,7 @@ export function PoseTile({
       accessibilityState={selecting ? { checked: !!selected } : undefined}
       onPress={onPress}
       onLongPress={selecting ? undefined : onLongPress}
-      style={[styles.tile, { width, height }]}
+      style={[styles.tile, { width, height, borderRadius: corner }]}
     >
       <PoseCanvas
         fit="cover"
@@ -78,21 +81,26 @@ export function PoseTile({
         faceWidth={Math.min(s.faceWidth, 1)}
       />
       {selecting && drag && index != null && (
-        <SelectMark selected={!!selected} index={index} drag={drag} />
+        <SelectMark selected={!!selected} index={index} drag={drag} corner={corner} />
       )}
     </Pressable>
   );
 }
 
-/** Vòng tròn rỗng ở góc; đã chọn (hoặc nằm trong dải đang vuốt chọn) thì đặc màu nhấn + viền ô. */
+/**
+ * Vòng tròn rỗng ở góc; đã chọn (hoặc nằm trong dải đang vuốt chọn) thì đặc màu nhấn, ô có viền
+ * 3 px và phủ màu nhấn 15% (design.md §4 PoseTile).
+ */
 function SelectMark({
   selected,
   index,
   drag,
+  corner,
 }: {
   selected: boolean;
   index: number;
   drag: SharedValue<DragRange>;
+  corner: number;
 }) {
   const onStyle = useAnimatedStyle(() => {
     const d = drag.get();
@@ -103,7 +111,8 @@ function SelectMark({
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <View style={styles.ring} />
       <Animated.View style={[StyleSheet.absoluteFill, onStyle]}>
-        <View style={styles.border} />
+        <View style={[styles.tint, { borderRadius: corner }]} />
+        <View style={[styles.border, { borderRadius: corner }]} />
         <View style={styles.markOn}>
           <Check size={tileSelect.check} strokeWidth={3} color={color.accentInk} />
         </View>
@@ -122,12 +131,17 @@ const mark = {
 } as const;
 
 const styles = StyleSheet.create({
-  tile: { borderRadius: radius.md, overflow: 'hidden', backgroundColor: color.surface },
+  tile: { overflow: 'hidden', backgroundColor: color.surface },
   ring: {
     ...mark,
     borderWidth: tileSelect.ring,
-    borderColor: color.ink,
-    backgroundColor: color.scrim,
+    borderColor: color.camInk,
+    backgroundColor: color.camScrim,
+  },
+  tint: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: color.accent,
+    opacity: tileSelect.fill,
   },
   markOn: {
     ...mark,
@@ -141,7 +155,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    borderRadius: radius.md,
     borderWidth: tileSelect.border,
     borderColor: color.accent,
   },

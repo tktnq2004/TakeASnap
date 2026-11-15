@@ -2,13 +2,13 @@ import { CornerUpLeft } from 'lucide-react-native';
 import { StyleSheet, Text } from 'react-native';
 
 import { t } from '@/ui/strings';
-import { color, size, space, type } from '@/ui/tokens';
+import { color, radius, size, space, type } from '@/ui/tokens';
 
 import { PressableScale } from './PressableScale';
 
 /**
- * Nút quay lại ở đầu màn: mũi tên quay đầu + chữ "Quay lại" (góp ý Phase 3: chỉ có dấu "<" khó
- * nhận ra). Cao bằng IconButton.
+ * Nút quay lại ở đầu màn trong luồng (design.md §4): nền trắng, mũi tên quay đầu + chữ
+ * "Quay lại" (góp ý Phase 3: chỉ có dấu "<" khó nhận ra).
  */
 export function BackButton({ onPress }: { onPress: () => void }) {
   return (
@@ -19,8 +19,8 @@ export function BackButton({ onPress }: { onPress: () => void }) {
       onPress={onPress}
       style={styles.base}
     >
-      <CornerUpLeft size={size.icon} strokeWidth={1.75} color={color.ink} />
-      <Text style={[type.button, styles.ink]} maxFontSizeMultiplier={1.3}>
+      <CornerUpLeft size={size.icon} strokeWidth={2.25} color={color.accent} />
+      <Text style={[type.label, styles.ink]} maxFontSizeMultiplier={1.3}>
         {t.common.back}
       </Text>
     </PressableScale>
@@ -30,10 +30,13 @@ export function BackButton({ onPress }: { onPress: () => void }) {
 const styles = StyleSheet.create({
   base: {
     height: size.iconButton,
-    paddingHorizontal: space[2],
+    paddingLeft: space[3],
+    paddingRight: space[4],
+    borderRadius: radius.full,
+    backgroundColor: color.surface,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: space[1],
+    gap: 6,
   },
   ink: { color: color.ink },
 });

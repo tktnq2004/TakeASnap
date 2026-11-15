@@ -1,19 +1,55 @@
+import type { LucideIcon } from 'lucide-react-native';
 import { StyleSheet, Text } from 'react-native';
 
-import { color, radius, size, space, type } from '@/ui/tokens';
+import { color, elevation, radius, size, space, type } from '@/ui/tokens';
 
 import { PressableScale } from './PressableScale';
+
+export type ButtonVariant = 'primary' | 'secondary' | 'soft' | 'danger' | 'dangerText' | 'text';
 
 type Props = {
   label: string;
   onPress: () => void;
-  /** Mỗi màn chỉ một nút primary (design.md §4). `danger`: thao tác xóa không hoàn tác được. */
-  variant?: 'primary' | 'secondary' | 'text' | 'danger';
+  /**
+   * design.md §4. Mỗi màn chỉ một nút `primary`. `danger`: xóa hàng loạt không hoàn tác được.
+   * `dangerText`: thao tác xóa phụ (chữ đỏ trên nền trắng).
+   */
+  variant?: ButtonVariant;
+  icon?: LucideIcon;
+  /** Nút nhỏ trong đầu màn hoặc trong card. */
+  small?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
 };
 
-export function Button({ label, onPress, variant = 'primary', disabled, fullWidth }: Props) {
+const BG: Record<ButtonVariant, string | undefined> = {
+  primary: color.accent,
+  secondary: color.surface,
+  soft: color.accentSoft,
+  danger: color.danger,
+  dangerText: color.surface,
+  text: undefined,
+};
+
+const INK: Record<ButtonVariant, string> = {
+  primary: color.accentInk,
+  secondary: color.accent,
+  soft: color.accent,
+  danger: color.dangerInk,
+  dangerText: color.danger,
+  text: color.accent,
+};
+
+export function Button({
+  label,
+  onPress,
+  variant = 'primary',
+  icon: Icon,
+  small,
+  disabled,
+  fullWidth,
+}: Props) {
+  const ink = INK[variant];
   return (
     <PressableScale
       accessibilityRole="button"
@@ -23,29 +59,16 @@ export function Button({ label, onPress, variant = 'primary', disabled, fullWidt
       onPress={onPress}
       style={[
         styles.base,
-        variant === 'primary' && styles.primary,
-        variant === 'secondary' && styles.secondary,
+        small && styles.small,
+        { backgroundColor: BG[variant] },
+        variant === 'primary' && !disabled && styles.primaryShadow,
         variant === 'text' && styles.textOnly,
-        variant === 'danger' && styles.danger,
         fullWidth && styles.fullWidth,
         disabled && styles.disabled,
       ]}
     >
-      <Text
-        style={[
-          type.button,
-          {
-            color:
-              variant === 'primary'
-                ? color.accentInk
-                : variant === 'danger'
-                  ? color.danger
-                  : color.ink,
-          },
-          variant === 'text' && styles.underline,
-        ]}
-        maxFontSizeMultiplier={1.3}
-      >
+      {Icon && <Icon size={size.iconSmall} strokeWidth={2} color={ink} />}
+      <Text style={[small ? type.label : type.button, { color: ink }]} maxFontSizeMultiplier={1.3}>
         {label}
       </Text>
     </PressableScale>
@@ -55,16 +78,16 @@ export function Button({ label, onPress, variant = 'primary', disabled, fullWidt
 const styles = StyleSheet.create({
   base: {
     minHeight: size.button,
-    paddingHorizontal: space[5],
+    paddingHorizontal: space[6],
     borderRadius: radius.full,
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: space[2],
   },
-  primary: { backgroundColor: color.accent },
-  secondary: { borderWidth: 1, borderColor: color.line },
-  danger: { borderWidth: 1, borderColor: color.danger },
+  small: { minHeight: size.buttonSm, paddingHorizontal: space[4] },
+  primaryShadow: { ...elevation.primary, shadowColor: color.accent },
   textOnly: { paddingHorizontal: space[2], minHeight: size.tap },
-  underline: { textDecorationLine: 'underline' },
-  fullWidth: { alignSelf: 'stretch' },
+  fullWidth: { alignSelf: 'stretch', flexGrow: 1 },
   disabled: { opacity: 0.4 },
 });

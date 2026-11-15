@@ -1,7 +1,8 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import { X } from 'lucide-react-native';
+import { Check, ImagePlus } from 'lucide-react-native';
+import { StatusBar } from 'expo-status-bar';
 import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -37,9 +38,9 @@ import { applyRange } from '@/features/pose/selection';
 import type { Pose } from '@/features/pose/types';
 import { haptic } from '@/lib/haptics';
 import { useGoBack } from '@/lib/useGoBack';
-import { Button, IconButton, Segmented } from '@/ui/components';
+import { Button, CloseButton, OverlayHeader, Segmented } from '@/ui/components';
 import { t } from '@/ui/strings';
-import { color, processing, size, space, type } from '@/ui/tokens';
+import { color, elevation, library, processing, radius, size, space, type } from '@/ui/tokens';
 
 const tabs = [
   { key: 'samples', label: t.library.tabSamples },
@@ -48,13 +49,8 @@ const tabs = [
 
 type Picked = { uri: string; width: number; height: number };
 
-const SAMPLE_W = 104;
-const SAMPLE_H = 138;
-const MINE_COLS = 4;
-const MINE_GAP = space[2];
-
 /**
- * Thư viện pose (design.md §6.3), mở dạng sheet trên Camera. Chạm một pose = "Dùng để chụp" (đặt
+ * Thư viện pose (design.md §6.5–6.8), mở dạng modal trên Camera. Chạm một pose = "Dùng để chụp" (đặt
  * làm overlay rồi đóng sheet); giữ lâu = Sửa / Xóa. "Thêm ảnh từ máy" tạo pose mới rồi mở Chỉnh
  * pose (business-flow §5.1).
  */
@@ -66,6 +62,8 @@ export default function LibraryScreen() {
   const [tab, setTab] = useState<'samples' | 'mine'>('samples');
   const [mine, setMine] = useState<Pose[]>([]);
   const [progress, setProgress] = useState<CreateProgress | null>(null);
+  /** Lần xử lý này có phải tải bộ tách người không (để hiện bước tải trong danh sách bước). */
+  const [downloaded, setDownloaded] = useState(false);
   /** Ảnh đang xử lý: hiện mờ thay cho danh sách (design.md §6.6). */
   const [work, setWork] = useState<Picked | null>(null);
   /** Ảnh có nhiều người: đang chờ chọn người. */
@@ -114,6 +112,10 @@ export default function LibraryScreen() {
       else out.add(p.id);
       return out;
     });
+  };
+  const selectAll = () => {
+    haptic.select();
+    setSelected(new Set(mine.map((p) => p.id)));
   };
   const selectRange = (a: number, b: number, select: boolean) => {
     haptic.select();
@@ -185,11 +187,17 @@ export default function LibraryScreen() {
     }
   };
 
+  const track = (p: CreateProgress) => {
+    if (p.stage === 'download') setDownloaded(true);
+    setProgress(p);
+  };
+
   const processImage = (img: Picked) =>
     run(img, async () => {
       setWork(img);
+      setDownloaded(false);
       setProgress({ stage: 'segment' });
-      const a = await analyzeImage(segmentForPose, img, setProgress);
+      const a = await analyzeImage(segmentForPose, img, track);
       if (a.people.length > 1) {
         setPicking(a);
         return;
@@ -207,7 +215,7 @@ export default function LibraryScreen() {
       db,
       a,
       chosen.map((i) => a.people[i]!),
-      setProgress,
+      track,
     );
     setWork(null);
     setTab('mine');
@@ -232,51 +240,58 @@ export default function LibraryScreen() {
   // "Pose của bạn": 4 ảnh một hàng (góp ý lần 3).
   // Đo theo bề rộng thật của màn thư viện (modal có thể hẹp hơn cửa sổ trên iPad).
   const listW = rootW || screenW;
-  const gridW = Math.floor((listW - size.gutter * 2 - MINE_GAP * (MINE_COLS - 1)) / MINE_COLS);
+  const gridW = Math.floor(
+    (listW - size.edge * 2 - library.mineGap * (library.mineCols - 1)) / library.mineCols,
+  );
+
+  // iOS: modal là thẻ dưới thanh trạng thái nên không cần chừa vùng an toàn trên.
+  const top = Platform.OS === 'ios' ? space[5] : insets.top + space[3];
+  const canSelect = tab === 'mine' && mine.length > 0 && !work;
 
   return (
     <View style={styles.root} onLayout={(e) => setRootW(e.nativeEvent.layout.width)}>
-      {/* iOS: modal là thẻ dưới thanh trạng thái nên không cần chừa vùng an toàn trên. */}
-      <View
-        style={[
-          styles.header,
-          { paddingTop: Platform.OS === 'ios' ? space[4] : insets.top + space[2] },
-        ]}
-      >
-        <Text
-          accessibilityRole="header"
-          style={[type.title, styles.ink, styles.title]}
-          numberOfLines={1}
-        >
-          {selecting ? t.library.selectedCount(selected.size) : t.library.title}
-        </Text>
-        {selecting ? (
-          <Button label={t.common.cancel} onPress={stopSelecting} variant="text" />
-        ) : (
-          <View style={styles.headerActions}>
-            {tab === 'mine' && mine.length > 0 && !work && (
-              <Button label={t.library.selectMode} onPress={startSelecting} variant="text" />
-            )}
-            <IconButton icon={X} label={t.common.close} onPress={goBack} />
-          </View>
-        )}
+      {/* iOS: thẻ modal nằm trên Camera tối, thanh trạng thái vẫn chữ sáng. */}
+      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'dark'} />
+      <View style={{ paddingTop: top }}>
+        <OverlayHeader
+          title={selecting ? t.library.selectedCount(selected.size) : t.library.title}
+          right={
+            selecting ? (
+              <Button label={t.common.cancel} onPress={stopSelecting} variant="secondary" small />
+            ) : (
+              <>
+                {canSelect && (
+                  <Button
+                    label={t.library.selectMode}
+                    onPress={startSelecting}
+                    variant="secondary"
+                    small
+                  />
+                )}
+                <CloseButton onPress={goBack} />
+              </>
+            )
+          }
+        />
       </View>
       <View style={styles.tabs}>
         <Segmented options={tabs} value={tab} onChange={changeTab} />
-        {selecting && (
-          <Text style={[type.label, styles.muted, styles.selectHint]}>{t.library.selectHint}</Text>
-        )}
       </View>
 
       {work ? (
-        <Image
-          source={{ uri: work.uri }}
-          resizeMode="contain"
-          accessibilityIgnoresInvertColors
-          style={styles.working}
-        />
+        <View style={styles.working}>
+          <Image
+            source={{ uri: work.uri }}
+            resizeMode="contain"
+            accessibilityIgnoresInvertColors
+            style={styles.workingImage}
+          />
+          {progress && <StatusSteps progress={progress} downloaded={downloaded} />}
+        </View>
       ) : (
-        <GestureScrollView contentContainerStyle={{ paddingBottom: insets.bottom + space[5] }}>
+        <GestureScrollView
+          contentContainerStyle={{ paddingBottom: insets.bottom + library.listBottom }}
+        >
           {tab === 'samples' &&
             sampleGroups.map((g) => (
               <View key={g} style={styles.group}>
@@ -294,8 +309,9 @@ export default function LibraryScreen() {
                       <PoseTile
                         key={p.id}
                         pose={p}
-                        width={SAMPLE_W}
-                        height={SAMPLE_H}
+                        width={library.sampleW}
+                        height={library.sampleH}
+                        corner={library.sampleRadius}
                         plain
                         onPress={() => pickForCamera(p)}
                         onLongPress={() => showActions(p, false)}
@@ -307,16 +323,16 @@ export default function LibraryScreen() {
 
           {tab === 'mine' &&
             (mine.length === 0 ? (
-              <Text style={[type.body, styles.muted, styles.empty]}>{t.library.empty}</Text>
+              <Text style={[type.body, styles.ink, styles.empty]}>{t.library.empty}</Text>
             ) : (
               <MineGrid
                 poses={mine}
                 layout={{
-                  cols: MINE_COLS,
+                  cols: library.mineCols,
                   tileW: gridW,
                   tileH: gridW * 1.33,
-                  gap: MINE_GAP,
-                  padX: size.gutter,
+                  gap: library.mineGap,
+                  padX: size.edge,
                 }}
                 selecting={selecting}
                 selected={selected}
@@ -328,25 +344,29 @@ export default function LibraryScreen() {
         </GestureScrollView>
       )}
 
-      {/* Nút ghim ở đáy; đang xử lý thì thay bằng dòng trạng thái (design.md §6.6). */}
-      <View style={[styles.footer, { paddingBottom: insets.bottom + space[3] }]}>
-        {selecting ? (
-          <Button
-            label={t.library.removeMany(selected.size)}
-            onPress={confirmDeleteSelected}
-            variant="danger"
-            disabled={selected.size === 0}
-            fullWidth
-          />
-        ) : progress ? (
-          <View style={styles.status} accessibilityLiveRegion="polite">
-            <ActivityIndicator size="small" color={color.muted} />
-            <Text style={[type.label, styles.muted]}>{progressText(progress)}</Text>
+      {/* Đáy: nút nổi "Thêm ảnh từ máy"; chọn nhiều thì thanh nổi Chọn tất cả · Xóa n pose. */}
+      {selecting ? (
+        <View style={[styles.floatingBar, { bottom: insets.bottom + space[4] }]}>
+          <View style={styles.barAction}>
+            <Button label={t.library.selectAll} onPress={selectAll} variant="soft" fullWidth />
           </View>
-        ) : (
-          <Button label={t.library.addFromDevice} onPress={addFromDevice} fullWidth />
-        )}
-      </View>
+          <View style={styles.barPrimary}>
+            <Button
+              label={t.library.removeMany(selected.size)}
+              onPress={confirmDeleteSelected}
+              variant="danger"
+              disabled={selected.size === 0}
+              fullWidth
+            />
+          </View>
+        </View>
+      ) : (
+        !work && (
+          <View style={[styles.fab, { bottom: insets.bottom + space[5] }]} pointerEvents="box-none">
+            <Button label={t.library.addFromDevice} onPress={addFromDevice} icon={ImagePlus} />
+          </View>
+        )
+      )}
 
       {picking && (
         <PersonPicker
@@ -366,21 +386,52 @@ export default function LibraryScreen() {
   );
 }
 
-function progressText(p: CreateProgress): string {
-  switch (p.stage) {
-    case 'download':
-      return `${t.status.downloadingModel}, ${mb(p.bytes)} trên ${mb(p.total)} MB`;
-    case 'load':
-      return t.status.loadingModel;
-    case 'segment':
-      return t.status.segmenting;
-    case 'landmarks':
-      return t.status.detectingFace;
-    case 'contour':
-      return t.status.contouring;
-    case 'save':
-      return t.status.savingPose;
-  }
+/** Các bước đang xử lý (design.md §6.8): xong = dấu tích, đang chạy = vòng quay, chưa tới = vòng xám. */
+const STEPS = [
+  { key: 'download', stages: ['download', 'load'] },
+  { key: 'segment', stages: ['segment'] },
+  { key: 'landmarks', stages: ['landmarks'] },
+  { key: 'contour', stages: ['contour', 'save'] },
+] as const;
+
+function StatusSteps({ progress, downloaded }: { progress: CreateProgress; downloaded: boolean }) {
+  const steps = STEPS.filter((s) => s.key !== 'download' || downloaded);
+  const now = steps.findIndex((s) => (s.stages as readonly string[]).includes(progress.stage));
+  return (
+    <View style={styles.steps} accessibilityLiveRegion="polite">
+      {steps.map((s, i) => {
+        const state = now < 0 || i > now ? 'todo' : i < now ? 'done' : 'now';
+        const label =
+          state === 'now' && progress.stage === 'download'
+            ? `${t.status.steps.download}, ${mb(progress.bytes)} trên ${mb(progress.total)} MB`
+            : t.status.steps[s.key];
+        return (
+          <View key={s.key} style={styles.step}>
+            {state === 'done' ? (
+              <View style={styles.stepDone}>
+                <Check size={14} strokeWidth={3} color={color.accentInk} />
+              </View>
+            ) : state === 'now' ? (
+              <ActivityIndicator size="small" color={color.accent} style={styles.stepIcon} />
+            ) : (
+              <View style={styles.stepTodo} />
+            )}
+            <Text
+              style={[
+                type.label,
+                {
+                  color:
+                    state === 'todo' ? color.faint : state === 'done' ? color.muted : color.ink,
+                },
+              ]}
+            >
+              {label}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
 }
 
 const mb = (bytes: number) => (bytes / 1048576).toFixed(1);
@@ -394,39 +445,62 @@ function errorKind(e: unknown): ErrorKind {
   return 'segmentFailed';
 }
 
+const STEP_DOT = 26;
+
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingLeft: size.gutter,
-    paddingRight: size.gutter - space[2],
-    paddingBottom: space[2],
-  },
-  tabs: { paddingHorizontal: size.gutter, paddingBottom: space[4] },
-  title: { flexShrink: 1 },
-  headerActions: { flexDirection: 'row', alignItems: 'center' },
-  selectHint: { marginTop: space[2] },
+  tabs: { paddingHorizontal: size.edge, paddingTop: space[4], paddingBottom: space[4] },
   ink: { color: color.ink },
-  muted: { color: color.muted },
-  group: { marginBottom: space[5] },
-  groupTitle: { paddingHorizontal: size.gutter, marginBottom: space[3] },
-  rowContent: { paddingHorizontal: size.gutter, gap: space[3] },
-  footer: {
-    paddingHorizontal: size.gutter,
-    paddingTop: space[3],
-    borderTopWidth: 1,
-    borderTopColor: color.line,
-    backgroundColor: color.bg,
+  // Thẻ nhóm pose mẫu: hàng ảnh tràn mép phải thẻ.
+  group: {
+    marginHorizontal: size.edge,
+    marginBottom: space[3],
+    paddingVertical: space[4],
+    borderRadius: radius.xl,
+    backgroundColor: color.surface,
   },
-  status: {
-    minHeight: size.button,
+  groupTitle: { paddingHorizontal: space[4], marginBottom: space[3] },
+  rowContent: { paddingHorizontal: space[4], gap: 10 },
+  empty: { paddingHorizontal: size.gutter, paddingTop: space[2] },
+  fab: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  floatingBar: {
+    position: 'absolute',
+    left: size.edge,
+    right: size.edge,
     flexDirection: 'row',
+    gap: space[2],
+    padding: space[2],
+    borderRadius: radius.xxl + 4,
+    backgroundColor: color.surface,
+    ...elevation.float,
+    shadowColor: color.shadow,
+  },
+  barAction: { flex: 1 },
+  barPrimary: { flex: 1.3 },
+  working: { flex: 1, paddingHorizontal: size.edge, gap: space[4] },
+  workingImage: { flex: 1, opacity: processing.imageOpacity, borderRadius: radius.xl },
+  steps: {
+    padding: space[5],
+    gap: space[4],
+    borderRadius: radius.xl,
+    backgroundColor: color.surface,
+    marginBottom: space[6],
+  },
+  step: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  stepIcon: { width: STEP_DOT, height: STEP_DOT },
+  stepDone: {
+    width: STEP_DOT,
+    height: STEP_DOT,
+    borderRadius: radius.full,
+    backgroundColor: color.accent,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: space[2],
   },
-  working: { flex: 1, opacity: processing.imageOpacity, marginHorizontal: size.gutter },
-  empty: { paddingHorizontal: size.gutter },
+  stepTodo: {
+    width: STEP_DOT,
+    height: STEP_DOT,
+    borderRadius: radius.full,
+    borderWidth: 2,
+    borderColor: color.switchOff,
+  },
 });

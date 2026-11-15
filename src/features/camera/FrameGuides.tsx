@@ -74,7 +74,7 @@ export function LevelGuide({ frame }: { frame: Rect }) {
     const usable = levelUsable(g.x, g.y, g.z);
     return {
       opacity: usable ? 1 : 0,
-      backgroundColor: level.get() ? color.accent : color.ink,
+      backgroundColor: level.get() ? color.camAccent : color.camInk,
       transform: [{ rotate: `${-deviceRoll(g.x, g.y, IOS)}rad` }],
     };
   });

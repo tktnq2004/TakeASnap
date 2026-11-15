@@ -12,7 +12,9 @@ type Props = {
   onPress: () => void;
 };
 
+/** Ô màu tròn 36 (design.md §4); đang chọn: vòng 3 px trắng + 2 px màu nhấn. */
 export function Swatch({ value, name, selected, onPress }: Props) {
+  const white = value.toUpperCase() === '#FFFFFF';
   return (
     <PressableScale
       accessibilityRole="radio"
@@ -22,30 +24,25 @@ export function Swatch({ value, name, selected, onPress }: Props) {
       onPress={onPress}
       style={[styles.ring, selected && styles.ringOn]}
     >
-      <View style={[styles.fill, { backgroundColor: value }]} />
+      <View style={[styles.fill, { backgroundColor: value }, white && styles.edge]} />
     </PressableScale>
   );
 }
 
 const RING = 2;
-const GAP = 2;
+const GAP = 3;
 
 const styles = StyleSheet.create({
   ring: {
     width: size.swatch + (RING + GAP) * 2,
     height: size.swatch + (RING + GAP) * 2,
-    borderRadius: radius.sm + RING + GAP,
+    borderRadius: radius.full,
     borderWidth: RING,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ringOn: { borderColor: color.ink },
-  fill: {
-    width: size.swatch,
-    height: size.swatch,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: color.line,
-  },
+  ringOn: { borderColor: color.accent },
+  fill: { width: size.swatch, height: size.swatch, borderRadius: radius.full },
+  edge: { borderWidth: 2, borderColor: color.swatchEdge },
 });

@@ -10,14 +10,16 @@ type Props = {
   /** Nhãn VoiceOver/TalkBack, bắt buộc vì nút không có chữ (design.md §3.7). */
   label: string;
   onPress: () => void;
-  /** Đang bật: glyph màu nhấn. */
+  /** Đang bật: nền màu nhấn. */
   active?: boolean;
-  /** Đặt trên khung ngắm: thêm đĩa scrim để đọc được trên mọi cảnh. */
+  /** Đặt trên khung ngắm: đĩa tối để đọc được trên mọi cảnh. */
   onScrim?: boolean;
   disabled?: boolean;
 };
 
+/** Nút icon tròn 44. Trên màn sáng: nền `surfaceAlt`; tắt thì icon `faint`. */
 export function IconButton({ icon: Icon, label, onPress, active, onScrim, disabled }: Props) {
+  const ink = onScrim || active ? color.camInk : disabled ? color.faint : color.ink;
   return (
     <PressableScale
       accessibilityRole="button"
@@ -26,9 +28,9 @@ export function IconButton({ icon: Icon, label, onPress, active, onScrim, disabl
       hitSlop={4}
       disabled={disabled}
       onPress={onPress}
-      style={[styles.base, onScrim && styles.scrim, disabled && styles.disabled]}
+      style={[styles.base, onScrim && styles.scrim, active && styles.active]}
     >
-      <Icon size={size.icon} strokeWidth={1.75} color={active ? color.accent : color.ink} />
+      <Icon size={size.icon} strokeWidth={2} color={ink} />
     </PressableScale>
   );
 }
@@ -40,7 +42,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: color.surfaceAlt,
   },
-  scrim: { backgroundColor: color.scrim },
-  disabled: { opacity: 0.4 },
+  scrim: { backgroundColor: color.camScrim },
+  active: { backgroundColor: color.accent },
 });

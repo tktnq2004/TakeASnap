@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     paddingLeft: space[3],
     paddingRight: space[2],
     borderRadius: radius.full,
-    backgroundColor: color.scrim,
+    backgroundColor: color.camScrim,
   },
-  value: { color: color.ink, minWidth: 40, textAlign: 'right' },
+  value: { color: color.camInk, minWidth: 40, textAlign: 'right' },
   track: { width: cameraZoom.sliderWidth, flexDirection: 'row' },
 });

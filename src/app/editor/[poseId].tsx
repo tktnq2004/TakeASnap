@@ -1,8 +1,18 @@
 import { useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useSQLiteContext } from 'expo-sqlite';
-import { Redo2, Undo2 } from 'lucide-react-native';
+import {
+  Brush,
+  Droplet,
+  Eraser,
+  Image as ImageIcon,
+  PenTool,
+  Plus,
+  Redo2,
+  Undo2,
+} from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -31,22 +41,25 @@ import {
 import { haptic } from '@/lib/haptics';
 import { useGoBack } from '@/lib/useGoBack';
 import {
-  BackButton,
   Button,
+  Chip,
+  FlowHeader,
   IconButton,
   Segmented,
   Slider,
   SwatchRow,
+  Toggle,
   ToggleRow,
 } from '@/ui/components';
 import { t } from '@/ui/strings';
-import { color, radius, refineBrush, size, space, type } from '@/ui/tokens';
+import { color, editor, radius, refineBrush, size, space, type } from '@/ui/tokens';
 
+/** 4 tab Viền · Phủ · Nền · Cọ (design.md §6.9). */
 const tabs = [
-  { key: 'outline', label: t.editor.tabOutline },
-  { key: 'fill', label: t.editor.tabFill },
-  { key: 'image', label: t.editor.tabImage },
-  { key: 'refine', label: t.editor.tabRefine },
+  { key: 'outline', label: t.editor.tabOutline, icon: PenTool },
+  { key: 'fill', label: t.editor.tabFill, icon: Droplet },
+  { key: 'image', label: t.editor.tabImage, icon: ImageIcon },
+  { key: 'refine', label: t.editor.tabRefine, icon: Brush },
 ] as const;
 type Tab = (typeof tabs)[number]['key'];
 
@@ -58,16 +71,9 @@ const lineTargets = [
 type LineTarget = (typeof lineTargets)[number]['key'];
 
 const brushModes = [
-  { key: 'add', label: t.editor.brushAdd },
-  { key: 'erase', label: t.editor.brushErase },
+  { key: 'add', label: t.editor.brushAdd, icon: Plus },
+  { key: 'erase', label: t.editor.brushErase, icon: Eraser },
 ] as const;
-
-/**
- * Panel cao CỐ ĐỊNH để đổi tab không làm preview co giãn (design.md §4). Tab cao nhất là Viền:
- * tab 40 + hàng [Viền | Mặt] + công tắc 44 + slider 76 + 2 hàng màu 92 + ghi chú 26 + nút 48 +
- * khoảng cách ≈ 410.
- */
-const PANEL_HEIGHT = 410;
 
 const percent = (v: number) => {
   'worklet';
@@ -75,14 +81,14 @@ const percent = (v: number) => {
 };
 const px = (v: number) => {
   'worklet';
-  return `${v.toFixed(1)} px`;
+  return `${v.toFixed(1).replace('.', ',')} px`;
 };
 const pxInt = (v: number) => {
   'worklet';
   return `${Math.round(v)} px`;
 };
 
-/** Màn Chỉnh pose (business-flow §5.2, design.md §6.4). */
+/** Màn Chỉnh pose (business-flow §5.2, design.md §6.9). */
 export default function EditorScreen() {
   // from=camera: mở từ nút Chỉnh pose trên Camera; lưu thành bản mới thì Camera dùng luôn bản đó.
   const { poseId, from } = useLocalSearchParams<{ poseId: string; from?: string }>();
@@ -251,27 +257,15 @@ export default function EditorScreen() {
         : (pose?.landmarks ?? null),
     [contours, pose],
   );
-  const editingFace = lineTarget === 'face';
-  // Ghi chú khi đang chỉnh nét mặt mà ảnh không có mặt.
-  const faceNote = !editingFace
-    ? null
-    : !lm
-      ? t.editor.noLandmarks
-      : !lm.face
-        ? t.editor.noFace
-        : null;
+  // Ảnh không có mặt: ô "Mặt" tắt thay cho dòng ghi chú (góp ý Phase 4).
+  const hasFace = !!lm?.face;
+  const editingFace = hasFace && lineTarget === 'face';
+  const targets = lineTargets.map((o) => (o.key === 'face' ? { ...o, disabled: !hasFace } : o));
 
   return (
     <View style={[styles.root, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        {/* Tiêu đề căn giữa màn, không theo bề rộng nút Quay lại. */}
-        <View pointerEvents="none" style={styles.headerTitle}>
-          <Text accessibilityRole="header" style={[type.head, styles.ink]}>
-            {t.editor.title}
-          </Text>
-        </View>
-        <BackButton onPress={goBack} />
-      </View>
+      <StatusBar style="dark" />
+      <FlowHeader title={t.editor.title} onBack={goBack} />
 
       <View
         style={styles.preview}
@@ -309,135 +303,143 @@ export default function EditorScreen() {
         )}
       </View>
 
-      <View
-        style={[
-          styles.panel,
-          { height: PANEL_HEIGHT + insets.bottom, paddingBottom: insets.bottom + space[4] },
-        ]}
-      >
-        <Segmented options={tabs} value={tab} onChange={setTab} />
+      <View style={styles.chips} accessibilityRole="tablist">
+        {tabs.map((o) => (
+          <Chip
+            key={o.key}
+            label={o.label}
+            icon={o.icon}
+            selected={tab === o.key}
+            onPress={() => setTab(o.key)}
+          />
+        ))}
+      </View>
 
-        <View style={styles.controls}>
-          {tab === 'outline' && (
-            <>
-              {/* Viền và nét mặt chung tab nhưng chỉnh riêng (góp ý lần 3). */}
-              <View style={styles.targetRow}>
-                <View style={styles.targetSeg}>
-                  <Segmented options={lineTargets} value={lineTarget} onChange={setLineTarget} />
-                </View>
-                <Switch
-                  value={editingFace ? faceEnabled : outlineEnabled}
-                  onValueChange={editingFace ? setFaceEnabled : setOutlineEnabled}
-                  trackColor={{ true: color.accent, false: color.line }}
-                  thumbColor={color.ink}
-                  accessibilityLabel={editingFace ? t.editor.showFace : t.editor.showOutline}
+      <View style={styles.panel}>
+        {tab === 'outline' && (
+          <>
+            {/* Viền và nét mặt chung tab nhưng chỉnh riêng (góp ý lần 3). */}
+            <View style={styles.row}>
+              <View style={styles.rowSeg}>
+                <Segmented
+                  tone="card"
+                  options={targets}
+                  value={editingFace ? 'face' : 'outline'}
+                  onChange={setLineTarget}
                 />
               </View>
-              <Slider
-                key={lineTarget}
-                label={t.editor.thickness}
-                value={editingFace ? faceWidth : outlineWidth}
-                min={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].min}
-                max={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].max}
-                step={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].step}
-                format={px}
-              />
-              <SwatchRow
-                label={t.editor.color}
-                value={editingFace ? faceColor : outlineColor}
-                onChange={editingFace ? setFaceColor : setOutlineColor}
-              />
-              {faceNote && <Text style={[type.label, styles.muted]}>{faceNote}</Text>}
-            </>
-          )}
-          {tab === 'fill' && (
-            <>
-              <ToggleRow label={t.editor.showFill} value={fillEnabled} onChange={setFillEnabled} />
-              <Slider
-                label={t.editor.strength}
-                value={fillOpacity}
-                min={0}
-                max={1}
-                step={0.01}
-                format={percent}
-              />
-              <SwatchRow label={t.editor.color} value={fillColor} onChange={setFillColor} />
-            </>
-          )}
-          {tab === 'image' && (
-            <>
-              <Slider
-                label={t.editor.subjectVisibility}
-                value={subjectOpacity}
-                min={0}
-                max={1}
-                step={0.01}
-                format={percent}
-              />
-              <Slider
-                label={t.editor.backgroundVisibility}
-                value={backgroundOpacity}
-                min={0}
-                max={1}
-                step={0.01}
-                format={percent}
-              />
-            </>
-          )}
-          {tab === 'refine' && (
-            <>
-              <View style={styles.targetRow}>
-                <View style={styles.targetSeg}>
-                  <Segmented options={brushModes} value={brushMode} onChange={setBrushMode} />
-                </View>
-                <IconButton
-                  icon={Undo2}
-                  label={t.editor.undo}
-                  onPress={undo}
-                  disabled={!hist.canUndo}
-                />
-                <IconButton
-                  icon={Redo2}
-                  label={t.editor.redo}
-                  onPress={redo}
-                  disabled={!hist.canRedo}
-                />
-              </View>
-              <Slider
-                label={t.editor.brushSize}
-                value={brushSize}
-                min={refineBrush.min}
-                max={refineBrush.max}
-                step={refineBrush.step}
-                format={pxInt}
-              />
-              <Text style={[type.label, styles.muted]}>
-                {isSample ? t.editor.refineHint : `${t.editor.refineHint} ${t.editor.refineShared}`}
-              </Text>
-            </>
-          )}
-        </View>
-
-        <View style={styles.actions}>
-          {!isSample && (
-            <View style={styles.action}>
-              <Button
-                label={t.editor.saveAsNew}
-                variant="secondary"
-                onPress={() => save(true)}
-                disabled={!pose || saving}
-                fullWidth
+              <Toggle
+                value={editingFace ? faceEnabled : outlineEnabled}
+                onChange={editingFace ? setFaceEnabled : setOutlineEnabled}
+                label={editingFace ? t.editor.showFace : t.editor.showOutline}
               />
             </View>
-          )}
-          <View style={styles.action}>
+            <SwatchRow
+              label={t.editor.color}
+              value={editingFace ? faceColor : outlineColor}
+              onChange={editingFace ? setFaceColor : setOutlineColor}
+            />
+            <Slider
+              key={editingFace ? 'face' : 'outline'}
+              label={t.editor.thickness}
+              value={editingFace ? faceWidth : outlineWidth}
+              min={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].min}
+              max={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].max}
+              step={STYLE_LIMITS[editingFace ? 'faceWidth' : 'outlineWidth'].step}
+              format={px}
+            />
+          </>
+        )}
+        {tab === 'fill' && (
+          <>
+            <ToggleRow label={t.editor.showFill} value={fillEnabled} onChange={setFillEnabled} />
+            <SwatchRow label={t.editor.color} value={fillColor} onChange={setFillColor} />
+            <Slider
+              label={t.editor.strength}
+              value={fillOpacity}
+              min={0}
+              max={1}
+              step={0.01}
+              format={percent}
+            />
+          </>
+        )}
+        {tab === 'image' && (
+          <>
+            <Slider
+              label={t.editor.subjectVisibility}
+              value={subjectOpacity}
+              min={0}
+              max={1}
+              step={0.01}
+              format={percent}
+            />
+            <Slider
+              label={t.editor.backgroundVisibility}
+              value={backgroundOpacity}
+              min={0}
+              max={1}
+              step={0.01}
+              format={percent}
+            />
+          </>
+        )}
+        {tab === 'refine' && (
+          <>
+            {/* Hoàn tác / Làm lại chỉ cho nét cọ nên nằm ở đây, không ở đầu màn. */}
+            <View style={styles.row}>
+              <View style={styles.rowSeg}>
+                <Segmented
+                  tone="card"
+                  options={brushModes}
+                  value={brushMode}
+                  onChange={setBrushMode}
+                />
+              </View>
+              <IconButton
+                icon={Undo2}
+                label={t.editor.undo}
+                onPress={undo}
+                disabled={!hist.canUndo}
+              />
+              <IconButton
+                icon={Redo2}
+                label={t.editor.redo}
+                onPress={redo}
+                disabled={!hist.canRedo}
+              />
+            </View>
+            <Slider
+              label={t.editor.brushSize}
+              value={brushSize}
+              min={refineBrush.min}
+              max={refineBrush.max}
+              step={refineBrush.step}
+              format={pxInt}
+            />
+          </>
+        )}
+      </View>
+
+      <View style={[styles.actions, { paddingBottom: insets.bottom + space[3] }]}>
+        {!isSample && (
+          <View style={styles.actionSecondary}>
             <Button
-              label={saving ? t.editor.saving : t.editor.save}
-              onPress={() => save(false)}
+              label={t.editor.saveAsNew}
+              variant="secondary"
+              onPress={() => save(true)}
               disabled={!pose || saving}
               fullWidth
             />
           </View>
+        )}
+        <View style={styles.actionPrimary}>
+          <Button
+            label={saving ? t.editor.saving : t.editor.save}
+            onPress={() => save(false)}
+            disabled={!pose || saving}
+            fullWidth
+          />
         </View>
       </View>
     </View>
@@ -446,36 +448,39 @@ export default function EditorScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.bg },
-  header: {
-    height: 56,
-    paddingHorizontal: space[2],
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerTitle: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ink: { color: color.ink },
   muted: { color: color.muted },
-  center: { textAlign: 'center', marginTop: space[7] },
-  preview: { flex: 1 },
-  panel: {
+  center: { textAlign: 'center', marginTop: space[8] },
+  // Preview co theo chiều cao còn lại; panel cao cố định để đổi tab không làm preview nhảy.
+  preview: {
+    flex: 1,
+    marginHorizontal: size.edge,
+    marginTop: space[2],
+    borderRadius: radius.xxl,
+    overflow: 'hidden',
     backgroundColor: color.surface,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
-    paddingTop: space[4],
-    paddingHorizontal: size.gutter,
-    gap: space[4],
   },
-  controls: { flex: 1, gap: space[2] },
-  targetRow: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
-  targetSeg: { flex: 1 },
-  actions: { flexDirection: 'row', gap: space[3] },
-  action: { flex: 1 },
+  chips: {
+    flexDirection: 'row',
+    gap: editor.chipGap,
+    paddingHorizontal: size.edge,
+    paddingVertical: space[3],
+  },
+  panel: {
+    height: editor.panelHeight,
+    marginHorizontal: size.edge,
+    padding: editor.panelPad,
+    gap: editor.panelGap,
+    borderRadius: radius.xxl,
+    backgroundColor: color.surface,
+  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
+  rowSeg: { flex: 1 },
+  actions: {
+    flexDirection: 'row',
+    gap: space[2],
+    paddingHorizontal: size.edge,
+    paddingTop: space[3],
+  },
+  actionSecondary: { flex: 1 },
+  actionPrimary: { flex: 1.4 },
 });

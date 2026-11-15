@@ -8,7 +8,7 @@ import {
   Grid3x3,
   type LucideIcon,
   Pencil,
-  PersonStanding,
+  Plus,
   Ruler,
   Settings,
   SwitchCamera,
@@ -66,7 +66,7 @@ import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
 import { haptic } from '@/lib/haptics';
-import { Button, PressableScale, Screen } from '@/ui/components';
+import { EmptyState, PressableScale } from '@/ui/components';
 import { ease, easeIO } from '@/ui/easing';
 import { t } from '@/ui/strings';
 import { cameraUi, cameraZoom, color, motion, radius, size, space, type } from '@/ui/tokens';
@@ -75,19 +75,23 @@ const IDENTITY: Placement = { x: 0, y: 0, scale: 1, rotation: 0 };
 
 /** Camera — màn đầu tiên của app (business-flow §3, §4; design.md §6.1–6.2). */
 export default function CameraScreen() {
-  const [permission, requestPermission] = useCameraPermissions();
+  // Quyền camera: gọi thẳng hộp thoại của máy khi mở app, không có màn riêng (design.md §6.4).
+  const [permission, requestPermission] = useCameraPermissions({ request: true });
 
   if (!permission) return <View style={styles.root} />;
   if (!permission.granted) {
+    // Bị từ chối: một câu + một nút trên nền tối (iOS không hiện lại hộp thoại, phải mở Cài đặt).
     return (
-      <Screen title={t.app.name} scroll={false}>
-        <Text style={[type.body, styles.ink]}>{t.camera.permissionTitle}</Text>
-        <Button
-          label={permission.canAskAgain ? t.camera.permissionAllow : t.common.openSettings}
-          onPress={permission.canAskAgain ? requestPermission : () => Linking.openSettings()}
-          fullWidth
+      <View style={[styles.root, styles.denied]}>
+        <EmptyState
+          dark
+          message={t.camera.permissionTitle}
+          action={{
+            label: permission.canAskAgain ? t.camera.permissionAllow : t.common.openSettings,
+            onPress: permission.canAskAgain ? requestPermission : () => Linking.openSettings(),
+          }}
         />
-      </Screen>
+      </View>
     );
   }
   return <CameraBody />;
@@ -555,7 +559,7 @@ function CameraBody() {
               accessibilityLabel={t.camera.lastPhoto}
             >
               {busy ? (
-                <ActivityIndicator size="small" color={color.ink} />
+                <ActivityIndicator size="small" color={color.camInk} />
               ) : lastPhoto ? (
                 <Image source={{ uri: lastPhoto }} style={styles.thumbImage} />
               ) : null}
@@ -645,17 +649,19 @@ function BarButton({
       style={[styles.barButton, wide && styles.barButtonWide, onScrim && styles.scrim]}
     >
       {Icon && (
-        <Icon size={size.icon} strokeWidth={1.75} color={active ? color.accent : color.ink} />
+        <Icon size={size.icon} strokeWidth={1.75} color={active ? color.camAccent : color.camInk} />
       )}
       {children}
       {badge && (
-        <Text style={[styles.badge, { color: active ? color.accent : color.ink }]}>{badge}</Text>
+        <Text style={[styles.badge, { color: active ? color.camAccent : color.camInk }]}>
+          {badge}
+        </Text>
       )}
     </PressableScale>
   );
 }
 
-/** Nút pose: thumbnail pose đang dùng, viền 2 px màu nhấn khi pose đang bật (design.md §6.1). */
+/** Nút pose: thumbnail pose đang dùng; chưa có pose thì ô tròn dấu cộng (design.md §6.1–6.2). */
 function PoseButton({ pose, onPress }: { pose: Pose | null; onPress: () => void }) {
   return (
     <PressableScale
@@ -663,7 +669,7 @@ function PoseButton({ pose, onPress }: { pose: Pose | null; onPress: () => void 
       accessibilityLabel={t.camera.openLibrary}
       hitSlop={4}
       onPress={onPress}
-      style={[styles.thumb, pose && styles.poseOn]}
+      style={[styles.thumb, pose ? styles.poseOn : styles.poseEmpty]}
     >
       {pose ? (
         <PoseCanvas
@@ -688,7 +694,7 @@ function PoseButton({ pose, onPress }: { pose: Pose | null; onPress: () => void 
           faceWidth={0}
         />
       ) : (
-        <PersonStanding size={size.icon} strokeWidth={1.75} color={color.ink} />
+        <Plus size={size.icon} strokeWidth={2.5} color={color.camInk} />
       )}
     </PressableScale>
   );
@@ -700,14 +706,14 @@ function TrashZone({ inTrash }: { inTrash: SharedValue<boolean> }) {
     const on = inTrash.get();
     const cfg = { duration: motion.in, easing: ease };
     return {
-      borderColor: withTiming(on ? color.danger : color.line, cfg),
+      borderColor: withTiming(on ? color.danger : color.camLine, cfg),
       transform: [{ scale: withTiming(on ? cameraUi.trashActiveScale : 1, cfg) }],
     };
   });
   return (
     <View style={styles.trashWrap}>
       <Animated.View style={[styles.trash, ringStyle]}>
-        <Trash2 size={size.icon} strokeWidth={1.75} color={color.ink} />
+        <Trash2 size={size.icon} strokeWidth={1.75} color={color.camInk} />
       </Animated.View>
       <Text style={[type.label, styles.ink]}>{t.camera.dropToRemove}</Text>
     </View>
@@ -715,11 +721,12 @@ function TrashZone({ inTrash }: { inTrash: SharedValue<boolean> }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: color.bg },
+  root: { flex: 1, backgroundColor: color.camBg },
+  denied: { justifyContent: 'center' },
   abs: { position: 'absolute' },
   center: { alignItems: 'center', justifyContent: 'center' },
-  ink: { color: color.ink },
-  mask: { position: 'absolute', backgroundColor: color.bg },
+  ink: { color: color.camInk },
+  mask: { position: 'absolute', backgroundColor: color.camBg },
   shutterFlash: { backgroundColor: color.shutterFlash },
   top: {
     position: 'absolute',
@@ -740,7 +747,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   barButtonWide: { width: size.iconButton + space[3] },
-  scrim: { backgroundColor: color.scrim },
+  scrim: { backgroundColor: color.camScrim },
   badge: {
     position: 'absolute',
     right: 2,
@@ -767,20 +774,22 @@ const styles = StyleSheet.create({
     height: size.thumb,
     borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: color.line,
+    borderColor: color.camLine,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumbScrim: { backgroundColor: color.scrim },
+  thumbScrim: { backgroundColor: color.camScrim },
   thumbImage: { width: size.thumb, height: size.thumb },
-  poseOn: { borderWidth: 2, borderColor: color.accent },
+  poseOn: { borderWidth: 2, borderColor: color.camAccent },
+  /** Chưa có pose: ô tròn dấu cộng (design.md §6.2). */
+  poseEmpty: { borderRadius: radius.full, borderWidth: 2, borderColor: color.camAccent },
   shutter: {
     width: size.shutter,
     height: size.shutter,
     borderRadius: radius.full,
     borderWidth: 3,
-    borderColor: color.ink,
+    borderColor: color.camInk,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -788,14 +797,14 @@ const styles = StyleSheet.create({
     width: size.shutter - 14,
     height: size.shutter - 14,
     borderRadius: radius.full,
-    backgroundColor: color.ink,
+    backgroundColor: color.camInk,
   },
-  shutterCounting: { backgroundColor: color.accent },
+  shutterCounting: { backgroundColor: color.camAccent },
   countdown: {
     fontFamily: type.num.fontFamily,
     fontSize: cameraUi.countdownSize,
     lineHeight: cameraUi.countdownSize * 1.1,
-    color: color.ink,
+    color: color.camInk,
   },
   trashZone: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   trashWrap: { alignItems: 'center', gap: space[2] },
@@ -804,8 +813,8 @@ const styles = StyleSheet.create({
     height: cameraUi.trash,
     borderRadius: radius.full,
     borderWidth: 2,
-    borderColor: color.line,
-    backgroundColor: color.scrim,
+    borderColor: color.camLine,
+    backgroundColor: color.camScrim,
     alignItems: 'center',
     justifyContent: 'center',
   },

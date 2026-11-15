@@ -416,8 +416,10 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 - [ ] Điều hướng thống nhất: Camera là màn gốc; Thư viện, Chỉnh pose, Thay nền, Cài đặt mở cùng một kiểu; một kiểu đầu màn (tiêu đề + Quay lại hoặc Đóng)
 - [ ] Màn **Cài đặt** thay nút bánh răng đang mở màn thử nghiệm (business-flow §7.4). Màn thử nghiệm (spike B) chỉ còn hiện trong bản dev, giữ tới hết Phase 5
-- [ ] Một component chung cho trạng thái rỗng, lỗi, thiếu quyền
-- [ ] Token mới (màu xanh – trắng, Nunito, radius, kích thước) trong `src/ui/tokens.ts`; component theo design.md §4; sửa các chú thích trong code còn trỏ số mục design.md cũ
+- [x] Một component chung cho trạng thái rỗng, lỗi, thiếu quyền (`EmptyState`)
+- [x] Token mới (màu xanh – trắng, camera `cam*`, Nunito, radius, kích thước, bóng lớp nổi) trong `src/ui/tokens.ts`; bỏ Urbanist và DM Mono
+- [x] Component theo design.md §4: `Button` 6 kiểu, `BackButton`, `CloseButton`, `OverlayHeader` / `FlowHeader`, `Chip`, `Segmented` (2 tông, ô tắt được), `Slider`, `Swatch`, `Toggle`, `EmptyState`
+- [ ] Sửa các chú thích trong code còn trỏ số mục design.md cũ (làm dần khi sửa từng màn)
 - [ ] Chuyển màn và motion thống nhất theo design.md §3.5
 - [ ] Icon app, splash (chuyển từ Phase 6 lên đây vì là một phần của giao diện chung)
 
@@ -427,12 +429,14 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [ ] Zoom nút nhanh 0,5 · 1× · 2 · 3, giữ và kéo ngang thì thành thước
 - [ ] Cột công cụ dọc kéo được: lên xuống, quăng trái/phải dính mép, kẹp trong khung ngắm, nhớ vị trí
 - [ ] Giữ nút độ hiện: cột thành thanh kéo tại chỗ, một ngón, thả tay trở lại
-- [ ] Thư viện, Pose của bạn, Menu pose, Chỉnh pose (4 tab Viền · Phủ · Nền · Cọ, hoàn tác trong Cọ, không chú thích), Bảng màu theo design.md §6.5–6.10
+- [x] Thư viện (thẻ nhóm, nút nổi, các bước đang xử lý), Pose của bạn (thanh nổi Chọn tất cả · Xóa n pose), Chọn người, Chỉnh pose (4 tab Viền · Phủ · Nền · Cọ, hoàn tác trong Cọ, không chú thích, ô Mặt tắt khi không có mặt) theo design.md §6.5–6.9
+- [ ] Menu pose kiểu menu cạnh ô (design.md §6.7), thay cho hộp thoại hệ thống
+- [ ] Bảng màu nổi cạnh ô màu (design.md §6.10), thêm ô dấu cộng vào hàng màu
 - [ ] Chạm ảnh vừa chụp → màn **Xem ảnh vừa chụp** (business-flow §4.5)
 - [ ] Phản hồi khi chụp: hiệu ứng màn trập ngắn + rung, theo design.md
-- [ ] Chưa có pose: nút pose là ô tròn dấu cộng, không gợi ý (business-flow §7.2)
+- [x] Chưa có pose: nút pose là ô tròn dấu cộng, không gợi ý (business-flow §7.2)
 - [ ] Rà bố cục thanh trên, rail, vùng dưới ở cả 3 tỉ lệ khung, máy màn nhỏ và Android
-- [ ] Quyền camera: hộp thoại của máy, bị từ chối thì một câu + "Mở Cài đặt" trong khung ngắm (design.md §6.4)
+- [x] Quyền camera: hộp thoại của máy, bị từ chối thì một câu + "Mở Cài đặt" (design.md §6.4)
 - [ ] Thanh zoom: 4 nút nhanh, kéo ngang thành thước cuộn kim giữa (design.md §6.1)
 - [x] Đổi tên app thành **SnapShot**: tên hiển thị, slug, scheme, album ảnh, chuỗi giao diện (đã đổi trong code và tài liệu; file SQLite giữ tên `takeasnap.db` để không mất dữ liệu)
 

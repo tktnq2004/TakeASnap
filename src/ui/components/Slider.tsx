@@ -31,8 +31,10 @@ type Props = {
   compact?: boolean;
 };
 
-const THUMB = 24;
-const TRACK = 4;
+/** design.md §4 Slider: rãnh 10, núm 28 trắng viền 4 màu nhấn. */
+const THUMB = 28;
+const TRACK = 10;
+const THUMB_RING = 4;
 
 /**
  * Slider chạy hoàn toàn trên UI thread: kéo không gây re-render (roadmap §3.4).
@@ -106,10 +108,12 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd, 
     <View style={compact ? styles.compact : styles.root}>
       {!compact && (
         <View style={styles.header}>
-          <Text style={[type.body, styles.label]} maxFontSizeMultiplier={1.3}>
+          <Text style={[type.label, styles.label]} maxFontSizeMultiplier={1.3}>
             {label}
           </Text>
-          <AnimatedText text={text} style={[type.num, styles.value]} />
+          <View style={styles.pill}>
+            <AnimatedText text={text} style={[type.num, styles.value]} />
+          </View>
         </View>
       )}
       <GestureDetector gesture={gesture}>
@@ -133,11 +137,18 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd, 
 }
 
 const styles = StyleSheet.create({
-  root: { gap: space[2] },
+  root: { gap: space[1] },
   compact: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { color: color.ink },
-  value: { color: color.muted, minWidth: 56, textAlign: 'right' },
+  pill: {
+    minHeight: 26,
+    paddingHorizontal: space[3] - 2,
+    borderRadius: radius.full,
+    backgroundColor: color.accentSoft,
+    justifyContent: 'center',
+  },
+  value: { color: color.accent, minWidth: 44, textAlign: 'center' },
   hit: { height: size.tap, justifyContent: 'center' },
   track: {
     position: 'absolute',
@@ -145,7 +156,7 @@ const styles = StyleSheet.create({
     right: THUMB / 2,
     height: TRACK,
     borderRadius: radius.full,
-    backgroundColor: color.line,
+    backgroundColor: color.accentSoft,
   },
   fill: {
     position: 'absolute',
@@ -160,6 +171,8 @@ const styles = StyleSheet.create({
     width: THUMB,
     height: THUMB,
     borderRadius: radius.full,
-    backgroundColor: color.ink,
+    borderWidth: THUMB_RING,
+    borderColor: color.accent,
+    backgroundColor: color.surface,
   },
 });

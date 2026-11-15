@@ -1,7 +1,7 @@
 // Import theo từng weight để chỉ đóng gói 3 file font thay vì cả họ (design.md §3.3).
-import { DMMono_500Medium } from '@expo-google-fonts/dm-mono/500Medium';
-import { Urbanist_400Regular } from '@expo-google-fonts/urbanist/400Regular';
-import { Urbanist_500Medium } from '@expo-google-fonts/urbanist/500Medium';
+import { Nunito_600SemiBold } from '@expo-google-fonts/nunito/600SemiBold';
+import { Nunito_700Bold } from '@expo-google-fonts/nunito/700Bold';
+import { Nunito_800ExtraBold } from '@expo-google-fonts/nunito/800ExtraBold';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { SQLiteProvider } from 'expo-sqlite';
@@ -14,7 +14,7 @@ import { SegmenterProvider } from '@/engine/segmentation/SegmenterProvider';
 import { color } from '@/ui/tokens';
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ Urbanist_400Regular, Urbanist_500Medium, DMMono_500Medium });
+  const [fontsLoaded] = useFonts({ Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold });
 
   if (!fontsLoaded) return <View style={styles.root} />;
 
@@ -24,6 +24,7 @@ export default function RootLayout() {
       <SQLiteProvider databaseName="takeasnap.db" onInit={migrate}>
         {/* WebView tách người chế độ local (roadmap §3.7): gắn một lần, nạp model khi cần. */}
         <SegmenterProvider>
+          {/* Camera nền tối: chữ sáng. Màn nền trắng tự đặt lại thành chữ tối. */}
           <StatusBar style="light" />
           <Stack
             screenOptions={{
