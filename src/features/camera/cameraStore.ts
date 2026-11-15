@@ -43,6 +43,8 @@ type State = {
   railSide: RailSide;
   /** Tâm cột theo chiều cao khung ngắm, 0 = mép trên, 1 = mép dưới. */
   railY: number;
+  /** Cột công cụ thu gọn: chỉ còn nút chọn pose. */
+  railCollapsed: boolean;
 };
 
 type Actions = {
@@ -59,6 +61,9 @@ type Actions = {
   setOpacity: (v: number) => void;
   toggleMirror: () => void;
   setGrid: (g: GridMode) => void;
+  setFlash: (f: FlashMode) => void;
+  setTimer: (s: TimerSec) => void;
+  toggleRailCollapsed: () => void;
   setRail: (side: RailSide, y: number) => void;
 };
 
@@ -77,7 +82,7 @@ export const useCameraStore = create<State & Actions>()(
     (set) => ({
       flash: 'off',
       grid: 'off',
-      level: false,
+      level: true,
       timer: 0,
       aspect: '3:4',
       poseId: null,
@@ -85,6 +90,7 @@ export const useCameraStore = create<State & Actions>()(
       mirrored: false,
       railSide: 'right',
       railY: 0.5,
+      railCollapsed: false,
       cycleFlash: () => set((s) => ({ flash: next(['off', 'auto', 'on'] as const, s.flash) })),
       cycleGrid: () => set((s) => ({ grid: next(['off', '3', '4'] as const, s.grid) })),
       toggleLevel: () => set((s) => ({ level: !s.level })),
@@ -104,6 +110,9 @@ export const useCameraStore = create<State & Actions>()(
       setOpacity: (v) => set({ opacity: Math.min(1, Math.max(0, v)) }),
       toggleMirror: () => set((s) => ({ mirrored: !s.mirrored })),
       setGrid: (grid) => set({ grid }),
+      setFlash: (flash) => set({ flash }),
+      setTimer: (timer) => set({ timer }),
+      toggleRailCollapsed: () => set((s) => ({ railCollapsed: !s.railCollapsed })),
       setRail: (railSide, railY) => set({ railSide, railY: Math.min(1, Math.max(0, railY)) }),
     }),
     {
@@ -135,6 +144,7 @@ export const useCameraStore = create<State & Actions>()(
         mirrored: s.mirrored,
         railSide: s.railSide,
         railY: s.railY,
+        railCollapsed: s.railCollapsed,
       }),
     },
   ),

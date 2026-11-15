@@ -242,7 +242,8 @@ export const cameraRail = {
   pad: 4,
   gap: 4,
   item: 44,
-  grip: 14,
+  /** Nút thu gọn / mở cột ở đầu cột. */
+  toggle: 28,
   /** Cách mép khung ngắm. */
   inset: 6,
   thumb: 28,

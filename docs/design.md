@@ -257,7 +257,7 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `IconButton` | 44×44, `full`. Trên camera: nền trong suốt bên trong cụm kính; đang bật: nền `accent`. Có thể mang `Badge` |
 | `Badge` | 18 cao, nền trắng, chữ `accent` `badge`, góc trên phải nút |
 | `GlassGroup` | cụm nút camera: nền `camGlass`, `full`, đệm 4, khe 2 |
-| `ToolRail` | cột công cụ pose: rộng 52, nền `camScrim`, `full`, đệm 4, khe 4, vạch nắm 22×4 ở đầu. Kéo dọc tự do, quăng ngang dính mép trái/phải, luôn kẹp trong khung ngắm, nhớ vị trí (§6.1) |
+| `ToolRail` | cột công cụ pose: rộng 52, nền `camScrim`, `full`, đệm 4, khe 4, nút thu gọn / mở cao 28 ở đầu cột (khi có pose). Kéo ở bất kỳ đâu trên cột để dời, quăng ngang dính mép trái/phải, luôn kẹp trong khung ngắm, nhớ vị trí và trạng thái thu gọn (§6.1) |
 | `ZoomControl` | 4 nút 0,5 · 1× · 2 · 3 trong `GlassGroup`; kéo ngang thì thành **thước cuộn kim giữa** 330×56 (§6.1) |
 | `Shutter` | 82, vòng 5 px trắng, đĩa `accent` |
 | `Chip` | cao 42, `full`, nền `surface`, icon 18 `accent` + chữ `label`; đang chọn: nền `accent`, chữ và icon trắng. Tab của Chỉnh pose |
@@ -330,12 +330,12 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 
 ```
 ┌──────────────────────────────────┐
-│ ( ⚡A  ⏱  3:4  ⌄ )        ( ⚙ ) │  top 52: GlassGroup trái · Cài đặt 52 phải
+│ ( 📏  3:4  ⌄• )          ( ⚙ ) │  top 52: GlassGroup trái · Cài đặt 52 phải
 │╭────────────────────────────────╮│  khung ngắm: top 112, rộng hết màn, bo 28
 ││··························· ╭──╮ ││
 ││·········╭──╮·············│ ═ │││  cột công cụ (ToolRail), mặc định mép phải,
 ││·········│  │  pose ·······│[▣]│││  giữa khung ngắm:
-││········╭┴──┴╮············│ ✎ │││    vạch nắm · nút pose · Chỉnh pose
+││········╭┴──┴╮············│ ✎ │││    nút thu gọn · nút pose · Chỉnh pose
 ││──── ╱╱╱╱╱╱ ────··········│ ◐ │││    · Độ hiện (huy hiệu %) · Lật ngang
 ││·········│  │·············│ ⇋ │││    · Ẩn / hiện pose
 ││·········╰──╯·············│ ⊘ │││
@@ -348,11 +348,12 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 ```
 
 - **Không còn hàng chọn chế độ** dưới nút chụp (vòng 3). Chỗ vào Thay nền quyết ở Phase 5.
-- **Thanh trên:** Flash (tắt / bật / tự động, huy hiệu "A"), Hẹn giờ (tắt / 3 s / 10 s), Tỉ lệ (chữ `3:4`, chạm để đổi 3:4 → 9:16 → 1:1), nút Mở thêm công cụ. Cài đặt tách riêng bên phải.
-- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng 300, bo 24, ngay dưới thanh trên. Hai hàng cao 48: Lưới `[Tắt | 3×3 | 4×4]`, Thước cân bằng (công tắc). Chạm ra ngoài hoặc nút ⌃ thì thu gọn.
+- **Thanh trên** (góp ý Phase 4): Thước cân bằng (bật / tắt, mặc định bật), Tỉ lệ (chữ `3:4`, chạm để đổi 3:4 → 9:16 → 1:1), nút Mở thêm công cụ. Flash hoặc hẹn giờ đang bật thì nút Mở thêm có chấm vàng `camWarn`. Cài đặt tách riêng bên phải.
+- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Ba hàng cao 48: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]`, Lưới `[Tắt | 3×3 | 4×4]`. Chạm ra ngoài hoặc nút ⌃ thì thu gọn.
 - **Thước cân bằng:** vạch giữa 80×2 màu `camWarn` xoay theo độ nghiêng; lệch dưới 1° thì ba vạch nối thẳng, đổi `camAccent`, rung `selection`.
 - **Cột công cụ (`ToolRail`):**
-  - Chạm nhanh một nút = bấm nút. Kéo ở **bất kỳ đâu trên cột** (ngón đi quá 10 px) = dời cột; khi đó lượt chạm của nút bị hủy nên thả tay không bấm nhầm. Vạch nắm trên đầu cột chỉ để báo cột kéo được.
+  - Chạm nhanh một nút = bấm nút. Kéo ở **bất kỳ đâu trên cột** (ngón đi quá 10 px) = dời cột; khi đó lượt chạm của nút bị hủy nên thả tay không bấm nhầm.
+  - **Thu gọn** (góp ý Phase 4): nút ⌃ ở đầu cột thu cột lại, chỉ còn nút chọn pose; nút ⌄ mở lại. Trạng thái thu gọn được nhớ.
   - Kéo dọc tự do; thả với vận tốc ngang thì cột trôi rồi dính mép trái hoặc phải; thả chậm thì dính mép gần hơn.
   - Luôn kẹp trong khung ngắm (cách mép khung 6). Đổi tỉ lệ khung thì kẹp lại.
   - Vị trí lưu vào cài đặt máy, lần mở sau giữ nguyên.

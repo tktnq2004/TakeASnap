@@ -11,11 +11,11 @@ import {
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { PressableScale, Toggle } from '@/ui/components';
+import { PressableScale } from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
 
-import { type GridMode, useCameraStore } from './cameraStore';
+import { type FlashMode, type GridMode, type TimerSec, useCameraStore } from './cameraStore';
 
 type Props = {
   top: number;
@@ -28,17 +28,16 @@ type Props = {
 export const TOP_BAR_H = size.iconButton + 8;
 
 /**
- * Thanh trên của Camera (design.md §6.1): cụm kính Flash · Hẹn giờ · Tỉ lệ · Mở thêm bên trái,
- * Cài đặt bên phải. Mở thêm: bảng Lưới [Tắt | 3×3 | 4×4] và Thước cân bằng.
+ * Thanh trên của Camera (design.md §6.1): cụm kính Thước cân bằng · Tỉ lệ · Mở thêm bên trái, Cài
+ * đặt bên phải. Mở thêm: bảng Đèn flash, Hẹn giờ, Lưới (góp ý Phase 4). Flash hoặc hẹn giờ đang
+ * bật thì nút Mở thêm có chấm báo, để biết mà không phải mở bảng.
  */
 export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
   const flash = useCameraStore((s) => s.flash);
   const timer = useCameraStore((s) => s.timer);
+  const level = useCameraStore((s) => s.level);
   const aspect = useCameraStore((s) => s.aspect);
   const store = useCameraStore.getState;
-
-  const flashLabel =
-    flash === 'off' ? t.camera.flashOff : flash === 'on' ? t.camera.flashOn : t.camera.flashAuto;
 
   return (
     <>
@@ -53,18 +52,10 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
       <View style={[styles.bar, { top }]} pointerEvents="box-none">
         <View style={styles.glass}>
           <BarButton
-            icon={flash === 'off' ? ZapOff : Zap}
-            label={flashLabel}
-            onPress={store().cycleFlash}
-            active={flash !== 'off'}
-            badge={flash === 'auto' ? 'A' : undefined}
-          />
-          <BarButton
-            icon={Timer}
-            label={timer === 0 ? t.camera.timerOff : t.camera.timerSec(timer)}
-            onPress={store().cycleTimer}
-            active={timer > 0}
-            badge={timer > 0 ? String(timer) : undefined}
+            icon={Ruler}
+            label={level ? t.camera.levelOn : t.camera.levelOff}
+            onPress={store().toggleLevel}
+            active={level}
           />
           <BarButton label={t.camera.aspect(aspect)} onPress={store().cycleAspect} wide>
             <Text style={[type.label, styles.ink]}>{aspect}</Text>
@@ -76,6 +67,7 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
             active={open}
             flip={open}
             soft
+            dot={!open && (flash !== 'off' || timer > 0)}
           />
         </View>
         <PressableScale
@@ -94,47 +86,92 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
   );
 }
 
+const FLASH_OPTIONS: { key: FlashMode; label: string }[] = [
+  { key: 'off', label: t.camera.offShort },
+  { key: 'auto', label: t.camera.autoShort },
+  { key: 'on', label: t.camera.onShort },
+];
+
+const TIMER_OPTIONS: { key: TimerSec; label: string }[] = [
+  { key: 0, label: t.camera.offShort },
+  { key: 3, label: '3 s' },
+  { key: 10, label: '10 s' },
+];
+
 const GRID_OPTIONS: { key: GridMode; label: string }[] = [
-  { key: 'off', label: t.camera.gridOffShort },
+  { key: 'off', label: t.camera.offShort },
   { key: '3', label: '3×3' },
   { key: '4', label: '4×4' },
 ];
 
 function ToolsPanel({ top }: { top: number }) {
+  const flash = useCameraStore((s) => s.flash);
+  const timer = useCameraStore((s) => s.timer);
   const grid = useCameraStore((s) => s.grid);
-  const level = useCameraStore((s) => s.level);
   const store = useCameraStore.getState;
   return (
     <View style={[styles.panel, { top }]}>
-      <View style={styles.row}>
-        <View style={styles.rowLabel}>
-          <Grid3x3 size={size.iconSmall} strokeWidth={2} color={color.camAccent} />
-          <Text style={[type.label, styles.ink]}>{t.camera.grid}</Text>
-        </View>
-        <View style={styles.seg} accessibilityRole="radiogroup" accessibilityLabel={t.camera.grid}>
-          {GRID_OPTIONS.map((o) => {
-            const on = grid === o.key;
-            return (
-              <Pressable
-                key={o.key}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: on }}
-                accessibilityLabel={`${t.camera.grid} ${o.label}`}
-                onPress={() => store().setGrid(o.key)}
-                style={[styles.segCell, on && styles.segOn]}
-              >
-                <Text style={[type.caption, on ? styles.ink : styles.muted]}>{o.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
+      <PanelRow
+        icon={flash === 'off' ? ZapOff : Zap}
+        label={t.camera.flash}
+        options={FLASH_OPTIONS}
+        value={flash}
+        onChange={store().setFlash}
+      />
+      <PanelRow
+        icon={Timer}
+        label={t.camera.timer}
+        options={TIMER_OPTIONS}
+        value={timer}
+        onChange={store().setTimer}
+      />
+      <PanelRow
+        icon={Grid3x3}
+        label={t.camera.grid}
+        options={GRID_OPTIONS}
+        value={grid}
+        onChange={store().setGrid}
+      />
+    </View>
+  );
+}
+
+/** Một hàng của bảng mở thêm: icon + tên bên trái, thanh chọn tối bên phải. */
+function PanelRow<K extends string | number>({
+  icon: Icon,
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  icon: LucideIcon;
+  label: string;
+  options: { key: K; label: string }[];
+  value: K;
+  onChange: (k: K) => void;
+}) {
+  return (
+    <View style={styles.row}>
+      <View style={styles.rowLabel}>
+        <Icon size={size.iconSmall} strokeWidth={2} color={color.camAccent} />
+        <Text style={[type.label, styles.ink]}>{label}</Text>
       </View>
-      <View style={styles.row}>
-        <View style={styles.rowLabel}>
-          <Ruler size={size.iconSmall} strokeWidth={2} color={color.camAccent} />
-          <Text style={[type.label, styles.ink]}>{t.camera.level}</Text>
-        </View>
-        <Toggle value={level} onChange={() => store().toggleLevel()} label={t.camera.level} />
+      <View style={styles.seg} accessibilityRole="radiogroup" accessibilityLabel={label}>
+        {options.map((o) => {
+          const on = value === o.key;
+          return (
+            <Pressable
+              key={String(o.key)}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: on }}
+              accessibilityLabel={`${label} ${o.label}`}
+              onPress={() => onChange(o.key)}
+              style={[styles.segCell, on && styles.segOn]}
+            >
+              <Text style={[type.caption, on ? styles.ink : styles.muted]}>{o.label}</Text>
+            </Pressable>
+          );
+        })}
       </View>
     </View>
   );
@@ -149,6 +186,7 @@ function BarButton({
   wide,
   flip,
   soft,
+  dot,
   children,
 }: {
   icon?: LucideIcon;
@@ -161,6 +199,8 @@ function BarButton({
   flip?: boolean;
   /** Nền mờ nhẹ cho nút Mở thêm. */
   soft?: boolean;
+  /** Chấm báo: có cài đặt đang bật nằm trong bảng mở thêm. */
+  dot?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -184,6 +224,7 @@ function BarButton({
       )}
       {children}
       {badge && <Text style={styles.badge}>{badge}</Text>}
+      {dot && <View style={styles.dot} />}
     </PressableScale>
   );
 }
@@ -236,12 +277,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     ...type.badge,
   },
+  dot: {
+    position: 'absolute',
+    right: 6,
+    top: 6,
+    width: 8,
+    height: 8,
+    borderRadius: radius.full,
+    backgroundColor: color.camWarn,
+  },
   ink: { color: color.camInk },
   muted: { color: color.camMuted },
   panel: {
     position: 'absolute',
     left: size.edge,
-    width: 300,
+    right: size.edge,
+    maxWidth: 360,
     paddingVertical: space[2],
     paddingHorizontal: space[4],
     borderRadius: radius.xl,

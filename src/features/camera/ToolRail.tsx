@@ -1,4 +1,6 @@
 import {
+  ChevronDown,
+  ChevronUp,
   Contrast,
   Eye,
   EyeOff,
@@ -64,7 +66,9 @@ type Props = {
 /** Ngón tay đi quá chừng này mới tính là kéo cột (dưới mức đó là chạm nút). */
 const DRAG_SLOP = 10;
 
-const railHeight = (items: number) => R.pad * 2 + R.grip + items * (R.gap + R.item);
+/** Cao của cột: nút thu gọn (khi có pose) + các nút. */
+const railHeight = (items: number, toggle: boolean) =>
+  R.pad * 2 + (toggle ? R.toggle + R.gap : 0) + items * R.item + (items - 1) * R.gap;
 
 /** Rãnh thanh độ hiện: nằm gọn trong cột, chừa chỗ cho số % ở trên và nửa núm ở dưới. */
 const sliderTrack = (railH: number) => railH - R.sliderTop - R.sliderBottom;
@@ -81,8 +85,11 @@ export function ToolRail(p: Props) {
   const railY = useCameraStore((s) => s.railY);
   const savedOpacity = useCameraStore((s) => s.opacity);
   const { frame, opacity, dim, onOpacityEnd, onCycleOpacity } = p;
-  const items = p.pose ? 5 : 1;
-  const railH = railHeight(items);
+  const collapsed = useCameraStore((s) => s.railCollapsed);
+  // Thu gọn (góp ý Phase 4): chỉ còn nút chọn pose. Chưa có pose thì cột chỉ là ô dấu cộng.
+  const full = p.pose != null && !collapsed;
+  const items = full ? 5 : 1;
+  const railH = railHeight(items, p.pose != null);
   const trackH = sliderTrack(railH);
 
   const left = useSharedValue(railLeft(side, frame, R.width, R.inset));
@@ -197,14 +204,28 @@ export function ToolRail(p: Props) {
         style={[styles.rail, { height: railH }, railStyle]}
         accessibilityLabel={t.camera.railGrip}
       >
-        {/* Vạch nắm chỉ để báo cột kéo được; kéo ở đâu trên cột cũng được. */}
-        <Animated.View style={[styles.grip, bodyStyle]}>
-          <View style={styles.gripBar} />
-        </Animated.View>
+        {/* Nút thu gọn / mở cột (thay cho vạch nắm). Kéo ở đâu trên cột cũng dời được cột. */}
+        {p.pose && (
+          <Animated.View style={bodyStyle}>
+            <PressableScale
+              accessibilityRole="button"
+              accessibilityLabel={collapsed ? t.camera.railExpand : t.camera.railCollapse}
+              hitSlop={{ top: 8, bottom: 4, left: 4, right: 4 }}
+              onPress={useCameraStore.getState().toggleRailCollapsed}
+              style={styles.toggle}
+            >
+              {collapsed ? (
+                <ChevronDown size={size.iconSmall} strokeWidth={2.5} color={color.camInk} />
+              ) : (
+                <ChevronUp size={size.iconSmall} strokeWidth={2.5} color={color.camInk} />
+              )}
+            </PressableScale>
+          </Animated.View>
+        )}
 
         <Animated.View style={[styles.body, bodyStyle]}>
           <PoseButton pose={p.pose} onPress={p.onOpenLibrary} />
-          {p.pose && (
+          {full && (
             <>
               <RailButton icon={Pencil} label={t.camera.editPose} onPress={p.onEdit} />
               <GestureDetector gesture={opacityGesture}>
@@ -235,7 +256,7 @@ export function ToolRail(p: Props) {
         </Animated.View>
 
         {/* Thanh độ hiện: thay chỗ cột trong lúc giữ nút. */}
-        {p.pose && (
+        {full && (
           <Animated.View pointerEvents="none" style={[styles.slider, sliderStyle]}>
             <AnimatedText text={pctText} style={[type.num, styles.pct]} />
             <View style={[styles.track, { height: trackH }]}>
@@ -326,9 +347,14 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     backgroundColor: color.camScrim,
   },
-  grip: { height: R.grip, alignItems: 'center', justifyContent: 'center' },
-  gripBar: { width: 22, height: 4, borderRadius: 2, backgroundColor: color.camMuted },
-  body: { gap: R.gap, paddingTop: R.gap },
+  toggle: {
+    height: R.toggle,
+    marginBottom: R.gap,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  body: { gap: R.gap },
   button: {
     width: R.item,
     height: R.item,
