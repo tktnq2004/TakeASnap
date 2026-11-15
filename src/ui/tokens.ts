@@ -205,6 +205,25 @@ export const library = {
 /** Chỉnh pose (design.md §6.9): panel trắng cao cố định, preview bo góc. */
 export const editor = { panelHeight: 232, panelPad: 18, panelGap: 14, chipGap: 8 } as const;
 
+/**
+ * Cột công cụ pose trên Camera (design.md §6.1): rộng 52, đệm 4, nút 44; vạch nắm ở đầu cột để
+ * kéo. Giữ nút độ hiện thì cột thành thanh kéo cao `track`.
+ */
+export const cameraRail = {
+  width: 52,
+  pad: 4,
+  gap: 4,
+  item: 44,
+  grip: 14,
+  /** Cách mép khung ngắm. */
+  inset: 6,
+  track: 230,
+  thumb: 32,
+  sliderPad: 20,
+  /** Khi đang kéo pose: cột và hàng chụp mờ còn chừng này. */
+  dimOpacity: 0.25,
+} as const;
+
 /** Nét lưới khung ngắm: nét sáng 1 px kẹp giữa hai viền tối 1 px. */
 export const gridLine = { width: 1, halo: 1 } as const;
 
@@ -212,7 +231,7 @@ export const levelGuide = { levelDeg: 1, length: 96, ref: 16, thickness: 2 } as 
 
 /** Camera: vùng xóa (design.md §6.3), hẹn giờ, chớp chụp. */
 export const cameraUi = {
-  trash: 64,
+  trash: 74,
   /** NGÓN TAY vào trong bán kính này quanh tâm vùng xóa thì tính là thả để gỡ. */
   trashRadius: 56,
   /** Vòng vùng xóa phóng nhẹ khi ngón tay vào. */

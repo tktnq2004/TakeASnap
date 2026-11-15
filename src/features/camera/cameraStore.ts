@@ -4,6 +4,7 @@
  *
  * - Cài đặt camera: flash, lưới, thước, hẹn giờ, tỉ lệ khung.
  * - Pose đang dùng + điều khiển nhanh: độ hiện, lật ngang (business-flow §4.4).
+ * - Vị trí cột công cụ pose (design.md §6.1): mép trái / phải và độ cao trong khung ngắm.
  * - Placement theo từng pose (BR-10): lưu riêng một khóa mỗi pose, chỉ ghi khi nhấc tay.
  */
 import Storage from 'expo-sqlite/kv-store';
@@ -17,8 +18,17 @@ import type { AspectId } from './frame';
 export type FlashMode = 'off' | 'on' | 'auto';
 export type GridMode = 'off' | '3' | '4';
 export type TimerSec = 0 | 3 | 10;
-/** Độ hiện overlay: 3 mức chạm nhanh. */
+/** Độ hiện overlay: chạm để đổi nhanh qua 3 mức này; giữ nút để kéo liên tục 0–100%. */
 export const OVERLAY_OPACITY = [1, 0.6, 0.3] as const;
+
+/** Mức kế tiếp khi chạm nút độ hiện: 100% → 60% → 30% → 100%. */
+export function nextOpacity(v: number): number {
+  if (v > 0.8) return OVERLAY_OPACITY[1];
+  if (v > 0.45) return OVERLAY_OPACITY[2];
+  return OVERLAY_OPACITY[0];
+}
+
+export type RailSide = 'left' | 'right';
 
 type State = {
   flash: FlashMode;
@@ -27,8 +37,12 @@ type State = {
   timer: TimerSec;
   aspect: AspectId;
   poseId: string | null;
-  opacityLevel: 0 | 1 | 2;
+  /** 0..1. */
+  opacity: number;
   mirrored: boolean;
+  railSide: RailSide;
+  /** Tâm cột theo chiều cao khung ngắm, 0 = mép trên, 1 = mép dưới. */
+  railY: number;
 };
 
 type Actions = {
@@ -42,7 +56,10 @@ type Actions = {
   replacePose: (id: string) => void;
   clearPose: () => void;
   cycleOpacity: () => void;
+  setOpacity: (v: number) => void;
   toggleMirror: () => void;
+  setGrid: (g: GridMode) => void;
+  setRail: (side: RailSide, y: number) => void;
 };
 
 const next = <T>(list: readonly T[], v: T): T => list[(list.indexOf(v) + 1) % list.length]!;
@@ -64,8 +81,10 @@ export const useCameraStore = create<State & Actions>()(
       timer: 0,
       aspect: '3:4',
       poseId: null,
-      opacityLevel: 0,
+      opacity: 1,
       mirrored: false,
+      railSide: 'right',
+      railY: 0.5,
       cycleFlash: () => set((s) => ({ flash: next(['off', 'auto', 'on'] as const, s.flash) })),
       cycleGrid: () => set((s) => ({ grid: next(['off', '3', '4'] as const, s.grid) })),
       toggleLevel: () => set((s) => ({ level: !s.level })),
@@ -81,13 +100,30 @@ export const useCameraStore = create<State & Actions>()(
           return { poseId: id };
         }),
       clearPose: () => set({ poseId: null }),
-      cycleOpacity: () => set((s) => ({ opacityLevel: ((s.opacityLevel + 1) % 3) as 0 | 1 | 2 })),
+      cycleOpacity: () => set((s) => ({ opacity: nextOpacity(s.opacity) })),
+      setOpacity: (v) => set({ opacity: Math.min(1, Math.max(0, v)) }),
       toggleMirror: () => set((s) => ({ mirrored: !s.mirrored })),
+      setGrid: (grid) => set({ grid }),
+      setRail: (railSide, railY) => set({ railSide, railY: Math.min(1, Math.max(0, railY)) }),
     }),
     {
       name: 'camera',
-      version: 1,
+      version: 2,
       storage: syncStorage,
+      // v1 lưu độ hiện là mức 0/1/2; v2 lưu giá trị 0..1 và vị trí cột công cụ.
+      migrate: (old, version) => {
+        const o = (old ?? {}) as Partial<State> & { opacityLevel?: 0 | 1 | 2 };
+        if (version < 2) {
+          const { opacityLevel, ...rest } = o;
+          return {
+            ...rest,
+            opacity: OVERLAY_OPACITY[opacityLevel ?? 0],
+            railSide: 'right',
+            railY: 0.5,
+          } as State;
+        }
+        return o as State;
+      },
       partialize: (s) => ({
         flash: s.flash,
         grid: s.grid,
@@ -95,8 +131,10 @@ export const useCameraStore = create<State & Actions>()(
         timer: s.timer,
         aspect: s.aspect,
         poseId: s.poseId,
-        opacityLevel: s.opacityLevel,
+        opacity: s.opacity,
         mirrored: s.mirrored,
+        railSide: s.railSide,
+        railY: s.railY,
       }),
     },
   ),

@@ -1,11 +1,13 @@
-import { StyleSheet, TextInput, type TextStyle, type StyleProp } from 'react-native';
+import type { ComponentProps } from 'react';
+import { StyleSheet, TextInput } from 'react-native';
 import Animated, { type SharedValue, useAnimatedProps } from 'react-native-reanimated';
 
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
 type Props = {
   text: SharedValue<string>;
-  style?: StyleProp<TextStyle>;
+  /** Nhận cả style động (vd màu đổi theo shared value). */
+  style?: ComponentProps<typeof AnimatedTextInput>['style'];
 };
 
 /**

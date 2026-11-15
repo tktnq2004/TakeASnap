@@ -425,10 +425,10 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 **Bước 3 — Màn Camera**
 
-- [ ] Bố cục Camera mới (design.md §6.1–6.3): thanh trên + bảng mở thêm, khung ngắm bo góc, hàng chụp; bỏ hàng chọn chế độ (chỗ vào Thay nền chốt ở Phase 5)
-- [ ] Zoom nút nhanh 0,5 · 1× · 2 · 3, giữ và kéo ngang thì thành thước
-- [ ] Cột công cụ dọc kéo được: lên xuống, quăng trái/phải dính mép, kẹp trong khung ngắm, nhớ vị trí
-- [ ] Giữ nút độ hiện: cột thành thanh kéo tại chỗ, một ngón, thả tay trở lại
+- [x] Bố cục Camera mới (design.md §6.1–6.3): thanh trên + bảng mở thêm, khung ngắm bo góc, hàng chụp; bỏ hàng chọn chế độ (chỗ vào Thay nền chốt ở Phase 5)
+- [x] Zoom nút nhanh 0,5 · 1× · 2 · 3, giữ và kéo ngang thì thành thước
+- [x] Cột công cụ dọc kéo được: lên xuống, quăng trái/phải dính mép, kẹp trong khung ngắm, nhớ vị trí
+- [x] Giữ nút độ hiện: cột thành thanh kéo tại chỗ, một ngón, thả tay trở lại
 - [x] Thư viện (thẻ nhóm, nút nổi, các bước đang xử lý), Pose của bạn (thanh nổi Chọn tất cả · Xóa n pose), Chọn người, Chỉnh pose (4 tab Viền · Phủ · Nền · Cọ, hoàn tác trong Cọ, không chú thích, ô Mặt tắt khi không có mặt) theo design.md §6.5–6.9
 - [ ] Menu pose kiểu menu cạnh ô (design.md §6.7), thay cho hộp thoại hệ thống
 - [ ] Bảng màu nổi cạnh ô màu (design.md §6.10), thêm ô dấu cộng vào hàng màu
@@ -437,7 +437,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [x] Chưa có pose: nút pose là ô tròn dấu cộng, không gợi ý (business-flow §7.2)
 - [ ] Rà bố cục thanh trên, rail, vùng dưới ở cả 3 tỉ lệ khung, máy màn nhỏ và Android
 - [x] Quyền camera: hộp thoại của máy, bị từ chối thì một câu + "Mở Cài đặt" (design.md §6.4)
-- [ ] Thanh zoom: 4 nút nhanh, kéo ngang thành thước cuộn kim giữa (design.md §6.1)
+- [x] Thanh zoom: 4 nút nhanh, kéo ngang thành thước cuộn kim giữa (design.md §6.1)
 - [x] Đổi tên app thành **SnapShot**: tên hiển thị, slug, scheme, album ảnh, chuỗi giao diện (đã đổi trong code và tài liệu; file SQLite giữ tên `takeasnap.db` để không mất dữ liệu)
 
 **Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; Thay nền có sẵn khung để Phase 5 điền nội dung; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.

@@ -23,7 +23,8 @@ type Props = {
   /** Style transform của useTransformGesture. */
   transform: AnimatedStyle<ViewStyle>;
   scale: SharedValue<number>;
-  opacity: number;
+  /** Độ hiện 0..1, kéo được liên tục (giữ nút độ hiện). */
+  opacity: SharedValue<number>;
   mirrored: boolean;
   hidden: boolean;
   /** Hiện khung bao 1 px khi đang kéo/pinch/xoay (design.md §6.2). */
@@ -44,10 +45,13 @@ export function PoseOverlay(p: Props) {
   const outlineWidth = useDerivedValue(() => s.outlineWidth / scale.get());
   const faceWidth = useDerivedValue(() => s.faceWidth / scale.get());
 
-  const visible = p.hidden ? 0 : p.opacity;
-  const fadeStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(visible, { duration: motion.in, easing: ease }),
+  // Hai lớp: ẩn tạm có chuyển động 140 ms; độ hiện đi theo ngón tay, không trễ.
+  const hidden = p.hidden;
+  const hideStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(hidden ? 0 : 1, { duration: motion.in, easing: ease }),
   }));
+  const { opacity } = p;
+  const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.get() }));
   const { showBox } = p;
   const boxStyle = useAnimatedStyle(() => ({
     borderWidth: 1 / scale.get(),
@@ -59,29 +63,31 @@ export function PoseOverlay(p: Props) {
       pointerEvents="none"
       style={[styles.abs, { width: p.width, height: p.height }, p.transform]}
     >
-      <Animated.View
-        style={[styles.fill, fadeStyle, p.mirrored && { transform: [{ scaleX: -1 }] }]}
-      >
-        <PoseCanvas
-          source={p.pose.source}
-          imageWidth={p.pose.width}
-          imageHeight={p.pose.height}
-          contours={p.pose.contours}
-          landmarks={p.pose.landmarks}
-          width={p.width}
-          height={p.height}
-          outlineEnabled={s.outlineEnabled}
-          outlineColor={s.outlineColor}
-          outlineWidth={outlineWidth}
-          fillEnabled={s.fillEnabled}
-          fillColor={s.fillColor}
-          fillOpacity={s.fillOpacity}
-          subjectOpacity={s.subjectOpacity}
-          backgroundOpacity={s.backgroundOpacity}
-          faceEnabled={s.faceEnabled}
-          faceColor={s.faceColor}
-          faceWidth={faceWidth}
-        />
+      <Animated.View style={[styles.fill, hideStyle]}>
+        <Animated.View
+          style={[styles.fill, fadeStyle, p.mirrored && { transform: [{ scaleX: -1 }] }]}
+        >
+          <PoseCanvas
+            source={p.pose.source}
+            imageWidth={p.pose.width}
+            imageHeight={p.pose.height}
+            contours={p.pose.contours}
+            landmarks={p.pose.landmarks}
+            width={p.width}
+            height={p.height}
+            outlineEnabled={s.outlineEnabled}
+            outlineColor={s.outlineColor}
+            outlineWidth={outlineWidth}
+            fillEnabled={s.fillEnabled}
+            fillColor={s.fillColor}
+            fillOpacity={s.fillOpacity}
+            subjectOpacity={s.subjectOpacity}
+            backgroundOpacity={s.backgroundOpacity}
+            faceEnabled={s.faceEnabled}
+            faceColor={s.faceColor}
+            faceWidth={faceWidth}
+          />
+        </Animated.View>
       </Animated.View>
       <View style={[styles.abs, styles.center, { width: p.width, height: p.height }]}>
         <Animated.View style={[{ width: box.width, height: box.height }, styles.box, boxStyle]} />

@@ -55,3 +55,40 @@ export function formatZoom(factor: number): string {
   'worklet';
   return `${factor.toFixed(1).replace('.', ',')}×`;
 }
+
+/** Thước cuộn (design.md §6.1, kiểu B): mỗi lần gấp đôi hệ số cách nhau chừng này px. */
+export const TAPE_PX_PER_DOUBLING = 70;
+
+/** Vị trí của một hệ số trên thước, tính từ mốc 1×. */
+export function tapeOffset(factor: number): number {
+  'worklet';
+  return Math.log2(factor) * TAPE_PX_PER_DOUBLING;
+}
+
+/**
+ * Kéo thước: thước chạy theo ngón tay dưới kim đứng yên, nên kéo sang trái là tăng zoom.
+ * Làm tròn bước 0,1.
+ */
+export function factorFromTape(start: number, dx: number, min: number, max: number): number {
+  'worklet';
+  const f = start * Math.pow(2, -dx / TAPE_PX_PER_DOUBLING);
+  return Math.min(max, Math.max(min, Math.round(f * 10) / 10));
+}
+
+/** Nút nhanh đang "chứa" hệ số hiện tại: nút lớn nhất không vượt quá hệ số đó. */
+export function presetIndex(factor: number, presets: readonly number[]): number {
+  'worklet';
+  let i = 0;
+  for (let k = 0; k < presets.length; k++) if (factor >= presets[k]! - 0.05) i = k;
+  return i;
+}
+
+/** Có đi qua một mốc nút nhanh giữa hai giá trị không (để rung). */
+export function crossedPreset(a: number, b: number, presets: readonly number[]): boolean {
+  'worklet';
+  if (a === b) return false;
+  const lo = Math.min(a, b);
+  const hi = Math.max(a, b);
+  for (const p of presets) if (p > lo && p <= hi) return true;
+  return false;
+}

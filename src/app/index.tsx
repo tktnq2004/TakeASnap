@@ -1,23 +1,9 @@
 import { type CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
-import {
-  Contrast,
-  EyeOff,
-  FlipHorizontal2,
-  Grid3x3,
-  type LucideIcon,
-  Pencil,
-  Plus,
-  Ruler,
-  Settings,
-  SwitchCamera,
-  Timer,
-  Trash2,
-  Zap,
-  ZapOff,
-} from 'lucide-react-native';
-import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { SwitchCamera, Trash2 } from 'lucide-react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -49,19 +35,20 @@ import { CameraLayer, ULTRA_WIDE_LENS } from '@/features/camera/CameraLayer';
 import {
   clearPlacement,
   loadPlacement,
-  OVERLAY_OPACITY,
+  nextOpacity,
   savePlacement,
   useCameraStore,
 } from '@/features/camera/cameraStore';
+import { CameraTopBar, TOP_BAR_H } from '@/features/camera/CameraTopBar';
 import { cropToFrame, PhotoPermissionError, saveToAlbum } from '@/features/camera/capture';
 import { ASPECTS, type Rect, viewfinderRect } from '@/features/camera/frame';
 import { FrameGrid, LevelGuide } from '@/features/camera/FrameGuides';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
 import { PoseOverlay } from '@/features/camera/PoseOverlay';
+import { ToolRail } from '@/features/camera/ToolRail';
 import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
-import { ZoomSlider } from '@/features/camera/ZoomSlider';
-import { PoseCanvas } from '@/features/pose/PoseCanvas';
+import { ZoomControl, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
@@ -69,11 +56,25 @@ import { haptic } from '@/lib/haptics';
 import { EmptyState, PressableScale } from '@/ui/components';
 import { ease, easeIO } from '@/ui/easing';
 import { t } from '@/ui/strings';
-import { cameraUi, cameraZoom, color, motion, radius, size, space, type } from '@/ui/tokens';
+import {
+  cameraRail,
+  cameraUi,
+  cameraZoom,
+  color,
+  motion,
+  radius,
+  size,
+  space,
+  type,
+} from '@/ui/tokens';
 
 const IDENTITY: Placement = { x: 0, y: 0, scale: 1, rotation: 0 };
 
-/** Camera — màn đầu tiên của app (business-flow §3, §4; design.md §6.1–6.2). */
+/** Khoảng giữa các khối ở vùng dưới (design.md §6.1). */
+const BOTTOM_PAD = space[4];
+const ROW_GAP = 14;
+
+/** Camera — màn đầu tiên của app (business-flow §3, §4; design.md §6.1–6.4). */
 export default function CameraScreen() {
   // Quyền camera: gọi thẳng hộp thoại của máy khi mở app, không có màn riêng (design.md §6.4).
   const [permission, requestPermission] = useCameraPermissions({ request: true });
@@ -83,6 +84,7 @@ export default function CameraScreen() {
     // Bị từ chối: một câu + một nút trên nền tối (iOS không hiện lại hộp thoại, phải mở Cài đặt).
     return (
       <View style={[styles.root, styles.denied]}>
+        <StatusBar style="light" />
         <EmptyState
           dark
           message={t.camera.permissionTitle}
@@ -108,7 +110,7 @@ function CameraBody() {
   const timer = useCameraStore((s) => s.timer);
   const aspect = useCameraStore((s) => s.aspect);
   const poseId = useCameraStore((s) => s.poseId);
-  const opacityLevel = useCameraStore((s) => s.opacityLevel);
+  const storedOpacity = useCameraStore((s) => s.opacity);
   const mirrored = useCameraStore((s) => s.mirrored);
   const store = useCameraStore.getState;
 
@@ -117,24 +119,25 @@ function CameraBody() {
   const [lenses, setLenses] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [pose, setPose] = useState<Pose | null>(null);
   const [busy, setBusy] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [lastPhoto, setLastPhoto] = useState<string | null>(null);
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ---- Bố cục: thanh trên, vùng dưới, khung ngắm theo tỉ lệ (frame.ts) ----
-  const topH = insets.top + space[2] + size.iconButton + space[2];
-  const bottomH = insets.bottom + space[4] + size.shutter + space[4] + size.tap + space[3];
+  // ---- Bố cục (design.md §6.1): thanh trên, khung ngắm, zoom, hàng chụp ----
+  const barTop = insets.top + space[2];
+  const topH = barTop + TOP_BAR_H + space[2];
+  const shutterBottom = insets.bottom + BOTTOM_PAD;
+  const zoomBottom = shutterBottom + size.shutter + ROW_GAP;
+  const bottomH = zoomBottom + zoomControlHeight + space[3];
   const frame: Rect = viewfinderRect(root.width, root.height, topH, bottomH, ASPECTS[aspect]);
   const frameCx = frame.x + frame.width / 2;
   const frameCy = frame.y + frame.height / 2;
-  const overTop = frame.y < topH;
-  const overBottom = frame.y + frame.height > root.height - bottomH;
-  // Tâm vùng xóa (design.md §6.2: giữa vùng dưới, trên dòng chữ "Thả để gỡ pose").
+  // Vùng xóa nằm đúng chỗ cụm zoom (design.md §6.3).
   const trashX = root.width / 2;
-  const trashY =
-    root.height - insets.bottom - space[4] - type.label.lineHeight - space[2] - cameraUi.trash / 2;
+  const trashY = root.height - zoomBottom - zoomControlHeight / 2;
 
   // ---- Pose đang dùng: đọc lại mỗi lần quay về Camera (có thể vừa sửa hoặc xóa) ----
   const loadPose = useCallback(() => {
@@ -151,6 +154,12 @@ function CameraBody() {
     });
   }, [db, poseId]);
   useFocusEffect(loadPose);
+
+  // ---- Độ hiện: shared value để giữ nút rồi kéo không gây re-render ----
+  const opacity = useSharedValue(storedOpacity);
+  useEffect(() => {
+    opacity.set(storedOpacity);
+  }, [storedOpacity, opacity]);
 
   // ---- Overlay: chạm trúng pose là kéo/pinch/xoay ngay, nhấc tay là xong (góp ý Phase 2) ----
   const hitW = useSharedValue(0);
@@ -243,7 +252,7 @@ function CameraBody() {
     ),
   );
 
-  // ---- Zoom camera: thanh kéo, hoặc pinch khi lượt chạm không bắt đầu trên pose (BR-11) ----
+  // ---- Zoom camera: cụm nút / thước cuộn, hoặc pinch khi lượt chạm không bắt đầu trên pose ----
   // 0,5× chỉ có trên iPhone có ống góc rộng (đổi ống qua selectedLens, CameraLayer lo).
   const hasUltraWide =
     Platform.OS === 'ios' && facing === 'back' && lenses.includes(ULTRA_WIDE_LENS);
@@ -276,10 +285,16 @@ function CameraBody() {
     settle.set(settle.get() + 1);
   };
 
-  // Đang kéo pose: ẩn điều khiển dưới, hiện vùng xóa.
+  // Đang kéo pose: cụm zoom nhường chỗ cho vùng xóa; cột công cụ và hàng chụp mờ đi.
   const dragging = useDerivedValue(() => moved.get() || inTrash.get());
-  const controlsStyle = useAnimatedStyle(() => ({
+  const zoomStyle = useAnimatedStyle(() => ({
     opacity: withTiming(dragging.get() ? 0 : 1, { duration: motion.in, easing: ease }),
+  }));
+  const shutterRowStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(dragging.get() ? cameraRail.dimOpacity : 1, {
+      duration: motion.in,
+      easing: ease,
+    }),
   }));
   const trashZoneStyle = useAnimatedStyle(() => ({
     opacity: withTiming(dragging.get() ? 1 : 0, { duration: motion.in, easing: ease }),
@@ -370,13 +385,6 @@ function CameraBody() {
   useEffect(() => () => cancelCountdown(), []);
 
   // ---- Giao diện ----
-  const pct = Math.round(OVERLAY_OPACITY[opacityLevel] * 100);
-  const flashIcon = flash === 'off' ? ZapOff : Zap;
-  const flashLabel =
-    flash === 'off' ? t.camera.flashOff : flash === 'on' ? t.camera.flashOn : t.camera.flashAuto;
-  const gridLabel =
-    grid === 'off' ? t.camera.gridOff : grid === '3' ? t.camera.grid3 : t.camera.grid4;
-  const timerLabel = timer === 0 ? t.camera.timerOff : t.camera.timerSec(timer);
   const frameBox = { left: frame.x, top: frame.y, width: frame.width, height: frame.height };
 
   return (
@@ -387,6 +395,7 @@ function CameraBody() {
         setRoot({ width, height });
       }}
     >
+      <StatusBar style="light" />
       <CameraLayer
         cameraRef={cameraRef}
         facing={facing}
@@ -405,7 +414,7 @@ function CameraBody() {
           {levelOn && <LevelGuide frame={frame} />}
 
           {/* Vùng nhận cử chỉ phủ cả màn hình, nằm dưới các nút. Pose là lớp trên cùng của
-              ảnh (trên cả vùng xám ngoài khung) nhưng dưới thanh điều khiển (góp ý Phase 2). */}
+              ảnh (trên cả vùng tối ngoài khung) nhưng dưới các nút (góp ý Phase 2). */}
           <GestureDetector gesture={gesture}>
             <View collapsable={false} style={StyleSheet.absoluteFill}>
               {pose && (
@@ -416,7 +425,7 @@ function CameraBody() {
                     height={frame.height}
                     transform={overlay.style}
                     scale={scale}
-                    opacity={OVERLAY_OPACITY[opacityLevel]}
+                    opacity={opacity}
                     mirrored={mirrored}
                     hidden={hidden}
                     showBox={moved}
@@ -437,288 +446,143 @@ function CameraBody() {
               </Text>
             </View>
           )}
+
+          {/* Cột công cụ pose: dọc, kéo được, nằm trong khung ngắm (design.md §6.1). */}
+          <ToolRail
+            frame={frame}
+            pose={pose}
+            opacity={opacity}
+            mirrored={mirrored}
+            hidden={hidden}
+            dim={dragging}
+            onOpenLibrary={() => router.push('/library')}
+            onEdit={() => pose && router.push(`/editor/${pose.id}?from=camera`)}
+            onCycleOpacity={() => store().setOpacity(nextOpacity(opacity.get()))}
+            onOpacityEnd={(v) => store().setOpacity(v)}
+            onToggleMirror={store().toggleMirror}
+            onHide={setHidden}
+          />
         </>
       )}
 
-      {/* Thanh trên (design.md §6.1). */}
-      <View style={[styles.top, { paddingTop: insets.top + space[2] }]} pointerEvents="box-none">
-        <View style={styles.row}>
-          <BarButton
-            icon={flashIcon}
-            label={flashLabel}
-            onPress={store().cycleFlash}
-            active={flash !== 'off'}
-            badge={flash === 'auto' ? 'A' : undefined}
-            onScrim={overTop}
-          />
-          <BarButton
-            icon={Grid3x3}
-            label={gridLabel}
-            onPress={store().cycleGrid}
-            active={grid !== 'off'}
-            badge={grid === 'off' ? undefined : grid}
-            onScrim={overTop}
-          />
-          <BarButton
-            icon={Ruler}
-            label={levelOn ? t.camera.levelOn : t.camera.levelOff}
-            onPress={store().toggleLevel}
-            active={levelOn}
-            onScrim={overTop}
-          />
-          <BarButton
-            icon={Timer}
-            label={timerLabel}
-            onPress={store().cycleTimer}
-            active={timer > 0}
-            badge={timer > 0 ? String(timer) : undefined}
-            onScrim={overTop}
-          />
-          <BarButton
-            label={t.camera.aspect(aspect)}
-            onPress={store().cycleAspect}
-            onScrim={overTop}
-            wide
-          >
-            <Text style={[type.num, styles.ink]}>{aspect}</Text>
-          </BarButton>
-        </View>
-        <BarButton
-          icon={Settings}
-          label={t.camera.openSpikes}
-          onPress={() => router.push('/spike')}
-          onScrim={overTop}
-        />
-      </View>
-
-      {/* Rail điều khiển nhanh cho overlay (business-flow §4.4), chỉ khi có pose. */}
-      {pose && root.height > 0 && (
-        <Animated.View
-          style={[
-            styles.rail,
-            {
-              top: Math.min(frame.y + frame.height, root.height - bottomH) - railHeight - space[3],
-            },
-            controlsStyle,
-          ]}
-        >
-          <BarButton
-            icon={Pencil}
-            label={t.camera.editPose}
-            onPress={() => router.push(`/editor/${pose.id}?from=camera`)}
-            onScrim
-          />
-          <BarButton
-            icon={Contrast}
-            label={t.camera.opacity(pct)}
-            onPress={store().cycleOpacity}
-            badge={pct === 100 ? undefined : String(pct)}
-            onScrim
-          />
-          <BarButton
-            icon={FlipHorizontal2}
-            label={t.camera.mirror}
-            onPress={store().toggleMirror}
-            active={mirrored}
-            onScrim
-          />
-          <BarButton
-            icon={EyeOff}
-            label={t.camera.holdToHide}
-            onPressIn={() => setHidden(true)}
-            onPressOut={() => setHidden(false)}
-            active={hidden}
-            onScrim
-          />
-        </Animated.View>
-      )}
-
-      {/* Vùng xóa: chỉ hiện khi đang kéo pose. */}
+      {/* Vùng xóa: hiện đúng chỗ cụm zoom khi đang kéo pose. */}
       <Animated.View
         pointerEvents="none"
-        style={[styles.trashZone, { bottom: insets.bottom + space[4] }, trashZoneStyle]}
+        style={[
+          styles.trashZone,
+          { top: trashY - TRASH_LABEL_H - cameraUi.trash / 2 },
+          trashZoneStyle,
+        ]}
       >
         <TrashZone inTrash={inTrash} />
       </Animated.View>
 
-      {/* Vùng dưới. */}
+      {/* Zoom: 4 nút nhanh, kéo ngang thành thước cuộn (design.md §6.1). */}
       <Animated.View
-        style={[styles.bottom, { paddingBottom: insets.bottom + space[4] }, controlsStyle]}
+        style={[styles.zoomRow, { bottom: zoomBottom }, zoomStyle]}
         pointerEvents="box-none"
       >
-        <ZoomSlider
-          factor={factor}
-          min={zoomMin}
-          onChangeEnd={() => settle.set(settle.get() + 1)}
-        />
-        <View style={styles.shutterRow}>
-          <View style={styles.side}>
-            <View
-              style={[styles.thumb, overBottom && styles.thumbScrim]}
-              accessible
-              accessibilityLabel={t.camera.lastPhoto}
-            >
-              {busy ? (
-                <ActivityIndicator size="small" color={color.camInk} />
-              ) : lastPhoto ? (
-                <Image source={{ uri: lastPhoto }} style={styles.thumbImage} />
-              ) : null}
-            </View>
-          </View>
-
-          <PressableScale
-            accessibilityRole="button"
-            accessibilityLabel={countdown != null ? t.camera.cancelTimer : t.camera.capture}
-            accessibilityState={{ disabled: !ready || busy }}
-            onPress={onShutter}
-            style={styles.shutter}
-          >
-            <View style={[styles.shutterInner, countdown != null && styles.shutterCounting]} />
-          </PressableScale>
-
-          <View style={[styles.side, styles.sideRight]}>
-            <PoseButton pose={pose} onPress={() => router.push('/library')} />
-            <BarButton
-              icon={SwitchCamera}
-              label={t.camera.switchCamera}
-              onPress={switchCamera}
-              onScrim={overBottom}
-            />
-          </View>
-        </View>
+        <ZoomControl factor={factor} settle={settle} min={zoomMin} />
       </Animated.View>
+
+      {/* Hàng chụp: ảnh vừa chụp · nút chụp · đổi camera. */}
+      <Animated.View
+        style={[styles.shutterRow, { bottom: shutterBottom }, shutterRowStyle]}
+        pointerEvents="box-none"
+      >
+        <View
+          style={[styles.thumb, lastPhoto ? styles.thumbOn : styles.thumbEmpty]}
+          accessible
+          accessibilityLabel={t.camera.lastPhoto}
+        >
+          {busy ? (
+            <ActivityIndicator size="small" color={color.camInk} />
+          ) : lastPhoto ? (
+            <Image source={{ uri: lastPhoto }} style={styles.thumbImage} />
+          ) : null}
+        </View>
+
+        <PressableScale
+          accessibilityRole="button"
+          accessibilityLabel={countdown != null ? t.camera.cancelTimer : t.camera.capture}
+          accessibilityState={{ disabled: !ready || busy }}
+          onPress={onShutter}
+          style={styles.shutter}
+        >
+          <View style={[styles.shutterInner, countdown != null && styles.shutterCounting]} />
+        </PressableScale>
+
+        <PressableScale
+          accessibilityRole="button"
+          accessibilityLabel={t.camera.switchCamera}
+          hitSlop={4}
+          onPress={switchCamera}
+          style={styles.switch}
+        >
+          <SwitchCamera size={22} strokeWidth={2} color={color.camInk} />
+        </PressableScale>
+      </Animated.View>
+
+      {/* Thanh trên vẽ sau cùng để bảng mở thêm nằm trên mọi thứ. */}
+      <CameraTopBar
+        top={barTop}
+        open={toolsOpen}
+        onToggleOpen={() => setToolsOpen((o) => !o)}
+        onSettings={() => router.push('/spike')}
+      />
     </View>
   );
 }
 
-const railHeight = size.iconButton * 4 + space[2] * 3;
-
-/** Phần ngoài khung ngắm phủ nền đặc: ảnh lưu chỉ là phần trong khung (BR-02). */
+/**
+ * Phần ngoài khung ngắm phủ nền tối, khung bo góc 28 (design.md §3.4). Ảnh lưu vẫn là đúng hình
+ * chữ nhật khung (BR-02). Một view viền dày bo góc tạo lỗ khung: bán kính trong = bán kính ngoài
+ * trừ bề dày viền.
+ */
 function FrameMask({ frame, root }: { frame: Rect; root: { width: number; height: number } }) {
-  const below = frame.y + frame.height;
+  const b = Math.max(root.width, root.height);
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={[styles.mask, { top: 0, left: 0, right: 0, height: Math.max(0, frame.y) }]} />
-      <View style={[styles.mask, { top: below, left: 0, right: 0, height: root.height - below }]} />
-      {frame.x > 0 && (
-        <>
-          <View
-            style={[styles.mask, { top: frame.y, left: 0, width: frame.x, height: frame.height }]}
-          />
-          <View
-            style={[styles.mask, { top: frame.y, right: 0, width: frame.x, height: frame.height }]}
-          />
-        </>
-      )}
-    </View>
+    <View
+      pointerEvents="none"
+      style={[
+        styles.mask,
+        {
+          left: frame.x - b,
+          top: frame.y - b,
+          width: frame.width + b * 2,
+          height: frame.height + b * 2,
+          borderWidth: b,
+          borderRadius: radius.xxl + b,
+        },
+      ]}
+    />
   );
 }
 
-function BarButton({
-  icon: Icon,
-  label,
-  onPress,
-  onPressIn,
-  onPressOut,
-  active,
-  badge,
-  onScrim,
-  wide,
-  children,
-}: {
-  icon?: LucideIcon;
-  label: string;
-  onPress?: () => void;
-  onPressIn?: () => void;
-  onPressOut?: () => void;
-  active?: boolean;
-  badge?: string;
-  onScrim?: boolean;
-  wide?: boolean;
-  children?: ReactNode;
-}) {
-  return (
-    <PressableScale
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ selected: !!active }}
-      hitSlop={4}
-      onPress={onPress}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      style={[styles.barButton, wide && styles.barButtonWide, onScrim && styles.scrim]}
-    >
-      {Icon && (
-        <Icon size={size.icon} strokeWidth={1.75} color={active ? color.camAccent : color.camInk} />
-      )}
-      {children}
-      {badge && (
-        <Text style={[styles.badge, { color: active ? color.camAccent : color.camInk }]}>
-          {badge}
-        </Text>
-      )}
-    </PressableScale>
-  );
-}
+const TRASH_LABEL_H = 28;
 
-/** Nút pose: thumbnail pose đang dùng; chưa có pose thì ô tròn dấu cộng (design.md §6.1–6.2). */
-function PoseButton({ pose, onPress }: { pose: Pose | null; onPress: () => void }) {
-  return (
-    <PressableScale
-      accessibilityRole="button"
-      accessibilityLabel={t.camera.openLibrary}
-      hitSlop={4}
-      onPress={onPress}
-      style={[styles.thumb, pose ? styles.poseOn : styles.poseEmpty]}
-    >
-      {pose ? (
-        <PoseCanvas
-          fit="cover"
-          source={pose.source}
-          imageWidth={pose.width}
-          imageHeight={pose.height}
-          contours={pose.contours}
-          landmarks={null}
-          width={size.thumb - 4}
-          height={size.thumb - 4}
-          subjectOpacity={1}
-          backgroundOpacity={1}
-          outlineEnabled
-          outlineColor="#ffffff"
-          outlineWidth={1}
-          fillEnabled={false}
-          fillColor={pose.style.fillColor}
-          fillOpacity={0}
-          faceEnabled={false}
-          faceColor={pose.style.faceColor}
-          faceWidth={0}
-        />
-      ) : (
-        <Plus size={size.icon} strokeWidth={2.5} color={color.camInk} />
-      )}
-    </PressableScale>
-  );
-}
-
-/** Vùng xóa (design.md §6.2): ngón tay vào thì viền danger và phóng nhẹ. */
+/** Vùng xóa (design.md §6.3): ngón tay vào thì vòng đỏ, nền đỏ nhạt và phóng nhẹ. */
 function TrashZone({ inTrash }: { inTrash: SharedValue<boolean> }) {
   const ringStyle = useAnimatedStyle(() => {
     const on = inTrash.get();
     const cfg = { duration: motion.in, easing: ease };
     return {
       borderColor: withTiming(on ? color.danger : color.camLine, cfg),
+      backgroundColor: withTiming(on ? 'rgba(220,38,38,0.25)' : color.camScrim, cfg),
       transform: [{ scale: withTiming(on ? cameraUi.trashActiveScale : 1, cfg) }],
     };
   });
   return (
     <View style={styles.trashWrap}>
-      <Animated.View style={[styles.trash, ringStyle]}>
-        <Trash2 size={size.icon} strokeWidth={1.75} color={color.camInk} />
-      </Animated.View>
       <Text style={[type.label, styles.ink]}>{t.camera.dropToRemove}</Text>
+      <Animated.View style={[styles.trash, ringStyle]}>
+        <Trash2 size={26} strokeWidth={2} color={color.camInk} />
+      </Animated.View>
     </View>
   );
 }
+
+const SIDE = 40;
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: color.camBg },
@@ -726,80 +590,47 @@ const styles = StyleSheet.create({
   abs: { position: 'absolute' },
   center: { alignItems: 'center', justifyContent: 'center' },
   ink: { color: color.camInk },
-  mask: { position: 'absolute', backgroundColor: color.camBg },
+  mask: { position: 'absolute', borderColor: color.camBg },
   shutterFlash: { backgroundColor: color.shutterFlash },
-  top: {
+  zoomRow: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  shutterRow: {
     position: 'absolute',
-    left: 0,
-    right: 0,
-    top: 0,
-    paddingHorizontal: size.edge,
+    left: SIDE,
+    right: SIDE,
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'center',
   },
-  row: { flexDirection: 'row', gap: space[1] },
-  barButton: {
-    width: size.iconButton,
-    height: size.iconButton,
-    borderRadius: radius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  barButtonWide: { width: size.iconButton + space[3] },
-  scrim: { backgroundColor: color.camScrim },
-  badge: {
-    position: 'absolute',
-    right: 2,
-    bottom: 4,
-    fontFamily: type.num.fontFamily,
-    fontSize: 10,
-    lineHeight: 12,
-  },
-  rail: { position: 'absolute', right: size.edge, gap: space[2] },
-  bottom: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: size.gutter,
-    gap: space[4],
-  },
-  shutterRow: { flexDirection: 'row', alignItems: 'center' },
-  // Hai bên cùng flex 1 để nút chụp luôn ở chính giữa.
-  side: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  sideRight: { justifyContent: 'flex-end', gap: space[2] },
   thumb: {
     width: size.thumb,
     height: size.thumb,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: color.camLine,
+    borderRadius: 17,
+    borderWidth: 2,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumbScrim: { backgroundColor: color.camScrim },
+  thumbOn: { borderColor: 'rgba(255,255,255,0.8)' },
+  thumbEmpty: { borderColor: color.camLine },
   thumbImage: { width: size.thumb, height: size.thumb },
-  poseOn: { borderWidth: 2, borderColor: color.camAccent },
-  /** Chưa có pose: ô tròn dấu cộng (design.md §6.2). */
-  poseEmpty: { borderRadius: radius.full, borderWidth: 2, borderColor: color.camAccent },
   shutter: {
     width: size.shutter,
     height: size.shutter,
     borderRadius: radius.full,
-    borderWidth: 3,
+    borderWidth: 5,
     borderColor: color.camInk,
+    padding: 5,
+  },
+  shutterInner: { flex: 1, borderRadius: radius.full, backgroundColor: color.accent },
+  shutterCounting: { backgroundColor: color.camAccent },
+  switch: {
+    width: size.thumb,
+    height: size.thumb,
+    borderRadius: radius.full,
+    backgroundColor: color.camGlass,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shutterInner: {
-    width: size.shutter - 14,
-    height: size.shutter - 14,
-    borderRadius: radius.full,
-    backgroundColor: color.camInk,
-  },
-  shutterCounting: { backgroundColor: color.camAccent },
   countdown: {
     fontFamily: type.num.fontFamily,
     fontSize: cameraUi.countdownSize,
@@ -812,9 +643,7 @@ const styles = StyleSheet.create({
     width: cameraUi.trash,
     height: cameraUi.trash,
     borderRadius: radius.full,
-    borderWidth: 2,
-    borderColor: color.camLine,
-    backgroundColor: color.camScrim,
+    borderWidth: 3,
     alignItems: 'center',
     justifyContent: 'center',
   },
