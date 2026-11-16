@@ -15,12 +15,12 @@ type Props = {
  * Dùng cho giá trị slider, zoom, FPS.
  */
 export function AnimatedText({ text, style }: Props) {
-  const animatedProps = useAnimatedProps(() => ({ text: text.value }) as never);
+  // Chỉ đọc shared value trên UI thread; đọc lúc render làm Reanimated cảnh báo (phiếu Phase 4).
+  const animatedProps = useAnimatedProps(() => ({ text: text.get() }) as never);
   return (
     <AnimatedTextInput
       editable={false}
       underlineColorAndroid="transparent"
-      defaultValue={text.value}
       animatedProps={animatedProps}
       style={[styles.reset, style]}
     />

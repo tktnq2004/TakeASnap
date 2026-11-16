@@ -257,7 +257,8 @@ export function ToolRail(p: Props) {
                   accessibilityLabel={t.camera.opacity(pct)}
                 >
                   <Contrast size={size.icon} strokeWidth={2} color={color.camInk} />
-                  {pct < 100 && <Text style={styles.badge}>{pct}</Text>}
+                  {/* Luôn hiện số, kể cả 100 (góp ý Phase 4, mục 3.7). */}
+                  <Text style={styles.badge}>{pct}</Text>
                 </View>
               </GestureDetector>
               <RailButton

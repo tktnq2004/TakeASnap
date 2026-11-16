@@ -14,7 +14,15 @@ import {
   Text,
   View,
 } from 'react-native';
+import {
+  GestureDetector,
+  usePanGesture,
+  useSimultaneousGestures,
+  useTapGesture,
+} from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSharedValue } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import { deleteFromLibrary } from '@/features/camera/capture';
 import { useSessionPhotos } from '@/features/camera/sessionPhotos';
@@ -23,8 +31,9 @@ import { Button, CloseButton, OverlayHeader } from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, elevation, radius, size, space, type } from '@/ui/tokens';
 
-/** Chấm trang chỉ hiện khi ít ảnh; nhiều hơn thì đã có "Ảnh n trên m". */
-const MAX_DOTS = 9;
+/** Hàng chấm trang: mỗi ảnh một ô, cả hàng rộng tối đa chừng này (nhiều ảnh thì ô hẹp lại). */
+const SCRUB_MAX_W = 300;
+const SCRUB_CELL = 24;
 
 const clock = (ms: number) => {
   const d = new Date(ms);
@@ -48,10 +57,48 @@ export default function ReviewScreen() {
   const current = photos[Math.min(index, photos.length - 1)];
   const top = Platform.OS === 'ios' ? space[5] : insets.top + space[3];
 
-  const onScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+  // Chấm trang chạy cùng lúc với ảnh khi vuốt, không đợi ảnh dừng (góp ý Phase 4, mục 5.2).
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (page.w <= 0) return;
-    setIndex(Math.round(e.nativeEvent.contentOffset.x / page.w));
+    const i = Math.round(e.nativeEvent.contentOffset.x / page.w);
+    if (i !== index && i >= 0 && i < photos.length) setIndex(i);
   };
+
+  // Chạm hoặc kéo trên hàng chấm để tua nhanh tới ảnh khác.
+  const goTo = (i: number) => {
+    if (i === index || page.w <= 0) return;
+    setIndex(i);
+    scrollRef.current?.scrollTo({ x: i * page.w, animated: false });
+  };
+  const cellW = Math.min(SCRUB_CELL, SCRUB_MAX_W / Math.max(1, photos.length));
+  const n = photos.length;
+  const lastPick = useSharedValue(-1);
+  const pickAt = (x: number) => {
+    'worklet';
+    const i = Math.min(n - 1, Math.max(0, Math.floor(x / cellW)));
+    if (i === lastPick.get()) return;
+    lastPick.set(i);
+    scheduleOnRN(goTo, i);
+  };
+  const scrubPan = usePanGesture({
+    minDistance: 0,
+    onActivate: () => {
+      'worklet';
+      lastPick.set(-1);
+    },
+    onUpdate: (e) => {
+      'worklet';
+      pickAt(e.x);
+    },
+  });
+  const scrubTap = useTapGesture({
+    onActivate: (e) => {
+      'worklet';
+      lastPick.set(-1);
+      pickAt(e.x);
+    },
+  });
+  const scrub = useSimultaneousGestures(scrubPan, scrubTap);
 
   const share = async () => {
     if (!current) return;
@@ -129,7 +176,8 @@ export default function ReviewScreen() {
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={onScrollEnd}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
           >
             {photos.map((p) => {
               const s = imageSize(p.width, p.height);
@@ -149,12 +197,26 @@ export default function ReviewScreen() {
         )}
       </View>
 
-      {photos.length > 1 && photos.length <= MAX_DOTS && (
-        <View style={styles.dots} accessibilityElementsHidden importantForAccessibility="no">
-          {photos.map((p, i) => (
-            <View key={p.assetId} style={[styles.dot, i === index && styles.dotOn]} />
-          ))}
-        </View>
+      {n > 1 && (
+        <GestureDetector gesture={scrub}>
+          <View
+            style={[styles.dots, { width: cellW * n }]}
+            accessibilityElementsHidden
+            importantForAccessibility="no"
+          >
+            {photos.map((p, i) => (
+              <View key={p.assetId} style={[styles.cell, { width: cellW }]}>
+                <View
+                  style={[
+                    styles.dot,
+                    cellW < 10 && styles.dotSmall,
+                    i === index && (cellW < 10 ? styles.dotOnSmall : styles.dotOn),
+                  ]}
+                />
+              </View>
+            ))}
+          </View>
+        </GestureDetector>
       )}
 
       <View style={[styles.actions, { paddingBottom: insets.bottom + space[3] }]}>
@@ -197,13 +259,15 @@ const styles = StyleSheet.create({
   image: { borderRadius: radius.xl },
   dots: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    alignSelf: 'center',
     alignItems: 'center',
-    gap: 6,
-    paddingTop: space[3],
+    marginTop: space[2],
   },
+  cell: { height: 32, alignItems: 'center', justifyContent: 'center' },
   dot: { width: 6, height: 6, borderRadius: radius.full, backgroundColor: color.switchOff },
   dotOn: { width: 18, backgroundColor: color.accent },
+  dotSmall: { width: 3, height: 3 },
+  dotOnSmall: { width: 6, height: 6, backgroundColor: color.accent },
   actions: {
     flexDirection: 'row',
     gap: space[2],

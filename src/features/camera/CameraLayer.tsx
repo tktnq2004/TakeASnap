@@ -13,6 +13,7 @@ import { ease } from '@/ui/easing';
 import { cameraZoom } from '@/ui/tokens';
 
 import type { FlashMode } from './cameraStore';
+import type { Rect } from './frame';
 import { type ZoomConfig, zoomTarget } from './zoom';
 
 export const ULTRA_WIDE_LENS = 'AVCaptureDeviceTypeBuiltInUltraWideCamera';
@@ -32,6 +33,8 @@ type Props = {
   flash: FlashMode;
   /** Camera trước: lưu ảnh soi gương như lúc xem (Cài đặt). */
   mirror: boolean;
+  /** Chỗ đặt màn xem trước (frame.ts previewRect): đúng tỉ lệ cảm biến, phủ khung ngắm. */
+  rect: Rect;
   /** Hệ số zoom hiển thị (0,5×…5×) trên UI thread; pinch và thanh kéo cùng ghi vào đây. */
   factor: SharedValue<number>;
   /** Tăng mỗi khi pinch/kéo kết thúc: luôn gửi giá trị cuối, kể cả khi đang trong khoảng chờ. */
@@ -55,6 +58,7 @@ export const CameraLayer = memo(function CameraLayer({
   facing,
   flash,
   mirror,
+  rect,
   factor,
   settle,
   lenses,
@@ -126,7 +130,7 @@ export const CameraLayer = memo(function CameraLayer({
   return (
     <CameraView
       ref={cameraRef}
-      style={StyleSheet.absoluteFill}
+      style={[styles.abs, { left: rect.x, top: rect.y, width: rect.width, height: rect.height }]}
       facing={facing}
       flash={flash}
       mirror={mirror}
@@ -138,4 +142,8 @@ export const CameraLayer = memo(function CameraLayer({
       onAvailableLensesChanged={(e) => onLenses(e.lenses.map((l) => l.deviceType))}
     />
   );
+});
+
+const styles = StyleSheet.create({
+  abs: { position: 'absolute' },
 });

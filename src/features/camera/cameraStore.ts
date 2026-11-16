@@ -96,7 +96,8 @@ export const useCameraStore = create<State & Actions>()(
       toggleLevel: () => set((s) => ({ level: !s.level })),
       cycleTimer: () => set((s) => ({ timer: next([0, 3, 10] as const, s.timer) })),
       cycleAspect: () => set((s) => ({ aspect: next(['3:4', '9:16', '1:1'] as const, s.aspect) })),
-      selectPose: (id) => set({ poseId: id, mirrored: false }),
+      // Chọn pose thì mở cột công cụ ra (góp ý Phase 4, mục 3.2).
+      selectPose: (id) => set({ poseId: id, mirrored: false, railCollapsed: false }),
       replacePose: (id) =>
         set((s) => {
           if (s.poseId) {

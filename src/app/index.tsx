@@ -3,7 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { SwitchCamera, Trash2 } from 'lucide-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -46,7 +46,7 @@ import {
   saveToAlbum,
   type Shot,
 } from '@/features/camera/capture';
-import { ASPECTS, type Rect, viewfinderRect } from '@/features/camera/frame';
+import { ASPECTS, previewRect, type Rect, viewfinderRect } from '@/features/camera/frame';
 import { FrameGrid, LevelGuide } from '@/features/camera/FrameGuides';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
 import { PoseOverlay } from '@/features/camera/PoseOverlay';
@@ -136,7 +136,12 @@ function CameraBody() {
   const [busy, setBusy] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   // Ảnh vừa chụp: ảnh mới nhất đã lưu trong lần mở app này; chạm để mở màn Xem ảnh vừa chụp.
-  const lastPhoto = useSessionPhotos((s) => s.photos[s.photos.length - 1]?.uri ?? null);
+  const savedPhoto = useSessionPhotos((s) => s.photos[s.photos.length - 1]?.uri ?? null);
+  // Ảnh vừa cắt xong hiện ngay ở ô ảnh, không đợi lưu vào album (góp ý Phase 4, mục 4.5).
+  const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
+  const lastPhoto = pendingPhoto ?? savedPhoto;
+  /** Ảnh đang bay từ khung ngắm vào ô ảnh vừa chụp. */
+  const [flying, setFlying] = useState<string | null>(null);
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ---- Bố cục (design.md §6.1): thanh trên, khung ngắm, zoom, hàng chụp ----
@@ -146,6 +151,11 @@ function CameraBody() {
   const zoomBottom = shutterBottom + size.shutter + ROW_GAP;
   const bottomH = zoomBottom + zoomControlHeight + space[3];
   const frame: Rect = viewfinderRect(root.width, root.height, topH, bottomH, ASPECTS[aspect]);
+  // Giữ cùng object khi khung không đổi: CameraLayer bọc memo, rect mới mỗi lần sẽ render lại.
+  const preview = useMemo(
+    () => previewRect({ x: frame.x, y: frame.y, width: frame.width, height: frame.height }),
+    [frame.x, frame.y, frame.width, frame.height],
+  );
   const frameCx = frame.x + frame.width / 2;
   const frameCy = frame.y + frame.height / 2;
   // Vùng xóa nằm đúng chỗ cụm zoom (design.md §6.3).
@@ -317,6 +327,32 @@ function CameraBody() {
   const flashOpacity = useSharedValue(0);
   const flashStyle = useAnimatedStyle(() => ({ opacity: flashOpacity.get() }));
 
+  // Ảnh vừa chụp hiện đúng chỗ khung ngắm rồi thu nhỏ, trượt vào ô ảnh vừa chụp.
+  const fly = useSharedValue(0);
+  const thumbX = SIDE;
+  const thumbY = root.height - shutterBottom - size.shutter / 2 - size.thumb / 2;
+  const flyStyle = useAnimatedStyle(() => {
+    const t = fly.get();
+    const mix = (a: number, b: number) => a + (b - a) * t;
+    return {
+      left: mix(frame.x, thumbX),
+      top: mix(frame.y, thumbY),
+      width: mix(frame.width, size.thumb),
+      height: mix(frame.height, size.thumb),
+      borderRadius: mix(radius.xxl, 17),
+    };
+  });
+  const startFly = (uri: string) => {
+    setPendingPhoto(uri);
+    setFlying(uri);
+    fly.set(0);
+    fly.set(
+      withTiming(1, { duration: cameraUi.flyMs, easing: easeIO }, (done) => {
+        if (done) scheduleOnRN(setFlying, null);
+      }),
+    );
+  };
+
   const save = async (shot: Shot) => {
     try {
       const assetId = await saveToAlbum(shot.uri);
@@ -351,9 +387,17 @@ function CameraBody() {
         ),
       );
       const pic = await cam.takePictureAsync({ quality: 1, shutterSound: true });
-      const out = await cropToFrame(pic, frame, root);
+      // Khung ngắm tính trong hệ của màn xem trước (đặt theo previewRect, không còn phủ cả màn).
+      const out = await cropToFrame(
+        pic,
+        { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
+        preview,
+      );
+      startFly(out.uri);
       await save(out);
+      setPendingPhoto(null);
     } catch {
+      setPendingPhoto(null);
       Alert.alert(t.errors.saveFailed);
     } finally {
       setBusy(false);
@@ -414,6 +458,7 @@ function CameraBody() {
         facing={facing}
         flash={flash}
         mirror={frontMirror}
+        rect={preview}
         factor={factor}
         settle={settle}
         lenses={lenses}
@@ -498,6 +543,15 @@ function CameraBody() {
       >
         <ZoomControl factor={factor} settle={settle} min={zoomMin} />
       </Animated.View>
+
+      {flying && (
+        <Animated.Image
+          source={{ uri: flying }}
+          resizeMode="cover"
+          pointerEvents="none"
+          style={[styles.abs, styles.flying, flyStyle]}
+        />
+      )}
 
       {/* Hàng chụp: ảnh vừa chụp · nút chụp · đổi camera. */}
       <Animated.View
@@ -610,6 +664,7 @@ const styles = StyleSheet.create({
   ink: { color: color.camInk },
   mask: { position: 'absolute', borderColor: color.camBg },
   shutterFlash: { backgroundColor: color.shutterFlash },
+  flying: { borderWidth: 2, borderColor: color.camInk, overflow: 'hidden' },
   zoomRow: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   shutterRow: {
     position: 'absolute',

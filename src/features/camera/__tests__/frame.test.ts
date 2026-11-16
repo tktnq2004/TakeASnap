@@ -1,4 +1,4 @@
-import { ASPECTS, frameToPhotoCrop, viewfinderRect } from '../frame';
+import { ASPECTS, frameToPhotoCrop, previewRect, viewfinderRect } from '../frame';
 
 // iPhone 15 Pro Max: 430 × 932 pt; thanh trên 100, dưới 200 (ước lượng).
 const SW = 430;
@@ -52,5 +52,26 @@ describe('frameToPhotoCrop', () => {
     expect(c.height).toBe(PH);
     expect(c.width).toBe(Math.floor(SW / s));
     expect(c.x).toBe(Math.round((PW - SW / s) / 2));
+  });
+});
+
+describe('previewRect (màn xem trước đúng tỉ lệ cảm biến)', () => {
+  it('khung 3:4 thấy đủ cảm biến: màn xem trước trùng khung', () => {
+    const f = { x: 0, y: 112, width: 390, height: 520 };
+    expect(previewRect(f)).toEqual(f);
+  });
+
+  it('khung 1:1 cắt trên dưới như app gốc', () => {
+    const p = previewRect({ x: 0, y: 200, width: 390, height: 390 });
+    expect(p.width).toBe(390);
+    expect(p.height).toBeCloseTo(520);
+    expect(p.y).toBeCloseTo(200 - 65);
+  });
+
+  it('khung 9:16 cắt hai bên như app gốc', () => {
+    const p = previewRect({ x: 0, y: 75, width: 390, height: 693.33 });
+    expect(p.height).toBeCloseTo(693.33);
+    expect(p.width).toBeCloseTo(520);
+    expect(p.x).toBeCloseTo(-65);
   });
 });

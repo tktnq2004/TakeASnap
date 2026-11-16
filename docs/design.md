@@ -302,10 +302,11 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 | Cột công cụ (a11y) | Cột công cụ pose, kéo để dời chỗ |
 | Vùng xóa | Thả để gỡ pose |
 | Thêm pose | Thêm ảnh từ máy |
-| Menu pose của bạn | Dùng để chụp · Sửa pose · Xóa pose |
-| Menu pose mẫu | Dùng để chụp · Tạo bản sao để sửa |
+| Menu pose của bạn | Chụp · Sửa · Xóa |
+| Menu pose mẫu | Chụp · Tạo bản sao |
 | Menu, cách hủy | Chạm ra ngoài để hủy |
-| Chọn nhiều | Đã chọn n pose · Hủy · Chọn tất cả · Xóa n pose |
+| Chọn nhiều | Đã chọn n · Hủy · Chọn tất cả · Xóa n pose |
+| Màn Chỉnh pose (tiêu đề) | Chỉnh sửa |
 | Chọn người | Chọn những pose bạn muốn. Có thể chọn nhiều pose. · Chọn tất cả · Dùng người đã chọn |
 | Chỉnh pose, tab | Viền · Phủ · Nền · Cọ |
 | Chỉnh pose, nút | Lưu thành bản mới · Lưu pose |
@@ -528,6 +529,17 @@ Stepper:  ● Ảnh người ── ● Ảnh nền ── ◉ Vị trí ── 
 Kết quả: ảnh ghép chiếm hết vùng trên; giữ ngón tay lên ảnh để xem ảnh gốc; đáy là "Lưu vào Ảnh" (primary) và "Chỉnh lại" (secondary, về bước Vị trí, giữ mọi giá trị).
 
 ---
+
+### 6.13b Sửa theo phiếu Phase 4 lần 1
+
+- **Màn xem trước của camera** đặt theo `previewRect` (frame.ts): hình 3:4 đúng tỉ lệ cảm biến, nhỏ nhất phủ kín khung ngắm, cùng tâm. Trước đây nó phủ cả màn hình dài nên ảnh bị phóng thêm ~1,6 lần và 1× của app hẹp như 1,6× của app Camera gốc. Ảnh chụp cắt theo khung trong hệ của màn xem trước.
+- **Zoom:** giữ yên 250 ms trên cụm nút cũng hiện thước cuộn (giữ rồi kéo thì kéo luôn); chạm nhanh vẫn nhảy mức.
+- **Cột công cụ:** chọn pose thì cột tự mở ra; nút Độ hiện luôn có số, kể cả 100.
+- **Chụp:** chớp màn, rồi ảnh vừa cắt hiện đúng chỗ khung ngắm, thu nhỏ và trượt vào ô ảnh vừa chụp (`cameraUi.flyMs` 420 ms, `easeIO`). Ô ảnh hiện ảnh mới ngay, không đợi lưu vào album xong.
+- **Xem ảnh vừa chụp:** chấm trang đổi ngay trong lúc vuốt; hàng chấm mỗi ảnh một ô (rộng tối đa 300), chạm hoặc kéo trên hàng để tua nhanh. Nhiều ảnh thì chấm nhỏ lại.
+- **Menu pose** rộng 200, chữ ngắn: Chụp · Sửa · Xóa; pose mẫu: Chụp · Tạo bản sao.
+- **Chọn người:** ảnh nằm trong thẻ trắng nền `surfaceAlt`; người chưa chọn viền trắng nét đứt (dáng mẫu), đã chọn phủ `accent` 35% + viền trắng 3 px; mỗi người có huy hiệu số trên đầu (đã chọn thành dấu tích); dưới ảnh là hàng chip "Người 1, Người 2…" để chọn bằng tên.
+- **Lấy màu từ ảnh:** viền xanh vẽ chồng lên preview (không đổi kích thước, hết giật); nút X ở góc preview để hủy và quay lại Bảng màu.
 
 ### 6.14 Logo, icon app và màn mở app
 

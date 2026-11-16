@@ -2,7 +2,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import {
   GestureDetector,
   useExclusiveGestures,
+  useLongPressGesture,
   usePanGesture,
+  useSimultaneousGestures,
   useTapGesture,
 } from 'react-native-gesture-handler';
 import Animated, {
@@ -81,13 +83,35 @@ export function ZoomControl({ factor, settle, min }: Props) {
     },
   });
 
-  const gesture = useExclusiveGestures(pan, tap);
+  // Giữ yên trên cụm nút cũng hiện thước (góp ý Phase 4, mục 4.2); giữ rồi kéo thì kéo luôn.
+  const holding = useSharedValue(false);
+  const hold = useLongPressGesture({
+    minDuration: 250,
+    maxDistance: 10000,
+    onActivate: () => {
+      'worklet';
+      holding.set(true);
+      scheduleOnRN(haptic.select);
+    },
+    onFinalize: () => {
+      'worklet';
+      holding.set(false);
+    },
+  });
+
+  const gesture = useExclusiveGestures(useSimultaneousGestures(pan, hold), tap);
 
   const chipsStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(dragging.get() ? 0 : 1, { duration: motion.in, easing: ease }),
+    opacity: withTiming(dragging.get() || holding.get() ? 0 : 1, {
+      duration: motion.in,
+      easing: ease,
+    }),
   }));
   const tapeStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(dragging.get() ? 1 : 0, { duration: motion.in, easing: ease }),
+    opacity: withTiming(dragging.get() || holding.get() ? 1 : 0, {
+      duration: motion.in,
+      easing: ease,
+    }),
   }));
   const stripStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: TAPE_W / 2 - tapeOffset(factor.get()) }],

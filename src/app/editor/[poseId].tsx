@@ -9,6 +9,7 @@ import {
   PenTool,
   Plus,
   Redo2,
+  X,
   Undo2,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -219,6 +220,12 @@ export default function EditorScreen() {
     setPalette(null);
   };
 
+  const cancelPick = () => {
+    const back = picking;
+    setPicking(null);
+    setPalette(back);
+  };
+
   const startPipette = () => {
     setPicking(palette);
     setPalette(null);
@@ -346,7 +353,7 @@ export default function EditorScreen() {
       <FlowHeader title={t.editor.title} onBack={goBack} />
 
       <View
-        style={[styles.preview, picking && styles.previewPicking]}
+        style={styles.preview}
         onLayout={(e) => setArea({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}
       >
         {pose && area.w > 0 && (
@@ -377,12 +384,20 @@ export default function EditorScreen() {
           <RefineLayer mode={brushMode} size={brushSize} live={live} onStroke={onStroke} />
         )}
         {picking && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t.editor.pipette}
-            style={StyleSheet.absoluteFill}
-            onPress={(e) => pickAt(e.nativeEvent.locationX, e.nativeEvent.locationY)}
-          />
+          <>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t.editor.pipette}
+              style={StyleSheet.absoluteFill}
+              onPress={(e) => pickAt(e.nativeEvent.locationX, e.nativeEvent.locationY)}
+            />
+            {/* Viền vẽ chồng lên, không đổi kích thước preview: ảnh không giật lệch (mục 7.7). */}
+            <View pointerEvents="none" style={styles.pickRing} />
+            {/* Thoát chế độ lấy màu mà không lấy (mục 7.8): quay lại Bảng màu. */}
+            <View style={styles.pickCancel}>
+              <IconButton icon={X} label={t.editor.cancelPick} onPress={cancelPick} />
+            </View>
+          </>
         )}
         {pose === null && (
           <Text style={[type.body, styles.muted, styles.center]}>{t.editor.notFound}</Text>
@@ -556,7 +571,13 @@ const styles = StyleSheet.create({
   muted: { color: color.muted },
   center: { textAlign: 'center', marginTop: space[8] },
   // Preview co theo chiều cao còn lại; panel cao cố định để đổi tab không làm preview nhảy.
-  previewPicking: { borderWidth: 2, borderColor: color.accent },
+  pickRing: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: radius.xxl,
+    borderWidth: 2,
+    borderColor: color.accent,
+  },
+  pickCancel: { position: 'absolute', top: space[3], right: space[3] },
   preview: {
     flex: 1,
     marginHorizontal: size.edge,

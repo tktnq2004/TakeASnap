@@ -140,14 +140,14 @@ export function PoseMenu(p: Props) {
         <View style={styles.menuClip}>
           <MenuRow
             icon={Camera}
-            label={t.library.use}
+            label={t.library.menuUse}
             tone="accent"
             onPress={() => close(p.onUse)}
           />
           <View style={styles.line} />
           <MenuRow
             icon={p.mine ? Pencil : Copy}
-            label={p.mine ? t.library.editPose : t.library.duplicate}
+            label={p.mine ? t.library.menuEdit : t.library.menuDuplicate}
             onPress={() => close(p.onEdit)}
           />
           {p.mine && (
@@ -155,7 +155,7 @@ export function PoseMenu(p: Props) {
               <View style={styles.band} />
               <MenuRow
                 icon={Trash2}
-                label={t.library.removePose}
+                label={t.library.menuRemove}
                 tone="danger"
                 onPress={() => close(p.onDelete)}
               />

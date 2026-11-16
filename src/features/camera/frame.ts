@@ -36,6 +36,30 @@ export function viewfinderRect(
   return { x: (screenW - width) / 2, y, width, height };
 }
 
+/** Tỉ lệ cảm biến khi chụp (CameraView ratio "4:3"), dựng đứng: rộng / cao = 3 / 4. */
+export const SENSOR_ASPECT = 3 / 4;
+
+/**
+ * Chỗ đặt màn xem trước của camera: hình 3:4 nhỏ nhất phủ kín khung ngắm, cùng tâm (góp ý Phase
+ * 4, mục 4.4). Trước đây màn xem trước phủ cả màn hình dài nên ảnh 4:3 bị phóng thêm ~1,6 lần và
+ * mọi mức zoom hẹp hơn app Camera của máy. Khung 3:4 giờ thấy đúng toàn bộ cảm biến như app gốc;
+ * 1:1 và 9:16 cắt bớt cảm biến như app gốc.
+ */
+export function previewRect(frame: Rect, aspect: number = SENSOR_ASPECT): Rect {
+  let width = frame.width;
+  let height = width / aspect;
+  if (height < frame.height) {
+    height = frame.height;
+    width = height * aspect;
+  }
+  return {
+    x: frame.x + (frame.width - width) / 2,
+    y: frame.y + (frame.height - height) / 2,
+    width,
+    height,
+  };
+}
+
 /**
  * Vùng trên ảnh chụp (pixel) ứng với khung ngắm, khi preview kích thước previewW × previewH hiển
  * thị ảnh photoW × photoH kiểu cover, căn giữa. Kẹp trong ảnh, làm tròn.

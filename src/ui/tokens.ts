@@ -185,7 +185,7 @@ export const refineBrush = { min: 8, max: 64, step: 1, initial: 24, liveOpacity:
 export const processing = { imageOpacity: 0.6 } as const;
 
 /** Màn Chọn người: người đã chọn phủ màu nhấn và viền ink; chưa chọn chỉ có viền mờ. */
-export const personPick = { fill: 0.35, strokeOn: 2, strokeOff: 1.5 } as const;
+export const personPick = { fill: 0.35, strokeOn: 3, strokeOff: 2 } as const;
 
 /** Chọn nhiều pose (design.md §4 PoseTile): dấu chọn tròn góc trên phải, ô đã chọn viền 3 px. */
 export const tileSelect = {
@@ -213,7 +213,7 @@ export const poseMenu = {
   liftW: 150,
   liftH: 200,
   liftRadius: 22,
-  width: 250,
+  width: 200,
   row: 52,
   band: 8,
   gap: 12,
@@ -272,6 +272,8 @@ export const cameraUi = {
   trashVanishMs: 420,
   timerOptions: [0, 3, 10],
   shutterFlashMs: 120,
+  /** Ảnh vừa chụp bay từ khung ngắm vào ô ảnh vừa chụp. */
+  flyMs: 420,
   countdownSize: 96,
 } as const;
 

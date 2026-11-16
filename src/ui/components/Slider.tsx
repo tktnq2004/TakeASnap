@@ -8,6 +8,7 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   type SharedValue,
+  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
 } from 'react-native-reanimated';
@@ -52,14 +53,22 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd, 
     value.set(Math.min(max, Math.max(min, v)));
   };
 
-  const [a11yValue, setA11yValue] = useState(() => format(value.value));
+  const [a11yValue, setA11yValue] = useState('');
+  // Giá trị đọc cho VoiceOver/TalkBack lấy một lần lúc gắn (trên UI thread, không đọc lúc render);
+  // sau đó cập nhật khi thả tay.
+  useAnimatedReaction(
+    () => value.get(),
+    (v, prev) => {
+      if (prev === null) scheduleOnRN(setA11yValue, format(v));
+    },
+  );
   const handleEnd = (v: number) => {
     setA11yValue(format(v));
     onChangeEnd?.(v);
   };
   const commit = () => {
     'worklet';
-    scheduleOnRN(handleEnd, value.value);
+    scheduleOnRN(handleEnd, value.get());
   };
 
   const pan = usePanGesture({
@@ -94,7 +103,7 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd, 
     transform: [{ translateX: ratio(value.get()) * usable }],
   }));
   const fillStyle = useAnimatedStyle(() => ({ width: ratio(value.get()) * usable }));
-  const text = useDerivedValue(() => format(value.value));
+  const text = useDerivedValue(() => format(value.get()));
 
   // VoiceOver/TalkBack: vuốt lên/xuống để tăng/giảm một nấc (design.md §7).
   const nudge = (dir: 1 | -1) => {
