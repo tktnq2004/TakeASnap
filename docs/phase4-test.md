@@ -136,18 +136,29 @@ Không còn màn Chọn người (mục 10.2). Ảnh nhiều người được l
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 11.1 | Thêm ảnh có 2–4 người đứng tách nhau | Chỉ có màn đang xử lý, rồi mở Chỉnh sửa ở tab Cọ, chế độ Người; mỗi người có huy hiệu dấu tích trên đầu | | | |
-| 11.2 | Chạm vào thân một người | Người đó mất viền, phủ và nét mặt; còn viền trắng nét đứt và huy hiệu số | | | |
-| 11.3 | Chạm lại người đó, hoặc chạm huy hiệu số | Người đó hiện lại đầy đủ | | | |
-| 11.4 | Bỏ một người rồi Hoàn tác / Làm lại | Hoàn tác thì người hiện lại; Làm lại thì bỏ lại | | | |
-| 11.5 | Bỏ một người → Lưu pose → xem trên Camera | Pose chỉ còn những người giữ lại, không có nét mặt người đã bỏ | | | |
-| 11.6 | Thêm ảnh một người | Mở Chỉnh sửa ở tab Viền như trước | | | |
-| 11.7 | Pose cũ có người chưa chọn → Chỉnh sửa → Cọ → Người | Người chưa chọn có nét đứt; chạm vào thì hiện người đó | | | |
-| 11.8 | Đổi qua Thêm / Xóa | Thanh Cỡ cọ hiện lại, vẽ cọ như trước; ở chế độ Người không vẽ nét cọ | | | |
+| 11.1 | Thêm ảnh có 2–4 người đứng tách nhau | Chỉ có màn đang xử lý, rồi mở Chỉnh sửa ở tab Cọ, chế độ Người; mỗi người có huy hiệu dấu tích trên đầu |đạt |đạt | |
+| 11.2 | Chạm vào thân một người | Người đó mất viền, phủ và nét mặt; còn viền trắng nét đứt và huy hiệu số |đạt |đạt |bỏ luôn huy hiệu số. Đổi tên tab lại là Người, sau đó chỉnh layout logic lại cho phù hợp, hiện tại tab người thì chọn trên ảnh nên bị trống 1 khoảng ở thanh độ dày của cọ. Chọn người rất nhanh và đã chuyển nó qua 1 tab riêng thì không tính năng undo |
+| 11.3 | Chạm lại người đó, hoặc chạm huy hiệu số | Người đó hiện lại đầy đủ |đạt | đạt|bỏ luôn huy hiệu số. Đổi tên tab lại là Người, sau đó chỉnh layout logic lại cho phù hợp, hiện tại tab người thì chọn trên ảnh nên bị trống 1 khoảng ở thanh độ dày của cọ. Chọn người rất nhanh và đã chuyển nó qua 1 tab riêng thì không tính năng undo |
+| 11.4 | Bỏ một người rồi Hoàn tác / Làm lại | Hoàn tác thì người hiện lại; Làm lại thì bỏ lại |đạt |đạt |bỏ luôn huy hiệu số. Đổi tên tab lại là Người, sau đó chỉnh layout logic lại cho phù hợp, hiện tại tab người thì chọn trên ảnh nên bị trống 1 khoảng ở thanh độ dày của cọ. Chọn người rất nhanh và đã chuyển nó qua 1 tab riêng thì không tính năng undo |
+| 11.5 | Bỏ một người → Lưu pose → xem trên Camera | Pose chỉ còn những người giữ lại, không có nét mặt người đã bỏ |đạt |đạt | |
+| 11.6 | Thêm ảnh một người | Mở Chỉnh sửa ở tab Viền như trước |đạt |đạt | |
+| 11.7 | Pose cũ có người chưa chọn → Chỉnh sửa → Cọ → Người | Người chưa chọn có nét đứt; chạm vào thì hiện người đó |đạt |đạt | |
+| 11.8 | Đổi qua Thêm / Xóa | Thanh Cỡ cọ hiện lại, vẽ cọ như trước; ở chế độ Người không vẽ nét cọ |đạt |đạt | |
+
+## 12. Vòng 5 — tab Người riêng
+
+Theo góp ý 11.2–11.4: bỏ huy hiệu, chọn người thành tab **Người** riêng (đứng đầu, chỉ có khi ảnh có từ 2 người), không có hoàn tác. Panel có mỗi người một ô ảnh. Tab Cọ trở lại Thêm · Xóa như cũ.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 12.1 | Thêm ảnh có 2–4 người | Mở Chỉnh sửa ở tab Người; hàng tab Người · Viền · Phủ · Nền · Cọ vừa một hàng, không bị cắt chữ | | | |
+| 12.2 | Nhìn preview và panel | Không còn huy hiệu trên đầu; panel có "Người trong ảnh", "Giữ n/m" và mỗi người một ô ảnh có dấu tích | | | |
+| 12.3 | Chạm một người trên ảnh | Người đó bị bỏ (viền nét đứt), ô của họ mờ đi, số Giữ giảm | | | |
+| 12.4 | Chạm ô người đó trong panel | Người đó hiện lại | | | |
+| 12.5 | Vẽ vài nét ở tab Cọ, sang tab Người bỏ một người, quay lại Cọ | Nét cọ vẫn còn; nút Hoàn tác tắt (lịch sử bắt đầu lại) | | | |
+| 12.6 | Ảnh một người, và pose mẫu | Không có tab Người; 4 tab như cũ | | | |
+| 12.7 | Bỏ một người → Lưu pose → xem trên Camera | Pose chỉ còn những người giữ lại | | | |
+| 12.8 | Terminal: khi thấy cảnh báo "Reading from `value`", ghi lại đang ở màn nào, làm gì | | | | |
 
 ## Góp ý thêm
 
-If you don't want to see this message, you can disable the `strict` mode. Refer to:
-https://docs.swmansion.com/react-native-reanimated/docs/debugging/logger-configuration for more details.
- WARN  [Reanimated] Reading from `value` during component render. Please ensure that you don't access the `value` property nor use `get` method of a shared value while React is rendering a component.
- khá nhiều warning này trên terminal

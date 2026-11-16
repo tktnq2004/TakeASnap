@@ -214,18 +214,18 @@ describe('chế độ Người', () => {
     expect(personAtCell(src, 100, 100, 43, 50, 5)).toBe(0);
   });
 
-  it('chạm bỏ cả người rồi lấy lại, hoàn tác được', () => {
+  it('chạm bỏ cả người rồi lấy lại; không vào lịch sử hoàn tác', () => {
     const h = new MaskHistory(rasterizeContours([A, B], 100, 100), 100, 100, Infinity, src);
+    h.push({ mode: 'erase', radius: 3, points: [25, 50] });
     expect(h.togglePerson(1)).toBe(false);
     expect(at(h.grid, 75, 50)).toBe(0);
-    expect(at(h.grid, 25, 50)).toBe(1);
+    expect(at(h.grid, 30, 60)).toBe(1);
     expect(h.edited).toBe(true);
+    expect(h.canUndo).toBe(false);
     expect(h.togglePerson(1)).toBe(true);
     expect(at(h.grid, 75, 50)).toBe(1);
-    h.undo();
-    expect(at(h.grid, 75, 50)).toBe(0);
-    h.undo();
-    expect(at(h.grid, 75, 50)).toBe(1);
+    // Nét xóa trước đó vẫn còn.
+    expect(at(h.grid, 25, 50)).toBe(0);
   });
 
   it('dáng riêng từng người', () => {

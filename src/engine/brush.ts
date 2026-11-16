@@ -415,18 +415,20 @@ export class MaskHistory {
   }
 
   /**
-   * Chế độ Người (góp ý Phase 4 vòng 3): người `k` đang có thì bỏ cả người, đang thiếu thì lấy lại
-   * cả người theo dáng gốc. Là một bước hoàn tác như một nét cọ. Trả về người đó có trong pose không.
+   * Tab Người (góp ý Phase 4 vòng 4): người `k` đang có thì bỏ cả người, đang thiếu thì lấy lại
+   * cả người theo dáng gốc. Không có hoàn tác (chạm lại là xong): lịch sử nét cọ bắt đầu lại từ đây,
+   * vì hoàn tác một nét cũ sau khi bỏ người có thể vẽ lại một phần người đó.
+   * Trả về người đó có trong pose không.
    */
   togglePerson(k: number): boolean {
     const src = this.source;
     if (!src || k < 0 || k >= src.personArea.length) return false;
     const on = personPresence(this.current, src)[k]!;
-    this.record(() =>
-      on
-        ? removePerson(this.current, this.width, this.height, src, k)
-        : revealPerson(this.current, this.width, this.height, src, k),
-    );
+    if (on) removePerson(this.current, this.width, this.height, src, k);
+    else revealPerson(this.current, this.width, this.height, src, k);
+    this.done = [];
+    this.undone = [];
+    this.dropped = true;
     return !on;
   }
 

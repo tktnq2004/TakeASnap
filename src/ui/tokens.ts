@@ -185,18 +185,23 @@ export const refineBrush = { min: 8, max: 64, step: 1, initial: 24, liveOpacity:
 export const processing = { imageOpacity: 0.6 } as const;
 
 /**
- * Chế độ Người ở tab Cọ (góp ý Phase 4 vòng 3, thay màn Chọn người): người đang bị bỏ có viền
- * trắng nét đứt; mỗi người một huy hiệu tròn trên đầu (có trong pose: dấu tích nền nhấn, bị bỏ:
- * số trên nền ink mờ).
+ * Tab Người của Chỉnh sửa (góp ý Phase 4 vòng 4, thay màn Chọn người): người đang bị bỏ có viền
+ * trắng nét đứt trên preview; panel có mỗi người một ô ảnh cắt sát người.
  */
 export const personPick = {
   strokeOff: 2,
   dash: [8, 6] as number[],
-  badge: 30,
-  badgeBorder: 2,
-  badgeOffBg: 'rgba(16,33,63,0.7)',
   /** Chạm lệch khỏi người tối đa chừng này px màn hình vẫn tính là chạm vào người. */
   slop: 16,
+  /** Ô người trong panel: cao cố định, rộng theo dáng người trong khoảng min–max. */
+  tileH: 152,
+  tileMinW: 84,
+  tileMaxW: 136,
+  tileBorder: 3,
+  /** Nới khung người thêm chừng này (theo cạnh dài) cho thoáng. */
+  tilePad: 0.06,
+  tileOffOpacity: 0.4,
+  check: 22,
 } as const;
 
 /** Chọn nhiều pose (design.md §4 PoseTile): dấu chọn tròn góc trên phải, ô đã chọn viền 3 px. */
