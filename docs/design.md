@@ -307,7 +307,7 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 | Menu, cách hủy | Chạm ra ngoài để hủy |
 | Chọn nhiều | Đã chọn n · Hủy · Chọn tất cả · Xóa n pose |
 | Màn Chỉnh pose (tiêu đề) | Chỉnh sửa |
-| Chọn người | Chọn những pose bạn muốn. Có thể chọn nhiều pose. · Chọn tất cả (chip) · Người n · Chọn ảnh khác · Dùng người đã chọn |
+| Chỉnh sửa → Cọ | Người · Thêm · Xóa · Cỡ cọ |
 | Chỉnh pose, tab | Viền · Phủ · Nền · Cọ |
 | Chỉnh pose, nút | Lưu thành bản mới · Lưu pose |
 | Bảng màu | Mã màu · Lấy màu từ ảnh · Gần đây |
@@ -324,7 +324,7 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế (trang "Bản ghép — vòng 3"). Số đo dưới đây là cho 390×844; máy khác giữ lề và cỡ nút, khung ngắm và preview co theo chiều rộng.
 
 **Hai kiểu đầu màn** (business-flow §7.3):
-- **Màn mở đè lên Camera** (Thư viện pose, Cài đặt, Xem ảnh vừa chụp, Chọn người): tiêu đề `title` bên trái, `CloseButton` bên phải. Đóng là về Camera.
+- **Màn mở đè lên Camera** (Thư viện pose, Cài đặt, Xem ảnh vừa chụp): tiêu đề `title` bên trái, `CloseButton` bên phải. Đóng là về Camera.
 - **Màn là một bước trong luồng** (Chỉnh pose, các bước Thay nền): `BackButton` bên trái, tên màn `titleSm` căn giữa.
 
 ### 6.1 Camera
@@ -425,9 +425,9 @@ Không có màn riêng: mở app lần đầu thì gọi thẳng hộp thoại x
 - Lớp phủ ngay trong màn Thư viện (không mở màn mới). iOS làm mờ bằng `BlurView` của `expo-blur` (có trong Expo Go) cộng lớp `menuScrim`; Android dùng lớp `menuScrimSolid` sáng 90%, vì làm mờ thật trên Android phải bọc cả nội dung trong `BlurTargetView`. Không dùng menu ngữ cảnh native.
 - Ô nổi phóng từ đúng chỗ ô trong lưới (140 ms), menu hiện mờ dần ngay dưới; chọn một mục hoặc chạm ra ngoài thì thu về rồi mới làm việc đó. Rung `impactMedium` khi mở.
 
-### 6.8 Chọn người và Đang xử lý (trong luồng Thêm ảnh từ máy)
+### 6.8 Đang xử lý (trong luồng Thêm ảnh từ máy)
 
-- **Chọn người** (ảnh có từ 2 người): tiêu đề "Chọn người" + `CloseButton` (hủy), dòng `hint` "Chọn những pose bạn muốn. Có thể chọn nhiều pose.", ảnh 366×488 bo 24. Người đã chọn: phủ `accent` 35%, viền `ink` 2 px, đĩa dấu tích trên đầu; chưa chọn: viền trắng 1.5 px. Đáy: "Chọn tất cả" (`secondary`) + "Dùng người đã chọn" (primary, tắt khi chưa chọn ai).
+- **Chọn người:** không còn màn riêng từ Phase 4 vòng 3; chọn người nằm trong Chỉnh sửa → Cọ → Người (§6.13b).
 - **Đang xử lý:** giữ đầu màn Thư viện; ảnh vừa chọn 288×384 mờ 60% với một vạch quét `accent`; dưới là `StatusSteps` trong card trắng:
 
 | Bước | Chữ |
@@ -539,7 +539,7 @@ Kết quả: ảnh ghép chiếm hết vùng trên; giữ ngón tay lên ảnh �
 - **Xem ảnh vừa chụp:** chấm trang đổi ngay trong lúc vuốt; hàng chấm mỗi ảnh một ô (rộng tối đa 300), chạm hoặc kéo trên hàng để tua nhanh. Nhiều ảnh thì chấm nhỏ lại.
 - **Menu pose** rộng 200, chữ ngắn: Chụp · Sửa · Xóa; pose mẫu: Chụp · Tạo bản sao.
 - **Chọn người:** ảnh nằm trong thẻ trắng nền `surfaceAlt`; người chưa chọn viền trắng nét đứt (dáng mẫu), đã chọn phủ `accent` 35% + viền trắng 3 px; mỗi người có huy hiệu số trên đầu (đã chọn thành dấu tích); dưới ảnh là hàng chip "Người 1, Người 2…" để chọn bằng tên.
-- **Chọn người (vòng 2):** thẻ ảnh ôm sát ảnh (ảnh vừa khít phần trống, thẻ và hàng chip cùng căn giữa theo chiều dọc), không còn khoảng trống trên dưới ảnh. "Chọn tất cả" thành chip đầu hàng (bấm lần nữa để bỏ chọn hết). Đáy: "Chọn ảnh khác" (`secondary`, icon ImagePlus) mở album, bỏ ảnh đang chọn (chưa lưu gì) và xử lý ảnh mới; "Dùng người đã chọn" (primary).
+- **Chọn người (vòng 3) — bỏ màn riêng, gộp vào Cọ:** ảnh nhiều người lưu với mọi người rồi mở Chỉnh sửa ở tab Cọ, chế độ **Người** (Segmented `Người · Thêm · Xóa`, icon Users). Trong chế độ Người: chạm vào người hoặc huy hiệu trên đầu để bỏ / lấy lại cả người (một bước hoàn tác); người đang bị bỏ có viền trắng nét đứt 2 px (`personPick.dash` 8/6); huy hiệu 30 px viền trắng 2 px: có trong pose = dấu tích nền `accent`, bị bỏ = số trên nền ink 70%. Thanh Cỡ cọ ẩn trong chế độ Người (panel cao cố định nên preview không nhảy). Chạm lệch tới 16 px vẫn tính là chạm vào người (`personPick.slop`).
 - **Lấy màu từ ảnh:** viền xanh vẽ chồng lên preview (không đổi kích thước, hết giật); nút X ở góc preview để hủy và quay lại Bảng màu.
 
 ### 6.14 Logo, icon app và màn mở app

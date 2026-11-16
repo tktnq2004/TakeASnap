@@ -217,6 +217,113 @@ function presentByPerson(
   return out;
 }
 
+/**
+ * Người nào đang có trong pose: có từ nửa dáng gốc trở lên (cùng ngưỡng với cọ Thêm).
+ * Chế độ Người ở tab Cọ dùng để biết chạm vào người là bỏ hay lấy lại.
+ */
+export function personPresence(data: Float32Array, source: BrushSource): boolean[] {
+  const n = source.personArea.length;
+  const present = presentByPerson(data, source.labels, source.personOf, n);
+  return source.personArea.map((area, k) => present[k]! >= ABSENT * area);
+}
+
+/**
+ * Người dưới điểm chạm (ô lưới), hoặc người gần nhất trong `slop` ô. Không có ai thì null.
+ */
+export function personAtCell(
+  source: BrushSource,
+  width: number,
+  height: number,
+  x: number,
+  y: number,
+  slop: number,
+): number | null {
+  const cx = Math.floor(x);
+  const cy = Math.floor(y);
+  let best: number | null = null;
+  let bestD = Infinity;
+  const r = Math.ceil(slop);
+  for (let dy = -r; dy <= r; dy++) {
+    for (let dx = -r; dx <= r; dx++) {
+      const px = cx + dx;
+      const py = cy + dy;
+      if (px < 0 || py < 0 || px >= width || py >= height) continue;
+      const d = dx * dx + dy * dy;
+      if (d > slop * slop || d >= bestD) continue;
+      const id = source.labels[py * width + px]!;
+      const k = id === 0 ? -1 : source.personOf[id]!;
+      if (k < 0) continue;
+      best = k;
+      bestD = d;
+    }
+  }
+  return best;
+}
+
+/**
+ * Dáng gốc của từng người (lưới riêng mỗi người), để chế độ Người dò viền nét đứt quanh người
+ * đang bị bỏ.
+ */
+export function personShapes(source: BrushSource, width: number, height: number): Grid[] {
+  return source.personArea.map((_, k) => {
+    const data = new Float32Array(width * height);
+    forPersonCells(source, width, height, k, (i) => {
+      data[i] = source.data[i]!;
+    });
+    return { width, height, data };
+  });
+}
+
+/** Bỏ cả người `k` khỏi lưới (sửa tại chỗ): dáng của họ và mép mềm sát họ thành nền. */
+function removePerson(data: Float32Array, w: number, h: number, src: BrushSource, k: number) {
+  forPersonCells(src, w, h, k, (i) => {
+    data[i] = 0;
+  });
+}
+
+/**
+ * Gọi `fn` cho mọi ô của người `k` (mine = true) và ô nền sát người `k` mà không sát người khác
+ * (mép mềm khử răng cưa, mine = false).
+ */
+function forPersonCells(
+  src: BrushSource,
+  w: number,
+  h: number,
+  k: number,
+  fn: (i: number, mine: boolean) => void,
+) {
+  const [bx0, by0, bx1, by1] = src.personBox[k]!;
+  const x0 = Math.max(0, bx0 - 1);
+  const y0 = Math.max(0, by0 - 1);
+  const x1 = Math.min(w, bx1 + 1);
+  const y1 = Math.min(h, by1 + 1);
+  const owner = (x: number, y: number) => {
+    if (x < 0 || y < 0 || x >= w || y >= h) return -1;
+    const id = src.labels[y * w + x]!;
+    return id === 0 ? -1 : src.personOf[id]!;
+  };
+  for (let y = y0; y < y1; y++) {
+    for (let x = x0; x < x1; x++) {
+      const i = y * w + x;
+      if (owner(x, y) === k) {
+        fn(i, true);
+        continue;
+      }
+      if (src.labels[i] !== 0) continue;
+      let near = false;
+      let other = false;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const o = owner(x + dx, y + dy);
+          if (o === k) near = true;
+          else if (o >= 0) other = true;
+        }
+      }
+      if (near && !other) fn(i, false);
+    }
+  }
+}
+
 /** Hiện cả người `k` theo dáng gốc, kể cả mép mềm sát người để viền dò lại vẫn mượt. */
 function revealPerson(data: Float32Array, w: number, h: number, src: BrushSource, k: number) {
   const [bx0, by0, bx1, by1] = src.personBox[k]!;
@@ -304,8 +411,28 @@ export class MaskHistory {
   }
 
   push(s: Stroke) {
+    this.record(() => applyStroke(this.current, this.width, this.height, s, this.source));
+  }
+
+  /**
+   * Chế độ Người (góp ý Phase 4 vòng 3): người `k` đang có thì bỏ cả người, đang thiếu thì lấy lại
+   * cả người theo dáng gốc. Là một bước hoàn tác như một nét cọ. Trả về người đó có trong pose không.
+   */
+  togglePerson(k: number): boolean {
+    const src = this.source;
+    if (!src || k < 0 || k >= src.personArea.length) return false;
+    const on = personPresence(this.current, src)[k]!;
+    this.record(() =>
+      on
+        ? removePerson(this.current, this.width, this.height, src, k)
+        : revealPerson(this.current, this.width, this.height, src, k),
+    );
+    return !on;
+  }
+
+  private record(apply: () => void) {
     const before = this.current.slice();
-    applyStroke(this.current, this.width, this.height, s, this.source);
+    apply();
     this.done.push(diff(before, this.current));
     this.undone = [];
     if (this.done.length > this.limit) {

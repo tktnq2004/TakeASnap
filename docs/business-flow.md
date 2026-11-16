@@ -166,16 +166,17 @@ flowchart TD
     Q --> R[Tách người trên máy]
     R --> D{Kết quả}
     D -- "0 người" --> E1[Báo: Không tìm thấy người<br/>Chọn ảnh khác]
-    D -- "1 người" --> CT[Tạo contour]
-    D -- "Nhiều người" --> M[Chọn người: chạm vào từng người<br/>hoặc chọn tất cả]
-    M --> CT
-    CT --> ED[Chỉnh pose]
+    D -- "1 người" --> CT[Tạo contour<br/>với mọi người trong ảnh]
+    D -- "Nhiều người" --> CT
+    CT -- "1 người" --> ED[Chỉnh pose]
+    CT -- "Nhiều người" --> EDP[Chỉnh pose, mở sẵn Cọ → Người<br/>chạm để bỏ / lấy lại từng người]
+    EDP --> SV
     S --> ED
     ED --> SV[Lưu pose]
     SV --> CAM[Về Camera với pose làm overlay]
 ```
 
-**Chọn người** (ảnh có từ 2 người trở lên): model chỉ phân biệt người / nền, nên mỗi vùng người liền nhau tính là một người; vùng chiếm từ 2% ảnh trở lên là một người, mảng nhỏ hơn (tay rời, tóc) gắn vào người gần nhất. Hai người chạm hoặc đè lên nhau thành một vùng, phải chọn cùng nhau rồi dùng Sửa nét để bỏ bớt. Nét mặt chỉ giữ của những người được chọn.
+**Ảnh nhiều người** (từ 2 người trở lên): không còn màn Chọn người riêng (góp ý Phase 4 vòng 3). Màn đang xử lý chỉ báo tiến trình; pose được lưu với **mọi người** trong ảnh rồi mở Chỉnh pose ở tab **Cọ**, chế độ **Người**: chạm vào một người (hoặc huy hiệu trên đầu họ) để bỏ cả người đó, chạm lần nữa để lấy lại. Model chỉ phân biệt người / nền, nên mỗi vùng người liền nhau tính là một người; vùng chiếm từ 2% ảnh trở lên là một người, mảng nhỏ hơn (tay rời, tóc) gắn vào người gần nhất. Hai người chạm hoặc đè lên nhau thành một vùng, bỏ cùng nhau hoặc dùng cọ Xóa để bỏ bớt. Nét mặt của người bị bỏ ẩn theo.
 
 ### 5.2 Màn Chỉnh pose — các lớp và điều khiển
 
@@ -195,7 +196,7 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 | | | Độ đậm | 0–100% | 40% |
 | **Nền** | Người | Độ hiện của người trong ảnh gốc | 0–100% | 0% |
 | | Nền | Độ hiện của nền trong ảnh gốc (phần ngoài người) | 0–100% | 0% |
-| **Cọ** | Viền | Cọ **[Thêm | Xóa]** vẽ thẳng lên ảnh, hoàn tác / làm lại không giới hạn trong một lần sửa (hoàn tác hết là về viền lúc mở màn) | cỡ cọ 8–64 px | Thêm · 24 px |
+| **Cọ** | Viền | **[Người | Thêm | Xóa]**: Người = chạm bỏ / lấy lại cả một người; Thêm / Xóa vẽ thẳng lên ảnh, hoàn tác / làm lại không giới hạn trong một lần sửa (hoàn tác hết là về viền lúc mở màn) | cỡ cọ 8–64 px | Thêm · 24 px |
 
 - **Nét mặt cho biết hướng mặt:** có nét mặt (viền mặt, mắt, lông mày, mũi, môi) nghĩa là người mẫu quay mặt về ống kính; không có nghĩa là quay lưng. Khi không thấy mặt, ô "Mặt" trong tab Viền tắt (Phase 4 bỏ dòng ghi chú). Giới hạn của model: mặt nghiêng hẳn, cúi xuống hoặc bị tay che có thể không được nhận ra.
 - **Viền và nét mặt chung tab nhưng chỉnh riêng:** mỗi cái có công tắc, thanh độ dày và màu riêng; không có thanh kéo nào đổi cả hai cùng lúc.
@@ -277,7 +278,7 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 Làm ở roadmap Phase 4, trước Thay nền. Giao diện cụ thể chốt ở bước 1 của phase đó (bản mẫu để chọn) rồi ghi vào [design.md](design.md).
 
 - **Một màn gốc**: Camera. Thư viện pose, Chỉnh pose, Thay nền, Cài đặt, Xem ảnh vừa chụp đều mở từ Camera và đóng về Camera.
-- **Hai kiểu đầu màn, cố định theo loại màn**: màn mở đè lên Camera (Thư viện, Cài đặt, Xem ảnh vừa chụp, Chọn người) có tiêu đề to bên trái và nút Đóng bên phải; màn là một bước trong luồng (Chỉnh pose, các bước Thay nền) có "Quay lại" bên trái và tên màn ở giữa.
+- **Hai kiểu đầu màn, cố định theo loại màn**: màn mở đè lên Camera (Thư viện, Cài đặt, Xem ảnh vừa chụp) có tiêu đề to bên trái và nút Đóng bên phải; màn là một bước trong luồng (Chỉnh pose, các bước Thay nền) có "Quay lại" bên trái và tên màn ở giữa.
 - **Một kiểu cho trạng thái rỗng, lỗi, thiếu quyền**: một câu nói chuyện gì đã xảy ra, một nút làm tiếp ([§10](#10-trạng-thái-và-lỗi)).
 - **Một kiểu chuyển màn và chuyển động** cho mọi màn, theo design.md.
 - **Icon app và màn mở app** cùng ngôn ngữ với giao diện trong app.

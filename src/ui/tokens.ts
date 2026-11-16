@@ -184,8 +184,20 @@ export const refineBrush = { min: 8, max: 64, step: 1, initial: 24, liveOpacity:
 /** Đang xử lý ảnh: ảnh vẫn hiện, mờ 60% (design.md §6.8). */
 export const processing = { imageOpacity: 0.6 } as const;
 
-/** Màn Chọn người: người đã chọn phủ màu nhấn và viền ink; chưa chọn chỉ có viền mờ. */
-export const personPick = { fill: 0.35, strokeOn: 3, strokeOff: 2 } as const;
+/**
+ * Chế độ Người ở tab Cọ (góp ý Phase 4 vòng 3, thay màn Chọn người): người đang bị bỏ có viền
+ * trắng nét đứt; mỗi người một huy hiệu tròn trên đầu (có trong pose: dấu tích nền nhấn, bị bỏ:
+ * số trên nền ink mờ).
+ */
+export const personPick = {
+  strokeOff: 2,
+  dash: [8, 6] as number[],
+  badge: 30,
+  badgeBorder: 2,
+  badgeOffBg: 'rgba(16,33,63,0.7)',
+  /** Chạm lệch khỏi người tối đa chừng này px màn hình vẫn tính là chạm vào người. */
+  slop: 16,
+} as const;
 
 /** Chọn nhiều pose (design.md §4 PoseTile): dấu chọn tròn góc trên phải, ô đã chọn viền 3 px. */
 export const tileSelect = {

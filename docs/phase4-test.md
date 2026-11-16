@@ -125,10 +125,25 @@ Ngày thử:
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.1 | Thêm ảnh có nhiều người, nhất là ảnh ngang (mục 9.10) | Thẻ trắng ôm sát ảnh, không còn khoảng trống lớn trên dưới ảnh | | | |
-| 10.2 | Bấm chip "Chọn tất cả", bấm lần nữa | Chọn hết mọi người; bấm lại thì bỏ chọn hết | | | |
-| 10.3 | Bấm "Chọn ảnh khác" → chọn ảnh khác trong album | Ảnh cũ bỏ đi, không có pose nào được lưu; ảnh mới được tách người như bình thường | | | |
-| 10.4 | Bấm "Chọn ảnh khác" rồi hủy album | Vẫn ở màn Chọn người với ảnh cũ | | | |
+| 10.1 | Thêm ảnh có nhiều người, nhất là ảnh ngang (mục 9.10) | Thẻ trắng ôm sát ảnh, không còn khoảng trống lớn trên dưới ảnh | đạt| đạt| |
+| 10.2 | Bấm chip "Chọn tất cả", bấm lần nữa | Chọn hết mọi người; bấm lại thì bỏ chọn hết |đạt |đạt |tuy đạt nhưng tôi không đánh giá cao cách này để lắp đầy khoảng trống của trang. Tìm cách khác như thêm tính năng hoặc chỉ giữ trang đó để thông báo tiến trình -> lúc chọn pose gộp vào cọ |
+| 10.3 | Bấm "Chọn ảnh khác" → chọn ảnh khác trong album | Ảnh cũ bỏ đi, không có pose nào được lưu; ảnh mới được tách người như bình thường | đạt| đạt| |
+| 10.4 | Bấm "Chọn ảnh khác" rồi hủy album | Vẫn ở màn Chọn người với ảnh cũ |đạt |đạt | |
+
+## 11. Vòng 4 — chọn người gộp vào Cọ
+
+Không còn màn Chọn người (mục 10.2). Ảnh nhiều người được lưu với mọi người rồi mở thẳng Chỉnh sửa ở tab Cọ, chế độ Người.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 11.1 | Thêm ảnh có 2–4 người đứng tách nhau | Chỉ có màn đang xử lý, rồi mở Chỉnh sửa ở tab Cọ, chế độ Người; mỗi người có huy hiệu dấu tích trên đầu | | | |
+| 11.2 | Chạm vào thân một người | Người đó mất viền, phủ và nét mặt; còn viền trắng nét đứt và huy hiệu số | | | |
+| 11.3 | Chạm lại người đó, hoặc chạm huy hiệu số | Người đó hiện lại đầy đủ | | | |
+| 11.4 | Bỏ một người rồi Hoàn tác / Làm lại | Hoàn tác thì người hiện lại; Làm lại thì bỏ lại | | | |
+| 11.5 | Bỏ một người → Lưu pose → xem trên Camera | Pose chỉ còn những người giữ lại, không có nét mặt người đã bỏ | | | |
+| 11.6 | Thêm ảnh một người | Mở Chỉnh sửa ở tab Viền như trước | | | |
+| 11.7 | Pose cũ có người chưa chọn → Chỉnh sửa → Cọ → Người | Người chưa chọn có nét đứt; chạm vào thì hiện người đó | | | |
+| 11.8 | Đổi qua Thêm / Xóa | Thanh Cỡ cọ hiện lại, vẽ cọ như trước; ở chế độ Người không vẽ nét cọ | | | |
 
 ## Góp ý thêm
 

@@ -3,7 +3,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { Check, ImagePlus } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -25,13 +25,10 @@ import { clearPlacement, useCameraStore } from '@/features/camera/cameraStore';
 import {
   analyzeImage,
   type CreateProgress,
-  type ImageAnalysis,
-  peopleContours,
   PoseCreateError,
   savePose,
 } from '@/features/pose/createFromImage';
 import { MineGrid } from '@/features/pose/MineGrid';
-import { PersonPicker } from '@/features/pose/PersonPicker';
 import { PoseMenu } from '@/features/pose/PoseMenu';
 import { PoseTile, type TileRect } from '@/features/pose/PoseTile';
 import { deleteVariant, listUserPoses } from '@/features/pose/repository';
@@ -72,8 +69,6 @@ export default function LibraryScreen() {
   /** Ảnh đang xử lý: hiện mờ thay cho danh sách (design.md §6.6). */
   const [work, setWork] = useState<Picked | null>(null);
   /** Ảnh có nhiều người: đang chờ chọn người. */
-  const [picking, setPicking] = useState<ImageAnalysis | null>(null);
-  const pickContours = useMemo(() => (picking ? peopleContours(picking) : []), [picking]);
   /** Chọn nhiều để xóa (góp ý Phase 3), chỉ ở "Pose của bạn". */
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -167,8 +162,6 @@ export default function LibraryScreen() {
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
     const a = res.canceled ? null : res.assets[0];
     if (!a) return;
-    // Đang ở màn Chọn người thì bỏ ảnh cũ (chưa lưu gì) rồi xử lý ảnh mới.
-    setPicking(null);
     processImage({ uri: a.uri, width: a.width, height: a.height });
   };
 
@@ -177,7 +170,6 @@ export default function LibraryScreen() {
     try {
       await task();
     } catch (e) {
-      setPicking(null);
       setWork(null);
       showError(e, img);
     } finally {
@@ -196,29 +188,14 @@ export default function LibraryScreen() {
       setDownloaded(false);
       setProgress({ stage: 'segment' });
       const a = await analyzeImage(segmentForPose, img, track);
-      if (a.people.length > 1) {
-        setPicking(a);
-        return;
-      }
-      await finish(
-        a,
-        a.people.map((_, i) => i),
-      );
+      // Lưu với mọi người trong ảnh. Ảnh nhiều người mở thẳng Cọ → Người để bỏ bớt người
+      // (góp ý Phase 4 vòng 3: thay màn Chọn người).
+      setProgress({ stage: 'contour' });
+      const pose = await savePose(db, a, a.people, track);
+      setWork(null);
+      setTab('mine');
+      router.push(a.people.length > 1 ? `/editor/${pose.id}?people=1` : `/editor/${pose.id}`);
     });
-
-  const finish = async (a: ImageAnalysis, chosen: number[]) => {
-    setPicking(null);
-    setProgress({ stage: 'contour' });
-    const pose = await savePose(
-      db,
-      a,
-      chosen.map((i) => a.people[i]!),
-      track,
-    );
-    setWork(null);
-    setTab('mine');
-    router.push(`/editor/${pose.id}`);
-  };
 
   const showError = (e: unknown, img: Picked) => {
     const kind = errorKind(e);
@@ -371,22 +348,6 @@ export default function LibraryScreen() {
             <Button label={t.library.addFromDevice} onPress={addFromDevice} icon={ImagePlus} />
           </View>
         )
-      )}
-
-      {picking && (
-        <PersonPicker
-          analysis={picking}
-          contours={pickContours}
-          onConfirm={(chosen) => {
-            const img = work;
-            if (img) run(img, () => finish(picking, chosen));
-          }}
-          onPickAnother={addFromDevice}
-          onCancel={() => {
-            setPicking(null);
-            setWork(null);
-          }}
-        />
       )}
 
       {menu && (

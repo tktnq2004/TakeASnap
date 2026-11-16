@@ -8,7 +8,7 @@
 import { File } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
-import { buildContours, type Contour, type Grid, personAreaRatio } from '@/engine/contour';
+import { buildContours, type Grid, personAreaRatio } from '@/engine/contour';
 import {
   groupPeople,
   keepBodyOnPeople,
@@ -68,13 +68,6 @@ export async function analyzeImage(
     throw new PoseCreateError(labeling.regions.length ? 'personTooSmall' : 'noPerson');
   }
   return { seg, grid, labeling, people };
-}
-
-/** Viền của từng người, để vẽ lên màn chọn người. */
-export function peopleContours(a: ImageAnalysis): Contour[][] {
-  return a.people.map((p) =>
-    buildContours(maskForPeople(a.grid, a.labeling, [p]), { maxSide: CONTOUR_SIDE }),
-  );
 }
 
 /** Lưu pose với những người đã chọn (mặc định: tất cả). */

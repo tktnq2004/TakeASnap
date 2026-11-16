@@ -1,4 +1,13 @@
-import { applyStroke, brushSource, MaskHistory, rasterizeContours, refineGridSize } from '../brush';
+import {
+  applyStroke,
+  brushSource,
+  MaskHistory,
+  personAtCell,
+  personPresence,
+  personShapes,
+  rasterizeContours,
+  refineGridSize,
+} from '../brush';
 import { buildContours, type Contour, personAreaRatio } from '../contour';
 
 const sum = (a: Float32Array) => a.reduce((s, v) => s + v, 0);
@@ -175,5 +184,55 @@ describe('MaskHistory', () => {
     expect(h.canUndo).toBe(false);
     expect(h.grid.data[5 * 10 + 1]).toBe(1);
     expect(h.edited).toBe(true);
+  });
+});
+
+describe('chế độ Người', () => {
+  const rect = (x0: number, y0: number, x1: number, y1: number): Contour => ({
+    isHole: false,
+    points: [
+      { x: x0 / 100, y: y0 / 100 },
+      { x: x1 / 100, y: y0 / 100 },
+      { x: x1 / 100, y: y1 / 100 },
+      { x: x0 / 100, y: y1 / 100 },
+    ],
+  });
+  const A = rect(10, 20, 40, 80);
+  const B = rect(60, 20, 90, 80);
+  const src = brushSource(rasterizeContours([A, B], 100, 100), 100, 100);
+  const at = (g: { data: ArrayLike<number> }, x: number, y: number) => g.data[y * 100 + x]!;
+
+  it('biết ai đang có trong pose', () => {
+    expect(personPresence(rasterizeContours([A, B], 100, 100), src)).toEqual([true, true]);
+    expect(personPresence(rasterizeContours([A], 100, 100), src)).toEqual([true, false]);
+  });
+
+  it('tìm người dưới điểm chạm, hoặc gần nhất trong vùng nới', () => {
+    expect(personAtCell(src, 100, 100, 25, 50, 0)).toBe(0);
+    expect(personAtCell(src, 100, 100, 75, 50, 0)).toBe(1);
+    expect(personAtCell(src, 100, 100, 50, 50, 0)).toBeNull();
+    expect(personAtCell(src, 100, 100, 43, 50, 5)).toBe(0);
+  });
+
+  it('chạm bỏ cả người rồi lấy lại, hoàn tác được', () => {
+    const h = new MaskHistory(rasterizeContours([A, B], 100, 100), 100, 100, Infinity, src);
+    expect(h.togglePerson(1)).toBe(false);
+    expect(at(h.grid, 75, 50)).toBe(0);
+    expect(at(h.grid, 25, 50)).toBe(1);
+    expect(h.edited).toBe(true);
+    expect(h.togglePerson(1)).toBe(true);
+    expect(at(h.grid, 75, 50)).toBe(1);
+    h.undo();
+    expect(at(h.grid, 75, 50)).toBe(0);
+    h.undo();
+    expect(at(h.grid, 75, 50)).toBe(1);
+  });
+
+  it('dáng riêng từng người', () => {
+    const shapes = personShapes(src, 100, 100);
+    expect(shapes).toHaveLength(2);
+    expect(at(shapes[0]!, 25, 50)).toBe(1);
+    expect(at(shapes[0]!, 75, 50)).toBe(0);
+    expect(at(shapes[1]!, 75, 50)).toBe(1);
   });
 });
