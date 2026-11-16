@@ -307,7 +307,7 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 | Menu, cách hủy | Chạm ra ngoài để hủy |
 | Chọn nhiều | Đã chọn n · Hủy · Chọn tất cả · Xóa n pose |
 | Màn Chỉnh pose (tiêu đề) | Chỉnh sửa |
-| Chọn người | Chọn những pose bạn muốn. Có thể chọn nhiều pose. · Chọn tất cả · Dùng người đã chọn |
+| Chọn người | Chọn những pose bạn muốn. Có thể chọn nhiều pose. · Chọn tất cả (chip) · Người n · Chọn ảnh khác · Dùng người đã chọn |
 | Chỉnh pose, tab | Viền · Phủ · Nền · Cọ |
 | Chỉnh pose, nút | Lưu thành bản mới · Lưu pose |
 | Bảng màu | Mã màu · Lấy màu từ ảnh · Gần đây |
@@ -539,6 +539,7 @@ Kết quả: ảnh ghép chiếm hết vùng trên; giữ ngón tay lên ảnh �
 - **Xem ảnh vừa chụp:** chấm trang đổi ngay trong lúc vuốt; hàng chấm mỗi ảnh một ô (rộng tối đa 300), chạm hoặc kéo trên hàng để tua nhanh. Nhiều ảnh thì chấm nhỏ lại.
 - **Menu pose** rộng 200, chữ ngắn: Chụp · Sửa · Xóa; pose mẫu: Chụp · Tạo bản sao.
 - **Chọn người:** ảnh nằm trong thẻ trắng nền `surfaceAlt`; người chưa chọn viền trắng nét đứt (dáng mẫu), đã chọn phủ `accent` 35% + viền trắng 3 px; mỗi người có huy hiệu số trên đầu (đã chọn thành dấu tích); dưới ảnh là hàng chip "Người 1, Người 2…" để chọn bằng tên.
+- **Chọn người (vòng 2):** thẻ ảnh ôm sát ảnh (ảnh vừa khít phần trống, thẻ và hàng chip cùng căn giữa theo chiều dọc), không còn khoảng trống trên dưới ảnh. "Chọn tất cả" thành chip đầu hàng (bấm lần nữa để bỏ chọn hết). Đáy: "Chọn ảnh khác" (`secondary`, icon ImagePlus) mở album, bỏ ảnh đang chọn (chưa lưu gì) và xử lý ảnh mới; "Dùng người đã chọn" (primary).
 - **Lấy màu từ ảnh:** viền xanh vẽ chồng lên preview (không đổi kích thước, hết giật); nút X ở góc preview để hủy và quay lại Bảng màu.
 
 ### 6.14 Logo, icon app và màn mở app

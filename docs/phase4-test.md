@@ -97,8 +97,8 @@ Ngày thử:
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
 | 8.1 | Chạm bánh răng trên Camera | Mở Cài đặt (không còn màn thử nghiệm); ba nhóm Chụp, Dung lượng, Giới thiệu | | | |
-| 8.2 | Ảnh camera trước → Lưu soi gương, chụp bằng camera trước | Ảnh lưu soi gương như lúc xem; đổi lại Lưu như thật thì ảnh lưu như thật | | | |
-| 8.3 | Tắt Rung phản hồi, chụp ảnh và kéo zoom | Không rung; bật lại thì rung | | | |
+| 8.2 | Ảnh camera trước → Lưu soi gương, chụp bằng camera trước | Ảnh lưu soi gương như lúc xem; đổi lại Lưu như thật thì ảnh lưu như thật | đạt |đạt | |
+| 8.3 | Tắt Rung phản hồi, chụp ảnh và kéo zoom | Không rung; bật lại thì rung |đạt |đạt | |
 | 8.4 | Dung lượng bộ tách người | Hiện số MB; Xóa bộ tách → hỏi xác nhận → thành "Chưa tải"; tạo pose sau đó thì tải lại |đạt |đạt | bị lỗi Cannot convert BigInt to number trên iphone |
 | 8.5 | Nguồn ảnh mẫu, Giấy phép model | Mở hộp thoại ngắn |đạt |đạt | |
 
@@ -106,20 +106,29 @@ Ngày thử:
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 9.1 | Xóa bộ tách trong Cài đặt rồi thêm ảnh có người (mục 6.7, 8.4) | Không còn lỗi "Cannot convert BigInt to number"; tải xong thì lần thêm ảnh sau **không tải lại** | | | |
-| 9.2 | So khung hình với app Camera của máy ở 0,5×, 1× và 2× (mục 4.4) | Khung hình gần giống nhau ở cả ba mức | | | |
-| 9.3 | Đổi tỉ lệ 3:4 → 9:16 → 1:1 rồi chụp mỗi tỉ lệ một ảnh | Ảnh lưu đúng những gì thấy trong khung | | | |
-| 9.4 | Giữ yên ngón trên cụm zoom (không kéo) | Sau chừng 0,25 giây thước cuộn hiện ra, rung nhẹ; kéo tiếp thì zoom; thả tay về nút | | | |
-| 9.5 | Thu gọn cột công cụ rồi chọn một pose khác | Cột tự mở ra | | | |
-| 9.6 | Nhìn nút Độ hiện ở 100% | Có số 100 trên nút | | | |
-| 9.7 | Chụp ảnh | Chớp màn, ảnh thu nhỏ trượt vào ô ảnh vừa chụp; ô có ảnh ngay | | | |
-| 9.8 | Xem ảnh vừa chụp: vuốt ảnh, rồi chạm / kéo trên hàng chấm | Chấm đổi cùng lúc với ảnh; chạm hoặc kéo trên chấm thì nhảy tới ảnh đó | | | |
-| 9.9 | Menu pose | Pose của bạn: Chụp · Sửa · Xóa; pose mẫu: Chụp · Tạo bản sao; chọn nhiều: "Đã chọn n" | | | |
-| 9.10 | Màn Chọn người | Ảnh trong thẻ trắng, người chưa chọn viền nét đứt, có số trên đầu, hàng nút Người 1, 2…; chọn được bằng chạm ảnh hoặc nút | | | |
-| 9.11 | Chỉnh pose | Tiêu đề "Chỉnh sửa" | | | |
-| 9.12 | Lấy màu từ ảnh | Ảnh không giật lệch khi bật / tắt; nút X ở góc để hủy và quay lại Bảng màu | | | |
-| 9.13 | Terminal khi dùng app | Không còn cảnh báo "Reading from `value` during component render" (hoặc ít hẳn) | | | |
-| 9.14 | Mục 7.9 và 8.1–8.3 chưa thử ở lần 1 | Như kỳ vọng ở trên | | | |
+| 9.1 | Xóa bộ tách trong Cài đặt rồi thêm ảnh có người (mục 6.7, 8.4) | Không còn lỗi "Cannot convert BigInt to number"; tải xong thì lần thêm ảnh sau **không tải lại** | đạt | đạt | |
+| 9.2 | So khung hình với app Camera của máy ở 0,5×, 1× và 2× (mục 4.4) | Khung hình gần giống nhau ở cả ba mức | đạt | đạt | tạm ổn, vẫn còn lệch vài 0.1 0.2  |
+| 9.3 | Đổi tỉ lệ 3:4 → 9:16 → 1:1 rồi chụp mỗi tỉ lệ một ảnh | Ảnh lưu đúng những gì thấy trong khung | đạt  | đạt | |
+| 9.4 | Giữ yên ngón trên cụm zoom (không kéo) | Sau chừng 0,25 giây thước cuộn hiện ra, rung nhẹ; kéo tiếp thì zoom; thả tay về nút |đạt |đạt | |
+| 9.5 | Thu gọn cột công cụ rồi chọn một pose khác | Cột tự mở ra |đạt |đạt | |
+| 9.6 | Nhìn nút Độ hiện ở 100% | Có số 100 trên nút |đạt |đạt | |
+| 9.7 | Chụp ảnh | Chớp màn, ảnh thu nhỏ trượt vào ô ảnh vừa chụp; ô có ảnh ngay |đạt |đạt | |
+| 9.8 | Xem ảnh vừa chụp: vuốt ảnh, rồi chạm / kéo trên hàng chấm | Chấm đổi cùng lúc với ảnh; chạm hoặc kéo trên chấm thì nhảy tới ảnh đó |đạt | đạt | |
+| 9.9 | Menu pose | Pose của bạn: Chụp · Sửa · Xóa; pose mẫu: Chụp · Tạo bản sao; chọn nhiều: "Đã chọn n" |đạt |đạt | |
+| 9.10 | Màn Chọn người | Ảnh trong thẻ trắng, người chưa chọn viền nét đứt, có số trên đầu, hàng nút Người 1, 2…; chọn được bằng chạm ảnh hoặc nút | đạt | đạt| trống ở đây là khung chứa ảnh quá lớn, ảnh chỉ chiếm 1 phần nhỏ nên dư khá nhiều khoảng trống ở trên và dưới khung ảnh. Option tôi thêm là thêm button chọn ảnh khác -> mở album -> chọn ảnh -> không lưu ảnh trước |
+| 9.11 | Chỉnh pose | Tiêu đề "Chỉnh sửa" | đạt |đạt | |
+| 9.12 | Lấy màu từ ảnh | Ảnh không giật lệch khi bật / tắt; nút X ở góc để hủy và quay lại Bảng màu |đạt |đạt | |
+| 9.13 | Terminal khi dùng app | Không còn cảnh báo "Reading from `value` during component render" (hoặc ít hẳn) |đạt  |đạt | đạt mục tiêu ít hơn hẳn |
+| 9.14 | Mục 7.9 và 8.1–8.3 chưa thử ở lần 1 | Như kỳ vọng ở trên |đạt |đạt | |
+
+## 10. Vòng 3 — sửa theo góp ý lần 2
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 10.1 | Thêm ảnh có nhiều người, nhất là ảnh ngang (mục 9.10) | Thẻ trắng ôm sát ảnh, không còn khoảng trống lớn trên dưới ảnh | | | |
+| 10.2 | Bấm chip "Chọn tất cả", bấm lần nữa | Chọn hết mọi người; bấm lại thì bỏ chọn hết | | | |
+| 10.3 | Bấm "Chọn ảnh khác" → chọn ảnh khác trong album | Ảnh cũ bỏ đi, không có pose nào được lưu; ảnh mới được tách người như bình thường | | | |
+| 10.4 | Bấm "Chọn ảnh khác" rồi hủy album | Vẫn ở màn Chọn người với ảnh cũ | | | |
 
 ## Góp ý thêm
 

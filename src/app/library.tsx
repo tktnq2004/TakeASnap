@@ -167,6 +167,8 @@ export default function LibraryScreen() {
     const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 1 });
     const a = res.canceled ? null : res.assets[0];
     if (!a) return;
+    // Đang ở màn Chọn người thì bỏ ảnh cũ (chưa lưu gì) rồi xử lý ảnh mới.
+    setPicking(null);
     processImage({ uri: a.uri, width: a.width, height: a.height });
   };
 
@@ -379,6 +381,7 @@ export default function LibraryScreen() {
             const img = work;
             if (img) run(img, () => finish(picking, chosen));
           }}
+          onPickAnother={addFromDevice}
           onCancel={() => {
             setPicking(null);
             setWork(null);
