@@ -66,12 +66,8 @@ import type { SlotRect } from '@/ui/components/SwatchRow';
 import { t } from '@/ui/strings';
 import { color, editor, personPick, radius, refineBrush, size, space, type } from '@/ui/tokens';
 
-/**
- * Tab Viền · Phủ · Nền · Cọ (design.md §6.9). Ảnh nhiều người có thêm tab Người đứng đầu (góp ý
- * Phase 4 vòng 4: thay màn Chọn người).
- */
+/** 4 tab Viền · Phủ · Nền · Cọ (design.md §6.9). */
 const tabs = [
-  { key: 'people', label: t.editor.tabPeople, icon: Users },
   { key: 'outline', label: t.editor.tabOutline, icon: PenTool },
   { key: 'fill', label: t.editor.tabFill, icon: Droplet },
   { key: 'image', label: t.editor.tabImage, icon: ImageIcon },
@@ -86,10 +82,17 @@ const lineTargets = [
 ] as const;
 type LineTarget = (typeof lineTargets)[number]['key'];
 
+/**
+ * Tab Cọ: Người (ảnh từ 2 người: chạm bỏ / lấy lại cả người, thay màn Chọn người) · Thêm · Xóa
+ * (góp ý Phase 4 vòng 5: chọn người là một chức năng của Cọ, không phải tab riêng).
+ */
 const brushModes = [
+  { key: 'person', label: t.editor.brushPerson, icon: Users },
   { key: 'add', label: t.editor.brushAdd, icon: Plus },
   { key: 'erase', label: t.editor.brushErase, icon: Eraser },
 ] as const;
+type RefineMode = (typeof brushModes)[number]['key'];
+const strokeModes = brushModes.filter((o) => o.key !== 'person');
 
 const percent = (v: number) => {
   'worklet';
@@ -110,7 +113,7 @@ type PaletteState = { target: ColorTarget; initial: string; anchor: SlotRect };
 /** Màn Chỉnh pose (business-flow §5.2, design.md §6.9). */
 export default function EditorScreen() {
   // from=camera: mở từ nút Chỉnh pose trên Camera; lưu thành bản mới thì Camera dùng luôn bản đó.
-  // people=1: pose vừa tạo từ ảnh nhiều người, mở thẳng tab Người để bỏ bớt người.
+  // people=1: pose vừa tạo từ ảnh nhiều người, mở thẳng Cọ → Người để bỏ bớt người.
   const { poseId, from, people } = useLocalSearchParams<{
     poseId: string;
     from?: string;
@@ -122,7 +125,7 @@ export default function EditorScreen() {
 
   const [pose, setPose] = useState<Pose | null | undefined>(undefined);
   const [area, setArea] = useState({ w: 0, h: 0 });
-  const [tab, setTab] = useState<Tab>(manyPeople ? 'people' : 'outline');
+  const [tab, setTab] = useState<Tab>(manyPeople ? 'refine' : 'outline');
   const [lineTarget, setLineTarget] = useState<LineTarget>('outline');
   const [saving, setSaving] = useState(false);
   const savingRef = useRef(false);
@@ -146,7 +149,7 @@ export default function EditorScreen() {
 
   // Sửa nét: lưới mask + lịch sử chỉ tạo khi vẽ nét đầu tiên. `contours` null = chưa sửa.
   const [contours, setContours] = useState<Contour[] | null>(null);
-  const [brushMode, setBrushMode] = useState<BrushMode>('add');
+  const [refineMode, setRefineMode] = useState<RefineMode>(manyPeople ? 'person' : 'add');
   const [hist, setHist] = useState({ canUndo: false, canRedo: false });
   const brushSize = useSharedValue<number>(refineBrush.initial);
   const live = useSharedValue<number[]>([]);
@@ -285,11 +288,11 @@ export default function EditorScreen() {
     return brushSource(data, g.width, g.height);
   }, [pose]);
   const peopleCount = source?.personArea.length ?? 0;
-  // Tab Người chỉ có khi ảnh có từ 2 người.
-  const shownTabs = peopleCount > 1 ? tabs : tabs.filter((o) => o.key !== 'people');
-  const activeTab: Tab = tab === 'people' && pose && peopleCount < 2 ? 'outline' : tab;
-
-  const personMode = activeTab === 'people';
+  // Chế độ Người chỉ có khi ảnh có từ 2 người.
+  const canPickPeople = peopleCount > 1;
+  const modes = canPickPeople ? brushModes : strokeModes;
+  const personMode = tab === 'refine' && refineMode === 'person' && canPickPeople;
+  const brushMode: BrushMode = refineMode === 'person' ? 'add' : refineMode;
   const shapes = useMemo(() => {
     if (!pose || !source || !personMode) return [];
     const g = refineGridSize(pose.width, pose.height);
@@ -468,7 +471,7 @@ export default function EditorScreen() {
             checker
           />
         )}
-        {pose && area.w > 0 && activeTab === 'refine' && (
+        {pose && area.w > 0 && tab === 'refine' && !personMode && (
           <RefineLayer mode={brushMode} size={brushSize} live={live} onStroke={onStroke} />
         )}
         {pose && area.w > 0 && personMode && (
@@ -496,30 +499,19 @@ export default function EditorScreen() {
       </View>
 
       <View style={styles.chips} accessibilityRole="tablist">
-        {shownTabs.map((o) => (
+        {tabs.map((o) => (
           <Chip
             key={o.key}
             label={o.label}
             icon={o.icon}
-            selected={activeTab === o.key}
+            selected={tab === o.key}
             onPress={() => setTab(o.key)}
-            fill={shownTabs.length > 4}
           />
         ))}
       </View>
 
       <View style={styles.panel}>
-        {activeTab === 'people' && pose && (
-          <PeoplePanel
-            source={pose.source}
-            imageWidth={pose.width}
-            imageHeight={pose.height}
-            boxes={boxes}
-            present={present}
-            onToggle={togglePerson}
-          />
-        )}
-        {activeTab === 'outline' && (
+        {tab === 'outline' && (
           <>
             {/* Viền và nét mặt chung tab nhưng chỉnh riêng (góp ý lần 3). */}
             <View style={styles.row}>
@@ -554,7 +546,7 @@ export default function EditorScreen() {
             />
           </>
         )}
-        {activeTab === 'fill' && (
+        {tab === 'fill' && (
           <>
             <ToggleRow label={t.editor.showFill} value={fillEnabled} onChange={setFillEnabled} />
             <SwatchRow
@@ -573,7 +565,7 @@ export default function EditorScreen() {
             />
           </>
         )}
-        {activeTab === 'image' && (
+        {tab === 'image' && (
           <>
             <Slider
               label={t.editor.subjectVisibility}
@@ -593,39 +585,53 @@ export default function EditorScreen() {
             />
           </>
         )}
-        {activeTab === 'refine' && (
+        {tab === 'refine' && (
           <>
-            {/* Hoàn tác / Làm lại chỉ cho nét cọ nên nằm ở đây, không ở đầu màn. */}
+            {/* Hoàn tác / Làm lại chỉ cho nét cọ nên nằm ở đây, không ở đầu màn. Chọn người
+                không có hoàn tác (chạm lại là xong): ở chế độ Người hai nút tắt (không ẩn, để thanh
+                chọn chế độ không đổi bề rộng). */}
             <View style={styles.row}>
               <View style={styles.rowSeg}>
                 <Segmented
                   tone="card"
-                  options={brushModes}
-                  value={brushMode}
-                  onChange={setBrushMode}
+                  options={modes}
+                  value={personMode ? 'person' : brushMode}
+                  onChange={setRefineMode}
                 />
               </View>
               <IconButton
                 icon={Undo2}
                 label={t.editor.undo}
                 onPress={undo}
-                disabled={!hist.canUndo}
+                disabled={personMode || !hist.canUndo}
               />
               <IconButton
                 icon={Redo2}
                 label={t.editor.redo}
                 onPress={redo}
-                disabled={!hist.canRedo}
+                disabled={personMode || !hist.canRedo}
               />
             </View>
-            <Slider
-              label={t.editor.brushSize}
-              value={brushSize}
-              min={refineBrush.min}
-              max={refineBrush.max}
-              step={refineBrush.step}
-              format={pxInt}
-            />
+            {/* Chế độ Người: hàng ảnh từng người nằm đúng chỗ thanh Cỡ cọ, panel không trống. */}
+            {personMode && pose ? (
+              <PeoplePanel
+                source={pose.source}
+                imageWidth={pose.width}
+                imageHeight={pose.height}
+                boxes={boxes}
+                present={present}
+                onToggle={togglePerson}
+              />
+            ) : (
+              <Slider
+                label={t.editor.brushSize}
+                value={brushSize}
+                min={refineBrush.min}
+                max={refineBrush.max}
+                step={refineBrush.step}
+                format={pxInt}
+              />
+            )}
           </>
         )}
       </View>

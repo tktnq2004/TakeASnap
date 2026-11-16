@@ -193,10 +193,10 @@ export const personPick = {
   dash: [8, 6] as number[],
   /** Chạm lệch khỏi người tối đa chừng này px màn hình vẫn tính là chạm vào người. */
   slop: 16,
-  /** Ô người trong panel: cao cố định, rộng theo dáng người trong khoảng min–max. */
-  tileH: 152,
-  tileMinW: 84,
-  tileMaxW: 136,
+  /** Ô người (thay chỗ thanh Cỡ cọ): cao cố định, rộng theo dáng người trong khoảng min–max. */
+  tileH: 128,
+  tileMinW: 72,
+  tileMaxW: 116,
   tileBorder: 3,
   /** Nới khung người thêm chừng này (theo cạnh dài) cho thoáng. */
   tilePad: 0.06,

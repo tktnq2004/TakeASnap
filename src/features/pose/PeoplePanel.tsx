@@ -1,10 +1,10 @@
 import { Check } from 'lucide-react-native';
-import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
 
 import { PressableScale } from '@/ui/components/PressableScale';
 import type { ImageSource } from './types';
 import { t } from '@/ui/strings';
-import { color, personPick as P, radius, space, type } from '@/ui/tokens';
+import { color, personPick as P, radius, space } from '@/ui/tokens';
 
 type Box = [number, number, number, number];
 
@@ -20,17 +20,13 @@ type Props = {
 };
 
 /**
- * Panel tab Người (góp ý Phase 4 vòng 4): mỗi người một ô ảnh cắt sát người đó, chạm để giữ hoặc
- * bỏ, cùng việc với chạm lên preview. Ô đang giữ viền màu nhấn và dấu tích; ô bị bỏ mờ đi.
+ * Hàng ô người ở Cọ → Người (góp ý Phase 4 vòng 5), nằm chỗ thanh Cỡ cọ: mỗi người một ô ảnh cắt
+ * sát người đó, chạm để giữ hoặc bỏ, cùng việc với chạm lên preview. Ô đang giữ viền màu nhấn và
+ * dấu tích; ô bị bỏ mờ đi.
  */
 export function PeoplePanel({ source, imageWidth, imageHeight, boxes, present, onToggle }: Props) {
-  const kept = present.filter(Boolean).length;
   return (
     <View style={styles.root}>
-      <View style={styles.head}>
-        <Text style={[type.label, styles.ink]}>{t.editor.peopleTitle}</Text>
-        <Text style={[type.num, styles.muted]}>{t.editor.peopleKept(kept, boxes.length)}</Text>
-      </View>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -116,10 +112,7 @@ function PersonTile({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, gap: space[3] },
-  head: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  ink: { color: color.ink },
-  muted: { color: color.muted },
+  root: { height: P.tileH },
   row: { gap: space[2] },
   tile: {
     height: P.tileH,

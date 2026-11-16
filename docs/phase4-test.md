@@ -151,7 +151,7 @@ Theo góp ý 11.2–11.4: bỏ huy hiệu, chọn người thành tab **Người
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 12.1 | Thêm ảnh có 2–4 người | Mở Chỉnh sửa ở tab Người; hàng tab Người · Viền · Phủ · Nền · Cọ vừa một hàng, không bị cắt chữ | | | |
+| 12.1 | Thêm ảnh có 2–4 người | Mở Chỉnh sửa ở tab Người; hàng tab Người · Viền · Phủ · Nền · Cọ vừa một hàng, không bị cắt chữ | sai | sai | tab người là 1 chức năng của tab cọ. Không phải ngang hàng hoặc đưa nó về 1 button hoặc switch, hoặc là chức năng khi giữ ảnh, ... hoặc 1 logic nào đó phù hợp |
 | 12.2 | Nhìn preview và panel | Không còn huy hiệu trên đầu; panel có "Người trong ảnh", "Giữ n/m" và mỗi người một ô ảnh có dấu tích | | | |
 | 12.3 | Chạm một người trên ảnh | Người đó bị bỏ (viền nét đứt), ô của họ mờ đi, số Giữ giảm | | | |
 | 12.4 | Chạm ô người đó trong panel | Người đó hiện lại | | | |
@@ -159,6 +159,19 @@ Theo góp ý 11.2–11.4: bỏ huy hiệu, chọn người thành tab **Người
 | 12.6 | Ảnh một người, và pose mẫu | Không có tab Người; 4 tab như cũ | | | |
 | 12.7 | Bỏ một người → Lưu pose → xem trên Camera | Pose chỉ còn những người giữ lại | | | |
 | 12.8 | Terminal: khi thấy cảnh báo "Reading from `value`", ghi lại đang ở màn nào, làm gì | | | | |
+
+## 13. Vòng 6 — Người là chế độ của Cọ
+
+Theo góp ý 12.1: bỏ tab Người, chọn người thành lựa chọn **Người** trong tab Cọ (Người · Thêm · Xóa). Ở chế độ Người, hàng ô ảnh từng người nằm đúng chỗ thanh Cỡ cọ; Hoàn tác / Làm lại tắt.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 13.1 | Thêm ảnh có 2–4 người | Mở Chỉnh sửa ở tab Cọ, chế độ Người; 4 tab như cũ | | | |
+| 13.2 | Chạm một người trên ảnh, rồi chạm ô của họ | Bỏ người (viền nét đứt, ô mờ); chạm ô thì hiện lại | | | |
+| 13.3 | Đổi Người → Thêm → Người | Thanh Cỡ cọ và hàng ô người đổi chỗ cho nhau, panel không trống, thanh Người · Thêm · Xóa không đổi bề rộng | | | |
+| 13.4 | Ảnh một người, và pose mẫu | Cọ chỉ có Thêm · Xóa | | | |
+| 13.5 | Bỏ một người → Lưu pose → xem trên Camera | Pose chỉ còn những người giữ lại | | | |
+| 13.6 | Terminal: khi thấy cảnh báo "Reading from `value`", ghi lại đang ở màn nào, làm gì | | | | |
 
 ## Góp ý thêm
 

@@ -10,19 +10,17 @@ type Props = {
   icon?: LucideIcon;
   selected: boolean;
   onPress: () => void;
-  /** Chia đều hàng, đệm hẹp (hàng 5 tab của Chỉnh sửa trên máy hẹp). */
-  fill?: boolean;
 };
 
 /** Chip tab của Chỉnh pose (design.md §4): nền trắng; đang chọn nền màu nhấn, chữ trắng. */
-export function Chip({ label, icon: Icon, selected, onPress, fill }: Props) {
+export function Chip({ label, icon: Icon, selected, onPress }: Props) {
   return (
     <PressableScale
       accessibilityRole="tab"
       accessibilityLabel={label}
       accessibilityState={{ selected }}
       onPress={onPress}
-      style={[styles.base, fill && styles.fill, selected && styles.on]}
+      style={[styles.base, selected && styles.on]}
     >
       {Icon && (
         <Icon
@@ -52,6 +50,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space[2],
   },
-  fill: { flex: 1, paddingHorizontal: space[2], gap: space[1], justifyContent: 'center' },
   on: { backgroundColor: color.accent },
 });

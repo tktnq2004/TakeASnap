@@ -387,7 +387,7 @@ docs/
 
 **Góp ý lần 5:** hoàn tác nhanh và 13.4 (người không chọn không lộ ra) đạt. Hoàn tác hết vẫn không về viền gốc vì giới hạn 30 bước → bỏ giới hạn (người dùng chọn), hoàn tác hết là về viền lúc mở màn. Lần 6: đạt.
 
-- Chọn người: `src/engine/regions.ts` chia mask thành vùng liền nhau (mỗi vùng ≥ 2% ảnh là một người), `PersonPicker` phủ lên Thư viện (Phase 4 vòng 3 bỏ màn này: vòng 4: chọn người là tab Người của Chỉnh sửa, `PeopleLayer` + `PeoplePanel` + `MaskHistory.togglePerson`). Trang WebView dò tối đa 6 người (thêm 3 dải dọc) và dò lại vùng đầu cho từng người để giữ được nét mặt.
+- Chọn người: `src/engine/regions.ts` chia mask thành vùng liền nhau (mỗi vùng ≥ 2% ảnh là một người), `PersonPicker` phủ lên Thư viện (Phase 4 vòng 3 bỏ màn này: vòng 5: chọn người là chế độ Người trong tab Cọ, `PeopleLayer` + `PeoplePanel` + `MaskHistory.togglePerson`). Trang WebView dò tối đa 6 người (thêm 3 dải dọc) và dò lại vùng đầu cho từng người để giữ được nét mặt.
 - Sửa nét: `src/engine/brush.ts` dựng lưới 512 từ viền đang có (pose mẫu không có mask PNG), cọ có khử răng cưa, hoàn tác không giới hạn (mỗi bước chỉ lưu các ô đã đổi). Viền đã sửa ghi vào ảnh gốc, cột `photos.contours_edited` (migration v4) để bản chép pose mẫu không bị viền mẫu đè lại.
 
 - [x] Màn Thư viện: Pose mẫu theo nhóm, Pose của bạn, Thêm ảnh từ máy (từ Phase 1–2)
@@ -429,7 +429,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [x] Zoom nút nhanh 0,5 · 1× · 2 · 3, giữ và kéo ngang thì thành thước
 - [x] Cột công cụ dọc kéo được: lên xuống, quăng trái/phải dính mép, kẹp trong khung ngắm, nhớ vị trí
 - [x] Giữ nút độ hiện: cột thành thanh kéo tại chỗ, một ngón, thả tay trở lại
-- [x] Thư viện (thẻ nhóm, nút nổi, các bước đang xử lý), Pose của bạn (thanh nổi Chọn tất cả · Xóa n pose), Chỉnh pose (tab Người khi ảnh nhiều người · Viền · Phủ · Nền · Cọ, hoàn tác trong Cọ, không chú thích, ô Mặt tắt khi không có mặt) theo design.md §6.5–6.9
+- [x] Thư viện (thẻ nhóm, nút nổi, các bước đang xử lý), Pose của bạn (thanh nổi Chọn tất cả · Xóa n pose), Chỉnh pose (4 tab Viền · Phủ · Nền · Cọ, Cọ có chế độ Người khi ảnh nhiều người, hoàn tác trong Cọ, không chú thích, ô Mặt tắt khi không có mặt) theo design.md §6.5–6.9
 - [x] Menu pose kiểu menu cạnh ô (design.md §6.7), thay cho hộp thoại hệ thống
 - [x] Bảng màu nổi cạnh ô màu (design.md §6.10), thêm ô dấu cộng vào hàng màu
 - [x] Chạm ảnh vừa chụp → màn **Xem ảnh vừa chụp** (business-flow §4.5)

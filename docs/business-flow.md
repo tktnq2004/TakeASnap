@@ -169,14 +169,14 @@ flowchart TD
     D -- "1 người" --> CT[Tạo contour<br/>với mọi người trong ảnh]
     D -- "Nhiều người" --> CT
     CT -- "1 người" --> ED[Chỉnh pose]
-    CT -- "Nhiều người" --> EDP[Chỉnh pose, mở sẵn tab Người<br/>chạm để bỏ / lấy lại từng người]
+    CT -- "Nhiều người" --> EDP[Chỉnh pose, mở sẵn Cọ → Người<br/>chạm để bỏ / lấy lại từng người]
     EDP --> SV
     S --> ED
     ED --> SV[Lưu pose]
     SV --> CAM[Về Camera với pose làm overlay]
 ```
 
-**Ảnh nhiều người** (từ 2 người trở lên): không còn màn Chọn người riêng (góp ý Phase 4 vòng 3–4). Màn đang xử lý chỉ báo tiến trình; pose được lưu với **mọi người** trong ảnh rồi mở Chỉnh pose ở tab **Người** (tab này chỉ có khi ảnh có từ 2 người): chạm vào một người trên ảnh hoặc ô ảnh của họ trong panel để bỏ cả người đó, chạm lần nữa để lấy lại. Chọn người không có hoàn tác (chạm lại là xong); lịch sử hoàn tác của Cọ bắt đầu lại sau mỗi lần chọn người. Model chỉ phân biệt người / nền, nên mỗi vùng người liền nhau tính là một người; vùng chiếm từ 2% ảnh trở lên là một người, mảng nhỏ hơn (tay rời, tóc) gắn vào người gần nhất. Hai người chạm hoặc đè lên nhau thành một vùng, bỏ cùng nhau hoặc dùng cọ Xóa để bỏ bớt. Nét mặt của người bị bỏ ẩn theo.
+**Ảnh nhiều người** (từ 2 người trở lên): không còn màn Chọn người riêng (góp ý Phase 4 vòng 3–5). Màn đang xử lý chỉ báo tiến trình; pose được lưu với **mọi người** trong ảnh rồi mở Chỉnh pose ở tab **Cọ**, chế độ **Người** (chế độ này chỉ có khi ảnh có từ 2 người): chạm vào một người trên ảnh hoặc ô ảnh của họ trong panel để bỏ cả người đó, chạm lần nữa để lấy lại. Chọn người không có hoàn tác (chạm lại là xong); lịch sử hoàn tác của Cọ bắt đầu lại sau mỗi lần chọn người. Model chỉ phân biệt người / nền, nên mỗi vùng người liền nhau tính là một người; vùng chiếm từ 2% ảnh trở lên là một người, mảng nhỏ hơn (tay rời, tóc) gắn vào người gần nhất. Hai người chạm hoặc đè lên nhau thành một vùng, bỏ cùng nhau hoặc dùng cọ Xóa để bỏ bớt. Nét mặt của người bị bỏ ẩn theo.
 
 ### 5.2 Màn Chỉnh pose — các lớp và điều khiển
 
@@ -196,8 +196,7 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 | | | Độ đậm | 0–100% | 40% |
 | **Nền** | Người | Độ hiện của người trong ảnh gốc | 0–100% | 0% |
 | | Nền | Độ hiện của nền trong ảnh gốc (phần ngoài người) | 0–100% | 0% |
-| **Người** (ảnh từ 2 người) | Viền, phủ, nét mặt | Chạm người trên ảnh hoặc ô người trong panel: bỏ / lấy lại cả người | — | mọi người |
-| **Cọ** | Viền | Cọ **[Thêm | Xóa]** vẽ thẳng lên ảnh, hoàn tác / làm lại không giới hạn trong một lần sửa (hoàn tác hết là về viền lúc mở màn) | cỡ cọ 8–64 px | Thêm · 24 px |
+| **Cọ** | Viền | **[Người | Thêm | Xóa]**. Người (ảnh từ 2 người): chạm người trên ảnh hoặc ô người trong panel để bỏ / lấy lại cả người, không có hoàn tác. Thêm / Xóa vẽ thẳng lên ảnh, hoàn tác / làm lại không giới hạn trong một lần sửa (hoàn tác hết là về viền lúc mở màn) | cỡ cọ 8–64 px | Thêm · 24 px |
 
 - **Nét mặt cho biết hướng mặt:** có nét mặt (viền mặt, mắt, lông mày, mũi, môi) nghĩa là người mẫu quay mặt về ống kính; không có nghĩa là quay lưng. Khi không thấy mặt, ô "Mặt" trong tab Viền tắt (Phase 4 bỏ dòng ghi chú). Giới hạn của model: mặt nghiêng hẳn, cúi xuống hoặc bị tay che có thể không được nhận ra.
 - **Viền và nét mặt chung tab nhưng chỉnh riêng:** mỗi cái có công tắc, thanh độ dày và màu riêng; không có thanh kéo nào đổi cả hai cùng lúc.
