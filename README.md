@@ -19,7 +19,8 @@ Bản làm lại (rebuild v1) trên nhánh `rebuild`. Bản cũ được tag `le
 | 3 | Thư viện pose, chọn nhiều, cọ sửa viền | Xong (còn thử không có mạng) |
 | 4 | Giao diện chụp ảnh và giao diện chung | Xong |
 | 5 | Trợ lý bố cục | Đã chốt hướng, chưa làm |
-| 5b | Bố cục nâng cao: tự chọn kỹ thuật bằng model tự huấn luyện, dò đường chân trời và đường dẫn (mỗi phần một cổng quyết định) | Chưa làm |
+| 5a | Dò đường chân trời và đường dẫn trong ảnh (có cổng quyết định) | Chưa làm |
+| 5b | Tự chọn kỹ thuật bằng model AI tự huấn luyện (có cổng quyết định) | Chưa làm |
 | 6 | Hoàn thiện portfolio | Chưa làm |
 
 Phase 1–4 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi tiết và phiếu kiểm tra ở [docs/roadmap.md](docs/roadmap.md).
@@ -43,7 +44,7 @@ Phase 1–4 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi ti
 | [docs/business-flow.md](docs/business-flow.md) | Người dùng, thuật ngữ, bản đồ màn hình, luồng của 3 chức năng, quy tắc nghiệp vụ, mô hình dữ liệu, trạng thái và lỗi |
 | [docs/roadmap.md](docs/roadmap.md) | Phạm vi, vì sao Expo Go đủ, kiến trúc, tách người bằng WebView, phân phối model, trợ lý bố cục, 7 phase và tiêu chí xong |
 | [docs/design.md](docs/design.md) | Giao diện tối than chì + xanh trời: token màu / chữ / kích thước / motion, icon Lucide, component, chữ trên giao diện, bố cục 13 màn |
-| [docs/composition.md](docs/composition.md) | Nghiên cứu kỹ thuật bố cục chụp người bằng điện thoại, có nguồn (Phase 5a) |
+| [docs/composition.md](docs/composition.md) | Nghiên cứu kỹ thuật bố cục chụp người bằng điện thoại, có nguồn (Phase 5) |
 | [docs/phase5-bo-cuc.md](docs/phase5-bo-cuc.md) | Giải thích Trợ lý bố cục: là gì, dùng ra sao, làm thế nào, kết quả |
 | [docs/spikes.md](docs/spikes.md) | Kết quả đo của Phase 0 |
 | `docs/phase*-test.md` | Phiếu kiểm tra trên máy thật của từng phase |

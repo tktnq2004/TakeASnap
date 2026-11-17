@@ -1,4 +1,4 @@
-# Bố cục khi chụp người bằng điện thoại — nghiên cứu cho Phase 5a
+# Bố cục khi chụp người bằng điện thoại — nghiên cứu cho Phase 5
 
 Bản nghiên cứu để chọn kỹ thuật cho chức năng hướng dẫn bố cục. Phạm vi: chỉ những kỹ thuật **dùng được trên điện thoại** và **có người trong ảnh**, vì app đã có pose. Chưa phải đặc tả; roadmap và business-flow chỉ sửa sau khi chốt danh sách.
 
@@ -99,7 +99,7 @@ Tổng v1: **15 kỹ thuật**, trong đó **10 có hướng dẫn** trên camer
 
 **Đã chốt phạm vi:**
 - Giữ cả các mục không hẳn là quy tắc bố cục (góc thấp, selfie, khoảng cách – ống kính, ánh sáng) vì giúp ảnh có người đẹp hơn.
-- Đường chân trời và đường dẫn chia hai mức. **Phase 5a (đơn giản):** chân trời = máy thẳng + lớp kẻ hai đường ngang 1/3; đường dẫn = lớp kẻ hai đường chéo hội tụ về giao điểm 1/3, người dùng tự xếp cảnh, app không dò. **Phase 5b (nâng cao):** app dò đường thẳng trong ảnh để tìm chân trời, đường dẫn và vật "mọc" sau đầu, có cổng quyết định riêng.
+- Đường chân trời và đường dẫn chia hai mức. **Phase 5 (đơn giản):** chân trời = máy thẳng + lớp kẻ hai đường ngang 1/3; đường dẫn = lớp kẻ hai đường chéo hội tụ về giao điểm 1/3, người dùng tự xếp cảnh, app không dò. **Phase 5a (nâng cao):** app dò đường thẳng trong ảnh để tìm chân trời, đường dẫn và vật "mọc" sau đầu, có cổng quyết định riêng. **Phase 5b:** model AI tự chọn kỹ thuật.
 
 ## 5. Ghép với pose
 
@@ -109,7 +109,7 @@ Tổng v1: **15 kỹ thuật**, trong đó **10 có hướng dẫn** trên camer
 
 ## 6. Còn phải quyết
 
-1. Người dùng chọn kỹ thuật rồi app dẫn, hay app tự đoán kỹ thuật hợp cảnh? **Đã chốt:** Phase 5a người dùng chọn; Phase 5b thêm "Tự chọn" bằng model tự huấn luyện (phân loại khung cảnh → kỹ thuật), có cổng quyết định riêng (roadmap).
+1. Người dùng chọn kỹ thuật rồi app dẫn, hay app tự đoán kỹ thuật hợp cảnh? **Đã chốt:** Phase 5 người dùng chọn; Phase 5b thêm "Tự chọn" bằng model tự huấn luyện (phân loại khung cảnh → kỹ thuật), có cổng quyết định riêng (roadmap).
 2. Gợi ý sau khi chụp, lúc đang ngắm, hay cả hai? Phụ thuộc kết quả đo `takePictureAsync({ shutterSound: false })`.
 3. Thẻ học đặt ở đâu.
 4. Có cho AI trên cloud hay không (khuyên không, giữ nguyên tắc ảnh không rời máy).

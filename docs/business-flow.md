@@ -66,7 +66,7 @@ flowchart TD
     Camera -- "Nút Cài đặt" --> Settings[Cài đặt]
     Camera -- "Nút Bố cục" --> Pick[Chọn kỹ thuật bố cục]
     Pick --> Camera
-    Camera -- "Thẻ học (chỗ đặt chốt ở Phase 5a)" --> Lessons[Thẻ học]
+    Camera -- "Thẻ học (chỗ đặt chốt ở Phase 5)" --> Lessons[Thẻ học]
     Lessons -- "Chụp thử" --> Camera
 
     Camera -- "Chụp" --> Photos
@@ -126,7 +126,7 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 |---|---|---|
 | Đổi camera | sau / trước | Camera trước: preview soi gương, ảnh lưu không soi gương (theo cài đặt) |
 | Flash | tắt / bật / tự động | Dùng flash gốc của camera, không dùng đèn pin |
-| Bố cục (thay nút Lưới, Phase 5a) | tắt / lưới 3×3 / lưới 4×4 / một kỹ thuật bố cục ([§6](#6-chức-năng-3--trợ-lý-bố-cục)) | Vẽ trong vùng ảnh thật sẽ được lưu |
+| Bố cục (thay nút Lưới, Phase 5) | tắt / lưới 3×3 / lưới 4×4 / một kỹ thuật bố cục ([§6](#6-chức-năng-3--trợ-lý-bố-cục)) | Vẽ trong vùng ảnh thật sẽ được lưu |
 | Thước cân bằng | bật / tắt | Đổi sang màu nhấn khi máy lệch dưới 1° |
 | Tỉ lệ khung | 3:4 / 9:16 / 1:1 | Khung ngắm hiển thị đúng vùng ảnh sẽ được lưu |
 | Hẹn giờ | tắt / 3 s / 10 s | Cho người chụp tự đặt máy |
@@ -145,7 +145,7 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 
 ### 4.5 Ảnh vừa chụp
 
-- **Ảnh vừa chụp**: ô nhỏ bên trái nút chụp hiện ảnh mới nhất. Chạm vào mở màn **Xem ảnh vừa chụp**: các ảnh chụp trong lần mở app này, vuốt ngang để xem ảnh trước, có nút Chia sẻ và Xóa (xóa khỏi album, có xác nhận). Chưa chụp ảnh nào thì ô trống và không bấm được. Phase 5a thêm **nhận xét bố cục** cho từng ảnh ([§6.5](#65-nhận-xét-sau-khi-chụp)).
+- **Ảnh vừa chụp**: ô nhỏ bên trái nút chụp hiện ảnh mới nhất. Chạm vào mở màn **Xem ảnh vừa chụp**: các ảnh chụp trong lần mở app này, vuốt ngang để xem ảnh trước, có nút Chia sẻ và Xóa (xóa khỏi album, có xác nhận). Chưa chụp ảnh nào thì ô trống và không bấm được. Phase 5 thêm **nhận xét bố cục** cho từng ảnh ([§6.5](#65-nhận-xét-sau-khi-chụp)).
 - **Phản hồi khi chụp**: mỗi lần bấm là một lần chớp màn và rung nhẹ.
 - **Chụp liên tục** (Phase 4): bấm tiếp được ngay khi camera chụp xong, không đợi cắt và lưu. Bấm lúc camera đang chụp thì app nhớ **một** lần bấm và chỉ chụp nếu camera xong trong 0,25 s; không có hàng chờ lần bấm, nên camera không còn chớp sau khi người dùng đã ngừng bấm. Đổi camera giữa lúc chụp thì bỏ lần bấm đang chờ, đợi ảnh đang chụp xong rồi mới đổi; camera mới báo sẵn sàng mới chụp được. Ảnh được cắt và lưu vào album ở nền, từng ảnh một, ngay khi chụp. Trong lúc bấm liên tục, ô ảnh vừa chụp giữ ảnh cũ; ngừng bấm (khoảng 0,35 s) và lưu xong thì ảnh mới nhất bay vào ô, rung báo đã lưu. Tối đa 8 ảnh đang chờ; bấm thêm khi đang đầy thì bỏ qua. Lưu lỗi thì báo một lần sau đợt chụp theo [§10.3](#103-thông-báo-lỗi).
 
@@ -219,7 +219,7 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 
 ## 6. Chức năng 3 — Trợ lý bố cục
 
-Nghiên cứu kỹ thuật và nguồn ở [composition.md](composition.md), giải thích ý tưởng ở [phase5-bo-cuc.md](phase5-bo-cuc.md). Làm ở [roadmap Phase 5a](roadmap.md#phase-5a--trợ-lý-bố-cục-timebox-3-tuần-có-cổng-quyết-định).
+Nghiên cứu kỹ thuật và nguồn ở [composition.md](composition.md), giải thích ý tưởng ở [phase5-bo-cuc.md](phase5-bo-cuc.md). Làm ở [roadmap Phase 5](roadmap.md#phase-5--trợ-lý-bố-cục-timebox-3-tuần-có-cổng-quyết-định).
 
 ### 6.1 Mục tiêu
 
@@ -233,7 +233,7 @@ Nguyên tắc: quy tắc bố cục là **gợi ý, không phải luật**. Nghi
 
 Chỉ những kỹ thuật dùng được trên điện thoại và có người trong ảnh. 15 kỹ thuật: 10 có hướng dẫn trên camera, đường dẫn có lớp kẻ, 4 chỉ có thẻ học. Góc thấp, selfie, khoảng cách – ống kính và ánh sáng không hẳn là quy tắc bố cục mà là mẹo chụp người bằng điện thoại; giữ lại vì giúp ảnh có người đẹp hơn.
 
-Đường chân trời và đường dẫn chia hai mức: **đơn giản** ở Phase 5a (lớp kẻ để người dùng tự xếp cảnh theo, app không dò cảnh), **nâng cao** ở Phase 5b (app dò đường thẳng trong ảnh, §6.9).
+Đường chân trời và đường dẫn chia hai mức: **đơn giản** ở Phase 5 (lớp kẻ để người dùng tự xếp cảnh theo, app không dò cảnh), **nâng cao** ở Phase 5a (app dò đường thẳng trong ảnh, §6.9).
 
 | # | Kỹ thuật | App kiểm tra | Gợi ý ví dụ | Nguồn dữ liệu |
 |---|---|---|---|---|
@@ -250,7 +250,7 @@ Chỉ những kỹ thuật dùng được trên điện thoại và có người
 | + | Nhóm người | Các đầu không cùng một độ cao | "Cho một người ngồi xuống hoặc đứng lên bậc" | Đỉnh đầu từng người |
 | + | Đường dẫn (đơn giản) | Không dò cảnh: lớp kẻ hai đường chéo hội tụ về một giao điểm 1/3 để người dùng tự xếp đường đi, hàng rào, cầu thang dẫn tới người; người ở điểm hội tụ thì đạt như quy tắc 1/3 | "Đưa người vào điểm hội tụ" | Mắt, khung người |
 
-**Chỉ có thẻ học, chưa tự phát hiện:** vật "mọc" sau đầu và chân trời cắt cổ (tự phát hiện ở Phase 5b), khung trong khung, tiền cảnh, ánh sáng.
+**Chỉ có thẻ học, chưa tự phát hiện:** vật "mọc" sau đầu và chân trời cắt cổ (tự phát hiện ở Phase 5a), khung trong khung, tiền cảnh, ánh sáng.
 
 ### 6.3 Luồng chính
 
@@ -263,7 +263,7 @@ flowchart TD
     PICK --> GUIDE[Lớp bố cục trên khung ngắm<br/>đường kẻ + chấm đích]
     GUIDE --> SENSE{Kỹ thuật cần<br/>phân tích người?}
     SENSE -- "Không (máy thẳng, selfie…)" --> HINT[Gợi ý từ cảm biến<br/>tức thì]
-    SENSE -- "Có" --> LIVE{Gợi ý lúc ngắm<br/>qua cổng Phase 5a?}
+    SENSE -- "Có" --> LIVE{Gợi ý lúc ngắm<br/>qua cổng Phase 5?}
     LIVE -- "Có" --> ANALYZE[Chụp ảnh nhỏ không tiếng định kỳ<br/>→ tìm người, mắt, khớp]
     ANALYZE --> HINT
     LIVE -- "Không" --> SHOOT
@@ -281,7 +281,7 @@ flowchart TD
 - **Không nhảy**: gợi ý chỉ hiện khi tình trạng giữ ổn định khoảng 0,5 s, và chỉ đổi sang gợi ý khác khi gợi ý cũ đã hết.
 - **Đạt**: đường kẻ chuyển màu nhấn, rung nhẹ một lần, dòng gợi ý biến mất.
 - **Không thấy người**: chỉ còn gợi ý từ cảm biến; không báo lỗi.
-- Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread. Gợi ý cần phân tích người phụ thuộc kết quả đo ở cổng quyết định Phase 5a; không đạt thì chỉ có nhận xét sau khi chụp.
+- Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread. Gợi ý cần phân tích người phụ thuộc kết quả đo ở cổng quyết định Phase 5; không đạt thì chỉ có nhận xét sau khi chụp.
 
 ### 6.5 Nhận xét sau khi chụp
 
@@ -297,7 +297,7 @@ flowchart TD
 
 - Mỗi kỹ thuật (15) một thẻ: tên, một ảnh đúng và một ảnh sai cạnh nhau có lớp bố cục, 2–3 câu (là gì, khi nào dùng, khi nào nên phá lệ), nút **Chụp thử** mở Camera với kỹ thuật đó bật sẵn.
 - Thẻ của kỹ thuật chưa tự phát hiện vẫn có nút Chụp thử, mở Camera với lưới phù hợp.
-- Chỗ đặt (tab thứ ba trong Thư viện hay màn riêng) chốt ở bước thiết kế Phase 5a.
+- Chỗ đặt (tab thứ ba trong Thư viện hay màn riêng) chốt ở bước thiết kế Phase 5.
 
 ### 6.7 Đi cùng pose
 
@@ -309,14 +309,21 @@ flowchart TD
 
 - Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
 - App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
-- Phase 5a: người dùng tự chọn kỹ thuật; đường chân trời và đường dẫn chỉ có lớp kẻ, app không dò cảnh. Tự đoán kỹ thuật và dò đường thẳng trong ảnh là Phase 5b (§6.9), mỗi phần có cổng quyết định riêng; không đạt thì giữ bản Phase 5a.
-- Gợi ý lúc ngắm cần phân tích người có **cổng quyết định** ở roadmap Phase 5a; có thể chỉ còn nhận xét sau khi chụp.
+- Phase 5: người dùng tự chọn kỹ thuật; đường chân trời và đường dẫn chỉ có lớp kẻ, app không dò cảnh. Dò đường thẳng trong ảnh là Phase 5a (§6.9), tự đoán kỹ thuật bằng model là Phase 5b (§6.10); mỗi phần có cổng quyết định riêng, không đạt thì giữ bản Phase 5.
+- Gợi ý lúc ngắm cần phân tích người có **cổng quyết định** ở roadmap Phase 5; có thể chỉ còn nhận xét sau khi chụp.
 
-### 6.9 Bố cục nâng cao (Phase 5b)
+### 6.9 Dò đường chân trời và đường dẫn (Phase 5a)
 
-Hai phần độc lập, mỗi phần một cổng quyết định ở roadmap Phase 5b. Phần nào không đạt thì app giữ bản Phase 5a của phần đó.
+Nâng bản đơn giản của Phase 5 (lớp kẻ cố định) thành app tự tìm đường trong ảnh. Không đạt cổng quyết định ở roadmap Phase 5a thì giữ lớp kẻ cố định.
 
-**A. Tự chọn kỹ thuật bằng model riêng**
+App tìm đường thẳng trên ảnh nhỏ (bỏ phần nằm trên người nhờ vùng người đã tách), rồi:
+
+- **Đường chân trời:** đường dài gần nằm ngang. Gợi ý "Đặt chân trời lên đường 1/3"; chân trời đi qua cổ hoặc đầu thì "Chân trời cắt ngang cổ, hạ máy một chút". Lớp kẻ vẽ đúng chân trời tìm được.
+- **Đường dẫn:** các đường hội tụ về một điểm (đường đi, hàng rào, cầu thang). Người không ở gần điểm hội tụ thì "Bước sang trái để đường đi dẫn tới người". Lớp kẻ vẽ đúng các đường tìm được thay cho đường chéo cố định của Phase 5.
+- **Vật "mọc" sau đầu:** đường dọc chạm đỉnh đầu (cột điện, thân cây). Gợi ý "Bước sang một bên để cột không mọc sau đầu".
+- Gợi ý từ phần này xếp cùng thứ tự ưu tiên ở §6.4, sau máy thẳng và cắt khớp.
+
+### 6.10 Tự chọn kỹ thuật bằng model riêng (Phase 5b)
 
 Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán **kỹ thuật hợp** (1/3, ở giữa, góc thấp, selfie, nhóm…). Model chỉ **chọn kỹ thuật**; việc **hướng dẫn chỉnh** (dời máy, nghiêng máy, lùi ra) vẫn do quy tắc ở §6.4, vì quy tắc tính chính xác và giải thích được.
 
@@ -324,16 +331,7 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 - Model đoán lại khi khung cảnh đổi hẳn (người dùng quay máy sang chỗ khác, dừng tay khoảng 1 s), không đổi kỹ thuật liên tục. Đổi kỹ thuật thì rung nhẹ một lần.
 - Độ tin cậy dưới ngưỡng thì không đoán: giữ kỹ thuật đang dùng, hoặc chỉ hiện lưới 3×3.
 - Model chạy trên máy trong WebView đang có (MediaPipe ImageClassifier), tải một lần như gói pose (BR-13), ảnh không rời máy (BR-03).
-- Không đạt cổng quyết định ở roadmap Phase 5b thì không có dòng Tự chọn; app giữ chọn tay như Phase 5a.
-
-**B. Dò đường chân trời và đường dẫn trong ảnh**
-
-App tìm đường thẳng trên ảnh nhỏ (bỏ phần nằm trên người nhờ vùng người đã tách), rồi:
-
-- **Đường chân trời:** đường dài gần nằm ngang. Gợi ý "Đặt chân trời lên đường 1/3"; chân trời đi qua cổ hoặc đầu thì "Chân trời cắt ngang cổ, hạ máy một chút". Lớp kẻ vẽ đúng chân trời tìm được.
-- **Đường dẫn:** các đường hội tụ về một điểm (đường đi, hàng rào, cầu thang). Người không ở gần điểm hội tụ thì "Bước sang trái để đường đi dẫn tới người". Lớp kẻ vẽ đúng các đường tìm được thay cho đường chéo cố định của Phase 5a.
-- **Vật "mọc" sau đầu:** đường dọc chạm đỉnh đầu (cột điện, thân cây). Gợi ý "Bước sang một bên để cột không mọc sau đầu".
-- Gợi ý từ phần này xếp cùng thứ tự ưu tiên ở §6.4, sau máy thẳng và cắt khớp.
+- Không đạt cổng quyết định ở roadmap Phase 5b thì không có dòng Tự chọn; app giữ chọn tay như Phase 5.
 
 ---
 
@@ -373,7 +371,7 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 |---|---|---|
 | Chụp | Ảnh camera trước | Lưu như thật (mặc định) / Lưu soi gương như lúc xem |
 | Chụp | Rung phản hồi | Bật (mặc định) / Tắt |
-| Bố cục | Gợi ý lúc ngắm | Bật (mặc định) / Tắt (đề xuất, chốt ở Phase 5a) |
+| Bố cục | Gợi ý lúc ngắm | Bật (mặc định) / Tắt (đề xuất, chốt ở Phase 5) |
 | Dung lượng | Bộ tách người | Dung lượng đã tải; nút Xóa (lần dùng sau tải lại, [§11](#11-online--offline)) |
 | Giới thiệu | Phiên bản, nguồn ảnh mẫu, giấy phép model | Chỉ đọc |
 | Nhà phát triển | Màn thử nghiệm | Chỉ hiện trong bản dev |
@@ -464,7 +462,7 @@ Khác với bản cũ:
 - Bỏ file `outline.png`. Viền được vẽ từ contour vector nên đổi độ dày được.
 - Kiểu `SegmentData` không còn bị khai báo lặp ở 3 file.
 
-Bố cục (Phase 5a) không thêm bảng SQLite: kỹ thuật đang chọn lưu cùng trạng thái camera (zustand + kv-store); kỹ thuật gắn với pose mẫu nằm trong dữ liệu pose mẫu (`samples.json`); nhận xét tính lại khi mở ảnh, không lưu.
+Bố cục (Phase 5) không thêm bảng SQLite: kỹ thuật đang chọn lưu cùng trạng thái camera (zustand + kv-store); kỹ thuật gắn với pose mẫu nằm trong dữ liệu pose mẫu (`samples.json`); nhận xét tính lại khi mở ảnh, không lưu.
 
 ---
 

@@ -36,7 +36,7 @@ Phần tách người đi qua interface `Segmenter` (§3.3). Khi có điều ki�
 |---|---|
 | Tách người phải gọi server qua LAN IP | **Tách người trên máy bằng model trong WebView ẩn** (MediaPipe). Không còn server |
 | Code backend bị mất | Không cần backend nữa. Mọi thứ nằm trong một repo |
-| Không có hướng dẫn bố cục khi chụp | **Trợ lý bố cục**: model trên máy tìm người, mắt, khớp; cảm biến đo góc máy; quy tắc của nghề ảnh viết bằng TypeScript ra gợi ý giải thích được (§3.6). Có **cổng quyết định** cho gợi ý lúc ngắm (Phase 5a) |
+| Không có hướng dẫn bố cục khi chụp | **Trợ lý bố cục**: model trên máy tìm người, mắt, khớp; cảm biến đo góc máy; quy tắc của nghề ảnh viết bằng TypeScript ra gợi ý giải thích được (§3.6). Có **cổng quyết định** cho gợi ý lúc ngắm (Phase 5) |
 | Cử chỉ chồng chéo, giật | `react-native-gesture-handler` Gesture API + `react-native-reanimated` shared value, chạy trên UI thread. **Không có setState nào trong lúc cử chỉ đang diễn ra** (riêng zoom camera, xem §3.5) |
 | Viền không đổi được độ dày | Viền vẽ từ **contour vector** bằng Skia, đổi độ dày và màu realtime |
 | Flash auto giả, crop sai | `expo-camera` dùng `flash="auto"` gốc; crop theo kích thước ảnh thật, không theo % màn hình |
@@ -222,7 +222,7 @@ Quy tắc:
 - Cử chỉ chỉnh overlay nhận trên **toàn khung ngắm**, không chỉ trên vùng overlay, nên pose nhỏ vẫn chỉnh được.
 - Chỉ gọi `scheduleOnRN` khi cử chỉ **kết thúc** (lưu placement, haptics).
 - Hít góc 0°/90° khi lệch dưới 3°. Giới hạn scale 0.2×–4×.
-- Hook `useTransformGesture` dùng cho overlay camera; Phase 5a thêm dính vào đường 1/3 / trục giữa của lớp bố cục.
+- Hook `useTransformGesture` dùng cho overlay camera; Phase 5 thêm dính vào đường 1/3 / trục giữa của lớp bố cục.
 
 **Ngoại lệ: zoom camera.** `expo-camera` nhận zoom qua prop, nên bắt buộc phải có state. Cách làm:
 - `CameraView` nằm trong một component riêng, `React.memo`, chỉ nhận `zoom` và vài prop camera. Overlay, lưới và thanh điều khiển nằm **ngoài** component này.
@@ -244,7 +244,7 @@ Nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-l
 | 5. Vẽ | Lớp bố cục bằng Skia trong vùng ảnh sẽ lưu: đường kẻ, chấm đích, màu nhấn khi đạt |
 | 6. Nhận xét sau khi chụp | Chạy bộ tách người trên ảnh vừa chụp (thu nhỏ), áp cùng quy tắc, tính khung cắt gợi ý |
 
-**Gợi ý lúc ngắm (cần đo, Phase 5a tuần 2):** Expo Go không có frame processor, nên lấy ảnh bằng `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ, gửi vào WebView đang có, nhận đặc trưng về. Cần đo: số lần phân tích mỗi giây, độ trễ, có nháy màn / tiếng không, pin và nhiệt máy trên iPhone và Android. Ảnh tạm xóa ngay (BR-14). Gợi ý chỉ cần cảm biến thì chạy tức thì trên UI thread, không phụ thuộc phần này.
+**Gợi ý lúc ngắm (cần đo, Phase 5 tuần 2):** Expo Go không có frame processor, nên lấy ảnh bằng `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ, gửi vào WebView đang có, nhận đặc trưng về. Cần đo: số lần phân tích mỗi giây, độ trễ, có nháy màn / tiếng không, pin và nhiệt máy trên iPhone và Android. Ảnh tạm xóa ngay (BR-14). Gợi ý chỉ cần cảm biến thì chạy tức thì trên UI thread, không phụ thuộc phần này.
 
 ### 3.7 Cấu trúc thư mục
 
@@ -255,10 +255,10 @@ src/
     index.tsx                 # Camera (Phase 0: menu spike)
     library.tsx               # Thư viện pose (formSheet)
     editor/[poseId].tsx       # Chỉnh pose
-    review.tsx                # Xem ảnh vừa chụp (+ nhận xét bố cục, Phase 5a)
-    learn/                    # Thẻ học bố cục (Phase 5a; hoặc tab trong library, chốt khi thiết kế)
+    review.tsx                # Xem ảnh vừa chụp (+ nhận xét bố cục, Phase 5)
+    learn/                    # Thẻ học bố cục (Phase 5; hoặc tab trong library, chốt khi thiết kế)
     settings.tsx
-    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 5a
+    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 5
   features/
     camera/                   # CameraLayer (memo), controls, overlay, capture
     pose/                     # library, editor, repository
@@ -302,7 +302,7 @@ docs/
 - [x] **Spike C — Skia overlay:** viền + phủ + ảnh trên 1 canvas, slider độ dày ở 60 fps *(iOS và Android emulator: UI ≥ 58)*
 - [x] **Spike D — giới hạn Expo Go:** album, haptics, `formSheet` *(iOS 5/5. Android: haptics có, sheet tốt; lưu album lỗi quyền AUDIO → đã sửa, chờ đo lại)*
 - [x] `src/ui/tokens.ts`, `src/ui/strings.ts` và component nền: Button, IconButton, Slider, Segmented, Swatch, Screen (sheet dùng `formSheet` của expo-router)
-- [x] `useTransformGesture` + toán biến đổi có unit test (dùng lại ở Phase 2 và Phase 5a)
+- [x] `useTransformGesture` + toán biến đổi có unit test (dùng lại ở Phase 2 và Phase 5)
 - [x] Schema SQLite v1 + migration
 - [x] CI: typecheck + lint + unit test (GitHub Actions)
 
@@ -390,7 +390,7 @@ docs/
 
 **Trạng thái: xong.** Phiếu [phase4-test.md](phase4-test.md) đạt trên iPhone và Android sau 7 vòng thử (vòng 2–7 sửa theo góp ý: zoom theo đúng tỉ lệ cảm biến, ảnh bay vào ô ảnh vừa chụp, chấm trang tua được, chọn người chuyển thành một bước trên màn Đang xử lý, nhóm pose mẫu Selfie, số trên thanh kéo hiện ngay). Để lại cho Phase 6: rà chú thích trỏ số mục design.md cũ, motion chuyển màn thống nhất (§3.5), rà bố cục ở máy màn nhỏ. Zoom còn lệch 0,1–0,2 so với app Camera của máy (chấp nhận được). Gợi ý chưa làm: chọn pose nhóm Selfie thì tự đổi sang camera trước; hiệu ứng mở app.
 
-**Vì sao làm trước Phase 5a:** sau Phase 1–3, mỗi màn được dựng khi cần nên giao diện chưa liền một khối: nút bánh răng trên Camera vẫn mở màn thử nghiệm, ảnh vừa chụp chưa xem được, đầu màn mỗi nơi một kiểu (X, chữ "Quay lại"). Chốt khung chung trước để Phase 5a chỉ thêm nội dung vào khung có sẵn, không phải sửa lại.
+**Vì sao làm trước Phase 5:** sau Phase 1–3, mỗi màn được dựng khi cần nên giao diện chưa liền một khối: nút bánh răng trên Camera vẫn mở màn thử nghiệm, ảnh vừa chụp chưa xem được, đầu màn mỗi nơi một kiểu (X, chữ "Quay lại"). Chốt khung chung trước để Phase 5 chỉ thêm nội dung vào khung có sẵn, không phải sửa lại.
 
 Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-màn-hình), [§4.5](business-flow.md#45-chọn-chế-độ-và-ảnh-vừa-chụp) và [§7.3–7.4](business-flow.md#73-khung-giao-diện-chung).
 
@@ -403,7 +403,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 **Bước 2 — Khung chung**
 
 - [x] Điều hướng thống nhất: Camera là màn gốc; Thư viện, Chỉnh pose, Cài đặt mở cùng một kiểu; một kiểu đầu màn (tiêu đề + Quay lại hoặc Đóng)
-- [x] Màn **Cài đặt** thay nút bánh răng đang mở màn thử nghiệm (business-flow §7.4). Màn thử nghiệm (spike B) chỉ còn hiện trong bản dev, giữ tới hết Phase 5a
+- [x] Màn **Cài đặt** thay nút bánh răng đang mở màn thử nghiệm (business-flow §7.4). Màn thử nghiệm (spike B) chỉ còn hiện trong bản dev, giữ tới hết Phase 5
 - [x] Một component chung cho trạng thái rỗng, lỗi, thiếu quyền (`EmptyState`)
 - [x] Token mới (màu xanh – trắng, camera `cam*`, Nunito, radius, kích thước, bóng lớp nổi) trong `src/ui/tokens.ts`; bỏ Urbanist và DM Mono
 - [x] Component theo design.md §4: `Button` 6 kiểu, `BackButton`, `CloseButton`, `OverlayHeader` / `FlowHeader`, `Chip`, `Segmented` (2 tông, ô tắt được), `Slider`, `Swatch`, `Toggle`, `EmptyState`
@@ -433,11 +433,11 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 **Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.
 
-### Phase 5a — Trợ lý bố cục (timebox 3 tuần, có cổng quyết định)
+### Phase 5 — Trợ lý bố cục (timebox 3 tuần, có cổng quyết định)
 
 Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [phase5-bo-cuc.md](phase5-bo-cuc.md); nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục); kỹ thuật ở §3.6.
 
-**Đã chốt:** chỉ chạy trên máy, không AI cloud; người dùng chọn kỹ thuật rồi app dẫn (app tự đoán là Phase 5b, model tự huấn luyện); 15 kỹ thuật: 10 có hướng dẫn trên camera, đường dẫn có lớp kẻ, 4 chỉ có thẻ học; giữ cả các mẹo không hẳn là bố cục (góc thấp, selfie, ống kính, ánh sáng) vì giúp ảnh có người đẹp hơn; đường chân trời và đường dẫn bản **đơn giản** ở đây (lớp kẻ, không dò cảnh), bản **nâng cao** (dò đường thẳng) ở Phase 5b; nhận xét sau khi chụp làm trước, gợi ý lúc ngắm qua cổng quyết định.
+**Đã chốt:** chỉ chạy trên máy, không AI cloud; người dùng chọn kỹ thuật rồi app dẫn (app tự đoán là Phase 5b, model tự huấn luyện); 15 kỹ thuật: 10 có hướng dẫn trên camera, đường dẫn có lớp kẻ, 4 chỉ có thẻ học; giữ cả các mẹo không hẳn là bố cục (góc thấp, selfie, ống kính, ánh sáng) vì giúp ảnh có người đẹp hơn; đường chân trời và đường dẫn bản **đơn giản** ở đây (lớp kẻ, không dò cảnh), bản **nâng cao** (dò đường thẳng) ở Phase 5a; nhận xét sau khi chụp làm trước, gợi ý lúc ngắm qua cổng quyết định.
 
 **Bước 0 — Nghiên cứu**
 
@@ -481,41 +481,9 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Xong khi:** chọn được kỹ thuật và thấy lớp bố cục trên camera; gợi ý cảm biến chạy tức thì; có nhận xét sau khi chụp (hoặc đã ghi rõ vì sao bỏ theo cổng); 15 thẻ học; phiếu `phase5-test.md` đạt trên iPhone và Android.
 
-### Phase 5b — Bố cục nâng cao (3–4 tuần, hai phần, mỗi phần một cổng quyết định)
+### Phase 5a — Dò đường chân trời và đường dẫn (khoảng 1 tuần, có cổng quyết định)
 
-Làm sau khi Phase 5a chạy (quy tắc hướng dẫn, nhận xét sau khi chụp đã có). Nghiệp vụ ở [business-flow §6.9](business-flow.md#69-bố-cục-nâng-cao-phase-5b). Hai phần độc lập: **A** tự chọn kỹ thuật bằng model riêng, **B** dò đường chân trời và đường dẫn trong ảnh. Phần nào không đạt cổng thì app giữ bản Phase 5a của phần đó.
-
-#### Phần A — Tự chọn kỹ thuật bằng model riêng (2–3 tuần)
-
-**Chia việc:** model chỉ làm bài toán **phân loại** (khung cảnh → kỹ thuật hợp); hướng dẫn chỉnh vẫn là quy tắc (§3.6). Không làm model "đầu cuối" (nhìn ảnh → "dời máy sang phải 2 cm"): cần dữ liệu từng cặp ảnh lệch / đúng, nặng và khó giải thích; để sau v1.
-
-**A1 — Dữ liệu (khoảng 1 tuần)**
-
-- [ ] Bộ nhãn: các kỹ thuật có gợi ý ở Phase 5a (1/3, ở giữa, góc thấp, selfie, nhóm) + "khác"; cho phép một ảnh có tới 2 nhãn
-- [ ] Gom 1.500–3.000 ảnh có người: ảnh tự chụp và ảnh có giấy phép cho phép huấn luyện (ghi nguồn từng ảnh); không bao giờ dùng ảnh của người dùng app (BR-16). Xem giấy phép các bộ dữ liệu nghiên cứu (KU-PCP 9 lớp bố cục…) trước khi dùng
-- [ ] Gán nhãn sẵn bằng một model lớn (ví dụ Claude), chạy **một lần trên máy tính lúc phát triển**, không nằm trong app; người duyệt lại ít nhất 300 ảnh để đo độ khớp giữa người và máy
-- [ ] Chia 3 phần: huấn luyện / kiểm tra / **giữ riêng** (≥ 300 ảnh, không bao giờ dùng để huấn luyện); script gom và gán nhãn trong `scripts/`
-
-**A2 — Huấn luyện và đánh giá (khoảng 1 tuần)**
-
-- [ ] Transfer learning từ model nhỏ có sẵn (MobileNetV3 / EfficientNet-Lite) bằng MediaPipe Model Maker trên Google Colab (Model Maker không chạy trên Windows); notebook lưu trong repo
-- [ ] Xuất TFLite có metadata (~5 MB), đo trên bộ giữ riêng: độ đúng lựa chọn đầu, độ đúng hai lựa chọn đầu, ma trận nhầm lẫn; chọn ngưỡng tin cậy
-- [ ] Đo trong WebView trên iPhone và Android: thời gian đoán một ảnh, bộ nhớ
-
-**A3 — Tích hợp (khoảng 1 tuần)**
-
-- [ ] Gói `composition` trên GitHub Releases, tải một lần (§3.3), chạy bằng `ImageClassifier` của MediaPipe trong WebView đang có
-- [ ] Dòng "Tự chọn" trong bảng Bố cục; đoán lại khi khung cảnh đổi hẳn (dừng tay ~1 s), dưới ngưỡng tin cậy thì không đoán; dòng gợi ý ghi kỹ thuật đang dùng + "Đổi"
-- [ ] Phiếu `phase5b-test.md`
-
-**Cổng quyết định A (cuối A2):**
-
-| Kết quả trên bộ giữ riêng | Quyết định |
-|---|---|
-| Lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%, đoán một ảnh ≤ 300 ms trên máy | Làm A3, có dòng Tự chọn |
-| Thấp hơn | Không đưa vào app; giữ chọn tay của Phase 5a. Ghi thử nghiệm (dữ liệu, kết quả, vì sao chưa đạt) vào case study |
-
-#### Phần B — Dò đường chân trời và đường dẫn (khoảng 1 tuần)
+Làm sau khi Phase 5 chạy. Nâng bản đơn giản của Phase 5 (lớp kẻ cố định, người dùng tự xếp cảnh) thành app tự tìm đường trong ảnh. Nghiệp vụ ở [business-flow §6.9](business-flow.md#69-dò-đường-chân-trời-và-đường-dẫn-phase-5a).
 
 Không cần huấn luyện model: dò cạnh và đường thẳng bằng thuật toán trên ảnh nhỏ, dùng lại đường chụp ảnh nhỏ của gợi ý lúc ngắm (§3.6) và vùng người đã tách.
 
@@ -525,14 +493,48 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 - [ ] Vật "mọc" sau đầu: đường dọc chạm đỉnh đầu, gợi ý bước sang một bên
 - [ ] Bộ ảnh thử ~100 ảnh có chân trời / đường dẫn / cột sau đầu, đánh dấu tay vị trí đúng
 
-**Cổng quyết định B:**
+**Cổng quyết định:**
 
 | Kết quả trên bộ ảnh thử | Quyết định |
 |---|---|
-| Tìm đúng chân trời ≥ 80%, đường dẫn ≥ 70%, ≤ 300 ms một ảnh trên máy | Đưa vào app, thay lớp kẻ cố định của Phase 5a bằng đường tìm được |
-| Một trong hai không đạt | Chỉ đưa phần đạt vào; phần còn lại giữ bản đơn giản của Phase 5a |
+| Tìm đúng chân trời ≥ 80%, đường dẫn ≥ 70%, ≤ 300 ms một ảnh trên máy | Đưa vào app, thay lớp kẻ cố định của Phase 5 bằng đường tìm được |
+| Một trong hai không đạt | Chỉ đưa phần đạt vào; phần còn lại giữ bản đơn giản của Phase 5 |
 
-**Xong khi:** mỗi phần A, B hoặc đã chạy trên iPhone và Android và đạt cổng của nó, hoặc đã ghi rõ vì sao dừng ở cổng; phiếu `phase5b-test.md` đạt.
+**Xong khi:** chân trời, đường dẫn và vật "mọc" sau đầu tự phát hiện trên iPhone và Android, đạt cổng ở trên (hoặc chỉ phần đạt được đưa vào, phần còn lại giữ bản Phase 5 và ghi rõ vì sao); phiếu `phase5a-test.md` đạt.
+
+### Phase 5b — Tự chọn kỹ thuật bằng model AI riêng (2–3 tuần, có cổng quyết định)
+
+Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b).
+
+**Chia việc:** model chỉ làm bài toán **phân loại** (khung cảnh → kỹ thuật hợp); hướng dẫn chỉnh vẫn là quy tắc (§3.6). Không làm model "đầu cuối" (nhìn ảnh → "dời máy sang phải 2 cm"): cần dữ liệu từng cặp ảnh lệch / đúng, nặng và khó giải thích; để sau v1.
+
+**Bước 1 — Dữ liệu (khoảng 1 tuần)**
+
+- [ ] Bộ nhãn: các kỹ thuật có gợi ý ở Phase 5 (1/3, ở giữa, góc thấp, selfie, nhóm) + "khác"; cho phép một ảnh có tới 2 nhãn
+- [ ] Gom 1.500–3.000 ảnh có người: ảnh tự chụp và ảnh có giấy phép cho phép huấn luyện (ghi nguồn từng ảnh); không bao giờ dùng ảnh của người dùng app (BR-16). Xem giấy phép các bộ dữ liệu nghiên cứu (KU-PCP 9 lớp bố cục…) trước khi dùng
+- [ ] Gán nhãn sẵn bằng một model lớn (ví dụ Claude), chạy **một lần trên máy tính lúc phát triển**, không nằm trong app; người duyệt lại ít nhất 300 ảnh để đo độ khớp giữa người và máy
+- [ ] Chia 3 phần: huấn luyện / kiểm tra / **giữ riêng** (≥ 300 ảnh, không bao giờ dùng để huấn luyện); script gom và gán nhãn trong `scripts/`
+
+**Bước 2 — Huấn luyện và đánh giá (khoảng 1 tuần)**
+
+- [ ] Transfer learning từ model nhỏ có sẵn (MobileNetV3 / EfficientNet-Lite) bằng MediaPipe Model Maker trên Google Colab (Model Maker không chạy trên Windows); notebook lưu trong repo
+- [ ] Xuất TFLite có metadata (~5 MB), đo trên bộ giữ riêng: độ đúng lựa chọn đầu, độ đúng hai lựa chọn đầu, ma trận nhầm lẫn; chọn ngưỡng tin cậy
+- [ ] Đo trong WebView trên iPhone và Android: thời gian đoán một ảnh, bộ nhớ
+
+**Bước 3 — Tích hợp (khoảng 1 tuần)**
+
+- [ ] Gói `composition` trên GitHub Releases, tải một lần (§3.3), chạy bằng `ImageClassifier` của MediaPipe trong WebView đang có
+- [ ] Dòng "Tự chọn" trong bảng Bố cục; đoán lại khi khung cảnh đổi hẳn (dừng tay ~1 s), dưới ngưỡng tin cậy thì không đoán; dòng gợi ý ghi kỹ thuật đang dùng + "Đổi"
+- [ ] Phiếu `phase5b-test.md`
+
+**Cổng quyết định cuối Bước 2:**
+
+| Kết quả trên bộ giữ riêng | Quyết định |
+|---|---|
+| Lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%, đoán một ảnh ≤ 300 ms trên máy | Làm Bước 3, có dòng Tự chọn |
+| Thấp hơn | Không đưa vào app; giữ chọn tay của Phase 5. Ghi thử nghiệm (dữ liệu, kết quả, vì sao chưa đạt) vào case study |
+
+**Xong khi:** dòng Tự chọn chạy trên iPhone và Android, đạt cổng ở trên, phiếu `phase5b-test.md` đạt; hoặc đã ghi rõ vì sao dừng ở cổng.
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 
@@ -568,9 +570,9 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 | Expo Go chỉ chạy SDK mới nhất | Chắc chắn | Khi App Store cập nhật Expo Go thì nâng SDK; không dùng thư viện ngoài danh sách của Expo Go |
 | Expo Go trên Android giới hạn quyền thư viện ảnh | Trung bình | Spike D; dự phòng: lưu bằng `saveToLibraryAsync` không cần album riêng |
 | Zoom camera qua state làm giật overlay | Thấp–trung bình | `CameraLayer` cô lập (§3.5); spike A |
-| Gợi ý bố cục lúc ngắm chậm, nháy màn hoặc nóng máy (Expo Go không có frame processor) | **Cao** | Cổng quyết định ở Phase 5a; lùi về gợi ý cảm biến + nhận xét sau khi chụp |
+| Gợi ý bố cục lúc ngắm chậm, nháy màn hoặc nóng máy (Expo Go không có frame processor) | **Cao** | Cổng quyết định ở Phase 5; lùi về gợi ý cảm biến + nhận xét sau khi chụp |
 | Model tự chọn kỹ thuật đoán sai (nhãn chủ quan, một ảnh hợp nhiều kỹ thuật, người gán nhãn không phải người trong nghề) | **Cao** | Phase 5b có cổng riêng, đo trên bộ ảnh giữ riêng; cho phép 2 nhãn; ngưỡng tin cậy; luôn đổi tay được; không đạt thì giữ chọn tay |
-| Dò đường thẳng sai ở cảnh nhiều cạnh (nhà cửa, cây, đám đông) | Trung bình | Cổng B ở Phase 5b đo trên bộ ảnh thử; bỏ đường nằm trên người; không đạt thì giữ lớp kẻ cố định |
+| Dò đường thẳng sai ở cảnh nhiều cạnh (nhà cửa, cây, đám đông) | Trung bình | Cổng quyết định ở Phase 5a đo trên bộ ảnh thử; bỏ đường nằm trên người; không đạt thì giữ lớp kẻ cố định |
 | Dữ liệu huấn luyện vướng giấy phép | Trung bình | Chỉ ảnh tự chụp / giấy phép cho phép huấn luyện, ghi nguồn từng ảnh (BR-16) |
 | Quy tắc bố cục gợi ý sai, làm phiền | Trung bình | Bộ ảnh thử đo độ đúng; một gợi ý mỗi lúc, chống nhảy, tắt được; không chặn chụp, không chấm "đúng / sai" |
 | Nội dung chuyên môn sai (không phải người trong nghề) | Trung bình | Mọi kỹ thuật có nguồn trong composition.md; ghi cả "khi nào phá lệ"; quy tắc là gợi ý |
