@@ -119,6 +119,9 @@ function CameraBody() {
   const [facing, setFacing] = useState<'back' | 'front'>('back');
   const [lenses, setLenses] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
+  // Bản ref của `ready` cho vòng chụp (chạy qua nhiều lần render).
+  const readyRef = useRef(false);
+  const readyFallback = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Ẩn pose: nút bật / tắt (góp ý Phase 4, thay cho giữ để ẩn). Nhớ theo id pose nên đổi pose
   // thì pose mới luôn hiện.
   const [hiddenFor, setHiddenFor] = useState<string | null>(null);
@@ -294,11 +297,26 @@ function CameraBody() {
     [],
   );
 
-  const switchCamera = () => {
+  /** Đổi camera thật sự. Gọi qua `switchCamera` (đợi ảnh đang chụp xong, phiếu Phase 4 mục 15.8). */
+  const flipCamera = () => {
+    // Camera đang dựng lại: không cho chụp tới khi báo sẵn sàng (có hạn chờ phòng khi không báo).
+    readyRef.current = false;
+    setReady(false);
+    if (readyFallback.current) clearTimeout(readyFallback.current);
+    readyFallback.current = setTimeout(() => {
+      readyRef.current = true;
+      setReady(true);
+    }, cameraUi.switchReadyMs);
     setFacing((f) => (f === 'back' ? 'front' : 'back'));
     setLenses([]);
     factor.set(1);
     settle.set(settle.get() + 1);
+  };
+  const onCameraReady = () => {
+    if (readyFallback.current) clearTimeout(readyFallback.current);
+    readyFallback.current = null;
+    readyRef.current = true;
+    setReady(true);
   };
 
   // Đang kéo pose: cụm zoom nhường chỗ cho vùng xóa; cột công cụ và hàng chụp mờ đi.
@@ -352,10 +370,15 @@ function CameraBody() {
   // Bấm lại được ngay khi camera chụp xong (camera chỉ chụp một ảnh mỗi lúc); cắt và lưu album
   // chạy nền theo hàng đợi, từng ảnh một để không giữ nhiều ảnh lớn trong bộ nhớ. Ngừng bấm thì
   // ảnh mới nhất bay vào ô ảnh vừa chụp.
+  // Bấm trong lúc camera đang chụp: chỉ nhớ MỘT lần bấm, và bỏ nếu camera xong muộn hơn
+  // `burstTapTtlMs` (phiếu mục 15.5: không để camera còn chớp sau khi đã ngừng bấm, lúc người
+  // dùng có thể đã đưa máy đi chỗ khác).
   const burst = useRef({
-    /** Lần bấm chưa chụp (bấm nhanh hơn tốc độ camera). */
-    taps: 0,
+    /** Lúc bấm của lần bấm đang chờ (camera đang bận), null = không có. */
+    tapAt: null as number | null,
     capturing: false,
+    /** Đổi camera được bấm lúc đang chụp: đổi ngay khi ảnh đang chụp xong. */
+    switchPending: false,
     /** Ảnh đã chụp, chờ cắt và lưu. */
     queue: [] as { pic: Shot; frame: Rect; preview: { width: number; height: number } }[],
     saving: false,
@@ -371,7 +394,7 @@ function CameraBody() {
     if (b.settle) clearTimeout(b.settle);
     b.settle = setTimeout(() => {
       b.settle = null;
-      if (b.taps > 0 || b.capturing || b.saving || b.queue.length) return;
+      if (b.tapAt != null || b.capturing || b.saving || b.queue.length) return;
       if (b.last) {
         startFly(b.last);
         haptic.saved();
@@ -403,7 +426,7 @@ function CameraBody() {
         if (e instanceof PhotoPermissionError) {
           // Không có quyền thì các ảnh còn lại cũng không lưu được: dừng đợt, hỏi một lần.
           b.queue.length = 0;
-          b.taps = 0;
+          b.tapAt = null;
           Alert.alert(t.camera.photoPermissionTitle, t.camera.photoPermission, [
             { text: t.common.cancel, style: 'cancel' },
             { text: t.common.openSettings, onPress: () => Linking.openSettings() },
@@ -421,10 +444,9 @@ function CameraBody() {
     const b = burst.current;
     if (b.capturing) return;
     b.capturing = true;
-    while (b.taps > 0) {
+    for (;;) {
       const cam = cameraRef.current;
-      if (!cam) break;
-      b.taps -= 1;
+      if (!cam || !readyRef.current || b.switchPending) break;
       haptic.capture();
       flashOpacity.set(
         withSequence(
@@ -443,15 +465,26 @@ function CameraBody() {
       } catch {
         b.failed += 1;
       }
+      // Chụp tiếp chỉ khi vừa có người bấm (còn hạn); bấm cũ quá thì bỏ.
+      const tapAt = b.tapAt;
+      b.tapAt = null;
+      if (tapAt == null || Date.now() - tapAt > cameraUi.burstTapTtlMs) break;
+      if (b.queue.length >= cameraUi.burstMaxPending) break;
     }
+    b.tapAt = null;
     b.capturing = false;
+    if (b.switchPending) {
+      b.switchPending = false;
+      flipCamera();
+    }
     settleBurst();
   };
 
   const shoot = () => {
     const b = burst.current;
-    // Giới hạn số ảnh đang chờ: bấm quá nhanh lâu thì bỏ qua bớt, tránh nóng máy và đầy bộ nhớ.
-    if (b.taps + b.queue.length >= cameraUi.burstMaxPending) return;
+    if (!readyRef.current || b.switchPending) return;
+    // Giới hạn số ảnh chờ lưu: tránh nóng máy và đầy bộ nhớ khi bấm liên tục lâu.
+    if (b.queue.length >= cameraUi.burstMaxPending) return;
     if (!b.capturing && !b.saving && !b.queue.length && !b.settle) {
       // Đầu đợt: giữ ảnh đang hiện ở ô cho tới khi ngừng chụp.
       setHeldThumb(lastPhoto ?? '');
@@ -460,8 +493,22 @@ function CameraBody() {
       clearTimeout(b.settle);
       b.settle = null;
     }
-    b.taps += 1;
+    if (b.capturing) {
+      b.tapAt = Date.now();
+      return;
+    }
     captureLoop();
+  };
+
+  /** Đổi camera giữa lúc đang chụp: bỏ lần bấm đang chờ, đợi ảnh đang chụp xong rồi mới đổi. */
+  const switchCamera = () => {
+    const b = burst.current;
+    b.tapAt = null;
+    if (b.capturing) {
+      b.switchPending = true;
+      return;
+    }
+    flipCamera();
   };
 
   // Hẹn giờ gọi bản shoot mới nhất (khung có thể đổi trong lúc đếm).
@@ -523,7 +570,7 @@ function CameraBody() {
         settle={settle}
         lenses={lenses}
         onLenses={onLenses}
-        onReady={() => setReady(true)}
+        onReady={onCameraReady}
       />
 
       {root.height > 0 && (

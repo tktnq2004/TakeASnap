@@ -198,14 +198,26 @@ Bấm tiếp được ngay khi camera chụp xong; cắt và lưu album chạy n
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 15.1 | Bấm nút chụp nhanh 5 lần liên tiếp (khung 3:4) | Mỗi lần bấm một lần chớp màn; không phải đợi ảnh bay mới bấm tiếp | | | |
-| 15.2 | Mở album SnapShot sau 15.1 | Có đủ 5 ảnh, lưu gần như ngay; đếm số ảnh thật sự có | | | |
-| 15.3 | Ngừng bấm sau 15.1 | Khoảng nửa giây sau, ảnh cuối bay vào ô ảnh vừa chụp, rung một lần | | | |
-| 15.4 | Lặp 15.1 với khung 9:16 và 1:1 | Như trên; ảnh lưu đúng khung (khung này phải cắt nên lưu chậm hơn 3:4 một chút) | | | |
-| 15.5 | Bấm liên tục 20–30 lần | Khoảng bao nhiêu ảnh / giây; có lúc bấm không ăn (đầy 8 ảnh chờ) không; máy có nóng, có giật khung ngắm không | | | |
-| 15.6 | Xem ảnh vừa chụp sau 15.5 | Đủ ảnh, vuốt qua được, không ảnh nào hỏng | | | |
-| 15.7 | Bật Hẹn giờ 3 s rồi chụp | Vẫn chụp một ảnh sau đếm ngược như cũ | | | |
-| 15.8 | Đang bấm liên tục thì đổi camera trước / sau | App không treo; nếu có ảnh lỗi thì báo một lần | | | |
+| 15.1 | Bấm nút chụp nhanh 5 lần liên tiếp (khung 3:4) | Mỗi lần bấm một lần chớp màn; không phải đợi ảnh bay mới bấm tiếp |đạt |đạt | |
+| 15.2 | Mở album SnapShot sau 15.1 | Có đủ 5 ảnh, lưu gần như ngay; đếm số ảnh thật sự có |đạt |đạt | |
+| 15.3 | Ngừng bấm sau 15.1 | Khoảng nửa giây sau, ảnh cuối bay vào ô ảnh vừa chụp, rung một lần | đạt|đạt | |
+| 15.4 | Lặp 15.1 với khung 9:16 và 1:1 | Như trên; ảnh lưu đúng khung (khung này phải cắt nên lưu chậm hơn 3:4 một chút) | đạt|đạt | |
+| 15.5 | Bấm liên tục 20–30 lần | Khoảng bao nhiêu ảnh / giây; có lúc bấm không ăn (đầy 8 ảnh chờ) không; máy có nóng, có giật khung ngắm không |đạt |đạt | chỉ có cảm giác bấm không ăn thực tế thì sau khi hàng chờ hết máy sẽ tiếp tục nháy và người dùng có thể đã đưa máy qua chỗ khác . Tối ưu lại việc này |
+| 15.6 | Xem ảnh vừa chụp sau 15.5 | Đủ ảnh, vuốt qua được, không ảnh nào hỏng |đạt |đạt | |
+| 15.7 | Bật Hẹn giờ 3 s rồi chụp | Vẫn chụp một ảnh sau đếm ngược như cũ |đạt |đạt | |
+| 15.8 | Đang bấm liên tục thì đổi camera trước / sau | App không treo; nếu có ảnh lỗi thì báo một lần | khi bấm quá nhiều đột ngột đổi sang camera trước thì sẽ tự động chụp cam trước sau khi các event chụp còn trong hàng đợi, sẽ có lúc bị crash ứng dụng vì ấn quá nhiều, xử lí không kịp hoặc xung đột  | | |
+
+## 16. Chụp liên tục — vòng 2
+
+Theo góp ý 15.5 và 15.8: bỏ hàng chờ lần bấm. Bấm lúc camera đang chụp thì chỉ nhớ một lần bấm, quá 0,25 s thì bỏ, nên camera không chớp muộn. Đổi camera giữa lúc chụp thì đợi ảnh đang chụp xong rồi mới đổi, và không cho chụp tới khi camera mới sẵn sàng.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 16.1 | Bấm liên tục 20–30 lần thật nhanh rồi dừng hẳn | Dừng bấm là camera dừng chớp ngay (cùng lắm một lần chớp nữa); số ảnh có thể ít hơn số lần bấm | | | |
+| 16.2 | Bấm đều tay vừa phải (khoảng 2 lần / giây) | Lần bấm nào cũng ra ảnh | | | |
+| 16.3 | Đang bấm liên tục thì đổi sang camera trước, bấm tiếp ngay | Không crash; không có ảnh nào tự chụp bằng camera trước; nút chụp ăn lại khi camera trước đã hiện | | | |
+| 16.4 | Lặp 16.3 vài lần, đổi qua lại | Không crash, không treo | | | |
+| 16.5 | Đếm ảnh trong album sau 16.1–16.4 | Ảnh nào đã chớp đều có trong album | | | |
 
 ## Góp ý thêm
 

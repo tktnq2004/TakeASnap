@@ -516,7 +516,7 @@ Nhóm "Nhà phát triển" (Màn thử nghiệm) chỉ hiện trong bản dev (`
 - **Số trên thanh kéo và cụm zoom** (`AnimatedText`): giá trị đầu lấy trên UI thread, gửi về JS một lần làm `defaultValue`, nên hiện ngay khi mở màn mà không đọc shared value lúc render.
 - **Pose mẫu nhóm Selfie:** 7 ảnh chụp bằng camera trước, nhóm cuối của Pose mẫu (`assets/poses/source/selfie/selfie1–7.jpg`).
 
-- **Chụp liên tục:** mỗi lần bấm một lần chớp màn (`shutterFlashMs`) và rung `capture`; ô ảnh vừa chụp không quay vòng chờ nữa, giữ ảnh cũ trong lúc bấm; ngừng bấm `cameraUi.burstSettleMs` (350 ms) và lưu xong thì ảnh mới nhất bay vào ô (`flyMs`) kèm rung `saved`. Tối đa `cameraUi.burstMaxPending` (8) ảnh chờ.
+- **Chụp liên tục:** mỗi lần bấm một lần chớp màn (`shutterFlashMs`) và rung `capture`; ô ảnh vừa chụp không quay vòng chờ nữa, giữ ảnh cũ trong lúc bấm; ngừng bấm `cameraUi.burstSettleMs` (350 ms) và lưu xong thì ảnh mới nhất bay vào ô (`flyMs`) kèm rung `saved`. Tối đa `cameraUi.burstMaxPending` (8) ảnh chờ lưu. Bấm lúc camera đang chụp: nhớ một lần bấm, hết hạn sau `cameraUi.burstTapTtlMs` (250 ms). Đổi camera: chờ ảnh đang chụp xong, rồi khóa nút chụp tới khi camera báo sẵn sàng (tối đa `cameraUi.switchReadyMs`).
 
 ### 6.14 Logo, icon app và màn mở app
 

@@ -281,8 +281,15 @@ export const cameraUi = {
   flyMs: 420,
   /** Chụp liên tục: ngừng bấm chừng này (và đã lưu xong) thì ảnh mới nhất bay vào ô. */
   burstSettleMs: 350,
-  /** Chụp liên tục: tối đa số ảnh đang chờ chụp / lưu; bấm thêm thì bỏ qua. */
+  /** Chụp liên tục: tối đa số ảnh chờ lưu; bấm thêm thì bỏ qua. */
   burstMaxPending: 8,
+  /**
+   * Chụp liên tục: bấm lúc camera đang chụp thì nhớ một lần bấm; camera xong muộn hơn chừng này
+   * thì bỏ lần bấm đó (không chớp muộn khi người dùng đã ngừng bấm).
+   */
+  burstTapTtlMs: 250,
+  /** Đổi camera: chờ tối đa chừng này để camera báo sẵn sàng rồi mới cho chụp lại. */
+  switchReadyMs: 1500,
   countdownSize: 96,
 } as const;
 
