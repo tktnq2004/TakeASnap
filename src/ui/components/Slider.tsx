@@ -182,6 +182,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     borderWidth: THUMB_RING,
     borderColor: color.accent,
-    backgroundColor: color.surface,
+    backgroundColor: color.knob,
   },
 });

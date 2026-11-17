@@ -219,6 +219,20 @@ Theo góp ý 15.5 và 15.8: bỏ hàng chờ lần bấm. Bấm lúc camera đan
 | 16.4 | Lặp 16.3 vài lần, đổi qua lại | Không crash, không treo |đạt |đạt | |
 | 16.5 | Đếm ảnh trong album sau 16.1–16.4 | Ảnh nào đã chớp đều có trong album | đạt| đạt| |
 
+## 17. Giao diện tối (bản B2)
+
+Cả app đổi sang nền xám than `#131416`, thẻ `#1D1F23`, chữ trắng ngà, màu nhấn xanh trời `#8AB4F8` (cũng là màu nhấn của Camera). Nút chính nền xanh, chữ tối.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 17.1 | Đi một vòng: Camera → Thư viện → Chỉnh sửa → Cài đặt → Xem ảnh vừa chụp | Mọi màn cùng nền tối, không chói khi chuyển màn; chữ đọc rõ | | | |
+| 17.2 | Chỉnh sửa: viền trắng, lớp phủ, nét mặt trên ảnh | Màu pose và ảnh nổi rõ trên nền caro tối, không ngả màu | | | |
+| 17.3 | Hàng ô màu và Bảng màu | Ô Đen có viền, vẫn thấy được; ô đang chọn có vòng xanh | | | |
+| 17.4 | Thanh kéo, công tắc, nút Lưu / Xóa | Núm sáng trên rãnh tối; nút xóa màu đỏ nhạt đọc rõ | | | |
+| 17.5 | Giữ ô pose mở menu (iOS có làm mờ) | Nền sau menu tối, không loang trắng | | | |
+| 17.6 | Thanh trạng thái (giờ, pin) và hộp thoại của máy | Chữ sáng trên mọi màn; hộp thoại tối (nếu Expo Go theo `app.json`) | | | |
+| 17.7 | Camera: nút zoom đang chọn, viền nút pose, thanh độ hiện | Cùng xanh trời với các màn khác | | | |
+
 ## Góp ý thêm
 
 tiếp theo sửa giao diện của editor 

@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { needsEdge } from '@/ui/contrast';
 import { color, radius, size } from '@/ui/tokens';
 
 import { PressableScale } from './PressableScale';
@@ -12,9 +13,9 @@ type Props = {
   onPress: () => void;
 };
 
-/** Ô màu tròn 36 (design.md §4); đang chọn: vòng 3 px trắng + 2 px màu nhấn. */
+/** Ô màu tròn 36 (design.md §4); đang chọn: vòng 2 px màu nhấn. Màu gần trùng nền thì có viền. */
 export function Swatch({ value, name, selected, onPress }: Props) {
-  const white = value.toUpperCase() === '#FFFFFF';
+  const edge = needsEdge(value);
   return (
     <PressableScale
       accessibilityRole="radio"
@@ -24,7 +25,7 @@ export function Swatch({ value, name, selected, onPress }: Props) {
       onPress={onPress}
       style={[styles.ring, selected && styles.ringOn]}
     >
-      <View style={[styles.fill, { backgroundColor: value }, white && styles.edge]} />
+      <View style={[styles.fill, { backgroundColor: value }, edge && styles.edge]} />
     </PressableScale>
   );
 }

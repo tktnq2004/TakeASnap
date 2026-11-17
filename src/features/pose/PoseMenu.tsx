@@ -102,7 +102,7 @@ export function PoseMenu(p: Props) {
     <View style={StyleSheet.absoluteFill}>
       <Animated.View style={[StyleSheet.absoluteFill, fadeStyle]}>
         {Platform.OS === 'ios' && (
-          <BlurView intensity={M.blur} tint="light" style={StyleSheet.absoluteFill} />
+          <BlurView intensity={M.blur} tint="dark" style={StyleSheet.absoluteFill} />
         )}
         <View
           style={[

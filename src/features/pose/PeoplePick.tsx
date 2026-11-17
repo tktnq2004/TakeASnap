@@ -67,7 +67,7 @@ export function PeoplePick({ analysis, contours, chosen, onToggle }: Props) {
                 {on && <Path path={p} color={color.accent} opacity={personPick.fill} />}
                 <Path
                   path={p}
-                  color={color.surface}
+                  color={color.onImage}
                   style="stroke"
                   strokeWidth={on ? personPick.strokeOn : personPick.strokeOff}
                   strokeJoin="round"

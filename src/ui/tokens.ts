@@ -1,35 +1,45 @@
 /**
  * Design tokens — nguồn duy nhất cho màu, chữ, khoảng cách, radius, motion.
- * Giá trị theo docs/design.md §3 (Phase 4: xanh dương – trắng, camera nền tối, Nunito).
+ * Giá trị theo docs/design.md §3 (Phase 4: tối cả app — than chì + xanh trời, bản B2; Nunito).
  * Component không được viết mã màu hay số rời; luôn đọc từ đây.
  * File này là dữ liệu thuần (không import thư viện native) để test được trong Jest.
  * Hàm easing dựng từ các hệ số bezier ở đây nằm trong `easing.ts`.
  */
 
 export const color = {
-  // Màn sáng: Thư viện, Chỉnh pose, Cài đặt, Xem ảnh vừa chụp.
-  bg: '#EEF3FF',
-  surface: '#FFFFFF',
-  surfaceAlt: '#F1F4FA',
-  accentSoft: '#E8F0FF',
-  ink: '#10213F',
-  muted: '#5A6B8C',
-  /** Icon tắt, mũi tên phải. Chỉ trang trí, không dùng cho chữ (2.2:1). */
-  faint: '#A3AEC2',
-  line: '#E3E8EF',
-  accent: '#2563EB',
-  accentInk: '#FFFFFF',
-  danger: '#DC2626',
-  dangerInk: '#FFFFFF',
+  // Các màn ngoài Camera: Thư viện, Chỉnh sửa, Cài đặt, Xem ảnh vừa chụp (góp ý Phase 4: nền tối
+  // cho đỡ mỏi mắt, cả app một tông với Camera và icon). Nền xám than trung tính, không ngả màu,
+  // để màu ảnh và màu pose hiện đúng như thật; màu nhấn duy nhất là xanh trời dịu.
+  bg: '#131416',
+  surface: '#1D1F23',
+  surfaceAlt: '#27292E',
+  accentSoft: '#242C3A',
+  /** Chữ trắng ngà, không trắng tuyền (đỡ chói trên nền tối). */
+  ink: '#E8EAED',
+  muted: '#9AA0A6',
+  /** Icon tắt, mũi tên phải. Chỉ trang trí, không dùng cho chữ (3:1). */
+  faint: '#5F6368',
+  line: '#2C2F34',
+  accent: '#8AB4F8',
+  /** Chữ trên nút màu nhấn: tối (8.8:1). */
+  accentInk: '#121417',
+  danger: '#F28B82',
+  dangerInk: '#121417',
   /** Rãnh công tắc lúc tắt. */
-  switchOff: '#D5DDEA',
-  /** Viền ô màu trắng để thấy được trên nền trắng. */
-  swatchEdge: '#DCE6F7',
+  switchOff: '#3C4043',
+  /** Viền ô màu gần trùng nền (màu tối trên nền tối) để vẫn thấy được ô. */
+  swatchEdge: '#5F6368',
+  /** Núm thanh kéo và công tắc: sáng trên nền tối. */
+  knob: '#F1F3F4',
+  /** Nét vẽ đè lên ảnh (viền người khi chọn người): luôn trắng, không theo nền. */
+  onImage: '#FFFFFF',
   /** Bóng của lớp nổi (nút nổi, thanh nổi, menu). */
-  shadow: '#10213F',
+  shadow: '#000000',
   /** Nền sau menu pose: trên lớp làm mờ (iOS) hoặc thay cho lớp làm mờ (Android). */
-  menuScrim: 'rgba(238,243,255,0.62)',
-  menuScrimSolid: 'rgba(238,243,255,0.9)',
+  menuScrim: 'rgba(19,20,22,0.62)',
+  menuScrimSolid: 'rgba(19,20,22,0.9)',
+  /** Nền mờ sau bảng màu nổi. */
+  popoverScrim: 'rgba(0,0,0,0.35)',
 
   // Camera (nền tối).
   camBg: '#05070D',
@@ -39,7 +49,8 @@ export const color = {
   camGlass: 'rgba(255,255,255,0.12)',
   camScrim: 'rgba(5,7,13,0.55)',
   camPanel: 'rgba(16,22,36,0.94)',
-  camAccent: '#60A5FA',
+  /** Cùng màu nhấn với các màn khác (B2). */
+  camAccent: '#8AB4F8',
   camWarn: '#FACC15',
   /** Lưới và mốc thước trên khung ngắm. */
   guide: 'rgba(255,255,255,0.7)',
@@ -51,8 +62,8 @@ export const color = {
   shutterFlash: '#000000',
 
   // Nền ô caro sau preview pose (design.md §6.9).
-  checkerA: '#FFFFFF',
-  checkerB: '#EEF2F8',
+  checkerA: '#17181B',
+  checkerB: '#1D1F23',
 } as const;
 
 /** Màu chức năng cho viền và lớp phủ của pose (design.md §3.2). Không có tím. */

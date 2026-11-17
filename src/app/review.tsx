@@ -146,7 +146,7 @@ export default function ReviewScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <View style={{ paddingTop: top }}>
         <OverlayHeader title={t.review.title} right={<CloseButton onPress={goBack} />} />
         {current && (

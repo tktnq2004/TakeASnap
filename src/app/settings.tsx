@@ -49,7 +49,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.root}>
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <ScrollView
         contentContainerStyle={{ paddingTop: top, paddingBottom: insets.bottom + space[6] }}
       >

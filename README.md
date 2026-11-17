@@ -41,7 +41,7 @@ Phase 1–4 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi ti
 |---|---|
 | [docs/business-flow.md](docs/business-flow.md) | Người dùng, thuật ngữ, bản đồ màn hình, luồng của 3 chức năng, quy tắc nghiệp vụ, mô hình dữ liệu, trạng thái và lỗi |
 | [docs/roadmap.md](docs/roadmap.md) | Phạm vi, vì sao Expo Go đủ, kiến trúc, tách người bằng WebView, phân phối model, trợ lý bố cục, 7 phase và tiêu chí xong |
-| [docs/design.md](docs/design.md) | Giao diện xanh dương – trắng: token màu / chữ / kích thước / motion, icon Lucide, component, chữ trên giao diện, bố cục 13 màn |
+| [docs/design.md](docs/design.md) | Giao diện tối than chì + xanh trời: token màu / chữ / kích thước / motion, icon Lucide, component, chữ trên giao diện, bố cục 13 màn |
 | [docs/composition.md](docs/composition.md) | Nghiên cứu kỹ thuật bố cục chụp người bằng điện thoại, có nguồn (Phase 5) |
 | [docs/phase5-bo-cuc.md](docs/phase5-bo-cuc.md) | Giải thích Trợ lý bố cục: là gì, dùng ra sao, làm thế nào, kết quả |
 | [docs/spikes.md](docs/spikes.md) | Kết quả đo của Phase 0 |

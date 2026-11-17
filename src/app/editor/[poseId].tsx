@@ -349,7 +349,7 @@ export default function EditorScreen() {
         setRootSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })
       }
     >
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <FlowHeader title={t.editor.title} onBack={goBack} />
 
       <View

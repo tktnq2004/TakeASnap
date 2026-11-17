@@ -1,6 +1,6 @@
 # SnapShot — Design system
 
-> Bản Phase 4: giao diện xanh dương – trắng, chốt qua 3 vòng chọn trên canvas thiết kế (5 phong cách → 5 bố cục mỗi màn → bản ghép).
+> Bản Phase 4: giao diện tối than chì + xanh trời (bản B2, đổi từ xanh dương – trắng), chốt qua 3 vòng chọn trên canvas thiết kế (5 phong cách → 5 bố cục mỗi màn → bản ghép).
 > Hệ thống, copy và motion vẫn theo **tasteskill 2.5** (`.claude/skills/design-taste-frontend`); quy tắc màn hình di động lấy từ skill `imagegen-frontend-mobile` (vùng an toàn, chữ đủ to, ít khung lồng khung).
 > Nghiệp vụ ở [business-flow.md](business-flow.md), kỹ thuật ở [roadmap.md](roadmap.md).
 
@@ -42,21 +42,34 @@ Tất cả nằm trong `src/ui/tokens.ts`. Component chỉ đọc token, không 
 
 ### 3.1 Màu
 
+**Tối cả app — than chì + xanh trời (bản B2, chốt 2026-11-17 trên canvas, trang "B — cặp xanh và đen dịu mắt").** Thay cho xanh dương – trắng của vòng 3. Lý do (góp ý sau phiếu Phase 4): nền trắng ở Chỉnh sửa làm mỏi mắt khi nhìn lâu và khó thấy màu sáng (viền trắng mặc định của pose); Camera, icon và màn mở app vốn đã tối nên cả app giờ một tông, không chói khi chuyển màn.
+
+- Nền xám than **trung tính** (không ngả xanh): màu ảnh, màu pose và màu lấy từ ảnh hiện đúng như thật.
+- Không đen tuyền, chữ trắng ngà: đỡ nhòe chữ, các lớp thẻ còn tách nhau bằng độ sáng.
+- Một màu nhấn duy nhất là xanh trời dịu `#8AB4F8`, dùng chung cho Camera; nút chính nền nhấn, chữ tối.
+
 ```ts
 export const color = {
-  // màn sáng (Thư viện, Chỉnh pose, Cài đặt, Xem ảnh vừa chụp)
-  bg:          '#EEF3FF', // nền màn
-  surface:     '#FFFFFF', // card, panel, menu, nút phụ
-  surfaceAlt:  '#F1F4FA', // ô nhập, rãnh segmented trong card
-  accentSoft:  '#E8F0FF', // nút nhẹ, rãnh slider, nhãn giá trị
-  ink:         '#10213F', // chữ chính, icon
-  muted:       '#5A6B8C', // nhãn, chữ phụ, gợi ý
-  faint:       '#A3AEC2', // icon tắt, mũi tên phải (chỉ trang trí, không cho chữ)
-  line:        '#E3E8EF', // hairline trong nhóm
-  accent:      '#2563EB', // nút chính, đang chọn
-  accentInk:   '#FFFFFF', // chữ trên accent
-  danger:      '#DC2626', // xóa: nền nút đặc, hoặc chữ trên trắng
-  dangerInk:   '#FFFFFF',
+  // các màn ngoài Camera (Thư viện, Chỉnh sửa, Cài đặt, Xem ảnh vừa chụp)
+  bg:          '#131416', // nền màn
+  surface:     '#1D1F23', // card, panel, menu, nút phụ
+  surfaceAlt:  '#27292E', // ô nhập, rãnh segmented trong card
+  accentSoft:  '#242C3A', // nút nhẹ, rãnh slider, nhãn giá trị
+  ink:         '#E8EAED', // chữ chính, icon (trắng ngà)
+  muted:       '#9AA0A6', // nhãn, chữ phụ, gợi ý
+  faint:       '#5F6368', // icon tắt, mũi tên phải (chỉ trang trí, không cho chữ)
+  line:        '#2C2F34', // hairline trong nhóm
+  accent:      '#8AB4F8', // nút chính, đang chọn
+  accentInk:   '#121417', // chữ trên accent (tối)
+  danger:      '#F28B82', // xóa: nền nút đặc, hoặc chữ trên thẻ
+  dangerInk:   '#121417',
+  switchOff:   '#3C4043', // rãnh công tắc lúc tắt
+  swatchEdge:  '#5F6368', // viền ô màu gần trùng nền (màu Đen của pose)
+  knob:        '#F1F3F4', // núm thanh kéo, công tắc
+  onImage:     '#FFFFFF', // nét vẽ đè lên ảnh, luôn trắng
+  shadow:      '#000000',
+  menuScrim:   'rgba(19,20,22,0.62)', // sau menu pose (iOS có làm mờ tông tối)
+  popoverScrim:'rgba(0,0,0,0.35)',    // sau bảng màu nổi
 
   // camera (nền tối)
   camBg:       '#05070D', // nền quanh khung ngắm
@@ -65,28 +78,30 @@ export const color = {
   camGlass:    'rgba(255,255,255,0.12)', // cụm nút trên thanh trên, cụm zoom, nút đổi camera
   camScrim:    'rgba(5,7,13,0.55)',      // cột công cụ, nút zoom
   camPanel:    'rgba(16,22,36,0.94)',    // bảng mở thêm công cụ
-  camAccent:   '#60A5FA', // viền nút pose, zoom đang dùng, thanh độ hiện, thước đã thẳng
+  camAccent:   '#8AB4F8', // = accent: viền nút pose, zoom đang dùng, thanh độ hiện, thước đã thẳng
   camWarn:     '#FACC15', // vạch thước cân bằng khi máy còn lệch
   grid:        'rgba(255,255,255,0.35)',
-  checkerA:    '#FFFFFF', // nền ô caro sau preview pose
-  checkerB:    '#EEF2F8',
+  checkerA:    '#17181B', // nền ô caro sau preview pose (tối)
+  checkerB:    '#1D1F23',
 } as const;
 ```
 
-Tương phản (WCAG, đã tính):
+Tương phản (WCAG, đã tính; `tokens.test.ts` kiểm):
 
 | Cặp | Tỉ lệ | Dùng cho |
 |---|---|---|
-| `ink` trên `bg` | 14.4:1 | mọi chữ đọc |
-| `muted` trên `bg` / `surface` | 4.8 / 5.4:1 | nhãn, gợi ý |
-| `accentInk` trên `accent` | 5.2:1 | chữ trên nút chính |
-| `accent` trên `bg` / `accentSoft` | 4.7 / 4.5:1 | chữ nút phụ, giá trị slider |
-| `dangerInk` trên `danger` / `danger` trên `surface` | 4.8:1 | nút xóa đặc / chữ xóa |
-| `camAccent` trên `camBg` | 7.9:1 | trạng thái trên camera |
+| `ink` trên `bg` | 15.3:1 | mọi chữ đọc |
+| `muted` trên `bg` / `surface` | 7.0 / 6.3:1 | nhãn, gợi ý |
+| `accentInk` trên `accent` | 8.8:1 | chữ trên nút chính |
+| `accent` trên `bg` / `accentSoft` | 8.8 / 6.7:1 | chữ nút phụ, giá trị slider |
+| `dangerInk` trên `danger` / `danger` trên `surface` | 7.7 / 6.9:1 | nút xóa đặc / chữ xóa |
+| `camAccent` trên `camBg` | 9.6:1 | trạng thái trên camera |
 
-- Đỏ `#EF4444` (bản vẽ vòng 2) bị thay bằng `#DC2626` vì chữ trắng trên `#EF4444` chỉ đạt 3.8:1.
+- Ô màu gần trùng nền thẻ (tương phản dưới 1.6:1, ví dụ màu Đen của pose) có viền `swatchEdge` (`needsEdge` trong `src/ui/contrast.ts`).
+- Thanh trạng thái máy: chữ sáng ở mọi màn; `app.json` `userInterfaceStyle: "dark"` để hộp thoại và bàn phím của máy cũng tối.
 - Màu không bao giờ đứng một mình để báo trạng thái: xóa luôn có icon thùng rác và chữ "Xóa", flash tự động có chữ "A".
 - Không gradient trong UI. Ngoại lệ là ô chọn màu và thanh hue trong Bảng màu (nội dung, không phải trang trí).
+- Bản vẽ trên canvas của các màn (vòng 1–3) vẫn là bản xanh – trắng; bố cục giữ nguyên, chỉ đổi màu theo bảng trên.
 
 ### 3.2 Màu cho pose (màu chức năng)
 

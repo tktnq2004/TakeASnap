@@ -23,7 +23,7 @@ export function Toggle({ value, onChange, label }: Props) {
       value={value}
       onValueChange={onChange}
       trackColor={{ true: color.accent, false: color.switchOff }}
-      thumbColor={color.surface}
+      thumbColor={color.knob}
       ios_backgroundColor={color.switchOff}
       accessibilityLabel={label}
     />

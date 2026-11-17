@@ -1,4 +1,4 @@
-import { contrastRatio } from '../contrast';
+import { contrastRatio, needsEdge } from '../contrast';
 import { color, poseColors } from '../tokens';
 
 // Kiểm chứng bảng tương phản ở docs/design.md §3.1.
@@ -20,7 +20,7 @@ describe('tương phản của token màu', () => {
     expect(contrastRatio(color.accent, color.accentSoft)).toBeGreaterThanOrEqual(4.5);
   });
 
-  it('nút xóa: chữ trắng trên đỏ và chữ đỏ trên trắng đạt AA', () => {
+  it('nút xóa: chữ trên nút đỏ và chữ đỏ trên thẻ đạt AA', () => {
     expect(contrastRatio(color.dangerInk, color.danger)).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(color.danger, color.surface)).toBeGreaterThanOrEqual(4.5);
   });
@@ -68,5 +68,13 @@ describe('luật không tím (design.md §2.7)', () => {
     if (h !== null) {
       expect(h < 250 || h > 320).toBe(true);
     }
+  });
+});
+
+describe('viền ô màu trên nền tối', () => {
+  it('màu Đen của pose cần viền, màu Trắng và Cam thì không', () => {
+    expect(needsEdge('#10213F')).toBe(true);
+    expect(needsEdge('#FFFFFF')).toBe(false);
+    expect(needsEdge('#FF8A3D')).toBe(false);
   });
 });

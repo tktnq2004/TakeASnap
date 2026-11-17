@@ -18,6 +18,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { PressableScale } from '@/ui/components';
 import { hexToHsv, hsvToHex, normalizeHex } from '@/ui/colorMath';
+import { needsEdge } from '@/ui/contrast';
 import { t } from '@/ui/strings';
 import { color, colorPopover as P, elevation, radius, size, space, type } from '@/ui/tokens';
 
@@ -247,7 +248,7 @@ export function ColorPopover(p: Props) {
                   style={[
                     styles.recentSwatch,
                     { backgroundColor: c },
-                    c.toUpperCase() === '#FFFFFF' && styles.white,
+                    needsEdge(c) && styles.white,
                   ]}
                 />
               ))}
@@ -262,7 +263,7 @@ export function ColorPopover(p: Props) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { backgroundColor: 'rgba(16,33,63,0.12)' },
+  backdrop: { backgroundColor: color.popoverScrim },
   pop: {
     position: 'absolute',
     padding: P.pad,
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
     height: P.thumb,
     borderRadius: radius.full,
     borderWidth: 3,
-    borderColor: color.surface,
+    borderColor: color.knob,
     shadowColor: color.shadow,
     shadowOpacity: 0.35,
     shadowRadius: 3,

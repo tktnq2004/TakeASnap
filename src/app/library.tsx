@@ -290,7 +290,7 @@ export default function LibraryScreen() {
       }}
     >
       {/* iOS: thẻ modal nằm trên Camera tối, thanh trạng thái vẫn chữ sáng. */}
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'dark'} />
+      <StatusBar style="light" />
       <View style={{ paddingTop: top }}>
         <OverlayHeader
           title={selecting ? t.library.selectedCount(selected.size) : t.library.title}
