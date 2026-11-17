@@ -177,8 +177,10 @@ Cách `WebViewSegmenter` chạy:
 | Gói | Gồm | Dung lượng | Tải khi |
 |---|---|---|---|
 | `pose` | Multiclass 15.6 MB + FaceLandmarker 3.6 MB + PoseLandmarker full 9.0 MB + MediaPipe wasm 12.9 MB + JS | ~42 MB | Tạo pose lần đầu, hoặc gợi ý bố cục cần phân tích người lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
+| `composition` (Phase 5b) | Model tự chọn kỹ thuật bố cục (TFLite có metadata, tự huấn luyện) | ~5 MB | Dùng "Tự chọn" lần đầu; chạy bằng MediaPipe wasm của gói `pose` |
 
 - Tải từ **CDN gốc** với phiên bản cố định: jsDelivr (MediaPipe), Google Storage (Multiclass, FaceLandmarker, PoseLandmarker). Chưa làm bản sao trên GitHub Releases; nếu CDN gốc gặp sự cố thì thêm sau, chỉ phải đổi URL.
+- Model tự huấn luyện (gói `composition`, Phase 5b) không có CDN gốc: đặt ở **GitHub Releases** của repo, tag cố định (ví dụ `composition-v1`), không commit file model vào repo.
 - Lưu trong `Paths.document/models/<gói>/`, kèm `manifest.json` (URL, kích thước, phiên bản). Mở app thấy đủ file đúng kích thước thì không tải lại.
 - Đã cân nhắc và bỏ: A. đóng gói tất cả (~196 MB trong app và repo, vướng license); B. đóng gói riêng pose (hai cơ chế, mà trong Expo Go app vẫn tải qua mạng ở lần mở đầu nên lợi thế offline gần như không có); D. tải từ CDN mỗi lần (iOS có thể xóa cache, không offline thật).
 - Việc kỹ thuật cần làm ở Phase 1: đưa file từ `Paths.document` vào WebView (đọc file và truyền vào, hoặc cho WebView quyền đọc thư mục model).
@@ -435,7 +437,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [phase5-bo-cuc.md](phase5-bo-cuc.md); nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục); kỹ thuật ở §3.6.
 
-**Đã chốt tạm (theo đề xuất, đổi được trước khi code):** chỉ chạy trên máy, không AI cloud; người dùng chọn kỹ thuật rồi app dẫn (app tự đoán để sau v1); 15 kỹ thuật, 10 có hướng dẫn trên camera; nhận xét sau khi chụp làm trước, gợi ý lúc ngắm qua cổng quyết định.
+**Đã chốt tạm (theo đề xuất, đổi được trước khi code):** chỉ chạy trên máy, không AI cloud; người dùng chọn kỹ thuật rồi app dẫn (app tự đoán là Phase 5b, model tự huấn luyện); 15 kỹ thuật, 10 có hướng dẫn trên camera; nhận xét sau khi chụp làm trước, gợi ý lúc ngắm qua cổng quyết định.
 
 **Bước 0 — Nghiên cứu**
 
@@ -478,13 +480,47 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Xong khi:** chọn được kỹ thuật và thấy lớp bố cục trên camera; gợi ý cảm biến chạy tức thì; có nhận xét sau khi chụp (hoặc đã ghi rõ vì sao bỏ theo cổng); 15 thẻ học; phiếu `phase5-test.md` đạt trên iPhone và Android.
 
+### Phase 5b — Tự chọn kỹ thuật bằng model riêng (2–3 tuần, có cổng quyết định)
+
+Làm sau khi Phase 5 chạy (quy tắc hướng dẫn, nhận xét sau khi chụp đã có). Nghiệp vụ ở [business-flow §6.9](business-flow.md#69-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b).
+
+**Chia việc:** model chỉ làm bài toán **phân loại** (khung cảnh → kỹ thuật hợp); hướng dẫn chỉnh vẫn là quy tắc (§3.6). Không làm model "đầu cuối" (nhìn ảnh → "dời máy sang phải 2 cm"): cần dữ liệu từng cặp ảnh lệch / đúng, nặng và khó giải thích; để sau v1.
+
+**Bước 1 — Dữ liệu (khoảng 1 tuần)**
+
+- [ ] Bộ nhãn: các kỹ thuật có gợi ý ở Phase 5 (1/3, ở giữa, góc thấp, selfie, nhóm) + "khác"; cho phép một ảnh có tới 2 nhãn
+- [ ] Gom 1.500–3.000 ảnh có người: ảnh tự chụp và ảnh có giấy phép cho phép huấn luyện (ghi nguồn từng ảnh); không bao giờ dùng ảnh của người dùng app (BR-16). Xem giấy phép các bộ dữ liệu nghiên cứu (KU-PCP 9 lớp bố cục…) trước khi dùng
+- [ ] Gán nhãn sẵn bằng một model lớn (ví dụ Claude), chạy **một lần trên máy tính lúc phát triển**, không nằm trong app; người duyệt lại ít nhất 300 ảnh để đo độ khớp giữa người và máy
+- [ ] Chia 3 phần: huấn luyện / kiểm tra / **giữ riêng** (≥ 300 ảnh, không bao giờ dùng để huấn luyện); script gom và gán nhãn trong `scripts/`
+
+**Bước 2 — Huấn luyện và đánh giá (khoảng 1 tuần)**
+
+- [ ] Transfer learning từ model nhỏ có sẵn (MobileNetV3 / EfficientNet-Lite) bằng MediaPipe Model Maker trên Google Colab (Model Maker không chạy trên Windows); notebook lưu trong repo
+- [ ] Xuất TFLite có metadata (~5 MB), đo trên bộ giữ riêng: độ đúng lựa chọn đầu, độ đúng hai lựa chọn đầu, ma trận nhầm lẫn; chọn ngưỡng tin cậy
+- [ ] Đo trong WebView trên iPhone và Android: thời gian đoán một ảnh, bộ nhớ
+
+**Bước 3 — Tích hợp (khoảng 1 tuần)**
+
+- [ ] Gói `composition` trên GitHub Releases, tải một lần (§3.3), chạy bằng `ImageClassifier` của MediaPipe trong WebView đang có
+- [ ] Dòng "Tự chọn" trong bảng Bố cục; đoán lại khi khung cảnh đổi hẳn (dừng tay ~1 s), dưới ngưỡng tin cậy thì không đoán; dòng gợi ý ghi kỹ thuật đang dùng + "Đổi"
+- [ ] Phiếu `phase5b-test.md`
+
+**Cổng quyết định cuối Bước 2:**
+
+| Kết quả trên bộ giữ riêng | Quyết định |
+|---|---|
+| Lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%, đoán một ảnh ≤ 300 ms trên máy | Làm Bước 3, có dòng Tự chọn |
+| Thấp hơn | Không đưa vào app; giữ chọn tay của Phase 5. Ghi thử nghiệm (dữ liệu, kết quả, vì sao chưa đạt) vào case study |
+
+**Xong khi:** dòng Tự chọn chạy trên iPhone và Android, đạt cổng ở trên, phiếu `phase5b-test.md` đạt; hoặc đã ghi rõ vì sao dừng ở cổng.
+
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 
 - [ ] Hiệu năng: mở app tới khi thấy preview dưới 2 s; bộ nhớ ổn định khi mở ảnh 12 MP
 - [ ] Accessibility: nhãn cho mọi nút icon (VoiceOver, TalkBack), cỡ chữ hệ thống, tôn trọng Reduce Motion
 - [ ] Phần để lại từ Phase 4: chuyển màn và motion thống nhất (design.md §3.5), rà bố cục ở máy màn nhỏ, sửa chú thích trỏ số mục design.md cũ
 - [ ] **Video demo** 60–90 s quay trên iPhone: chọn pose → chỉnh → bật bố cục, chỉnh theo gợi ý → chụp → nhận xét; thêm vài giây trên Android để chứng minh chạy hai nền tảng
-- [ ] **Case study** trong README: vấn đề của bản cũ, cách sửa hệ cử chỉ, contour vector, tách người offline bằng WebView, trợ lý bố cục (phát hiện bằng model trên máy + quy tắc của nghề ảnh), số đo trước/sau
+- [ ] **Case study** trong README: vấn đề của bản cũ, cách sửa hệ cử chỉ, contour vector, tách người offline bằng WebView, trợ lý bố cục (phát hiện bằng model trên máy + quy tắc của nghề ảnh), model tự huấn luyện chọn kỹ thuật (dữ liệu, cách gán nhãn, độ đúng), số đo trước/sau
 - [ ] Ảnh/GIF trước–sau cho từng chức năng
 - [ ] Ghi nguồn ảnh mẫu và license model trong README
 - [ ] (Tùy chọn) `eas update` để người xem mở app bằng Expo Go qua link/QR mà không cần clone repo
@@ -496,7 +532,7 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 - `NativeSegmenter` qua dev build: ML Kit trên Android (build được trên Windows), Apple Vision trên iOS (cần Mac hoặc GitHub Actions + Sideloadly)
 - `react-native-vision-camera` thay `expo-camera`: zoom không qua state, chạm lấy nét, frame processor
 - Điểm khớp dáng realtime: ước lượng tư thế người thật, so với pose mẫu, hiện % khớp
-- Bố cục: app tự đoán kỹ thuật hợp cảnh; phát hiện đường dẫn và vật "mọc" sau đầu bằng dò đường thẳng; khoảng trống âm, tách người khỏi nền, ngược sáng ([composition.md](composition.md) §4)
+- Bố cục: model "đầu cuối" chỉ thẳng cách chỉnh máy (học từ cặp ảnh lệch / đúng, hướng nghiên cứu gợi ý cắt ảnh); phát hiện đường dẫn và vật "mọc" sau đầu bằng dò đường thẳng; khoảng trống âm, tách người khỏi nền, ngược sáng ([composition.md](composition.md) §4)
 - Chia sẻ pose qua file `.tasnap`
 
 ---
@@ -513,6 +549,8 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 | Expo Go trên Android giới hạn quyền thư viện ảnh | Trung bình | Spike D; dự phòng: lưu bằng `saveToLibraryAsync` không cần album riêng |
 | Zoom camera qua state làm giật overlay | Thấp–trung bình | `CameraLayer` cô lập (§3.5); spike A |
 | Gợi ý bố cục lúc ngắm chậm, nháy màn hoặc nóng máy (Expo Go không có frame processor) | **Cao** | Cổng quyết định ở Phase 5; lùi về gợi ý cảm biến + nhận xét sau khi chụp |
+| Model tự chọn kỹ thuật đoán sai (nhãn chủ quan, một ảnh hợp nhiều kỹ thuật, người gán nhãn không phải người trong nghề) | **Cao** | Phase 5b có cổng riêng, đo trên bộ ảnh giữ riêng; cho phép 2 nhãn; ngưỡng tin cậy; luôn đổi tay được; không đạt thì giữ chọn tay |
+| Dữ liệu huấn luyện vướng giấy phép | Trung bình | Chỉ ảnh tự chụp / giấy phép cho phép huấn luyện, ghi nguồn từng ảnh (BR-16) |
 | Quy tắc bố cục gợi ý sai, làm phiền | Trung bình | Bộ ảnh thử đo độ đúng; một gợi ý mỗi lúc, chống nhảy, tắt được; không chặn chụp, không chấm "đúng / sai" |
 | Nội dung chuyên môn sai (không phải người trong nghề) | Trung bình | Mọi kỹ thuật có nguồn trong composition.md; ghi cả "khi nào phá lệ"; quy tắc là gợi ý |
 | Mất code lần nữa | Đã xảy ra | Push lên GitHub từ ngày đầu; CI chạy trên mỗi push |

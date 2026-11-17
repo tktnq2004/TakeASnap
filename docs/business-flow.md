@@ -253,7 +253,9 @@ Chỉ những kỹ thuật dùng được trên điện thoại và có người
 
 ```mermaid
 flowchart TD
-    CAM[Camera] -- "Nút Bố cục" --> PICK[Chọn kỹ thuật<br/>tắt · lưới · 1/3 · giữa · góc thấp · selfie · nhóm]
+    CAM[Camera] -- "Nút Bố cục" --> PICK[Chọn kỹ thuật<br/>tự chọn · tắt · lưới · 1/3 · giữa · góc thấp · selfie · nhóm]
+    PICK -- "Tự chọn (Phase 5b)" --> AUTO[Model trên máy nhìn khung cảnh<br/>đoán kỹ thuật hợp, người dùng đổi được]
+    AUTO --> GUIDE
     POSE[Chọn pose mẫu] -- "kỹ thuật gắn với pose" --> PICK
     PICK --> GUIDE[Lớp bố cục trên khung ngắm<br/>đường kẻ + chấm đích]
     GUIDE --> SENSE{Kỹ thuật cần<br/>phân tích người?}
@@ -304,8 +306,18 @@ flowchart TD
 
 - Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
 - App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
-- Chưa tự đoán kỹ thuật hợp cảnh; người dùng chọn (tự đoán để sau v1).
+- Phase 5: người dùng tự chọn kỹ thuật. Tự đoán kỹ thuật hợp cảnh là Phase 5b (§6.9), có cổng quyết định riêng; không đạt thì giữ chọn tay.
 - Gợi ý lúc ngắm cần phân tích người có **cổng quyết định** ở roadmap Phase 5; có thể chỉ còn nhận xét sau khi chụp.
+
+### 6.9 Tự chọn kỹ thuật bằng model riêng (Phase 5b)
+
+Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán **kỹ thuật hợp** (1/3, ở giữa, góc thấp, selfie, nhóm…). Model chỉ **chọn kỹ thuật**; việc **hướng dẫn chỉnh** (dời máy, nghiêng máy, lùi ra) vẫn do quy tắc ở §6.4, vì quy tắc tính chính xác và giải thích được.
+
+- Bảng Bố cục có thêm dòng đầu **"Tự chọn"**. Đang ở Tự chọn thì dòng gợi ý ghi kỹ thuật app đang dùng, kèm nút đổi (ví dụ "Tự chọn: Quy tắc 1/3 · Đổi"); chạm Đổi là về chọn tay.
+- Model đoán lại khi khung cảnh đổi hẳn (người dùng quay máy sang chỗ khác, dừng tay khoảng 1 s), không đổi kỹ thuật liên tục. Đổi kỹ thuật thì rung nhẹ một lần.
+- Độ tin cậy dưới ngưỡng thì không đoán: giữ kỹ thuật đang dùng, hoặc chỉ hiện lưới 3×3.
+- Model chạy trên máy trong WebView đang có (MediaPipe ImageClassifier), tải một lần như gói pose (BR-13), ảnh không rời máy (BR-03).
+- Không đạt cổng quyết định ở roadmap Phase 5b thì không có dòng Tự chọn; app giữ chọn tay như Phase 5.
 
 ---
 
@@ -359,7 +371,7 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 | BR-01 | Ảnh chụp ở chức năng 1 **không bao giờ** kèm overlay. Overlay chỉ để hướng dẫn |
 | BR-02 | Ảnh lưu vào album "SnapShot" đúng tỉ lệ khung đang chọn. Vùng ảnh lưu trùng đúng vùng thấy trên khung ngắm |
 | BR-03 | Mọi xử lý ảnh (tách người, phân tích bố cục) chạy **hoàn toàn trên máy**. Ảnh không bao giờ được gửi đi. Kết nối mạng duy nhất là tải bộ tách người (BR-13) |
-| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu, hoặc khi gợi ý bố cục cần phân tích người lần đầu (dùng chung gói này). Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
+| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu, hoặc khi gợi ý bố cục cần phân tích người lần đầu (dùng chung gói này); gói `composition` (model tự chọn kỹ thuật, ~5 MB, Phase 5b) khi dùng Tự chọn lần đầu. Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
 | BR-04 | Bố cục chỉ là gợi ý: không chặn nút chụp, không chấm ảnh "đúng / sai". Ảnh lưu **không bao giờ** kèm lớp bố cục (như BR-01) |
 | BR-05 | Mỗi lúc chỉ một gợi ý trên khung ngắm; gợi ý chỉ hiện khi tình trạng giữ ổn định khoảng 0,5 s |
 | BR-06 | Một pose phải có ít nhất một vùng người chiếm từ 2% diện tích ảnh trở lên. Nhỏ hơn thì báo "Người trong ảnh quá nhỏ" |
@@ -371,6 +383,7 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 | BR-12 | Lưu ảnh lỗi thì không mất ảnh: giữ bản tạm và cho thử lại |
 | BR-14 | Ảnh nhỏ chụp để phân tích bố cục chỉ nằm trong bộ nhớ tạm, không vào album, xóa ngay sau khi phân tích |
 | BR-15 | Khung cắt gợi ý lưu thành ảnh mới; ảnh gốc trong album giữ nguyên |
+| BR-16 | Ảnh dùng để huấn luyện model bố cục (Phase 5b) chỉ là ảnh tự chụp hoặc ảnh có giấy phép cho phép huấn luyện. Ảnh của người dùng app **không bao giờ** được dùng để huấn luyện |
 
 ---
 

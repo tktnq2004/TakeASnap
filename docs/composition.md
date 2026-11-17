@@ -105,7 +105,7 @@ Tổng v1: **15 kỹ thuật**, trong đó **10 có hướng dẫn** trên camer
 
 ## 6. Còn phải quyết
 
-1. Người dùng chọn kỹ thuật rồi app dẫn, hay app tự đoán kỹ thuật hợp cảnh? Khuyên làm người dùng chọn trước vì giải thích được, tự đoán để sau.
+1. Người dùng chọn kỹ thuật rồi app dẫn, hay app tự đoán kỹ thuật hợp cảnh? **Đã chốt:** Phase 5 người dùng chọn; Phase 5b thêm "Tự chọn" bằng model tự huấn luyện (phân loại khung cảnh → kỹ thuật), có cổng quyết định riêng (roadmap).
 2. Gợi ý sau khi chụp, lúc đang ngắm, hay cả hai? Phụ thuộc kết quả đo `takePictureAsync({ shutterSound: false })`.
 3. Thẻ học đặt ở đâu.
 4. Có cho AI trên cloud hay không (khuyên không, giữ nguyên tắc ảnh không rời máy).

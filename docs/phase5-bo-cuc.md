@@ -236,7 +236,7 @@ Nếu phân tích ảnh không đạt, app **vẫn có**:
 | # | Câu hỏi | Tôi khuyên |
 |---|---|---|
 | 1 | 15 kỹ thuật (10 có hướng dẫn + 5 thẻ học) có hợp không, hay ít hơn để làm kỹ hơn? | 15 |
-| 2 | Người dùng chọn kỹ thuật rồi app dẫn, hay app tự đoán kỹ thuật hợp cảnh? | Người dùng chọn trước; tự đoán để sau |
+| 2 | Người dùng chọn kỹ thuật rồi app dẫn, hay app tự đoán kỹ thuật hợp cảnh? | **Đã chốt:** Phase 5 chọn tay; Phase 5b thêm "Tự chọn" bằng model tự huấn luyện (roadmap Phase 5b) |
 | 3 | Có cho dùng AI trên cloud không? | Không, giữ nguyên tắc ảnh không rời máy |
 | 4 | Gợi ý sau khi chụp hay lúc đang ngắm? | Sau khi chụp trước; lúc ngắm để cổng quyết định |
 | 5 | Thẻ học đặt ở đâu: tab thứ ba trong Thư viện, hay màn riêng? | Vẽ cả hai lên canvas để chọn |

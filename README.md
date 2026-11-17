@@ -19,6 +19,7 @@ Bản làm lại (rebuild v1) trên nhánh `rebuild`. Bản cũ được tag `le
 | 3 | Thư viện pose, chọn nhiều, cọ sửa viền | Xong (còn thử không có mạng) |
 | 4 | Giao diện chụp ảnh và giao diện chung | Xong |
 | 5 | Trợ lý bố cục | Đã chốt hướng, chưa làm |
+| 5b | Tự chọn kỹ thuật bằng model tự huấn luyện (có cổng quyết định) | Chưa làm |
 | 6 | Hoàn thiện portfolio | Chưa làm |
 
 Phase 1–4 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi tiết và phiếu kiểm tra ở [docs/roadmap.md](docs/roadmap.md).
