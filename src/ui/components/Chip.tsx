@@ -32,7 +32,6 @@ export function Chip({ label, icon: Icon, selected, onPress }: Props) {
       <Text
         style={[type.label, { color: selected ? color.accentInk : color.ink }]}
         maxFontSizeMultiplier={1.3}
-        numberOfLines={1}
       >
         {label}
       </Text>

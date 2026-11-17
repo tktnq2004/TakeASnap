@@ -22,12 +22,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
 import { clearPlacement, useCameraStore } from '@/features/camera/cameraStore';
+import type { Contour } from '@/engine/contour';
 import {
   analyzeImage,
   type CreateProgress,
+  type ImageAnalysis,
+  peopleContours,
   PoseCreateError,
   savePose,
 } from '@/features/pose/createFromImage';
+import { PeoplePick } from '@/features/pose/PeoplePick';
 import { MineGrid } from '@/features/pose/MineGrid';
 import { PoseMenu } from '@/features/pose/PoseMenu';
 import { PoseTile, type TileRect } from '@/features/pose/PoseTile';
@@ -68,7 +72,17 @@ export default function LibraryScreen() {
   const [downloaded, setDownloaded] = useState(false);
   /** Ảnh đang xử lý: hiện mờ thay cho danh sách (design.md §6.6). */
   const [work, setWork] = useState<Picked | null>(null);
-  /** Ảnh có nhiều người: đang chờ chọn người. */
+  /**
+   * Ảnh có nhiều người: chọn người ngay trên màn đang xử lý (góp ý Phase 4 vòng 6). Viền từng
+   * người dựng sẵn một lần nên chạm chọn / bỏ là tức thì. Mặc định chọn hết.
+   */
+  const [picking, setPicking] = useState<{
+    a: ImageAnalysis;
+    contours: Contour[][];
+    chosen: number[];
+  } | null>(null);
+  /** Lần xử lý này có bước chọn người (ảnh từ 2 người). */
+  const [manyPeople, setManyPeople] = useState(false);
   /** Chọn nhiều để xóa (góp ý Phase 3), chỉ ở "Pose của bạn". */
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -170,6 +184,7 @@ export default function LibraryScreen() {
     try {
       await task();
     } catch (e) {
+      setPicking(null);
       setWork(null);
       showError(e, img);
     } finally {
@@ -186,16 +201,58 @@ export default function LibraryScreen() {
     run(img, async () => {
       setWork(img);
       setDownloaded(false);
+      setManyPeople(false);
       setProgress({ stage: 'segment' });
       const a = await analyzeImage(segmentForPose, img, track);
-      // Lưu với mọi người trong ảnh. Ảnh nhiều người mở thẳng Cọ → Người để bỏ bớt người
-      // (góp ý Phase 4 vòng 3: thay màn Chọn người).
-      setProgress({ stage: 'contour' });
-      const pose = await savePose(db, a, a.people, track);
-      setWork(null);
-      setTab('mine');
-      router.push(a.people.length > 1 ? `/editor/${pose.id}?people=1` : `/editor/${pose.id}`);
+      if (a.people.length > 1) {
+        setManyPeople(true);
+        setPicking({ a, contours: peopleContours(a), chosen: a.people.map((_, i) => i) });
+        return;
+      }
+      await finish(
+        a,
+        a.people.map((_, i) => i),
+      );
     });
+
+  const finish = async (a: ImageAnalysis, chosen: number[]) => {
+    setPicking(null);
+    setProgress({ stage: 'contour' });
+    const pose = await savePose(
+      db,
+      a,
+      chosen.map((i) => a.people[i]!),
+      track,
+    );
+    setWork(null);
+    setTab('mine');
+    router.push(`/editor/${pose.id}`);
+  };
+
+  const togglePerson = (i: number) => {
+    haptic.select();
+    setPicking((p) =>
+      p
+        ? {
+            ...p,
+            chosen: p.chosen.includes(i)
+              ? p.chosen.filter((x) => x !== i)
+              : [...p.chosen, i].sort((x, y) => x - y),
+          }
+        : p,
+    );
+  };
+
+  const usePicked = () => {
+    const p = picking;
+    const img = work;
+    if (p && img) run(img, () => finish(p.a, p.chosen));
+  };
+
+  const cancelPick = () => {
+    setPicking(null);
+    setWork(null);
+  };
 
   const showError = (e: unknown, img: Picked) => {
     const kind = errorKind(e);
@@ -262,13 +319,38 @@ export default function LibraryScreen() {
 
       {work ? (
         <View style={styles.working}>
-          <Image
-            source={{ uri: work.uri }}
-            resizeMode="contain"
-            accessibilityIgnoresInvertColors
-            style={styles.workingImage}
-          />
-          {progress && <StatusSteps progress={progress} downloaded={downloaded} />}
+          {picking ? (
+            <PeoplePick
+              analysis={picking.a}
+              contours={picking.contours}
+              chosen={picking.chosen}
+              onToggle={togglePerson}
+            />
+          ) : (
+            <Image
+              source={{ uri: work.uri }}
+              resizeMode="contain"
+              accessibilityIgnoresInvertColors
+              style={styles.workingImage}
+            />
+          )}
+          {(progress || picking) && (
+            <StatusSteps
+              progress={progress}
+              downloaded={downloaded}
+              many={manyPeople}
+              pick={
+                picking
+                  ? {
+                      chosen: picking.chosen.length,
+                      total: picking.a.people.length,
+                      onUse: usePicked,
+                      onCancel: cancelPick,
+                    }
+                  : null
+              }
+            />
+          )}
         </View>
       ) : (
         <GestureScrollView
@@ -372,18 +454,37 @@ const STEPS = [
   { key: 'download', stages: ['download', 'load'] },
   { key: 'segment', stages: ['segment'] },
   { key: 'landmarks', stages: ['landmarks'] },
+  { key: 'pick', stages: [] },
   { key: 'contour', stages: ['contour', 'save'] },
 ] as const;
 
-function StatusSteps({ progress, downloaded }: { progress: CreateProgress; downloaded: boolean }) {
-  const steps = STEPS.filter((s) => s.key !== 'download' || downloaded);
-  const now = steps.findIndex((s) => (s.stages as readonly string[]).includes(progress.stage));
+type PickStep = { chosen: number; total: number; onUse: () => void; onCancel: () => void };
+
+function StatusSteps({
+  progress,
+  downloaded,
+  many,
+  pick,
+}: {
+  progress: CreateProgress | null;
+  downloaded: boolean;
+  /** Ảnh từ 2 người: có bước Chọn người. */
+  many: boolean;
+  /** Đang chờ chọn người: bước Chọn người là bước hiện tại, kèm hai nút. */
+  pick: PickStep | null;
+}) {
+  const steps = STEPS.filter(
+    (s) => (s.key !== 'download' || downloaded) && (s.key !== 'pick' || many),
+  );
+  const now = pick
+    ? steps.findIndex((s) => s.key === 'pick')
+    : steps.findIndex((s) => (s.stages as readonly string[]).includes(progress?.stage ?? ''));
   return (
     <View style={styles.steps} accessibilityLiveRegion="polite">
       {steps.map((s, i) => {
         const state = now < 0 || i > now ? 'todo' : i < now ? 'done' : 'now';
         const label =
-          state === 'now' && progress.stage === 'download'
+          state === 'now' && progress?.stage === 'download'
             ? `${t.status.steps.download}, ${mb(progress.bytes)} trên ${mb(progress.total)} MB`
             : t.status.steps[s.key];
         return (
@@ -392,6 +493,8 @@ function StatusSteps({ progress, downloaded }: { progress: CreateProgress; downl
               <View style={styles.stepDone}>
                 <Check size={14} strokeWidth={3} color={color.accentInk} />
               </View>
+            ) : state === 'now' && s.key === 'pick' ? (
+              <View style={styles.stepPick} />
             ) : state === 'now' ? (
               <ActivityIndicator size="small" color={color.accent} style={styles.stepIcon} />
             ) : (
@@ -408,9 +511,29 @@ function StatusSteps({ progress, downloaded }: { progress: CreateProgress; downl
             >
               {label}
             </Text>
+            {pick && s.key === 'pick' && (
+              <Text style={[type.num, styles.stepCount]}>
+                {pick.chosen}/{pick.total}
+              </Text>
+            )}
           </View>
         );
       })}
+      {pick && (
+        <View style={styles.pickActions}>
+          <View style={styles.pickCancel}>
+            <Button label={t.common.cancel} variant="secondary" onPress={pick.onCancel} fullWidth />
+          </View>
+          <View style={styles.pickUse}>
+            <Button
+              label={t.library.pickUseN(pick.chosen)}
+              onPress={pick.onUse}
+              disabled={pick.chosen === 0}
+              fullWidth
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -468,6 +591,17 @@ const styles = StyleSheet.create({
     marginBottom: space[6],
   },
   step: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  stepCount: { marginLeft: 'auto', color: color.accent },
+  stepPick: {
+    width: 22,
+    height: 22,
+    borderRadius: radius.full,
+    borderWidth: 6,
+    borderColor: color.accent,
+  },
+  pickActions: { flexDirection: 'row', gap: space[2] },
+  pickCancel: { flex: 1 },
+  pickUse: { flex: 1.4 },
   stepIcon: { width: STEP_DOT, height: STEP_DOT },
   stepDone: {
     width: STEP_DOT,

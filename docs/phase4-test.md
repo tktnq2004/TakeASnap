@@ -164,6 +164,8 @@ Theo góp ý 11.2–11.4: bỏ huy hiệu, chọn người thành tab **Người
 
 Theo góp ý 12.1: bỏ tab Người, chọn người thành lựa chọn **Người** trong tab Cọ (Người · Thêm · Xóa). Ở chế độ Người, hàng ô ảnh từng người nằm đúng chỗ thanh Cỡ cọ; Hoàn tác / Làm lại tắt.
 
+Phải quay lại phương án tách ra, vì khi gộp chung khi chọn người, xóa người delay tầm 0,5s 1s. Phải tìm phương án khác: 1 là tự động chọn hết, người dùng tự thay đổi ở cọ. 2 là vẫn cho phép người dùng chọn nhưng phải tìm 1 cách khác cân bằng giữa cho người dùng chọn pose và tối ưu giao diện
+
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
 | 13.1 | Thêm ảnh có 2–4 người | Mở Chỉnh sửa ở tab Cọ, chế độ Người; 4 tab như cũ | | | |
@@ -172,6 +174,21 @@ Theo góp ý 12.1: bỏ tab Người, chọn người thành lựa chọn **Ngư
 | 13.4 | Ảnh một người, và pose mẫu | Cọ chỉ có Thêm · Xóa | | | |
 | 13.5 | Bỏ một người → Lưu pose → xem trên Camera | Pose chỉ còn những người giữ lại | | | |
 | 13.6 | Terminal: khi thấy cảnh báo "Reading from `value`", ghi lại đang ở màn nào, làm gì | | | | |
+
+## 14. Vòng 7 — chọn người trên màn đang xử lý
+
+Theo góp ý vòng 6: chọn người trong Cọ chậm 0,5–1 giây, nên tách ra lại. Không có màn riêng: tách xong, ảnh trên màn đang xử lý thành chỗ chạm để chọn. Chỉnh sửa và Cọ về như trước vòng 3 (Cọ chỉ có Thêm · Xóa).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 14.1 | Thêm ảnh có 2–4 người | Tách xong, ảnh hết mờ, mọi người được phủ xanh; card bước có "Chọn người  n/n" và hai nút Hủy · Dùng n người | | | |
+| 14.2 | Chạm một người, chạm lại | Bỏ ngay (viền nét đứt, số giảm), chạm lại thì chọn lại; **không có độ trễ** | | | |
+| 14.3 | Bỏ hết mọi người | Nút Dùng tắt | | | |
+| 14.4 | Bấm Dùng n người | Bước Chọn người thành dấu tích, chạy "Vẽ dáng", rồi mở Chỉnh sửa; pose chỉ có người đã chọn | | | |
+| 14.5 | Bấm Hủy | Về danh sách Thư viện, không có pose mới | | | |
+| 14.6 | Ảnh một người | Không có bước Chọn người, vào thẳng Chỉnh sửa | | | |
+| 14.7 | Chỉnh sửa → Cọ | Chỉ có Thêm · Xóa; cọ Thêm tô lên người chưa chọn vẫn hiện lại người đó | | | |
+| 14.8 | Terminal: khi thấy cảnh báo "Reading from `value`", ghi lại đang ở màn nào, làm gì | | | | |
 
 ## Góp ý thêm
 

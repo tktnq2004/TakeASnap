@@ -307,7 +307,7 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 | Menu, cách hủy | Chạm ra ngoài để hủy |
 | Chọn nhiều | Đã chọn n · Hủy · Chọn tất cả · Xóa n pose |
 | Màn Chỉnh pose (tiêu đề) | Chỉnh sửa |
-| Chỉnh sửa → Cọ | Người · Thêm · Xóa · Cỡ cọ |
+| Chọn người (bước trên màn đang xử lý) | Chọn người · n/m · Hủy · Dùng n người |
 | Chỉnh pose, tab | Viền · Phủ · Nền · Cọ |
 | Chỉnh pose, nút | Lưu thành bản mới · Lưu pose |
 | Bảng màu | Mã màu · Lấy màu từ ảnh · Gần đây |
@@ -427,7 +427,7 @@ Không có màn riêng: mở app lần đầu thì gọi thẳng hộp thoại x
 
 ### 6.8 Đang xử lý (trong luồng Thêm ảnh từ máy)
 
-- **Chọn người:** không còn màn riêng từ Phase 4 vòng 3; chọn người nằm ở Chỉnh sửa → Cọ → Người (§6.13b).
+- **Chọn người:** không có màn riêng; là một bước trên màn Đang xử lý (§6.13b, vòng 6).
 - **Đang xử lý:** giữ đầu màn Thư viện; ảnh vừa chọn 288×384 mờ 60% với một vạch quét `accent`; dưới là `StatusSteps` trong card trắng:
 
 | Bước | Chữ |
@@ -539,7 +539,7 @@ Kết quả: ảnh ghép chiếm hết vùng trên; giữ ngón tay lên ảnh �
 - **Xem ảnh vừa chụp:** chấm trang đổi ngay trong lúc vuốt; hàng chấm mỗi ảnh một ô (rộng tối đa 300), chạm hoặc kéo trên hàng để tua nhanh. Nhiều ảnh thì chấm nhỏ lại.
 - **Menu pose** rộng 200, chữ ngắn: Chụp · Sửa · Xóa; pose mẫu: Chụp · Tạo bản sao.
 - **Chọn người:** ảnh nằm trong thẻ trắng nền `surfaceAlt`; người chưa chọn viền trắng nét đứt (dáng mẫu), đã chọn phủ `accent` 35% + viền trắng 3 px; mỗi người có huy hiệu số trên đầu (đã chọn thành dấu tích); dưới ảnh là hàng chip "Người 1, Người 2…" để chọn bằng tên.
-- **Chọn người (vòng 5) — chế độ Người trong Cọ:** chọn người là một chức năng của Cọ, không phải tab ngang hàng. Ảnh nhiều người lưu với mọi người rồi mở Chỉnh sửa ở tab Cọ, Segmented **Người · Thêm · Xóa** (Người, icon Users, chỉ có khi ảnh có từ 2 người). Ở chế độ Người hai nút Hoàn tác / Làm lại tắt (không ẩn để Segmented không đổi bề rộng). Trên preview: chạm vào người để bỏ / lấy lại cả người; người đang bị bỏ có viền trắng nét đứt 2 px (`personPick.dash` 8/6); không có huy hiệu. Chạm lệch tới 16 px vẫn tính là chạm vào người (`personPick.slop`). Thay chỗ thanh Cỡ cọ là hàng ô ảnh cắt sát từng người (cao 128, rộng 72–116 theo dáng, bo `lg`): ô đang giữ viền `accent` 3 px + dấu tích tròn 22 px góc trên phải; ô bị bỏ mờ 40%. Không có Hoàn tác / Làm lại cho chọn người.
+- **Chọn người (vòng 6) — bước trên màn Đang xử lý:** vòng 3–5 thử đưa chọn người vào Chỉnh sửa (tab Người, rồi Cọ → Người) nhưng mỗi lần chạm phải dò lại dáng, chậm 0,5–1 giây, nên bỏ. Giờ tách xong thì ảnh trên màn Đang xử lý (không còn mờ) thành chỗ chạm: người được chọn phủ `accent` 35% + viền trắng 3 px, chưa chọn viền trắng nét đứt 2 px (`personPick.dash` 8/6); mặc định chọn hết. Card các bước có thêm bước **Chọn người** giữa "Tìm nét mặt" và "Vẽ dáng": đang ở bước này thì chấm vòng `accent` thay vòng quay, số `n/m` màu `accent` bên phải; dưới các bước là hai nút **Hủy** (`secondary`) · **Dùng n người** (primary, rộng 1.4 phần, tắt khi n = 0). Không có huy hiệu, không có dòng hướng dẫn.
 - **Lấy màu từ ảnh:** viền xanh vẽ chồng lên preview (không đổi kích thước, hết giật); nút X ở góc preview để hủy và quay lại Bảng màu.
 
 ### 6.14 Logo, icon app và màn mở app
