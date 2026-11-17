@@ -1,6 +1,6 @@
 # SnapShot
 
-App camera chụp theo dáng mẫu. App tách dáng người từ một ảnh, đặt dáng đó lên khung ngắm làm lớp hướng dẫn, rồi chụp người thật theo đúng dáng. Ngoài ra app có công cụ ghép người vào nền mới với ánh sáng và bóng khớp cảnh.
+App camera chụp theo dáng mẫu. App tách dáng người từ một ảnh, đặt dáng đó lên khung ngắm làm lớp hướng dẫn, rồi chụp người thật theo đúng dáng. Trợ lý bố cục hướng dẫn đặt người ở đâu trong khung và cầm máy góc nào theo các kỹ thuật của nghề ảnh.
 
 > **Tên:** app đổi tên từ **TakeASnap** thành **SnapShot** ở Phase 4. Tên repo và thư mục vẫn là `TakeASnap`; file dữ liệu SQLite giữ tên `takeasnap.db` để không mất pose đã lưu.
 > **Phạm vi v1:** iOS và Android từ một codebase, chạy trong Expo Go, giao diện tiếng Việt, xử lý ảnh hoàn toàn trên máy (không server), đồ án portfolio.
@@ -18,7 +18,7 @@ Bản làm lại (rebuild v1) trên nhánh `rebuild`. Bản cũ được tag `le
 | 2 | Camera và overlay pose | Xong |
 | 3 | Thư viện pose, chọn nhiều, cọ sửa viền | Xong (còn thử không có mạng) |
 | 4 | Giao diện chụp ảnh và giao diện chung | Xong |
-| 5 | Trợ lý bố cục (thay cho Thay nền) | Đã chốt hướng, chưa làm |
+| 5 | Trợ lý bố cục | Đã chốt hướng, chưa làm |
 | 6 | Hoàn thiện portfolio | Chưa làm |
 
 Phase 1–4 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi tiết và phiếu kiểm tra ở [docs/roadmap.md](docs/roadmap.md).
@@ -31,7 +31,7 @@ Phase 1–4 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi ti
 |---|---|---|
 | 1 | **Chụp theo pose** | Camera đủ điều khiển: flash, hẹn giờ, tỉ lệ khung, lưới, thước cân bằng, zoom, đổi camera. Pose nằm trên khung ngắm, kéo / phóng to / xoay cho khớp. Cột công cụ pose (chỉnh pose, độ hiện, lật ngang, giữ để ẩn) dời được bằng một ngón. Ảnh lưu vào album SnapShot, không kèm pose |
 | 2 | **Tạo và chỉnh pose** | Chọn pose mẫu hoặc ảnh trong máy → tách người (ảnh nhiều người: chạm chọn người ngay trên màn xử lý) → chỉnh 4 tab: **Viền** (viền và nét mặt), **Phủ**, **Nền** (độ hiện người và nền), **Cọ** (thêm / xóa vùng người, hoàn tác không giới hạn) → lưu vào thư viện |
-| 3 | **Trợ lý bố cục** | Chọn kỹ thuật (quy tắc 1/3, đặt ở giữa, góc thấp, selfie…) → lớp bố cục và gợi ý ngắn trên khung ngắm → nhận xét sau khi chụp; thẻ học cho 15 kỹ thuật. Thay cho Thay nền (bỏ 2026-11-17) |
+| 3 | **Trợ lý bố cục** | Chọn kỹ thuật (quy tắc 1/3, đặt ở giữa, góc thấp, selfie…) → lớp bố cục và gợi ý ngắn trên khung ngắm → nhận xét sau khi chụp; thẻ học cho 15 kỹ thuật |
 
 ---
 

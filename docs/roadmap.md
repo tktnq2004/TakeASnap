@@ -15,7 +15,6 @@
 | Ngân sách GPU | **Không có** | **Bỏ hẳn server.** App chạy 100% trên máy, kể cả phân tích bố cục; không dùng AI trên cloud |
 | Ngôn ngữ | **Chỉ tiếng Việt** | Không cài thư viện i18n; mọi chuỗi nằm trong `src/ui/strings.ts` |
 | Ảnh pose mẫu | Dùng được (phi thương mại) | Model có license phi thương mại cũng dùng được, vẫn ghi nguồn |
-| Chức năng 3 (đổi 2026-11-17) | **Bỏ Thay nền, thay bằng Trợ lý bố cục** | App tập trung vào việc chụp ảnh: pose lo dáng đứng, bố cục lo vị trí trong khung và góc máy. Thay nền không liên quan việc chụp và rủi ro cao (cổng quyết định riêng ở Phase 5 cũ). Nghiên cứu ở [composition.md](composition.md), ý tưởng ở [phase5-bo-cuc.md](phase5-bo-cuc.md) |
 
 ### Vì sao Expo Go đủ
 
@@ -35,11 +34,11 @@ Phần tách người đi qua interface `Segmenter` (§3.3). Khi có điều ki�
 
 | Vấn đề cũ | Quyết định mới |
 |---|---|
-| Tách người phải gọi server qua LAN IP | **Tách người trên máy bằng model trong WebView ẩn** (MediaPipe hoặc ONNX Runtime Web). Không còn server |
+| Tách người phải gọi server qua LAN IP | **Tách người trên máy bằng model trong WebView ẩn** (MediaPipe). Không còn server |
 | Code backend bị mất | Không cần backend nữa. Mọi thứ nằm trong một repo |
+| Không có hướng dẫn bố cục khi chụp | **Trợ lý bố cục**: model trên máy tìm người, mắt, khớp; cảm biến đo góc máy; quy tắc của nghề ảnh viết bằng TypeScript ra gợi ý giải thích được (§3.6). Có **cổng quyết định** cho gợi ý lúc ngắm (Phase 5) |
 | Cử chỉ chồng chéo, giật | `react-native-gesture-handler` Gesture API + `react-native-reanimated` shared value, chạy trên UI thread. **Không có setState nào trong lúc cử chỉ đang diễn ra** (riêng zoom camera, xem §3.5) |
 | Viền không đổi được độ dày | Viền vẽ từ **contour vector** bằng Skia, đổi độ dày và màu realtime |
-| Thay nền chỉ dán ảnh lên | **Bỏ Thay nền khỏi v1** (2026-11-17). Thay bằng **Trợ lý bố cục**: model trên máy tìm người, mắt, khớp; cảm biến đo góc máy; quy tắc của nghề ảnh viết bằng TypeScript ra gợi ý giải thích được (§3.6). Có **cổng quyết định** cho gợi ý lúc ngắm (Phase 5) |
 | Flash auto giả, crop sai | `expo-camera` dùng `flash="auto"` gốc; crop theo kích thước ảnh thật, không theo % màn hình |
 | Điều hướng bằng `useState` trong `App.tsx` | **`expo-router`** |
 | Lưu metadata bằng file JSON | **`expo-sqlite`**. File ảnh nằm trong `documentDirectory` |
@@ -74,19 +73,7 @@ Các lỗi đã đọc thấy trong code. Đây là danh sách phải tránh l�
 | L12 | Kiểu `SegmentData` khai báo lặp ở 3 nơi | Lệch kiểu khi sửa |
 | L13 | Pose mẫu phải gửi lên server tách lại mỗi lần chọn | Chậm, cần mạng cho cả ảnh mẫu |
 
-### 2.3 Thay nền — [ChangeBackground.tsx](../src/screens/ChangeBackground.tsx)
-
-Chức năng này đã bỏ khỏi bản rebuild (2026-11-17); bảng dưới giữ làm bài học.
-
-| # | Lỗi | Hậu quả |
-|---|---|---|
-| L14 | `setFgX/setFgY` mỗi lần ngón tay di chuyển | Re-render mỗi frame |
-| L15 | Pinch qua `onTouchMove` song song với `PanResponder` | Kéo và pinch giành nhau |
-| L16 | Gửi tọa độ theo khung màn hình 500 px, trong khi nền hiển thị `contain` | Vị trí ghép lệch với preview |
-| L17 | Response `/segment` ở màn này khác hẳn ở `SegmentUtils` | Hai hợp đồng API cho một endpoint |
-| L18 | Chỉ dán ảnh lên nền | Không bóng, không khớp sáng, nhìn là biết ảnh ghép |
-
-### 2.4 Giao diện
+### 2.3 Giao diện
 
 - Màu nhấn tím `#C259FF` và bảng màu phủ có tím (`#a5b4fc`, `#c4b5fd`). Design mới cấm tím, xem [design.md](design.md).
 - Dùng emoji làm icon (📸 ✏️ 🗑️), trộn với Ionicons.
@@ -109,7 +96,7 @@ flowchart LR
         GES[Gesture Handler + Reanimated<br/>UI thread]
         SKIA[Skia renderer<br/>overlay, editor, lớp bố cục]
         SEGI[Segmenter interface]
-        WV[WebView ẩn<br/>MediaPipe / ONNX Runtime Web]
+        WV[WebView ẩn<br/>MediaPipe]
         MODEL[(file model<br/>đóng gói kèm app)]
         CONT[Contour engine<br/>marching squares + làm mượt]
         COMP[Composition engine<br/>quy tắc bố cục, TypeScript thuần]
@@ -182,8 +169,6 @@ Cách `WebViewSegmenter` chạy:
 |---|---|---|---|
 | **Pose** và **bố cục** | MediaPipe `selfie_multiclass_256x256` + FaceLandmarker + PoseLandmarker | `@mediapipe/tasks-vision` 1.1.1, GPU | ~105 ms cả vòng (tách người) |
 
-Spike B còn đo RMBG-1.4 cho Thay nền (fp16 WebGPU ~0.96 s, int8 WASM ~7.9 s). Thay nền đã bỏ nên RMBG không còn dùng; số đo giữ ở [spikes.md](spikes.md).
-
 - Multiclass: lấy `1 − kênh nền` rồi kéo dãn [0.25, 0.65] → [0, 1] (kênh nền chỉ đạt 0.8–0.96 trên vùng nền).
 - Đã loại: MediaPipe Selfie (cắt mất chân, váy), DeepLab v3 (mép nhòe, dính nền), U²-Net human seg (176 MB).
 - Đã thử và bỏ: guided filter làm mịn mép (quầng sáng, lem nền).
@@ -193,14 +178,12 @@ Spike B còn đo RMBG-1.4 cho Thay nền (fp16 WebGPU ~0.96 s, int8 WASM ~7.9 s)
 |---|---|---|---|
 | `pose` | Multiclass 15.6 MB + FaceLandmarker 3.6 MB + PoseLandmarker full 9.0 MB + MediaPipe wasm 12.9 MB + JS | ~42 MB | Tạo pose lần đầu, hoặc gợi ý bố cục cần phân tích người lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
 
-Hai gói `compose-gpu` / `compose-cpu` (RMBG, ~111 MB / ~56 MB) bỏ cùng Thay nền.
-
 - Tải từ **CDN gốc** với phiên bản cố định: jsDelivr (MediaPipe), Google Storage (Multiclass, FaceLandmarker, PoseLandmarker). Chưa làm bản sao trên GitHub Releases; nếu CDN gốc gặp sự cố thì thêm sau, chỉ phải đổi URL.
 - Lưu trong `Paths.document/models/<gói>/`, kèm `manifest.json` (URL, kích thước, phiên bản). Mở app thấy đủ file đúng kích thước thì không tải lại.
 - Đã cân nhắc và bỏ: A. đóng gói tất cả (~196 MB trong app và repo, vướng license); B. đóng gói riêng pose (hai cơ chế, mà trong Expo Go app vẫn tải qua mạng ở lần mở đầu nên lợi thế offline gần như không có); D. tải từ CDN mỗi lần (iOS có thể xóa cache, không offline thật).
 - Việc kỹ thuật cần làm ở Phase 1: đưa file từ `Paths.document` vào WebView (đọc file và truyền vào, hoặc cho WebView quyền đọc thư mục model).
 
-Pose mẫu được tách sẵn trên Windows bằng `onnxruntime-node` hoặc Python, dùng cùng model đó (`scripts/build-sample-poses.ts`), nên chọn pose mẫu là dùng được ngay.
+Pose mẫu được tách sẵn trên máy tính bằng đúng trang WebView của app chạy trong Chrome headless (`scripts/build-sample-poses.mts`), nên chọn pose mẫu là dùng được ngay.
 
 ### 3.4 Contour và 3 lớp
 
@@ -246,7 +229,7 @@ Quy tắc:
 
 ### 3.6 Trợ lý bố cục — trên máy
 
-Thay cho pipeline Thay nền (bỏ 2026-11-17). Nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục), danh mục kỹ thuật ở [composition.md](composition.md).
+Nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục), danh mục kỹ thuật ở [composition.md](composition.md).
 
 **Cách nghĩ:** model chỉ dùng để **phát hiện** (người, mắt, khớp); lời khuyên đến từ **quy tắc** viết bằng TypeScript thuần, có unit test. Không dùng model chấm thẩm mỹ (điểm mơ hồ, không giải thích được).
 
@@ -255,11 +238,11 @@ Thay cho pipeline Thay nền (bỏ 2026-11-17). Nghiệp vụ ở [business-flow
 | 1. Nguồn dữ liệu | Cảm biến trọng lực (nghiêng, ngửa / cúi), zoom và camera trước / sau đang dùng; với ảnh: vùng người (Multiclass), mắt và hướng mặt (FaceLandmarker), 33 khớp (PoseLandmarker) |
 | 2. Đặc trưng | `features.ts`: khung người, đỉnh đầu, vị trí mắt, hướng mặt, khớp sát mép, cỡ cảnh, cỡ mặt, độ nghiêng, độ ngửa, đỉnh đầu từng người. Tọa độ chuẩn hóa theo khung ảnh sẽ lưu |
 | 3. Quy tắc | Mỗi kỹ thuật một hàm thuần `(features) → { reached, hint, target }`, ngưỡng nằm trong token (dữ liệu thuần, test được) |
-| 4. Chọn gợi ý | Thứ tự ưu tiên + chống nhảy: một gợi ý mỗi lúc, chỉ hiện khi ổn định ~0,5 s (BR-15) |
+| 4. Chọn gợi ý | Thứ tự ưu tiên + chống nhảy: một gợi ý mỗi lúc, chỉ hiện khi ổn định ~0,5 s (BR-05) |
 | 5. Vẽ | Lớp bố cục bằng Skia trong vùng ảnh sẽ lưu: đường kẻ, chấm đích, màu nhấn khi đạt |
 | 6. Nhận xét sau khi chụp | Chạy bộ tách người trên ảnh vừa chụp (thu nhỏ), áp cùng quy tắc, tính khung cắt gợi ý |
 
-**Gợi ý lúc ngắm (cần đo, Phase 5 tuần 2):** Expo Go không có frame processor, nên lấy ảnh bằng `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ, gửi vào WebView đang có, nhận đặc trưng về. Cần đo: số lần phân tích mỗi giây, độ trễ, có nháy màn / tiếng không, pin và nhiệt máy trên iPhone và Android. Ảnh tạm xóa ngay (BR-16). Gợi ý chỉ cần cảm biến thì chạy tức thì trên UI thread, không phụ thuộc phần này.
+**Gợi ý lúc ngắm (cần đo, Phase 5 tuần 2):** Expo Go không có frame processor, nên lấy ảnh bằng `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ, gửi vào WebView đang có, nhận đặc trưng về. Cần đo: số lần phân tích mỗi giây, độ trễ, có nháy màn / tiếng không, pin và nhiệt máy trên iPhone và Android. Ảnh tạm xóa ngay (BR-14). Gợi ý chỉ cần cảm biến thì chạy tức thì trên UI thread, không phụ thuộc phần này.
 
 ### 3.7 Cấu trúc thư mục
 
@@ -273,7 +256,7 @@ src/
     review.tsx                # Xem ảnh vừa chụp (+ nhận xét bố cục, Phase 5)
     learn/                    # Thẻ học bố cục (Phase 5; hoặc tab trong library, chốt khi thiết kế)
     settings.tsx
-    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 5 (kèm mã RMBG)
+    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 5
   features/
     camera/                   # CameraLayer (memo), controls, overlay, capture
     pose/                     # library, editor, repository
@@ -292,11 +275,10 @@ src/
   db/                         # schema + migration SQLite
   store/                      # zustand
 assets/
-  models/                     # file model (.onnx / .tflite) + .wasm
+  models/                     # không có: model tải về Paths.document/models khi dùng lần đầu (§3.3)
   poses/
     source/                   # 32 ảnh mẫu gốc: 25 ảnh chuyển từ bản cũ + 7 ảnh selfie (Phase 4)
 scripts/build-sample-poses.ts # thay cho src/components/samplesGenerate.js
-metro.config.js               # thêm assetExts: onnx, tflite, wasm
 docs/
 ```
 
@@ -314,7 +296,7 @@ docs/
 - [x] **Push lên GitHub** (tag `legacy-v0` + nhánh `rebuild`)
 - [x] Khởi tạo project mới: Expo SDK 58, RN 0.88, TypeScript strict, ESLint, Prettier, Jest, `expo-router`
 - [x] **Spike A — camera:** `CameraLayer` cô lập + pinch zoom qua shared value *(iOS: UI 60 / JS 55–58. Android emulator: UI 58–60 / JS ~35 sau khi giới hạn zoom 30 lần/giây)*
-- [x] **Spike B — tách người:** 4 model trong WebView *(chốt ở §3.3: Multiclass cho pose, RMBG fp16 WebGPU cho Thay nền. Android emulator: GPU đọc mask ra 0 → tự lùi CPU; không có WebGPU → RMBG CPU ~9 s)*
+- [x] **Spike B — tách người:** các model MediaPipe trong WebView *(chốt ở §3.3: Multiclass cho pose. Android emulator: GPU đọc mask ra 0 → tự lùi CPU)*
 - [x] **Spike C — Skia overlay:** viền + phủ + ảnh trên 1 canvas, slider độ dày ở 60 fps *(iOS và Android emulator: UI ≥ 58)*
 - [x] **Spike D — giới hạn Expo Go:** album, haptics, `formSheet` *(iOS 5/5. Android: haptics có, sheet tốt; lưu album lỗi quyền AUDIO → đã sửa, chờ đo lại)*
 - [x] `src/ui/tokens.ts`, `src/ui/strings.ts` và component nền: Button, IconButton, Slider, Segmented, Swatch, Screen (sheet dùng `formSheet` của expo-router)
@@ -322,9 +304,9 @@ docs/
 - [x] Schema SQLite v1 + migration
 - [x] CI: typecheck + lint + unit test (GitHub Actions)
 
-**Xong khi:** 4 spike có số đo ghi vào `docs/spikes.md`; đã chọn model cho pose và cho Thay nền.
+**Xong khi:** 4 spike có số đo ghi vào `docs/spikes.md`; đã chọn model cho pose.
 
-**Trạng thái:** đạt. Còn hai việc nhỏ không chặn Phase 1: đo lại lưu album trên Android sau khi sửa quyền; và khi có máy Android thật, kiểm tra WebView có WebGPU không (quyết định Thay nền ~1 s hay ~9 s trên Android).
+**Trạng thái:** đạt. Còn một việc nhỏ không chặn Phase 1: đo lại lưu album trên Android sau khi sửa quyền.
 
 ### Phase 1 — Pose engine và Chỉnh pose (2–3 tuần)
 
@@ -346,7 +328,7 @@ docs/
 
 ### Phase 2 — Camera và overlay (2–3 tuần)
 
-**Trạng thái: xong.** Đạt cả ma trận cử chỉ trên iPhone 15 Pro Max và Android emulator Pixel_8a sau hai lần thử, kết quả ở [phase2-test.md](phase2-test.md). Emulator không thử được crop ảnh và thước cân bằng (đã đạt trên iPhone). Để lại: chọn chế độ "Chụp theo pose · Thay nền" ở đáy màn (Phase 4); số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`); qua mốc 1× trên iPhone còn chớp vì đổi ống vật lý (Phase 4: đã chuyển sang camera ảo Triple / Dual Wide, máy tự chuyển ống nên hết chớp; máy chỉ có ống rời vẫn còn).
+**Trạng thái: xong.** Đạt cả ma trận cử chỉ trên iPhone 15 Pro Max và Android emulator Pixel_8a sau hai lần thử, kết quả ở [phase2-test.md](phase2-test.md). Emulator không thử được crop ảnh và thước cân bằng (đã đạt trên iPhone). Để lại: số zoom hiển thị vẫn là ước lượng (`cameraZoom.iosMaxFactor`, `cameraZoom.androidMaxRatio`); qua mốc 1× trên iPhone còn chớp vì đổi ống vật lý (Phase 4: đã chuyển sang camera ảo Triple / Dual Wide, máy tự chuyển ống nên hết chớp; máy chỉ có ống rời vẫn còn).
 
 **Góp ý lần 1 (iPhone):** flash "bật" không nháy → dùng đèn trong lúc chụp; thư viện formSheet vỡ bố cục → modal; bỏ chế độ chỉnh riêng: chạm vào pose là kéo ngay, vùng nhận cử chỉ cả màn hình; vùng xóa ăn theo ngón tay, có hiệu ứng mờ và thu nhỏ về thùng rác.
 
@@ -406,7 +388,7 @@ docs/
 
 **Trạng thái: xong.** Phiếu [phase4-test.md](phase4-test.md) đạt trên iPhone và Android sau 7 vòng thử (vòng 2–7 sửa theo góp ý: zoom theo đúng tỉ lệ cảm biến, ảnh bay vào ô ảnh vừa chụp, chấm trang tua được, chọn người chuyển thành một bước trên màn Đang xử lý, nhóm pose mẫu Selfie, số trên thanh kéo hiện ngay). Để lại cho Phase 6: rà chú thích trỏ số mục design.md cũ, motion chuyển màn thống nhất (§3.5), rà bố cục ở máy màn nhỏ. Zoom còn lệch 0,1–0,2 so với app Camera của máy (chấp nhận được). Gợi ý chưa làm: chọn pose nhóm Selfie thì tự đổi sang camera trước; hiệu ứng mở app.
 
-**Vì sao làm trước Thay nền:** sau Phase 1–3, mỗi màn được dựng khi cần nên giao diện chưa liền một khối: nút bánh răng trên Camera vẫn mở màn thử nghiệm, chưa có chỗ chọn chế độ "Chụp theo pose · Thay nền", ảnh vừa chụp chưa xem được, đầu màn mỗi nơi một kiểu (X, chữ "Quay lại"). Thay nền là luồng mới nhiều bước nhất; chốt khung chung trước để Phase 5 chỉ thêm nội dung vào khung có sẵn, không phải sửa lại.
+**Vì sao làm trước Phase 5:** sau Phase 1–3, mỗi màn được dựng khi cần nên giao diện chưa liền một khối: nút bánh răng trên Camera vẫn mở màn thử nghiệm, ảnh vừa chụp chưa xem được, đầu màn mỗi nơi một kiểu (X, chữ "Quay lại"). Chốt khung chung trước để Phase 5 chỉ thêm nội dung vào khung có sẵn, không phải sửa lại.
 
 Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-màn-hình), [§4.5](business-flow.md#45-chọn-chế-độ-và-ảnh-vừa-chụp) và [§7.3–7.4](business-flow.md#73-khung-giao-diện-chung).
 
@@ -414,11 +396,11 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 - [x] Rà các màn hiện có: làm trên canvas thiết kế thay cho chụp màn hình (đầu màn, nút, chữ, trạng thái rỗng / lỗi đều vẽ lại theo một hệ)
 - [x] Chọn hướng trên canvas thiết kế, 3 vòng: 5 phong cách (chọn xanh dương – trắng, bo tròn thân thiện) → 5 bố cục mỗi màn → bản ghép và gợi ý camera một ngón (zoom nút nhanh, giữ để kéo độ hiện, cột công cụ kéo được)
-- [x] Cập nhật [design.md](design.md): token, component, bố cục 13 màn (§6), kể cả màn mới (Cài đặt, Xem ảnh vừa chụp, xin quyền, khung Thay nền)
+- [x] Cập nhật [design.md](design.md): token, component, bố cục 13 màn (§6), kể cả màn mới (Cài đặt, Xem ảnh vừa chụp, xin quyền)
 
 **Bước 2 — Khung chung**
 
-- [x] Điều hướng thống nhất: Camera là màn gốc; Thư viện, Chỉnh pose, Thay nền, Cài đặt mở cùng một kiểu; một kiểu đầu màn (tiêu đề + Quay lại hoặc Đóng)
+- [x] Điều hướng thống nhất: Camera là màn gốc; Thư viện, Chỉnh pose, Cài đặt mở cùng một kiểu; một kiểu đầu màn (tiêu đề + Quay lại hoặc Đóng)
 - [x] Màn **Cài đặt** thay nút bánh răng đang mở màn thử nghiệm (business-flow §7.4). Màn thử nghiệm (spike B) chỉ còn hiện trong bản dev, giữ tới hết Phase 5
 - [x] Một component chung cho trạng thái rỗng, lỗi, thiếu quyền (`EmptyState`)
 - [x] Token mới (màu xanh – trắng, camera `cam*`, Nunito, radius, kích thước, bóng lớp nổi) trong `src/ui/tokens.ts`; bỏ Urbanist và DM Mono
@@ -429,7 +411,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 **Bước 3 — Màn Camera**
 
-- [x] Bố cục Camera mới (design.md §6.1–6.3): thanh trên + bảng mở thêm, khung ngắm bo góc, hàng chụp; bỏ hàng chọn chế độ (chỗ vào Thay nền chốt ở Phase 5)
+- [x] Bố cục Camera mới (design.md §6.1–6.3): thanh trên + bảng mở thêm, khung ngắm bo góc, hàng chụp; bỏ hàng chọn chế độ
 - [x] Zoom nút nhanh 0,5 · 1× · 2 · 3, giữ và kéo ngang thì thành thước
 - [x] Cột công cụ dọc kéo được: lên xuống, quăng trái/phải dính mép, kẹp trong khung ngắm, nhớ vị trí
 - [x] Giữ nút độ hiện: cột thành thanh kéo tại chỗ, một ngón, thả tay trở lại
@@ -445,11 +427,11 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [x] Thanh zoom: 4 nút nhanh, kéo ngang thành thước cuộn kim giữa (design.md §6.1)
 - [x] Đổi tên app thành **SnapShot**: tên hiển thị, slug, scheme, album ảnh, chuỗi giao diện (đã đổi trong code và tài liệu; file SQLite giữ tên `takeasnap.db` để không mất dữ liệu)
 
-**Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; Thay nền có sẵn khung để Phase 5 điền nội dung; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.
+**Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.
 
 ### Phase 5 — Trợ lý bố cục (timebox 3 tuần, có cổng quyết định)
 
-**Đổi hướng 2026-11-17:** bỏ Thay nền, thay bằng hướng dẫn bố cục khi chụp người. Lý do và cách làm ở [phase5-bo-cuc.md](phase5-bo-cuc.md); nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục); kỹ thuật ở §3.6.
+Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [phase5-bo-cuc.md](phase5-bo-cuc.md); nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục); kỹ thuật ở §3.6.
 
 **Đã chốt tạm (theo đề xuất, đổi được trước khi code):** chỉ chạy trên máy, không AI cloud; người dùng chọn kỹ thuật rồi app dẫn (app tự đoán để sau v1); 15 kỹ thuật, 10 có hướng dẫn trên camera; nhận xét sau khi chụp làm trước, gợi ý lúc ngắm qua cổng quyết định.
 
@@ -463,7 +445,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 - [ ] Vẽ phương án trên canvas thiết kế: nút Bố cục và danh sách kỹ thuật, lớp bố cục (đường kẻ, chấm đích, trạng thái đạt), dòng gợi ý, nhận xét ở Xem ảnh vừa chụp, thẻ học (tab thứ ba của Thư viện hay màn riêng)
 - [ ] Chốt chỗ đặt thẻ học và có hay không mục "Gợi ý lúc ngắm" trong Cài đặt
-- [ ] Cập nhật [design.md](design.md): component và màn mới; bỏ khung Thay nền
+- [ ] Cập nhật [design.md](design.md): component và màn mới
 
 **Bước 2 — Phần chắc chắn làm được (tuần 1)**
 
@@ -472,7 +454,6 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [ ] Gợi ý từ cảm biến: máy thẳng, góc thấp, selfie cao hơn mắt
 - [ ] Pose dính đường 1/3 / trục giữa khi kéo; gắn kỹ thuật cho 32 pose mẫu
 - [ ] Thẻ học cho 15 kỹ thuật (ảnh ví dụ đúng / sai, nút Chụp thử)
-- [ ] Dọn Thay nền khỏi code: chuỗi, Cài đặt (dung lượng bộ Thay nền), mã RMBG trong engine (RMBG chỉ còn trong spike B, xóa cùng spike)
 
 **Bước 3 — Phân tích người (tuần 2, có cổng quyết định)**
 
@@ -501,7 +482,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [ ] Accessibility: nhãn cho mọi nút icon (VoiceOver, TalkBack), cỡ chữ hệ thống, tôn trọng Reduce Motion
 - [ ] Phần để lại từ Phase 4: chuyển màn và motion thống nhất (design.md §3.5), rà bố cục ở máy màn nhỏ, sửa chú thích trỏ số mục design.md cũ
 - [ ] **Video demo** 60–90 s quay trên iPhone: chọn pose → chỉnh → bật bố cục, chỉnh theo gợi ý → chụp → nhận xét; thêm vài giây trên Android để chứng minh chạy hai nền tảng
-- [ ] **Case study** trong README: vấn đề của bản cũ, cách sửa hệ cử chỉ, contour vector, tách người offline bằng WebView, trợ lý bố cục (phát hiện bằng model trên máy + quy tắc của nghề ảnh), vì sao bỏ Thay nền, số đo trước/sau
+- [ ] **Case study** trong README: vấn đề của bản cũ, cách sửa hệ cử chỉ, contour vector, tách người offline bằng WebView, trợ lý bố cục (phát hiện bằng model trên máy + quy tắc của nghề ảnh), số đo trước/sau
 - [ ] Ảnh/GIF trước–sau cho từng chức năng
 - [ ] Ghi nguồn ảnh mẫu và license model trong README
 - [ ] (Tùy chọn) `eas update` để người xem mở app bằng Expo Go qua link/QR mà không cần clone repo
@@ -514,7 +495,6 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - `react-native-vision-camera` thay `expo-camera`: zoom không qua state, chạm lấy nét, frame processor
 - Điểm khớp dáng realtime: ước lượng tư thế người thật, so với pose mẫu, hiện % khớp
 - Bố cục: app tự đoán kỹ thuật hợp cảnh; phát hiện đường dẫn và vật "mọc" sau đầu bằng dò đường thẳng; khoảng trống âm, tách người khỏi nền, ngược sáng ([composition.md](composition.md) §4)
-- Thay nền (đã bỏ khỏi v1): pipeline Skia và số đo RMBG ở git history trước 2026-11-17 và [spikes.md](spikes.md)
 - Chia sẻ pose qua file `.tasnap`
 
 ---

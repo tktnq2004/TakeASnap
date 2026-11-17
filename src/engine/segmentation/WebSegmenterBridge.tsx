@@ -7,7 +7,6 @@ import { buildSegmenterHtml } from './web/segmenterHtml';
 
 type ReadyInfo = {
   ua: string;
-  ort: boolean;
   webgl2: boolean;
   wasm: boolean;
   crossOriginIsolated: boolean;
@@ -27,7 +26,7 @@ type Incoming =
   | OkMessage
   | { id: number; ok: false; error: string };
 
-/** Lần đầu dùng RMBG phải tải ~44 MB, nên cho phép lâu. */
+/** Lần đầu ở chế độ cdn phải tải model từ mạng, nên cho phép lâu. */
 const TIMEOUT_MS = 180_000;
 
 /**
@@ -83,7 +82,7 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
 
   /**
    * iOS/Android đóng tiến trình WebView (thường do hết bộ nhớ): trang chết im lặng, không gửi
-   * được lỗi. Báo lỗi cho mọi yêu cầu đang chờ rồi nạp lại trang (spike B, RMBG treo 180 s).
+   * được lỗi. Báo lỗi cho mọi yêu cầu đang chờ rồi nạp lại trang.
    */
   const onProcessGone = () => {
     const message = 'WebView bị hệ điều hành đóng, có thể do hết bộ nhớ';

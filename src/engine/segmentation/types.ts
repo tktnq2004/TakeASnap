@@ -4,7 +4,7 @@
  */
 
 /** Model đang được so sánh ở spike B (docs/spikes.md). */
-export type SegmentModelId = 'multiclass' | 'selfie' | 'deeplab' | 'rmbg-cpu' | 'rmbg-gpu';
+export type SegmentModelId = 'multiclass' | 'selfie' | 'deeplab';
 
 export type SegmentTimings = {
   /** Lần đầu dùng model: tải + khởi tạo. 0 nếu model đã nạp sẵn. */
@@ -34,7 +34,7 @@ export type WebSegmentResult = {
   maskBase64: string;
   width: number;
   height: number;
-  /** Ví dụ "mediapipe-GPU", "mediapipe-CPU", "ort-wasm". */
+  /** Ví dụ "mediapipe-GPU", "mediapipe-CPU". */
   backend: string;
   timings: SegmentTimings;
 };

@@ -44,7 +44,7 @@ Tất cả nằm trong `src/ui/tokens.ts`. Component chỉ đọc token, không 
 
 ```ts
 export const color = {
-  // màn sáng (Thư viện, Chỉnh pose, Cài đặt, Xem ảnh vừa chụp, Thay nền)
+  // màn sáng (Thư viện, Chỉnh pose, Cài đặt, Xem ảnh vừa chụp)
   bg:          '#EEF3FF', // nền màn
   surface:     '#FFFFFF', // card, panel, menu, nút phụ
   surfaceAlt:  '#F1F4FA', // ô nhập, rãnh segmented trong card
@@ -314,8 +314,6 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 | Xem ảnh vừa chụp | Ảnh n trên m · Xóa ảnh · Chia sẻ ảnh |
 | Cài đặt | Chụp · Dung lượng · Giới thiệu; Lưu như thật / Lưu soi gương; Rung phản hồi; Xóa bộ tách |
 | Thiếu quyền camera (trong khung ngắm) | SnapShot cần camera để chụp theo pose. · Mở Cài đặt |
-| Thay nền, bước 1–4 | Ảnh người · Ảnh nền · Vị trí · Kết quả |
-| Thay nền, nút | Tạo ảnh · Lưu vào Ảnh · Chỉnh lại |
 
 ---
 
@@ -325,7 +323,7 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 
 **Hai kiểu đầu màn** (business-flow §7.3):
 - **Màn mở đè lên Camera** (Thư viện pose, Cài đặt, Xem ảnh vừa chụp): tiêu đề `title` bên trái, `CloseButton` bên phải. Đóng là về Camera.
-- **Màn là một bước trong luồng** (Chỉnh pose, các bước Thay nền): `BackButton` bên trái, tên màn `titleSm` căn giữa.
+- **Màn là một bước trong luồng** (Chỉnh pose): `BackButton` bên trái, tên màn `titleSm` căn giữa.
 
 ### 6.1 Camera
 
@@ -348,7 +346,7 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 └──────────────────────────────────┘
 ```
 
-- **Không còn hàng chọn chế độ** dưới nút chụp (vòng 3). Chỗ vào Thay nền quyết ở Phase 5.
+- **Không còn hàng chọn chế độ** dưới nút chụp (vòng 3).
 - **Thanh trên** (góp ý Phase 4): Đèn flash (huy hiệu "A" khi tự động), Hẹn giờ (huy hiệu số giây), Lưới (huy hiệu 3 / 4), Thước cân bằng (mặc định bật), Tỉ lệ (chữ `3:4`), nút Mở thêm. Chạm nút trên thanh để đổi nhanh. Cài đặt tách riêng bên phải.
 - **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Ba hàng cao 48 để chọn thẳng giá trị: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]`, Lưới `[Tắt | 3×3 | 4×4]`. **Thả xuống** cao dần từ 0 trong 200 ms `easeIO`, các hàng trượt xuống 12 px và hiện dần; **kéo lên** ngược lại; mũi tên xoay 180° theo. Chạm ra ngoài hoặc nút ⌃ thì thu lên.
 - **Thước cân bằng:** vạch giữa 80×2 màu `camWarn` xoay theo độ nghiêng; lệch dưới 1° thì ba vạch nối thẳng, đổi `camAccent`, rung `selection`.
@@ -487,13 +485,13 @@ Tiêu đề "Cài đặt" + `CloseButton`. Ba `SettingsGroup`, mỗi nhóm có t
 | Nhóm | Hàng |
 |---|---|
 | CHỤP | Ảnh camera trước: `Segmented` [Lưu như thật \| Lưu soi gương] · Rung phản hồi: `Switch` |
-| DUNG LƯỢNG | Bộ tách người, dung lượng `hint` + nút `dangerText` "Xóa bộ tách" · Bộ Thay nền, "Chưa tải" hoặc dung lượng |
+| DUNG LƯỢNG | Bộ tách người, dung lượng `hint` + nút `dangerText` "Xóa bộ tách" |
 | GIỚI THIỆU | Phiên bản · Nguồn ảnh mẫu › · Giấy phép model › |
 
 Nhóm "Nhà phát triển" (Màn thử nghiệm) chỉ hiện trong bản dev (`__DEV__`).
 
 - "Ảnh camera trước" đổi prop `mirror` của camera; "Rung phản hồi" tắt mọi lệnh rung trong `src/lib/haptics.ts`. Cả hai nhớ qua các lần mở app (`settingsStore`).
-- "Xóa bộ tách" xóa thư mục `Paths.document/models/pose`, có xác nhận; dung lượng đọc từ file thật trong máy. Bộ Thay nền ghi "Chưa tải" tới Phase 5.
+- "Xóa bộ tách" xóa thư mục `Paths.document/models/pose`, có xác nhận; dung lượng đọc từ file thật trong máy.
 - "Nguồn ảnh mẫu", "Giấy phép model" mở hộp thoại ngắn; trang ghi nguồn đầy đủ làm ở Phase 6.
 
 ### 6.12 Xem ảnh vừa chụp (mở đè lên Camera)
@@ -502,33 +500,6 @@ Nhóm "Nhà phát triển" (Màn thử nghiệm) chỉ hiện trong bản dev (`
 - Ảnh 366 rộng đúng tỉ lệ chụp, bo 24, bóng nhẹ; vuốt ngang để xem ảnh trước. Chấm trang dưới ảnh (đang xem = vạch 18 `accent`).
 - Đáy: "Xóa ảnh" (`dangerText` trên nền `surface`, có xác nhận, xóa khỏi album; iOS hỏi thêm một lần bằng hộp thoại của máy) và "Chia sẻ ảnh" (primary, bảng chia sẻ của máy qua `expo-sharing`).
 - Danh sách ảnh chỉ giữ trong lần mở app (`sessionPhotos`); ô ảnh vừa chụp trên Camera tắt khi chưa có ảnh. Xóa hết ảnh thì màn tự đóng.
-
-### 6.13 Thay nền (Phase 5)
-
-Dùng khung của §6: đầu màn `BackButton` + tên bước, stepper 4 bước dưới đầu màn, nội dung giữa, một nút primary ở đáy. Bố cục chi tiết vẽ ở Phase 5.
-
-```
-Stepper:  ● Ảnh người ── ● Ảnh nền ── ◉ Vị trí ── ○ Kết quả
-
-┌──────────────────────────────────┐
-│ ( ↶ Quay lại )     Vị trí        │
-│ ●───●───◉───○                    │
-│╭────────────────────────────────╮│
-││·········· ╭──╮ ················││  ảnh nền + người, kéo / pinch / xoay
-││·········· ╰──╯ ················││  như overlay camera
-│╰────────────────────────────────╯│
-│╭────────────────────────────────╮│
-││ Hướng sáng            ( ◴ ) Tự ││  panel trắng như Chỉnh pose
-││ Bóng       ━━━━━●──────  (60%) ││
-││ Khớp màu   ━━━━━━━●────  (70%) ││
-│╰────────────────────────────────╯│
-│ (            Tạo ảnh           ) │
-└──────────────────────────────────┘
-```
-
-Kết quả: ảnh ghép chiếm hết vùng trên; giữ ngón tay lên ảnh để xem ảnh gốc; đáy là "Lưu vào Ảnh" (primary) và "Chỉnh lại" (secondary, về bước Vị trí, giữ mọi giá trị).
-
----
 
 ### 6.13b Sửa theo phiếu Phase 4 lần 1
 

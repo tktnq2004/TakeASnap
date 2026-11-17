@@ -39,8 +39,8 @@ type Options = {
 };
 
 /**
- * Kéo + pinch + xoay cùng lúc, chạm đúp để đặt lại. Dùng chung cho overlay camera và bước
- * Vị trí của Thay nền (roadmap §3.5).
+ * Kéo + pinch + xoay cùng lúc, chạm đúp để đặt lại. Dùng cho overlay pose trên camera
+ * (roadmap §3.5).
  *
  * - Chạy hoàn toàn trên UI thread: không có setState nào trong lúc cử chỉ đang diễn ra.
  * - Mọi phép biến đổi cộng dồn bằng phần thay đổi của từng frame.

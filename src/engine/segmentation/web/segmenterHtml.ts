@@ -1,5 +1,5 @@
 /**
- * Trang HTML chạy trong WebView ẩn: tách người bằng MediaPipe (WebGL/WASM) hoặc ONNX Runtime Web.
+ * Trang HTML chạy trong WebView ẩn: tách người bằng MediaPipe (WebGL/WASM).
  *
  * Hai chế độ (buildSegmenterHtml):
  * - 'cdn': thư viện và model tải từ CDN, phiên bản cố định (màn spike, script dựng pose mẫu).
@@ -21,10 +21,8 @@
  */
 
 export const MEDIAPIPE_VERSION = '1.1.1';
-export const ORT_VERSION = '1.30.0';
 
 const MP_BASE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}`;
-const ORT_BASE = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
 
 export const MODEL_URLS = {
   multiclass:
@@ -36,10 +34,6 @@ export const MODEL_URLS = {
   // Nét mặt (478 điểm) và khung xương (33 khớp) cho lớp "Nét" của pose.
   face: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
   body: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task',
-  // RMBG-1.4 chỉ nhận đúng 1024 × 1024 (thử 512 → "invalid dimensions").
-  // CPU: bản int8 42 MB. GPU: bản fp16 84 MB, vì WebGPU không hỗ trợ phần lớn phép tính int8.
-  'rmbg-cpu': 'https://huggingface.co/briaai/RMBG-1.4/resolve/main/onnx/model_quantized.onnx',
-  'rmbg-gpu': 'https://huggingface.co/briaai/RMBG-1.4/resolve/main/onnx/model_fp16.onnx',
 } as const;
 
 /** Tên file trong gói model (src/engine/models/packs.ts) ứng với từng model. */
@@ -113,8 +107,6 @@ async function modelOptions(key) {
   return bytes ? { modelAssetBuffer: bytes } : { modelAssetPath: URLS[key] };
 }
 const segmenters = {};  // model -> { seg, backend }
-let ortSession = null;  // chỉ giữ MỘT session RMBG trong bộ nhớ
-let ortModel = null;    // 'rmbg-cpu' | 'rmbg-gpu'
 
 async function getMediaPipe(model) {
   if (segmenters[model]) return { entry: segmenters[model], loadMs: 0 };
@@ -153,35 +145,6 @@ function dropGpuSegmenters() {
     try { segmenters[k].seg.close(); } catch (e) {}
     delete segmenters[k];
   }
-}
-
-// Không lùi tự động giữa GPU và CPU: spike cần đo riêng từng đường.
-async function getOrt(model) {
-  if (ortSession && ortModel === model) return { session: ortSession, loadMs: 0 };
-  if (ortSession) {
-    log(model + ': giải phóng session ' + ortModel);
-    try { await ortSession.release(); } catch (e) {}
-    ortSession = null; ortModel = null;
-  }
-  const t0 = now();
-  if (typeof ort === 'undefined') throw new Error(model + ': không nạp được onnxruntime-web');
-  ort.env.wasm.numThreads = 1;          // WebView không có SharedArrayBuffer
-  ort.env.wasm.wasmPaths = '${ORT_BASE}';
-  const gpu = model === 'rmbg-gpu';
-  if (gpu && !navigator.gpu) throw new Error(model + ': WebView này không có WebGPU');
-  // Tải bằng fetch để lỗi mạng/HTTP hiện rõ, rồi đưa bytes cho ORT.
-  log(model + ': tải model');
-  const res = await fetch(URLS[model]);
-  if (!res.ok) throw new Error(model + ': tải model lỗi HTTP ' + res.status);
-  const bytes = new Uint8Array(await res.arrayBuffer());
-  log(model + ': đã tải ' + (bytes.length / 1048576).toFixed(1) + ' MB, tạo session');
-  ortSession = await ort.InferenceSession.create(bytes, {
-    executionProviders: [gpu ? 'webgpu' : 'wasm'],
-    graphOptimizationLevel: 'all',
-  });
-  ortModel = model;
-  log(model + ': sẵn sàng');
-  return { session: ortSession, loadMs: now() - t0 };
 }
 
 function loadImage(base64, mime) {
@@ -265,46 +228,6 @@ async function runMediaPipe(model, img) {
   const t3 = now();
   return { maskBase64: maskBase64, backend: entry.backend,
     timings: { loadMs: loadMs, prepMs: 0, inferMs: t2 - t1, postMs: t3 - t2 } };
-}
-
-async function runRmbg(model, img) {
-  const { session, loadMs } = await getOrt(model);
-  const S = 1024;
-  const t0 = now();
-  const c = document.createElement('canvas');
-  c.width = S; c.height = S;
-  const ctx = c.getContext('2d');
-  ctx.drawImage(img, 0, 0, S, S);
-  const px = ctx.getImageData(0, 0, S, S).data;
-  const plane = S * S;
-  const input = new Float32Array(3 * plane);
-  for (let i = 0, j = 0; i < plane; i++, j += 4) {
-    input[i] = px[j] / 255 - 0.5;
-    input[i + plane] = px[j + 1] / 255 - 0.5;
-    input[i + 2 * plane] = px[j + 2] / 255 - 0.5;
-  }
-  const feeds = {};
-  feeds[session.inputNames[0]] = new ort.Tensor('float32', input, [1, 3, S, S]);
-  const t1 = now();
-  // Nhịp 10 s: log vẫn đều = model đang chạy chậm; log dừng hẳn = WebView đã bị hệ điều hành đóng.
-  log(model + ': bắt đầu chạy');
-  let beats = 0;
-  const beat = setInterval(() => log(model + ': đang chạy ' + (++beats * 10) + ' s'), 10000);
-  let out;
-  try { out = await session.run(feeds); } finally { clearInterval(beat); }
-  log(model + ': chạy xong ' + ((now() - t1) / 1000).toFixed(1) + ' s');
-  const t2 = now();
-  const raw = out[session.outputNames[0]].data;
-  let lo = Infinity, hi = -Infinity;
-  for (let i = 0; i < raw.length; i++) { if (raw[i] < lo) lo = raw[i]; if (raw[i] > hi) hi = raw[i]; }
-  const range = hi - lo || 1;
-  const prob = new Float32Array(raw.length);
-  for (let i = 0; i < raw.length; i++) prob[i] = (raw[i] - lo) / range;
-  const full = upscaleProb(prob, S, S, img.naturalWidth, img.naturalHeight);
-  const maskBase64 = finishMask(full, img);
-  const t3 = now();
-  return { maskBase64: maskBase64, backend: model === 'rmbg-gpu' ? 'ort-webgpu' : 'ort-wasm',
-    timings: { loadMs: loadMs, prepMs: t1 - t0, inferMs: t2 - t1, postMs: t3 - t2 } };
 }
 
 // ---- Nét mặt + khung xương ----------------------------------------------------------------
@@ -468,9 +391,7 @@ async function handle(msg) {
     const t0 = now();
     const img = await loadImage(msg.base64);
     const decodeMs = now() - t0;
-    const r = msg.model.startsWith('rmbg')
-      ? await runRmbg(msg.model, img)
-      : await runMediaPipe(msg.model, img);
+    const r = await runMediaPipe(msg.model, img);
     r.timings.prepMs += decodeMs;
     // Lưới alpha thu nhỏ (cạnh dài ≤ gridSide) để JS dò viền mà không phải giải mã PNG.
     const grid = msg.gridSide ? await maskGrid(r.maskBase64, msg.gridSide) : undefined;
@@ -489,8 +410,6 @@ document.addEventListener('message', onMessage); // Android
 
 post({ type: 'ready', info: {
   ua: navigator.userAgent,
-  ort: typeof ort !== 'undefined',
-  webgpu: !!navigator.gpu,
   webgl2: !!document.createElement('canvas').getContext('webgl2'),
   wasm: typeof WebAssembly === 'object',
   crossOriginIsolated: !!self.crossOriginIsolated,
@@ -498,15 +417,14 @@ post({ type: 'ready', info: {
 `;
 
 /**
- * 'cdn': nạp MediaPipe/ORT/model từ CDN (spike, script dựng pose mẫu).
+ * 'cdn': nạp MediaPipe và model từ CDN (spike, script dựng pose mẫu).
  * 'local': không nạp gì từ mạng; chờ app gửi file của gói model (BR-13).
  */
 export function buildSegmenterHtml(mode: 'cdn' | 'local'): string {
-  const ort = mode === 'cdn' ? `<script src="${ORT_BASE}ort.webgpu.min.js"></script>` : '';
+  void mode; // 'cdn' và 'local' dùng cùng trang; khác nhau ở chỗ app có gửi gói model vào không.
   return `<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width"></head>
 <body>
-${ort}
 <script type="module">${script}</script>
 </body></html>`;
 }

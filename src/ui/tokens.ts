@@ -7,7 +7,7 @@
  */
 
 export const color = {
-  // Màn sáng: Thư viện, Chỉnh pose, Cài đặt, Xem ảnh vừa chụp, Thay nền.
+  // Màn sáng: Thư viện, Chỉnh pose, Cài đặt, Xem ảnh vừa chụp.
   bg: '#EEF3FF',
   surface: '#FFFFFF',
   surfaceAlt: '#F1F4FA',

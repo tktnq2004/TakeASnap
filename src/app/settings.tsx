@@ -85,8 +85,6 @@ export default function SettingsScreen() {
               />
             )}
           </Row>
-          <Line />
-          <Row label={t.settings.composePack} detail={t.settings.notDownloaded} />
         </Group>
 
         <Group title={t.settings.groupAbout}>

@@ -1,6 +1,6 @@
 # Bố cục khi chụp người bằng điện thoại — nghiên cứu cho Phase 5
 
-Bản nghiên cứu để chọn kỹ thuật cho chức năng hướng dẫn bố cục (thay Thay nền). Phạm vi: chỉ những kỹ thuật **dùng được trên điện thoại** và **có người trong ảnh**, vì app đã có pose. Chưa phải đặc tả; roadmap và business-flow chỉ sửa sau khi chốt danh sách.
+Bản nghiên cứu để chọn kỹ thuật cho chức năng hướng dẫn bố cục. Phạm vi: chỉ những kỹ thuật **dùng được trên điện thoại** và **có người trong ảnh**, vì app đã có pose. Chưa phải đặc tả; roadmap và business-flow chỉ sửa sau khi chốt danh sách.
 
 ## 1. Những điều rút ra trước khi chọn
 

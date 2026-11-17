@@ -17,8 +17,6 @@ export const t = {
   camera: {
     capture: 'Chụp ảnh',
     openLibrary: 'Mở thư viện pose',
-    modePose: 'Chụp theo pose',
-    modeCompose: 'Thay nền',
     switchCamera: 'Đổi camera',
     flashOff: 'Flash tắt',
     flashOn: 'Flash bật',
@@ -145,7 +143,6 @@ export const t = {
     saveMirror: 'Lưu soi gương',
     haptics: 'Rung phản hồi',
     posePack: 'Bộ tách người',
-    composePack: 'Bộ Thay nền',
     notDownloaded: 'Chưa tải',
     deletePack: 'Xóa bộ tách',
     deletePackConfirm: 'Xóa bộ tách người khỏi máy? Lần tạo pose sau sẽ tải lại, cần có mạng.',
@@ -154,7 +151,7 @@ export const t = {
     sampleSourceBody: '32 ảnh pose mẫu dùng cho mục đích portfolio, phi thương mại.',
     modelLicense: 'Giấy phép model',
     modelLicenseBody:
-      'MediaPipe của Google (giấy phép Apache 2.0) dùng để tách người và tìm nét mặt. RMBG-1.4 của BRIA AI (giấy phép phi thương mại) dùng cho Thay nền. Model tải thẳng từ nguồn gốc khi cần, không phát hành lại.',
+      'MediaPipe của Google (giấy phép Apache 2.0) dùng để tách người, tìm nét mặt và khung xương. Model tải thẳng từ nguồn gốc khi cần, không phát hành lại.',
     spike: 'Màn thử nghiệm',
   },
   review: {

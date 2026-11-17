@@ -145,7 +145,6 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 
 ### 4.5 Ảnh vừa chụp
 
-- **Chức năng Thay nền đã bỏ** (2026-11-17): không liên quan việc chụp ảnh và rủi ro cao. Thay bằng Trợ lý bố cục ở [§6](#6-chức-năng-3--trợ-lý-bố-cục), nằm ngay trong Camera nên không cần chỗ vào riêng.
 - **Ảnh vừa chụp**: ô nhỏ bên trái nút chụp hiện ảnh mới nhất. Chạm vào mở màn **Xem ảnh vừa chụp**: các ảnh chụp trong lần mở app này, vuốt ngang để xem ảnh trước, có nút Chia sẻ và Xóa (xóa khỏi album, có xác nhận). Chưa chụp ảnh nào thì ô trống và không bấm được. Phase 5 thêm **nhận xét bố cục** cho từng ảnh ([§6.5](#65-nhận-xét-sau-khi-chụp)).
 - **Phản hồi khi chụp**: màn trập tối nhanh trong khoảng một khung hình, rung nhẹ khi đã lưu xong. Lưu lỗi thì báo theo [§10.3](#103-thông-báo-lỗi).
 
@@ -219,7 +218,7 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 
 ## 6. Chức năng 3 — Trợ lý bố cục
 
-Thay cho Thay nền từ 2026-11-17. Nghiên cứu kỹ thuật và nguồn ở [composition.md](composition.md), giải thích ý tưởng ở [phase5-bo-cuc.md](phase5-bo-cuc.md). Làm ở [roadmap Phase 5](roadmap.md#phase-5--trợ-lý-bố-cục-timebox-3-tuần-có-cổng-quyết-định).
+Nghiên cứu kỹ thuật và nguồn ở [composition.md](composition.md), giải thích ý tưởng ở [phase5-bo-cuc.md](phase5-bo-cuc.md). Làm ở [roadmap Phase 5](roadmap.md#phase-5--trợ-lý-bố-cục-timebox-3-tuần-có-cổng-quyết-định).
 
 ### 6.1 Mục tiêu
 
@@ -360,6 +359,8 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 | BR-02 | Ảnh lưu vào album "SnapShot" đúng tỉ lệ khung đang chọn. Vùng ảnh lưu trùng đúng vùng thấy trên khung ngắm |
 | BR-03 | Mọi xử lý ảnh (tách người, phân tích bố cục) chạy **hoàn toàn trên máy**. Ảnh không bao giờ được gửi đi. Kết nối mạng duy nhất là tải bộ tách người (BR-13) |
 | BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu, hoặc khi gợi ý bố cục cần phân tích người lần đầu (dùng chung gói này). Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
+| BR-04 | Bố cục chỉ là gợi ý: không chặn nút chụp, không chấm ảnh "đúng / sai". Ảnh lưu **không bao giờ** kèm lớp bố cục (như BR-01) |
+| BR-05 | Mỗi lúc chỉ một gợi ý trên khung ngắm; gợi ý chỉ hiện khi tình trạng giữ ổn định khoảng 0,5 s |
 | BR-06 | Một pose phải có ít nhất một vùng người chiếm từ 2% diện tích ảnh trở lên. Nhỏ hơn thì báo "Người trong ảnh quá nhỏ" |
 | BR-07 | Ảnh nguồn được chuẩn hóa: xoay theo EXIF, cạnh dài tối đa 2048 px cho pose |
 | BR-08 | Mọi file của pose nằm trong `documentDirectory`, không bao giờ nằm trong cache |
@@ -367,12 +368,8 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 | BR-10 | Overlay nhớ vị trí/tỉ lệ/góc lần dùng gần nhất của từng pose |
 | BR-11 | Lượt chạm bắt đầu trên pose thì camera không nhận pinch-zoom |
 | BR-12 | Lưu ảnh lỗi thì không mất ảnh: giữ bản tạm và cho thử lại |
-| BR-14 | Bố cục chỉ là gợi ý: không chặn nút chụp, không chấm ảnh "đúng / sai". Ảnh lưu **không bao giờ** kèm lớp bố cục (như BR-01) |
-| BR-15 | Mỗi lúc chỉ một gợi ý trên khung ngắm; gợi ý chỉ hiện khi tình trạng giữ ổn định khoảng 0,5 s |
-| BR-16 | Ảnh nhỏ chụp để phân tích bố cục chỉ nằm trong bộ nhớ tạm, không vào album, xóa ngay sau khi phân tích |
-| BR-17 | Khung cắt gợi ý lưu thành ảnh mới; ảnh gốc trong album giữ nguyên |
-
-BR-04 và BR-05 thuộc Thay nền, đã bỏ cùng chức năng đó.
+| BR-14 | Ảnh nhỏ chụp để phân tích bố cục chỉ nằm trong bộ nhớ tạm, không vào album, xóa ngay sau khi phân tích |
+| BR-15 | Khung cắt gợi ý lưu thành ảnh mới; ảnh gốc trong album giữ nguyên |
 
 ---
 

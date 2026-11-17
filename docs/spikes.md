@@ -72,7 +72,7 @@ Kết luận Android spike A: đạt trên emulator (UI 58–60; JS ~35 khi zoom
 
 ## B — Tách người bằng WebView
 
-Màn "B · Tách người bằng WebView": chọn model → "Chạy 25 ảnh mẫu" → đọc bảng tổng ở trên, chạm từng dòng để soi ảnh tách / mask. Thư viện và model tải từ CDN (spike), nên **lần đầu cần mạng**; Phase 1 sẽ đóng gói kèm app để chạy offline.
+Màn "B · Tách người bằng WebView": chọn model → "Chạy 25 ảnh mẫu" → đọc bảng tổng ở trên, chạm từng dòng để soi ảnh tách / mask. Thư viện và model tải từ CDN (spike), nên **lần đầu cần mạng**; Phase 1 chuyển sang tải một lần rồi chạy offline.
 
 Thay đổi so với kế hoạch: bỏ U²-Net human seg (file 176 MB, quá nặng cho WebView), thay bằng MediaPipe `selfie_segmenter` (nhẹ, chuyên người).
 
@@ -85,11 +85,8 @@ Thay đổi so với kế hoạch: bỏ U²-Net human seg (file 176 MB, quá n�
 | Multiclass | Giữ đủ toàn thân, chân, giày, váy; nền sạch sau khi sửa (xem dưới) | 20–50 ms |
 | Selfie | Mép sạch nhưng **cắt mất chân và váy** → không dùng được cho dáng toàn thân | 15–40 ms |
 | DeepLab | Mép nhòe, dính nền (xe hơi, ghế đỏ) → kém nhất | 30–55 ms |
-| RMBG | Mép đẹp nhất, giữ tóc; giữ cả đồ cầm tay (túi, giỏ) | ~7.5 s (CPU 1 luồng) |
 
 Lỗi đã sửa: Multiclass lúc đầu để nền hiện mờ ~4–20%, vì kênh "nền" chỉ đạt 0.8–0.96 trên vùng nền. Đã kéo dãn xác suất người trong khoảng [0.25, 0.65].
-
-Dự đoán: **Multiclass cho pose, RMBG cho Thay nền.** Cần số đo trên iPhone để chốt.
 
 ### Đo trên iPhone
 
@@ -100,68 +97,35 @@ Mỗi model chạy "25 ảnh mẫu" một lần. Thời gian đọc ở bảng t
 | Multiclass |mediapipe-gpu |4.8s |51ms |105ms |288ms |0 |không tốt |
 | Selfie |mediapipe-gpu |794ms |12ms |71ms |101ms |0 | tệ hơn Multiclass và còn cả vật dính lên người model |
 | DeepLab |mediapipe-gpu |5.4s |72ms |148ms |182ms |0 |gọt ko sát model, còn quá nhiều chi tiết thừa |
-| RMBG | Báo lỗi |
 
-Mục tiêu (roadmap Phase 1): pose có trong **dưới 4 s** mỗi ảnh. Thay nền: dưới 5 s cả vòng (Phase 5).
+Mục tiêu (roadmap Phase 1): pose có trong **dưới 4 s** mỗi ảnh.
 
-Nhận xét lần đo 1:
+Nhận xét:
 - MediaPipe trên iPhone rất nhanh: Multiclass ~105 ms cả vòng, dư xa mục tiêu 4 s.
 - Mép Multiclass chưa đẹp vì model tính ở 256 × 256 rồi phóng lên. Với **pose** điều này chấp nhận được: Phase 1 vẽ viền từ contour vector đã làm mượt, nên cái cần là bóng dáng gọn (bỏ mảng thừa), không cần mép tóc.
 - Đã thử làm mịn mép bằng guided filter (ảnh dẫn xám, r = 8/12, eps = 1e-3/1e-4) trên máy tính: **tệ hơn**, mép quầng sáng và lem nền khi áo và nền có độ sáng gần nhau. Đã gỡ.
-- RMBG báo lỗi trên iPhone, chưa có nội dung lỗi. Đã sửa: tải model bằng fetch để lỗi mạng hiện rõ, thử **WebGPU** trước (iOS 26 có WebGPU) rồi lùi về WASM, log từng bước. Trên máy tính, đường lùi về WASM đã chạy đúng.
-
-**Lần đo 2 (iPhone):** RMBG tải xong 42.3 MB, WebGPU có, session `ort-webgpu` tạo được, nhưng `session.run` không trả về sau 180 s và không có log nào. Hai khả năng: WebView bị iOS đóng vì hết bộ nhớ (chết im lặng), hoặc model int8 chạy cực chậm trên WebGPU.
-
-**Đã sửa để phân biệt:**
-- Bắt `onContentProcessDidTerminate` (iOS) / `onRenderProcessGone` (Android): màn báo "WebView bị hệ điều hành đóng" và tự nạp lại trang.
-- Log nhịp mỗi 10 s khi model đang chạy: log đều = chạy chậm; log dừng = WebView đã chết.
-- Tách **RMBG CPU** (int8 42 MB, WASM) và **RMBG GPU** (fp16 84 MB, WebGPU), không tự lùi; chỉ giữ một session trong bộ nhớ.
-- Thêm nút "Chạy 3 ảnh mẫu" (street1, travel3, coffee2).
-- Thử chạy RMBG ở 512 px để giảm tải: model báo "invalid dimensions", chỉ nhận 1024 × 1024.
-
-| Đo lại RMBG (lần 3, "Chạy 3 ảnh mẫu") | RMBG CPU | RMBG GPU |
-|---|---|---|
-| backend |ort-wasm | ort-webgpu |
-| Nạp lần đầu |24.1s | 37.1s |
-| Chạy model TB | 7.8s | 854ms|
-| Cả vòng TB |7.9s | 960ms |
-| Lỗi + 5 dòng log cuối (nếu có) |0 |0 |
-
-Kết luận: cả 2 đều cắt gọn và đẹp. Có thể do CPU và GPU của ip15 khá mạnh 
+- Bắt `onContentProcessDidTerminate` (iOS) / `onRenderProcessGone` (Android): WebView bị hệ điều hành đóng thì màn báo lỗi và tự nạp lại trang.
 
 ### Chốt spike B (iPhone)
 
 | Dùng cho | Model | Lý do |
 |---|---|---|
-| **Pose** (chức năng 1, 2) | **MediaPipe Multiclass** (GPU) | ~105 ms cả vòng; giữ đủ toàn thân. Mép thô không quan trọng vì viền vẽ từ contour vector đã làm mượt (Phase 1) |
-| **Thay nền** (chức năng 3) | **RMBG-1.4 fp16 trên WebGPU** | ~0.96 s cả vòng, mép đẹp, giữ tóc |
-| Thay nền, máy không có WebGPU | RMBG-1.4 int8 trên WASM | ~7.9 s, chậm nhưng chạy được |
+| **Pose** | **MediaPipe Multiclass** (GPU) | ~105 ms cả vòng; giữ đủ toàn thân. Mép thô không quan trọng vì viền vẽ từ contour vector đã làm mượt (Phase 1) |
 
-- Lần đo 2 treo vì đưa bản **int8** lên WebGPU. Bản **fp16** chạy tốt. Không bao giờ dùng int8 với WebGPU.
-- "Nạp lần đầu" 24–37 s chủ yếu là tải model qua mạng (42 / 84 MB). Phase 1 phải quyết: đóng gói model kèm app hay tải một lần khi dùng Thay nền lần đầu (xem roadmap §3.3).
 - Selfie và DeepLab bị loại.
-- Còn đo trên Android: WebView của Android có WebGPU hay không quyết định Thay nền chạy ~1 s hay ~8 s.
+- "Nạp lần đầu" chủ yếu là tải model qua mạng. Phase 1 chốt tải một lần khi dùng lần đầu (roadmap §3.3).
 
-- đo android pixel_8a
+### Đo trên Android (emulator Pixel 8a)
+
 | Model | Backend | Nạp lần đầu | Chạy model TB | Cả vòng TB | Cả vòng lâu nhất | Lỗi | Mép (tóc, ngón tay, khe tay–thân) |
 |---|---|---|---|---|---|---|---|
 | Multiclass |mediapipe-gpu |0s |15ms |370ms |434ms |0 |Không cắt được ảnh, ảnh vẫn nguyên vẹn |
 | Selfie |mediapipe-gpu |939ms |28ms |239ms |273ms |0 | không thấy ảnh tách và mask tất cả chỉ là màu đen và có ảnh thật|
 | DeepLab |mediapipe-gpu |1.2s |33ms |342ms |390s |0 |không thấy ảnh tách và mask tất cả chỉ là màu đen và có ảnh thật |
-|  RMBG (lần 3, "Chạy 3 ảnh mẫu") | RMBG CPU | RMBG GPU |
-|---|---|---|
-| backend |ort-wasm | ort-webgpu |
-| Nạp lần đầu |0s | |
-| Chạy model TB | 8.6s | |
-| Cả vòng TB |8.9s |  |
-| Cả vòng lâu nhất |9s |  |
-| Lỗi + 5 dòng log cuối (nếu có) |0 |3 -no available backend found. ERR: [webgpu] Error: Failed to get GPU adapter. you may need to enable flag ...  |
 
-**Phân tích Android (emulator Pixel 8a):**
+**Phân tích:**
 - MediaPipe GPU chạy nhưng **đọc mask từ WebGL ra toàn 0**: Multiclass tính `1 − nền = 1` nên ra "toàn người", Selfie/DeepLab ra "không có người". Lỗi của GPU giả lập trên emulator; máy Android thật có thể không bị.
 - **Đã sửa:** nếu GPU trả mask rỗng hoàn toàn, bỏ segmenter GPU và chạy lại bằng CPU (log "GPU trả mask rỗng, chuyển CPU"). Trên máy tính, ép đường này: mask CPU giống bản GPU, Multiclass CPU ~0.3 s.
-- RMBG GPU: WebView của emulator không có WebGPU (đúng dự đoán). RMBG CPU chạy được, ~8.9 s.
-- **Còn chưa biết:** máy Android thật có WebGPU trong WebView không. Không có → Thay nền trên Android mất ~9 s.
 
 
 ---

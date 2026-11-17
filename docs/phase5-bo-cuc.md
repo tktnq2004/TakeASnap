@@ -1,6 +1,6 @@
 # Phase 5 — Trợ lý bố cục
 
-> Thay cho chức năng Thay nền. Bản giải thích ý tưởng, chưa phải đặc tả.
+> Bản giải thích ý tưởng, chưa phải đặc tả.
 > Nghiên cứu chi tiết từng kỹ thuật và nguồn tham khảo: [composition.md](composition.md).
 
 ---
@@ -211,7 +211,7 @@ selfie)
 | Cho ai | Được gì |
 |---|---|
 | **Người dùng** | Người không biết chụp vẫn chụp đúng bố cục; học dần các kỹ thuật qua thẻ học và gợi ý |
-| **App** | Tập trung hẳn vào chụp ảnh: pose lo dáng đứng, bố cục lo vị trí và góc máy. Bỏ Thay nền vốn không liên quan và rủi ro cao |
+| **App** | Tập trung hẳn vào chụp ảnh: pose lo dáng đứng, bố cục lo vị trí và góc máy |
 | **Portfolio** | Câu chuyện kỹ thuật rõ: phân tích người ngay trên máy, không gửi ảnh lên mạng, lời khuyên giải thích được thay vì một điểm số mơ hồ |
 
 ### Trường hợp xấu nhất
