@@ -225,13 +225,13 @@ Cả app đổi sang nền xám than `#131416`, thẻ `#1D1F23`, chữ trắng n
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 17.1 | Đi một vòng: Camera → Thư viện → Chỉnh sửa → Cài đặt → Xem ảnh vừa chụp | Mọi màn cùng nền tối, không chói khi chuyển màn; chữ đọc rõ | | | |
-| 17.2 | Chỉnh sửa: viền trắng, lớp phủ, nét mặt trên ảnh | Màu pose và ảnh nổi rõ trên nền caro tối, không ngả màu | | | |
-| 17.3 | Hàng ô màu và Bảng màu | Ô Đen có viền, vẫn thấy được; ô đang chọn có vòng xanh | | | |
-| 17.4 | Thanh kéo, công tắc, nút Lưu / Xóa | Núm sáng trên rãnh tối; nút xóa màu đỏ nhạt đọc rõ | | | |
-| 17.5 | Giữ ô pose mở menu (iOS có làm mờ) | Nền sau menu tối, không loang trắng | | | |
-| 17.6 | Thanh trạng thái (giờ, pin) và hộp thoại của máy | Chữ sáng trên mọi màn; hộp thoại tối (nếu Expo Go theo `app.json`) | | | |
-| 17.7 | Camera: nút zoom đang chọn, viền nút pose, thanh độ hiện | Cùng xanh trời với các màn khác | | | |
+| 17.1 | Đi một vòng: Camera → Thư viện → Chỉnh sửa → Cài đặt → Xem ảnh vừa chụp | Mọi màn cùng nền tối, không chói khi chuyển màn; chữ đọc rõ |đạt |đạt | |
+| 17.2 | Chỉnh sửa: viền trắng, lớp phủ, nét mặt trên ảnh | Màu pose và ảnh nổi rõ trên nền caro tối, không ngả màu |đạt |đạt | |
+| 17.3 | Hàng ô màu và Bảng màu | Ô Đen có viền, vẫn thấy được; ô đang chọn có vòng xanh |đạt |đạt | |
+| 17.4 | Thanh kéo, công tắc, nút Lưu / Xóa | Núm sáng trên rãnh tối; nút xóa màu đỏ nhạt đọc rõ |đạt |đạt | |
+| 17.5 | Giữ ô pose mở menu (iOS có làm mờ) | Nền sau menu tối, không loang trắng |đạt |đạt | |
+| 17.6 | Thanh trạng thái (giờ, pin) và hộp thoại của máy | Chữ sáng trên mọi màn; hộp thoại tối (nếu Expo Go theo `app.json`) | đạt|đạt | |
+| 17.7 | Camera: nút zoom đang chọn, viền nút pose, thanh độ hiện | Cùng xanh trời với các màn khác |đạt |đạt | |
 
 ## Góp ý thêm
 
