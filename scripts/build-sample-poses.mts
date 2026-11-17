@@ -1,5 +1,5 @@
 /**
- * Tách sẵn 25 pose mẫu (roadmap Phase 1, BR-13: pose mẫu không cần tải model).
+ * Tách sẵn các pose mẫu (32 ảnh) (roadmap Phase 1, BR-13: pose mẫu không cần tải model).
  *
  * Chạy ĐÚNG trang WebView của app (src/engine/segmentation/web/segmenterHtml.ts, model Multiclass)
  * trong Chrome headless, rồi dùng ĐÚNG engine viền của app (src/engine/contour.ts). Kết quả là

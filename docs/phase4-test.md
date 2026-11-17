@@ -189,6 +189,8 @@ Theo góp ý vòng 6: chọn người trong Cọ chậm 0,5–1 giây, nên tác
 | 14.6 | Ảnh một người | Không có bước Chọn người, vào thẳng Chỉnh sửa | | | |
 | 14.7 | Chỉnh sửa → Cọ | Chỉ có Thêm · Xóa; cọ Thêm tô lên người chưa chọn vẫn hiện lại người đó | | | |
 | 14.8 | Terminal: khi thấy cảnh báo "Reading from `value`", ghi lại đang ở màn nào, làm gì | | | | |
+| 14.9 | Mở app lần đầu: nhìn cụm zoom; mở Chỉnh sửa: nhìn số ở các thanh kéo (Độ dày, Độ đậm, Cỡ cọ…) | Số hiện ngay (0,5 · 1× · 2 · 3; "2,0 px", "24 px"…), không phải đợi kéo mới hiện | | | |
+| 14.10 | Thư viện → Pose mẫu | Có nhóm **Selfie** cuối danh sách với 7 pose; chọn một pose rồi chụp bằng camera trước | | | |
 
 ## Góp ý thêm
 

@@ -93,6 +93,7 @@ export const t = {
       school: 'Trường học',
       street: 'Đường phố',
       travel: 'Du lịch',
+      selfie: 'Selfie',
     },
   },
   editor: {
@@ -150,7 +151,7 @@ export const t = {
     deletePackConfirm: 'Xóa bộ tách người khỏi máy? Lần tạo pose sau sẽ tải lại, cần có mạng.',
     version: 'Phiên bản',
     sampleSource: 'Nguồn ảnh mẫu',
-    sampleSourceBody: '25 ảnh pose mẫu dùng cho mục đích portfolio, phi thương mại.',
+    sampleSourceBody: '32 ảnh pose mẫu dùng cho mục đích portfolio, phi thương mại.',
     modelLicense: 'Giấy phép model',
     modelLicenseBody:
       'MediaPipe của Google (giấy phép Apache 2.0) dùng để tách người và tìm nét mặt. RMBG-1.4 của BRIA AI (giấy phép phi thương mại) dùng cho Thay nền. Model tải thẳng từ nguồn gốc khi cần, không phát hành lại.',

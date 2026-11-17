@@ -542,6 +542,9 @@ Kết quả: ảnh ghép chiếm hết vùng trên; giữ ngón tay lên ảnh �
 - **Chọn người (vòng 6) — bước trên màn Đang xử lý:** vòng 3–5 thử đưa chọn người vào Chỉnh sửa (tab Người, rồi Cọ → Người) nhưng mỗi lần chạm phải dò lại dáng, chậm 0,5–1 giây, nên bỏ. Giờ tách xong thì ảnh trên màn Đang xử lý (không còn mờ) thành chỗ chạm: người được chọn phủ `accent` 35% + viền trắng 3 px, chưa chọn viền trắng nét đứt 2 px (`personPick.dash` 8/6); mặc định chọn hết. Card các bước có thêm bước **Chọn người** giữa "Tìm nét mặt" và "Vẽ dáng": đang ở bước này thì chấm vòng `accent` thay vòng quay, số `n/m` màu `accent` bên phải; dưới các bước là hai nút **Hủy** (`secondary`) · **Dùng n người** (primary, rộng 1.4 phần, tắt khi n = 0). Không có huy hiệu, không có dòng hướng dẫn.
 - **Lấy màu từ ảnh:** viền xanh vẽ chồng lên preview (không đổi kích thước, hết giật); nút X ở góc preview để hủy và quay lại Bảng màu.
 
+- **Số trên thanh kéo và cụm zoom** (`AnimatedText`): giá trị đầu lấy trên UI thread, gửi về JS một lần làm `defaultValue`, nên hiện ngay khi mở màn mà không đọc shared value lúc render.
+- **Pose mẫu nhóm Selfie:** 7 ảnh chụp bằng camera trước, nhóm cuối của Pose mẫu (`assets/poses/source/selfie/selfie1–7.jpg`).
+
 ### 6.14 Logo, icon app và màn mở app
 
 Chốt qua `logo-design-skill` (canvas thiết kế, trang "Icon chốt + màn mở app").

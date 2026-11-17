@@ -292,7 +292,7 @@ src/
 assets/
   models/                     # file model (.onnx / .tflite) + .wasm
   poses/
-    source/                   # 25 ảnh mẫu gốc (chuyển từ src/assets/images của bản cũ)
+    source/                   # 32 ảnh mẫu gốc: 25 ảnh chuyển từ bản cũ + 7 ảnh selfie (Phase 4)
 scripts/build-sample-poses.ts # thay cho src/components/samplesGenerate.js
 metro.config.js               # thêm assetExts: onnx, tflite, wasm
 docs/

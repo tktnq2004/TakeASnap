@@ -83,7 +83,7 @@ src/gestures/           # useTransformGesture dùng chung
 src/ui/                 # tokens.ts, strings.ts, easing.ts, component dùng chung
 src/db/                 # SQLite migration
 src/lib/                # haptics, điều hướng
-assets/poses/           # 25 ảnh pose mẫu và samples.json tính sẵn
+assets/poses/           # 32 ảnh pose mẫu và samples.json tính sẵn
 scripts/                # build-sample-poses.mts (tính sẵn pose mẫu)
 docs/                   # tài liệu dự án
 ```
@@ -123,6 +123,6 @@ Lưu ý: Expo Go trên App Store chỉ chạy được SDK mới nhất. Khi Exp
 ## Nguồn và license
 
 Đồ án portfolio, phi thương mại.
-- 25 ảnh pose mẫu trong `assets/poses/source/`: dùng cho mục đích portfolio.
+- 32 ảnh pose mẫu trong `assets/poses/source/` (5 nhóm, nhóm Selfie cho camera trước): dùng cho mục đích portfolio.
 - RMBG-1.4 của BRIA dùng giấy phép phi thương mại: app tải từ nguồn gốc, không lưu lại hay phát hành lại model.
 - Model và thư viện bên thứ ba khác: ghi đầy đủ ở Phase 6.

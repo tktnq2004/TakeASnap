@@ -1,5 +1,5 @@
 /**
- * 25 ảnh pose mẫu (assets/poses/source) và viền đã tách sẵn (assets/poses/samples.json).
+ * 32 ảnh pose mẫu (assets/poses/source) và viền đã tách sẵn (assets/poses/samples.json).
  * Nhóm khớp với t.library.groups trong src/ui/strings.ts.
  */
 import type { Contour } from '@/engine/contour';
@@ -7,7 +7,8 @@ import type { Contour } from '@/engine/contour';
 import samplesJson from '../../../assets/poses/samples.json';
 import { DEFAULT_STYLE, type Pose, SAMPLE_PREFIX } from './types';
 
-export type SampleGroup = 'coffee' | 'school' | 'street' | 'travel';
+/** selfie: mẫu cho ảnh chụp bằng camera trước. */
+export type SampleGroup = 'coffee' | 'school' | 'street' | 'travel' | 'selfie';
 
 export type SamplePose = { id: string; group: SampleGroup; source: number };
 
@@ -137,6 +138,41 @@ export const samplePoses: SamplePose[] = [
     group: 'travel',
     source: require('../../../assets/poses/source/travel/travel7.jpg'),
   },
+  {
+    id: 'selfie1',
+    group: 'selfie',
+    source: require('../../../assets/poses/source/selfie/selfie1.jpg'),
+  },
+  {
+    id: 'selfie2',
+    group: 'selfie',
+    source: require('../../../assets/poses/source/selfie/selfie2.jpg'),
+  },
+  {
+    id: 'selfie3',
+    group: 'selfie',
+    source: require('../../../assets/poses/source/selfie/selfie3.jpg'),
+  },
+  {
+    id: 'selfie4',
+    group: 'selfie',
+    source: require('../../../assets/poses/source/selfie/selfie4.jpg'),
+  },
+  {
+    id: 'selfie5',
+    group: 'selfie',
+    source: require('../../../assets/poses/source/selfie/selfie5.jpg'),
+  },
+  {
+    id: 'selfie6',
+    group: 'selfie',
+    source: require('../../../assets/poses/source/selfie/selfie6.jpg'),
+  },
+  {
+    id: 'selfie7',
+    group: 'selfie',
+    source: require('../../../assets/poses/source/selfie/selfie7.jpg'),
+  },
 ];
 
 // ---- Pose mẫu đã tách sẵn (scripts/build-sample-poses.mts → assets/poses/samples.json) ----
@@ -156,7 +192,7 @@ type SampleJson = {
 
 const sourceById = new Map(samplePoses.map((s) => [s.id, s.source]));
 
-/** 25 pose mẫu chỉ đọc (BR-09), theo thứ tự nhóm rồi số. */
+/** 32 pose mẫu chỉ đọc (BR-09), theo thứ tự nhóm rồi số. */
 export const sampleLibrary: Pose[] = (samplesJson as unknown as SampleJson).items.flatMap((it) => {
   const source = sourceById.get(it.id);
   if (source === undefined) return [];
@@ -187,4 +223,4 @@ export const sampleLibrary: Pose[] = (samplesJson as unknown as SampleJson).item
   ];
 });
 
-export const sampleGroups: SampleGroup[] = ['coffee', 'school', 'street', 'travel'];
+export const sampleGroups: SampleGroup[] = ['coffee', 'school', 'street', 'travel', 'selfie'];
