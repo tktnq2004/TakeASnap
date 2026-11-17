@@ -182,15 +182,15 @@ Theo góp ý vòng 6: chọn người trong Cọ chậm 0,5–1 giây, nên tác
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
 | 14.1 | Thêm ảnh có 2–4 người | Tách xong, ảnh hết mờ, mọi người được phủ xanh; card bước có "Chọn người  n/n" và hai nút Hủy · Dùng n người | | | |
-| 14.2 | Chạm một người, chạm lại | Bỏ ngay (viền nét đứt, số giảm), chạm lại thì chọn lại; **không có độ trễ** | | | |
-| 14.3 | Bỏ hết mọi người | Nút Dùng tắt | | | |
-| 14.4 | Bấm Dùng n người | Bước Chọn người thành dấu tích, chạy "Vẽ dáng", rồi mở Chỉnh sửa; pose chỉ có người đã chọn | | | |
-| 14.5 | Bấm Hủy | Về danh sách Thư viện, không có pose mới | | | |
-| 14.6 | Ảnh một người | Không có bước Chọn người, vào thẳng Chỉnh sửa | | | |
-| 14.7 | Chỉnh sửa → Cọ | Chỉ có Thêm · Xóa; cọ Thêm tô lên người chưa chọn vẫn hiện lại người đó | | | |
-| 14.8 | Terminal: khi thấy cảnh báo "Reading from `value`", ghi lại đang ở màn nào, làm gì | | | | |
-| 14.9 | Mở app lần đầu: nhìn cụm zoom; mở Chỉnh sửa: nhìn số ở các thanh kéo (Độ dày, Độ đậm, Cỡ cọ…) | Số hiện ngay (0,5 · 1× · 2 · 3; "2,0 px", "24 px"…), không phải đợi kéo mới hiện | | | |
-| 14.10 | Thư viện → Pose mẫu | Có nhóm **Selfie** cuối danh sách với 7 pose; chọn một pose rồi chụp bằng camera trước | | | |
+| 14.2 | Chạm một người, chạm lại | Bỏ ngay (viền nét đứt, số giảm), chạm lại thì chọn lại; **không có độ trễ** |đạt |đạt | |
+| 14.3 | Bỏ hết mọi người | Nút Dùng tắt |đạt |đạt | |
+| 14.4 | Bấm Dùng n người | Bước Chọn người thành dấu tích, chạy "Vẽ dáng", rồi mở Chỉnh sửa; pose chỉ có người đã chọn |đạt |đạt | |
+| 14.5 | Bấm Hủy | Về danh sách Thư viện, không có pose mới | đạt| đạt| |
+| 14.6 | Ảnh một người | Không có bước Chọn người, vào thẳng Chỉnh sửa |đạt |đạt | |
+| 14.7 | Chỉnh sửa → Cọ | Chỉ có Thêm · Xóa; cọ Thêm tô lên người chưa chọn vẫn hiện lại người đó |đạt |đạt | |
+| 14.8 | Terminal: khi thấy cảnh báo "Reading from `value`", ghi lại đang ở màn nào, làm gì |không thấy |không thấy | | |
+| 14.9 | Mở app lần đầu: nhìn cụm zoom; mở Chỉnh sửa: nhìn số ở các thanh kéo (Độ dày, Độ đậm, Cỡ cọ…) | Số hiện ngay (0,5 · 1× · 2 · 3; "2,0 px", "24 px"…), không phải đợi kéo mới hiện |đạt |đạt | |
+| 14.10 | Thư viện → Pose mẫu | Có nhóm **Selfie** cuối danh sách với 7 pose; chọn một pose rồi chụp bằng camera trước |đạt |đạt | |
 
 ## Góp ý thêm
 

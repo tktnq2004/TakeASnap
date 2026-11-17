@@ -402,6 +402,8 @@ docs/
 
 ### Phase 4 — Giao diện chụp ảnh và giao diện chung (1–2 tuần)
 
+**Trạng thái: xong.** Phiếu [phase4-test.md](phase4-test.md) đạt trên iPhone và Android sau 7 vòng thử (vòng 2–7 sửa theo góp ý: zoom theo đúng tỉ lệ cảm biến, ảnh bay vào ô ảnh vừa chụp, chấm trang tua được, chọn người chuyển thành một bước trên màn Đang xử lý, nhóm pose mẫu Selfie, số trên thanh kéo hiện ngay). Để lại cho Phase 6: rà chú thích trỏ số mục design.md cũ, motion chuyển màn thống nhất (§3.5), rà bố cục ở máy màn nhỏ. Zoom còn lệch 0,1–0,2 so với app Camera của máy (chấp nhận được). Gợi ý chưa làm: chọn pose nhóm Selfie thì tự đổi sang camera trước; hiệu ứng mở app.
+
 **Vì sao làm trước Thay nền:** sau Phase 1–3, mỗi màn được dựng khi cần nên giao diện chưa liền một khối: nút bánh răng trên Camera vẫn mở màn thử nghiệm, chưa có chỗ chọn chế độ "Chụp theo pose · Thay nền", ảnh vừa chụp chưa xem được, đầu màn mỗi nơi một kiểu (X, chữ "Quay lại"). Thay nền là luồng mới nhiều bước nhất; chốt khung chung trước để Phase 5 chỉ thêm nội dung vào khung có sẵn, không phải sửa lại.
 
 Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-màn-hình), [§4.5](business-flow.md#45-chọn-chế-độ-và-ảnh-vừa-chụp) và [§7.3–7.4](business-flow.md#73-khung-giao-diện-chung).
@@ -419,8 +421,8 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [x] Một component chung cho trạng thái rỗng, lỗi, thiếu quyền (`EmptyState`)
 - [x] Token mới (màu xanh – trắng, camera `cam*`, Nunito, radius, kích thước, bóng lớp nổi) trong `src/ui/tokens.ts`; bỏ Urbanist và DM Mono
 - [x] Component theo design.md §4: `Button` 6 kiểu, `BackButton`, `CloseButton`, `OverlayHeader` / `FlowHeader`, `Chip`, `Segmented` (2 tông, ô tắt được), `Slider`, `Swatch`, `Toggle`, `EmptyState`
-- [ ] Sửa các chú thích trong code còn trỏ số mục design.md cũ (làm dần khi sửa từng màn)
-- [ ] Chuyển màn và motion thống nhất theo design.md §3.5
+- [ ] Sửa các chú thích trong code còn trỏ số mục design.md cũ (làm dần khi sửa từng màn; chuyển sang Phase 6)
+- [ ] Chuyển màn và motion thống nhất theo design.md §3.5 (chuyển sang Phase 6)
 - [x] Icon app, màn mở app (design.md §6.14): chữ S trong khung ngắm, bóng chữ S là dáng mẫu; nền đen, chữ trắng, bóng xanh nhạt
 
 **Bước 3 — Màn Camera**
@@ -433,9 +435,10 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [x] Menu pose kiểu menu cạnh ô (design.md §6.7), thay cho hộp thoại hệ thống
 - [x] Bảng màu nổi cạnh ô màu (design.md §6.10), thêm ô dấu cộng vào hàng màu
 - [x] Chạm ảnh vừa chụp → màn **Xem ảnh vừa chụp** (business-flow §4.5)
-- [ ] Phản hồi khi chụp: hiệu ứng màn trập ngắn + rung, theo design.md
+- [x] Phản hồi khi chụp: chớp màn + rung, ảnh vừa chụp thu nhỏ bay vào ô ảnh vừa chụp
 - [x] Chưa có pose: nút pose là ô tròn dấu cộng, không gợi ý (business-flow §7.2)
-- [ ] Rà bố cục thanh trên, rail, vùng dưới ở cả 3 tỉ lệ khung, máy màn nhỏ và Android
+- [x] Rà bố cục thanh trên, rail, vùng dưới ở cả 3 tỉ lệ khung và Android (phiếu 9.3); máy màn nhỏ chuyển sang Phase 6
+- [x] Nhóm pose mẫu **Selfie** (7 ảnh camera trước)
 - [x] Quyền camera: hộp thoại của máy, bị từ chối thì một câu + "Mở Cài đặt" (design.md §6.4)
 - [x] Thanh zoom: 4 nút nhanh, kéo ngang thành thước cuộn kim giữa (design.md §6.1)
 - [x] Đổi tên app thành **SnapShot**: tên hiển thị, slug, scheme, album ảnh, chuỗi giao diện (đã đổi trong code và tài liệu; file SQLite giữ tên `takeasnap.db` để không mất dữ liệu)
