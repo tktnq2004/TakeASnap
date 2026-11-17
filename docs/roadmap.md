@@ -468,6 +468,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 - [ ] Hiệu năng: mở app tới khi thấy preview dưới 2 s; bộ nhớ ổn định khi mở ảnh 12 MP
 - [ ] Accessibility: nhãn cho mọi nút icon (VoiceOver, TalkBack), cỡ chữ hệ thống, tôn trọng Reduce Motion
+- [ ] Phần để lại từ Phase 4: chuyển màn và motion thống nhất (design.md §3.5), rà bố cục ở máy màn nhỏ, sửa chú thích trỏ số mục design.md cũ
 - [ ] **Video demo** 60–90 s quay trên iPhone: chọn pose → chỉnh → chụp theo → (thay nền); thêm vài giây trên Android để chứng minh chạy hai nền tảng
 - [ ] **Case study** trong README: vấn đề của bản cũ, cách sửa hệ cử chỉ, contour vector, tách người offline bằng WebView, pipeline thay nền, số đo trước/sau
 - [ ] Ảnh/GIF trước–sau cho từng chức năng
