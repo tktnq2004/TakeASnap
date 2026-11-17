@@ -447,9 +447,9 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Bước 1 — Thiết kế (duyệt trước khi viết code)**
 
-- [ ] Vẽ phương án trên canvas thiết kế: nút Bố cục và danh sách kỹ thuật, lớp bố cục (đường kẻ, chấm đích, trạng thái đạt), dòng gợi ý, nhận xét ở Xem ảnh vừa chụp, thẻ học (tab thứ ba của Thư viện hay màn riêng)
-- [ ] Chốt chỗ đặt thẻ học và có hay không mục "Gợi ý lúc ngắm" trong Cài đặt
-- [ ] Cập nhật [design.md](design.md): component và màn mới
+- [x] Vẽ phương án trên canvas thiết kế: nút Bố cục và danh sách kỹ thuật, lớp bố cục (đường kẻ, chấm đích, trạng thái đạt), dòng gợi ý, nhận xét ở Xem ảnh vừa chụp, thẻ học. Chốt 2026-11-18: Kỹ thuật A (bảng kéo lên) · Gợi ý A (đích + một dòng) · Nhận xét A (thẻ dưới ảnh, mở khung cắt khi cần) · Thẻ học A (tab Bố cục trong Thư viện)
+- [x] Chốt chỗ đặt thẻ học: tab thứ ba "Bố cục" trong Thư viện. Mục "Gợi ý lúc ngắm" trong Cài đặt chốt sau cổng Bước 3
+- [x] Cập nhật [design.md](design.md) §6.15: component và màn mới
 
 **Bước 2 — Phần chắc chắn làm được (tuần 1)**
 

@@ -544,6 +544,46 @@ Chốt qua `logo-design-skill` (canvas thiết kế, trang "Icon chốt + màn m
 - **Màn mở app:** plugin `expo-splash-screen` trong `app.json`, ảnh rộng 220, nền `#05070D`. Expo Go không hiện màn này (hiện icon thay); xem đúng khi build bản preview / production.
 - Chữ S và bóng là nét tròn (stroke); khi cần bản cắt in, chuyển nét thành hình.
 
+### 6.15 Trợ lý bố cục (Phase 5)
+
+Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố cục", hàng "Bản chốt": **Kỹ thuật A · Gợi ý A · Nhận xét A · Thẻ học A**. Nghiệp vụ ở business-flow §6.
+
+**Nút Bố cục** thay nút Lưới trên thanh trên của Camera, cùng chỗ, cùng cỡ 44. Đang tắt: icon `grid` trắng, nền trong suốt. Đang bật một kỹ thuật: nền `camAccent`, icon `accentInk`; `accessibilityLabel` "Bố cục: <tên kỹ thuật>".
+
+**Bảng Bố cục (A — bảng kéo lên).** Chạm nút Bố cục thì bảng trượt lên từ đáy, nền `surface` 97%, bo trên 28, có vạch kéo; vuốt xuống, chạm nút đóng hoặc chạm ra ngoài thì đóng. Đầu bảng "Bố cục" (`head` cỡ 20) + `CloseButton` nhỏ. Mỗi dòng cao 52: ô 40 nền `surfaceAlt` vẽ hình nhỏ của kỹ thuật, tên (`label` 15) + mô tả một dòng (`caption` cỡ 13 nét `semibold`, `muted`); dòng đang chọn nền `accentSoft` + dấu tích `accent`. Chạm một dòng là chọn và đóng bảng. Đáy bảng là nút phụ "Học các kỹ thuật" mở tab Bố cục của Thư viện.
+
+| Dòng | Mô tả | Phase |
+|---|---|---|
+| Tự chọn | App nhìn khung cảnh, chọn giúp | 5b, chỉ khi qua cổng |
+| Tắt | Không có đường kẻ | 5 |
+| Lưới 3×3 | Chỉ đường kẻ, không gợi ý | 5 |
+| Quy tắc 1/3 | Mắt trên đường 1/3 | 5 |
+| Đặt ở giữa | Người ở trục giữa | 5 |
+| Đường chân trời | Chân trời trên một đường 1/3 | 5 (lớp kẻ), 5a (tự dò) |
+| Đường dẫn | Đường đi dẫn tới người | 5 (lớp kẻ), 5a (tự dò) |
+| Góc thấp | Kéo dài chân | 5 |
+| Selfie | Máy cao hơn mắt | 5 |
+| Nhóm người | Đầu so le, xếp tam giác | 5 |
+
+Lưới 4×4 cũ bỏ khỏi danh sách (ít dùng; thẻ học vẫn nói tới).
+
+**Lớp bố cục trên khung ngắm.** Đường kẻ `grid` (trắng 35%) 1 px như lưới cũ.
+- 1/3: lưới 3×3 + **chấm đích** ở giao điểm gần người nhất: vòng 34 viền `camAccent` 2 px, chấm giữa 8.
+- Giữa: trục dọc giữa + chấm đích trên trục ở 1/3 trên.
+- Chân trời (Phase 5): đường 1/3 dưới tô `camAccent` 2 px, đường 1/3 trên giữ trắng; thước cân bằng hiện cùng.
+- Đường dẫn (Phase 5): hai đường chéo nét đứt `camAccent` 85% (8/6) từ hai góc dưới hội tụ ở giao điểm 1/3 trên-trái (lật sang phải khi pose lật); chấm đích ở điểm hội tụ.
+- Góc thấp, selfie, nhóm: lưới 3×3, gợi ý qua dòng gợi ý.
+
+**Gợi ý (A — đích + một dòng).** Dòng gợi ý là viên 38 bo 19 ngay dưới khung ngắm, nền `camBg` 72%, chữ trắng `label` cỡ 14, mũi tên `camAccent` chỉ hướng dời máy khi có. Chấm trắng 12 (viền tối) là mắt người khi đã có phân tích người, nét đứt trắng nối tới chấm đích. Mỗi lúc một dòng, giữ ổn định 0,5 s mới hiện (business-flow §6.4). **Đạt:** lưới đổi sang `camAccent`, chấm đích thành vòng đặc `camAccent` có dấu tích, viên gợi ý nền `camAccent` chữ `accentInk` "Đạt <kỹ thuật>", rung `haptic.levelReached` một lần; 1,5 s sau viên tự ẩn.
+
+**Tự chọn (Phase 5b).** Viên gợi ý ghi "Tự chọn: <kỹ thuật>" kèm nút nhỏ "Đổi" (nền `camAccent`), chạm Đổi mở bảng Bố cục.
+
+**Nhận xét sau khi chụp (A — thẻ dưới ảnh)** ở Xem ảnh vừa chụp (§6.12). Ảnh thu còn 300×400 để chừa chỗ; lớp bố cục của kỹ thuật đã dùng vẽ lên ảnh. Dưới đầu màn, dòng `hint` thêm tên kỹ thuật ("Ảnh 3 trên 5 · Quy tắc 1/3"). Thẻ `surface` bo 24 dưới ảnh: 1–3 dòng, mỗi dòng một vòng 28 (đạt: dấu tích xanh lá trên nền xanh lá 16%; chưa đạt: X `danger` trên nền `danger` 16%) + câu ngắn. Có khung cắt gợi ý thì cuối thẻ có nút phụ "Xem khung cắt gợi ý": mở chế độ cắt (kiểu B trên canvas) — khung nét đứt `accent` trên ảnh, phần ngoài tối 45%, hai nút "Gợi ý cắt" / "Ảnh gốc", nút đáy "Lưu bản cắt" lưu thành ảnh mới (BR-15). Ảnh chụp khi tắt bố cục: không có thẻ, màn như cũ.
+
+**Thẻ học (A — tab Bố cục trong Thư viện).** Thư viện có tab thứ ba "Bố cục" sau "Pose mẫu", "Pose của bạn". Lưới 2 cột ô cao 128, nền `surface` bo 20: hình nhỏ của kỹ thuật, tên, nhãn "Có gợi ý" (`accent`) hoặc "Chỉ đọc" (`muted`). Chạm ô mở màn thẻ (bước trong luồng: `BackButton` + tên kỹ thuật): hai ảnh ví dụ sai / đúng cạnh nhau có lưới, nhãn có icon dưới mỗi ảnh; thẻ `surface` ba đoạn "Là gì", "Khi nào dùng", "Khi nào phá lệ"; nút primary đáy "Chụp thử" về Camera với kỹ thuật đó bật sẵn.
+
+**Mục "Gợi ý lúc ngắm" trong Cài đặt:** chốt sau cổng quyết định Phase 5 Bước 3 (chỉ cần nếu gợi ý lúc ngắm có phân tích người).
+
 ## 7. Accessibility
 
 - Vùng chạm nhỏ nhất 44×44, kể cả ô màu (36 + hitSlop 4) và nút zoom (38 + hitSlop 3).

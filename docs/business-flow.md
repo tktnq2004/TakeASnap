@@ -297,7 +297,7 @@ flowchart TD
 
 - Mỗi kỹ thuật (15) một thẻ: tên, một ảnh đúng và một ảnh sai cạnh nhau có lớp bố cục, 2–3 câu (là gì, khi nào dùng, khi nào nên phá lệ), nút **Chụp thử** mở Camera với kỹ thuật đó bật sẵn.
 - Thẻ của kỹ thuật chưa tự phát hiện vẫn có nút Chụp thử, mở Camera với lưới phù hợp.
-- Chỗ đặt (tab thứ ba trong Thư viện hay màn riêng) chốt ở bước thiết kế Phase 5.
+- Chỗ đặt: tab thứ ba "Bố cục" trong Thư viện, sau "Pose mẫu" và "Pose của bạn"; bảng Bố cục trên Camera có lối "Học các kỹ thuật" mở thẳng tab này (design §6.15).
 
 ### 6.7 Đi cùng pose
 
