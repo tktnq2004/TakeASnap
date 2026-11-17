@@ -126,7 +126,7 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 |---|---|---|
 | Đổi camera | sau / trước | Camera trước: preview soi gương, ảnh lưu không soi gương (theo cài đặt) |
 | Flash | tắt / bật / tự động | Dùng flash gốc của camera, không dùng đèn pin |
-| Bố cục (thay nút Lưới, Phase 5) | tắt / lưới 3×3 / lưới 4×4 / một kỹ thuật bố cục ([§6](#6-chức-năng-3--trợ-lý-bố-cục)) | Vẽ trong vùng ảnh thật sẽ được lưu |
+| Bố cục (thay nút Lưới, Phase 5) | tắt / lưới 3×3 / một kỹ thuật bố cục ([§6](#6-chức-năng-3--trợ-lý-bố-cục)) | Vẽ trong vùng ảnh thật sẽ được lưu |
 | Thước cân bằng | bật / tắt | Đổi sang màu nhấn khi máy lệch dưới 1° |
 | Tỉ lệ khung | 3:4 / 9:16 / 1:1 | Khung ngắm hiển thị đúng vùng ảnh sẽ được lưu |
 | Hẹn giờ | tắt / 3 s / 10 s | Cho người chụp tự đặt máy |

@@ -19,32 +19,35 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { TechniqueIcon } from '@/features/composition/TechniqueIcon';
 import { PressableScale } from '@/ui/components';
 import { easeIO } from '@/ui/easing';
 import { t } from '@/ui/strings';
 import { color, motion, radius, size, space, type } from '@/ui/tokens';
 
-import { type FlashMode, type GridMode, type TimerSec, useCameraStore } from './cameraStore';
+import { type FlashMode, type TimerSec, useCameraStore } from './cameraStore';
 
 type Props = {
   top: number;
   open: boolean;
   onToggleOpen: () => void;
   onSettings: () => void;
+  /** Mở bảng Bố cục (design.md §6.15). */
+  onComposition: () => void;
 };
 
 /** Chiều cao thanh trên (không tính vùng an toàn). */
 export const TOP_BAR_H = size.iconButton + 8;
 
 /**
- * Thanh trên của Camera (design.md §6.1, góp ý Phase 4): cụm kính Đèn flash · Hẹn giờ · Lưới ·
+ * Thanh trên của Camera (design.md §6.1, §6.15): cụm kính Đèn flash · Hẹn giờ · Bố cục ·
  * Thước cân bằng · Tỉ lệ · Mở thêm bên trái, Cài đặt bên phải. Chạm nút trên thanh để đổi nhanh;
- * Mở thêm thả xuống bảng chọn thẳng giá trị cho Đèn flash, Hẹn giờ, Lưới.
+ * Bố cục mở bảng kéo lên; Mở thêm thả xuống bảng chọn thẳng giá trị cho Đèn flash, Hẹn giờ.
  */
-export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
+export function CameraTopBar({ top, open, onToggleOpen, onSettings, onComposition }: Props) {
   const flash = useCameraStore((s) => s.flash);
   const timer = useCameraStore((s) => s.timer);
-  const grid = useCameraStore((s) => s.grid);
+  const technique = useCameraStore((s) => s.technique);
   const level = useCameraStore((s) => s.level);
   const aspect = useCameraStore((s) => s.aspect);
   const store = useCameraStore.getState;
@@ -59,8 +62,10 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
 
   const flashLabel =
     flash === 'off' ? t.camera.flashOff : flash === 'on' ? t.camera.flashOn : t.camera.flashAuto;
-  const gridLabel =
-    grid === 'off' ? t.camera.gridOff : grid === '3' ? t.camera.grid3 : t.camera.grid4;
+  const compositionLabel =
+    technique === 'off'
+      ? t.composition.buttonOff
+      : t.composition.button(t.composition.names[technique]);
 
   return (
     <>
@@ -89,12 +94,15 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings }: Props) {
             badge={timer > 0 ? String(timer) : undefined}
           />
           <BarButton
-            icon={Grid3x3}
-            label={gridLabel}
-            onPress={store().cycleGrid}
-            active={grid !== 'off'}
-            badge={grid === 'off' ? undefined : grid}
-          />
+            icon={technique === 'off' || technique === 'grid' ? Grid3x3 : undefined}
+            label={compositionLabel}
+            onPress={onComposition}
+            active={technique !== 'off'}
+          >
+            {technique !== 'off' && technique !== 'grid' && (
+              <TechniqueIcon kind={technique} width={18} height={22} ink={color.camInk} accent={color.camInk} />
+            )}
+          </BarButton>
           <BarButton
             icon={Ruler}
             label={level ? t.camera.levelOn : t.camera.levelOff}
@@ -152,12 +160,6 @@ const TIMER_OPTIONS: { key: TimerSec; label: string }[] = [
   { key: 10, label: '10 s' },
 ];
 
-const GRID_OPTIONS: { key: GridMode; label: string }[] = [
-  { key: 'off', label: t.camera.offShort },
-  { key: '3', label: '3×3' },
-  { key: '4', label: '4×4' },
-];
-
 /**
  * Bảng mở thêm: thả xuống từ dưới thanh trên (cao dần từ 0, các hàng trượt xuống và hiện dần),
  * thu lên khi đóng. Luôn gắn sẵn để chạy được hiệu ứng đóng; lúc thu thì không nhận chạm.
@@ -173,7 +175,6 @@ function ToolsPanel({
 }) {
   const flash = useCameraStore((s) => s.flash);
   const timer = useCameraStore((s) => s.timer);
-  const grid = useCameraStore((s) => s.grid);
   const store = useCameraStore.getState;
   const [contentH, setContentH] = useState(0);
 
@@ -210,13 +211,6 @@ function ToolsPanel({
           options={TIMER_OPTIONS}
           value={timer}
           onChange={store().setTimer}
-        />
-        <PanelRow
-          icon={Grid3x3}
-          label={t.camera.grid}
-          options={GRID_OPTIONS}
-          value={grid}
-          onChange={store().setGrid}
         />
       </Animated.View>
     </Animated.View>

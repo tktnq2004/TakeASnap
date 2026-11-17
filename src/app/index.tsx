@@ -40,7 +40,7 @@ import {
   type Shot,
 } from '@/features/camera/capture';
 import { ASPECTS, previewRect, type Rect, viewfinderRect } from '@/features/camera/frame';
-import { FrameGrid, LevelGuide } from '@/features/camera/FrameGuides';
+import { LevelGuide } from '@/features/camera/FrameGuides';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
 import { PoseOverlay } from '@/features/camera/PoseOverlay';
 import { useSessionPhotos } from '@/features/camera/sessionPhotos';
@@ -48,6 +48,10 @@ import { ToolRail } from '@/features/camera/ToolRail';
 import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomControlHeight } from '@/features/camera/ZoomControl';
+import { CompositionGuide } from '@/features/composition/CompositionGuide';
+import { CompositionHint } from '@/features/composition/CompositionHint';
+import { CompositionSheet } from '@/features/composition/CompositionSheet';
+import { anchorOnFrame, poseAnchor, snapLines, snapPlacement } from '@/features/composition/snap';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
@@ -61,6 +65,7 @@ import {
   cameraUi,
   cameraZoom,
   color,
+  compositionUi,
   motion,
   radius,
   size,
@@ -105,7 +110,7 @@ function CameraBody() {
   const cameraRef = useRef<CameraView>(null);
 
   const flash = useCameraStore((s) => s.flash);
-  const grid = useCameraStore((s) => s.grid);
+  const technique = useCameraStore((s) => s.technique);
   const levelOn = useCameraStore((s) => s.level);
   const timer = useCameraStore((s) => s.timer);
   const aspect = useCameraStore((s) => s.aspect);
@@ -128,6 +133,7 @@ function CameraBody() {
   const hidden = poseId != null && hiddenFor === poseId;
   const setHidden = (h: boolean) => setHiddenFor(h ? poseId : null);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [compositionOpen, setCompositionOpen] = useState(false);
   const [pose, setPose] = useState<Pose | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   // Ảnh vừa chụp: ảnh mới nhất đã lưu trong lần mở app này; chạm để mở màn Xem ảnh vừa chụp.
@@ -209,7 +215,26 @@ function CameraBody() {
       );
       return;
     }
-    if (poseId) savePlacement(poseId, p, frame.height);
+    if (!poseId) return;
+    // Pose dính đường bố cục của kỹ thuật đang chọn (business-flow §6.7).
+    const snapped = snapPose(p);
+    if (snapped) {
+      const cfg = { duration: motion.in, easing: ease };
+      tx.set(withTiming(snapped.x, cfg));
+      ty.set(withTiming(snapped.y, cfg));
+      haptic.snap();
+    }
+    savePlacement(poseId, snapped ?? p, frame.height);
+  };
+
+  const snapPose = (p: Placement): Placement | null => {
+    if (!pose) return null;
+    const lines = snapLines(technique, frame);
+    if (lines.v.length === 0 && lines.h.length === 0) return null;
+    const a = poseAnchor(pose.landmarks?.bodyPoints, pose.contours);
+    if (!a) return null;
+    const box = containSize(pose.width, pose.height, frame.width, frame.height);
+    return snapPlacement(p, anchorOnFrame(a, box, p, mirrored), lines, compositionUi.snapRadius);
   };
 
   const overlay = useTransformGesture({
@@ -576,7 +601,7 @@ function CameraBody() {
       {root.height > 0 && (
         <>
           <FrameMask frame={frame} root={root} />
-          <FrameGrid frame={frame} mode={grid} />
+          <CompositionGuide frame={frame} technique={technique} mirrored={mirrored} />
           {levelOn && <LevelGuide frame={frame} />}
 
           {/* Vùng nhận cử chỉ phủ cả màn hình, nằm dưới các nút. Pose là lớp trên cùng của
@@ -612,6 +637,8 @@ function CameraBody() {
               </Text>
             </View>
           )}
+
+          <CompositionHint frame={frame} technique={technique} front={facing === 'front'} />
 
           {/* Cột công cụ pose: dọc, kéo được, nằm trong khung ngắm (design.md §6.1). */}
           <ToolRail
@@ -704,6 +731,21 @@ function CameraBody() {
         open={toolsOpen}
         onToggleOpen={() => setToolsOpen((o) => !o)}
         onSettings={() => router.push('/settings')}
+        onComposition={() => {
+          setToolsOpen(false);
+          setCompositionOpen(true);
+        }}
+      />
+
+      <CompositionSheet
+        open={compositionOpen}
+        value={technique}
+        bottomInset={insets.bottom}
+        onChange={(k) => {
+          store().setTechnique(k);
+          setCompositionOpen(false);
+        }}
+        onClose={() => setCompositionOpen(false)}
       />
     </View>
   );

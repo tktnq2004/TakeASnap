@@ -2,7 +2,7 @@
  * Trạng thái của Camera, nhớ qua các lần mở app (expo-sqlite/kv-store, ghi đồng bộ nên đọc lại
  * được ngay khi khởi động, không nháy giá trị mặc định).
  *
- * - Cài đặt camera: flash, lưới, thước, hẹn giờ, tỉ lệ khung.
+ * - Cài đặt camera: flash, kỹ thuật bố cục (thay lưới cũ, design.md §6.15), thước, hẹn giờ, tỉ lệ khung.
  * - Pose đang dùng + điều khiển nhanh: độ hiện, lật ngang (business-flow §4.4).
  * - Vị trí cột công cụ pose (design.md §6.1): mép trái / phải và độ cao trong khung ngắm.
  * - Placement theo từng pose (BR-10): lưu riêng một khóa mỗi pose, chỉ ghi khi nhấc tay.
@@ -11,12 +11,12 @@ import Storage from 'expo-sqlite/kv-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { isTechnique, type TechniqueId } from '@/features/composition/techniques';
 import type { Placement } from '@/gestures/useTransformGesture';
 
 import type { AspectId } from './frame';
 
 export type FlashMode = 'off' | 'on' | 'auto';
-export type GridMode = 'off' | '3' | '4';
 export type TimerSec = 0 | 3 | 10;
 /** Độ hiện overlay: chạm để đổi nhanh qua 3 mức này; giữ nút để kéo liên tục 0–100%. */
 export const OVERLAY_OPACITY = [1, 0.6, 0.3] as const;
@@ -32,7 +32,7 @@ export type RailSide = 'left' | 'right';
 
 type State = {
   flash: FlashMode;
-  grid: GridMode;
+  technique: TechniqueId;
   level: boolean;
   timer: TimerSec;
   aspect: AspectId;
@@ -49,18 +49,18 @@ type State = {
 
 type Actions = {
   cycleFlash: () => void;
-  cycleGrid: () => void;
   toggleLevel: () => void;
   cycleTimer: () => void;
   cycleAspect: () => void;
-  selectPose: (id: string) => void;
+  /** `technique`: kỹ thuật gắn với pose mẫu, bật khi đang tắt bố cục (business-flow §6.7). */
+  selectPose: (id: string, technique?: TechniqueId | null) => void;
   /** Pose đang dùng vừa được sửa thành bản mới: dùng bản mới, giữ vị trí và lật ngang. */
   replacePose: (id: string) => void;
   clearPose: () => void;
   cycleOpacity: () => void;
   setOpacity: (v: number) => void;
   toggleMirror: () => void;
-  setGrid: (g: GridMode) => void;
+  setTechnique: (t: TechniqueId) => void;
   setFlash: (f: FlashMode) => void;
   setTimer: (s: TimerSec) => void;
   toggleRailCollapsed: () => void;
@@ -81,7 +81,7 @@ export const useCameraStore = create<State & Actions>()(
   persist(
     (set) => ({
       flash: 'off',
-      grid: 'off',
+      technique: 'off',
       level: true,
       timer: 0,
       aspect: '3:4',
@@ -92,12 +92,17 @@ export const useCameraStore = create<State & Actions>()(
       railY: 0.25,
       railCollapsed: false,
       cycleFlash: () => set((s) => ({ flash: next(['off', 'auto', 'on'] as const, s.flash) })),
-      cycleGrid: () => set((s) => ({ grid: next(['off', '3', '4'] as const, s.grid) })),
       toggleLevel: () => set((s) => ({ level: !s.level })),
       cycleTimer: () => set((s) => ({ timer: next([0, 3, 10] as const, s.timer) })),
       cycleAspect: () => set((s) => ({ aspect: next(['3:4', '9:16', '1:1'] as const, s.aspect) })),
       // Chọn pose thì mở cột công cụ ra (góp ý Phase 4, mục 3.2).
-      selectPose: (id) => set({ poseId: id, mirrored: false, railCollapsed: false }),
+      selectPose: (id, technique) =>
+        set((s) => ({
+          poseId: id,
+          mirrored: false,
+          railCollapsed: false,
+          technique: s.technique === 'off' && technique ? technique : s.technique,
+        })),
       replacePose: (id) =>
         set((s) => {
           if (s.poseId) {
@@ -110,7 +115,7 @@ export const useCameraStore = create<State & Actions>()(
       cycleOpacity: () => set((s) => ({ opacity: nextOpacity(s.opacity) })),
       setOpacity: (v) => set({ opacity: Math.min(1, Math.max(0, v)) }),
       toggleMirror: () => set((s) => ({ mirrored: !s.mirrored })),
-      setGrid: (grid) => set({ grid }),
+      setTechnique: (technique) => set({ technique }),
       setFlash: (flash) => set({ flash }),
       setTimer: (timer) => set({ timer }),
       toggleRailCollapsed: () => set((s) => ({ railCollapsed: !s.railCollapsed })),
@@ -118,11 +123,17 @@ export const useCameraStore = create<State & Actions>()(
     }),
     {
       name: 'camera',
-      version: 3,
+      version: 4,
       storage: syncStorage,
       // v1 lưu độ hiện là mức 0/1/2; v2 lưu giá trị 0..1 và vị trí cột công cụ.
       migrate: (old, version) => {
-        const o = (old ?? {}) as Partial<State> & { opacityLevel?: 0 | 1 | 2 };
+        const o = (old ?? {}) as Partial<State> & { opacityLevel?: 0 | 1 | 2; grid?: string };
+        // v4: lưới 3×3 / 4×4 thành kỹ thuật bố cục; lưới bất kỳ → Lưới 3×3.
+        if (version < 4) {
+          const grid = o.grid;
+          delete o.grid;
+          if (!isTechnique(o.technique)) o.technique = grid && grid !== 'off' ? 'grid' : 'off';
+        }
         if (version < 2) {
           const { opacityLevel, ...rest } = o;
           return {
@@ -140,7 +151,7 @@ export const useCameraStore = create<State & Actions>()(
       },
       partialize: (s) => ({
         flash: s.flash,
-        grid: s.grid,
+        technique: s.technique,
         level: s.level,
         timer: s.timer,
         aspect: s.aspect,

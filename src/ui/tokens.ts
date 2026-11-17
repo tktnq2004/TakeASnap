@@ -52,6 +52,8 @@ export const color = {
   /** Cùng màu nhấn với các màn khác (B2). */
   camAccent: '#8AB4F8',
   camWarn: '#FACC15',
+  /** Nền viên gợi ý bố cục dưới khung ngắm (design.md §6.15). */
+  camHint: 'rgba(5,7,13,0.72)',
   /** Lưới và mốc thước trên khung ngắm. */
   guide: 'rgba(255,255,255,0.7)',
   /** Viền tối hai bên nét lưới: nét vẫn thấy được trên nền sáng (góp ý Phase 2). */
@@ -302,6 +304,30 @@ export const cameraUi = {
   /** Đổi camera: chờ tối đa chừng này để camera báo sẵn sàng rồi mới cho chụp lại. */
   switchReadyMs: 1500,
   countdownSize: 96,
+} as const;
+
+/** Trợ lý bố cục trên Camera (design.md §6.15). */
+export const compositionUi = {
+  /** Vòng chấm đích và chấm giữa. */
+  target: 34,
+  targetDot: 8,
+  targetStroke: 2,
+  /** Nét đậm của đường chân trời / đường dẫn. */
+  accentStroke: 2,
+  leadDash: [8, 6],
+  /** Viên gợi ý. */
+  hintH: 38,
+  /** Tình trạng giữ yên chừng này mới hiện gợi ý (business-flow §6.4). */
+  stableMs: 500,
+  /** Viên "đạt" tự ẩn sau chừng này. */
+  okHideMs: 1500,
+  /** Dòng hướng dẫn khi vừa chọn kỹ thuật. */
+  introMs: 4000,
+  /** Thả pose cách đường bố cục trong chừng này (px) thì dính vào. */
+  snapRadius: 18,
+  /** Bảng Bố cục: dòng, ô hình nhỏ. */
+  sheetRow: 52,
+  sheetIcon: 40,
 } as const;
 
 /** Giới hạn của overlay (roadmap §3.5). */
