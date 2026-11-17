@@ -1,4 +1,4 @@
-# Phase 5 — Trợ lý bố cục
+# Phase 5a — Trợ lý bố cục
 
 > Bản giải thích ý tưởng, chưa phải đặc tả.
 > Nghiên cứu chi tiết từng kỹ thuật và nguồn tham khảo: [composition.md](composition.md).
@@ -24,7 +24,7 @@ Họ chỉnh theo, khung chuyển xanh, rồi bấm chụp.
 | | Trả lời câu hỏi | Đã có? |
 |---|---|---|
 | **Pose** | Người **đứng thế nào** | Có (Phase 1–4) |
-| **Bố cục** | Đặt người **ở đâu trong khung**, chụp **từ góc nào** | Phase 5 |
+| **Bố cục** | Đặt người **ở đâu trong khung**, chụp **từ góc nào** | Phase 5a |
 
 ---
 
@@ -156,8 +156,8 @@ Từ đó app áp **quy tắc của nghề ảnh** để đưa ra lời khuyên.
 
 | Kỹ thuật | Vì sao chỉ dạy |
 |---|---|
-| Vật "mọc" sau đầu, chân trời cắt cổ | Cần dò đường thẳng quanh đầu, khó làm ổn trên máy |
-| Đường dẫn | Cần dò đường thẳng trên cả ảnh |
+| Vật "mọc" sau đầu, chân trời cắt cổ | Cần dò đường thẳng quanh đầu: tự phát hiện ở Phase 5b |
+| Đường dẫn | Phase 5a có lớp kẻ đường chéo để tự xếp cảnh; tự dò đường dẫn ở Phase 5b |
 | Khung trong khung | Cần hiểu cảnh (cửa, vòm, cành lá) |
 | Tiền cảnh tạo chiều sâu | Cần biết vật nào gần máy |
 | Ánh sáng (ngược sáng, giờ vàng) | Phụ thuộc nhiều vào cảnh, dạy rõ hơn đo |
@@ -236,7 +236,7 @@ Nếu phân tích ảnh không đạt, app **vẫn có**:
 | # | Câu hỏi | Tôi khuyên |
 |---|---|---|
 | 1 | 15 kỹ thuật (10 có hướng dẫn + 5 thẻ học) có hợp không, hay ít hơn để làm kỹ hơn? | 15 |
-| 2 | Người dùng chọn kỹ thuật rồi app dẫn, hay app tự đoán kỹ thuật hợp cảnh? | **Đã chốt:** Phase 5 chọn tay; Phase 5b thêm "Tự chọn" bằng model tự huấn luyện (roadmap Phase 5b) |
+| 2 | Người dùng chọn kỹ thuật rồi app dẫn, hay app tự đoán kỹ thuật hợp cảnh? | **Đã chốt:** Phase 5a chọn tay; Phase 5b thêm "Tự chọn" bằng model tự huấn luyện (roadmap Phase 5b) |
 | 3 | Có cho dùng AI trên cloud không? | Không, giữ nguyên tắc ảnh không rời máy |
 | 4 | Gợi ý sau khi chụp hay lúc đang ngắm? | Sau khi chụp trước; lúc ngắm để cổng quyết định |
 | 5 | Thẻ học đặt ở đâu: tab thứ ba trong Thư viện, hay màn riêng? | Vẽ cả hai lên canvas để chọn |
