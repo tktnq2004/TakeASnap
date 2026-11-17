@@ -146,7 +146,8 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 ### 4.5 Ảnh vừa chụp
 
 - **Ảnh vừa chụp**: ô nhỏ bên trái nút chụp hiện ảnh mới nhất. Chạm vào mở màn **Xem ảnh vừa chụp**: các ảnh chụp trong lần mở app này, vuốt ngang để xem ảnh trước, có nút Chia sẻ và Xóa (xóa khỏi album, có xác nhận). Chưa chụp ảnh nào thì ô trống và không bấm được. Phase 5 thêm **nhận xét bố cục** cho từng ảnh ([§6.5](#65-nhận-xét-sau-khi-chụp)).
-- **Phản hồi khi chụp**: màn trập tối nhanh trong khoảng một khung hình, rung nhẹ khi đã lưu xong. Lưu lỗi thì báo theo [§10.3](#103-thông-báo-lỗi).
+- **Phản hồi khi chụp**: mỗi lần bấm là một lần chớp màn và rung nhẹ.
+- **Chụp liên tục** (Phase 4): bấm tiếp được ngay khi camera chụp xong, không đợi cắt và lưu. Ảnh được cắt và lưu vào album ở nền, từng ảnh một, ngay khi chụp. Trong lúc bấm liên tục, ô ảnh vừa chụp giữ ảnh cũ; ngừng bấm (khoảng 0,35 s) và lưu xong thì ảnh mới nhất bay vào ô, rung báo đã lưu. Tối đa 8 ảnh đang chờ; bấm thêm khi đang đầy thì bỏ qua. Lưu lỗi thì báo một lần sau đợt chụp theo [§10.3](#103-thông-báo-lỗi).
 
 ---
 

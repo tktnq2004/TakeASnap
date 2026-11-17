@@ -89,3 +89,10 @@ export function frameToPhotoCrop(
     height: Math.floor(height),
   };
 }
+
+/** Vùng cắt phủ cả ảnh (lệch tối đa 2 px do làm tròn): không cần cắt. */
+export function isWholeImage(crop: Rect, photo: { width: number; height: number }): boolean {
+  return (
+    crop.x <= 1 && crop.y <= 1 && crop.width >= photo.width - 2 && crop.height >= photo.height - 2
+  );
+}

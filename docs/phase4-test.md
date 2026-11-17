@@ -192,5 +192,20 @@ Theo góp ý vòng 6: chọn người trong Cọ chậm 0,5–1 giây, nên tác
 | 14.9 | Mở app lần đầu: nhìn cụm zoom; mở Chỉnh sửa: nhìn số ở các thanh kéo (Độ dày, Độ đậm, Cỡ cọ…) | Số hiện ngay (0,5 · 1× · 2 · 3; "2,0 px", "24 px"…), không phải đợi kéo mới hiện |đạt |đạt | |
 | 14.10 | Thư viện → Pose mẫu | Có nhóm **Selfie** cuối danh sách với 7 pose; chọn một pose rồi chụp bằng camera trước |đạt |đạt | |
 
+## 15. Chụp liên tục
+
+Bấm tiếp được ngay khi camera chụp xong; cắt và lưu album chạy nền. Ngừng bấm thì ảnh mới nhất bay vào ô ảnh vừa chụp. Tối đa 8 ảnh đang chờ.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 15.1 | Bấm nút chụp nhanh 5 lần liên tiếp (khung 3:4) | Mỗi lần bấm một lần chớp màn; không phải đợi ảnh bay mới bấm tiếp | | | |
+| 15.2 | Mở album SnapShot sau 15.1 | Có đủ 5 ảnh, lưu gần như ngay; đếm số ảnh thật sự có | | | |
+| 15.3 | Ngừng bấm sau 15.1 | Khoảng nửa giây sau, ảnh cuối bay vào ô ảnh vừa chụp, rung một lần | | | |
+| 15.4 | Lặp 15.1 với khung 9:16 và 1:1 | Như trên; ảnh lưu đúng khung (khung này phải cắt nên lưu chậm hơn 3:4 một chút) | | | |
+| 15.5 | Bấm liên tục 20–30 lần | Khoảng bao nhiêu ảnh / giây; có lúc bấm không ăn (đầy 8 ảnh chờ) không; máy có nóng, có giật khung ngắm không | | | |
+| 15.6 | Xem ảnh vừa chụp sau 15.5 | Đủ ảnh, vuốt qua được, không ảnh nào hỏng | | | |
+| 15.7 | Bật Hẹn giờ 3 s rồi chụp | Vẫn chụp một ảnh sau đếm ngược như cũ | | | |
+| 15.8 | Đang bấm liên tục thì đổi camera trước / sau | App không treo; nếu có ảnh lỗi thì báo một lần | | | |
+
 ## Góp ý thêm
 

@@ -4,16 +4,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { SwitchCamera, Trash2 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  Linking,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Alert, Image, Linking, Platform, StyleSheet, Text, View } from 'react-native';
 import {
   GestureDetector,
   usePinchGesture,
@@ -42,6 +33,8 @@ import {
 import { CameraTopBar, TOP_BAR_H } from '@/features/camera/CameraTopBar';
 import {
   cropToFrame,
+  deleteTemp,
+  PHOTO_QUALITY,
   PhotoPermissionError,
   saveToAlbum,
   type Shot,
@@ -133,13 +126,13 @@ function CameraBody() {
   const setHidden = (h: boolean) => setHiddenFor(h ? poseId : null);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [pose, setPose] = useState<Pose | null>(null);
-  const [busy, setBusy] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   // Ảnh vừa chụp: ảnh mới nhất đã lưu trong lần mở app này; chạm để mở màn Xem ảnh vừa chụp.
   const savedPhoto = useSessionPhotos((s) => s.photos[s.photos.length - 1]?.uri ?? null);
-  // Ảnh vừa cắt xong hiện ngay ở ô ảnh, không đợi lưu vào album (góp ý Phase 4, mục 4.5).
-  const [pendingPhoto, setPendingPhoto] = useState<string | null>(null);
-  const lastPhoto = pendingPhoto ?? savedPhoto;
+  // Trong lúc chụp liên tục, ô ảnh giữ nguyên ảnh cũ ('' = trống); ngừng chụp thì ảnh mới nhất
+  // bay vào ô rồi ô lại đi theo danh sách ảnh đã lưu (null).
+  const [heldThumb, setHeldThumb] = useState<string | null>(null);
+  const lastPhoto = heldThumb === null ? savedPhoto : heldThumb || null;
   /** Ảnh đang bay từ khung ngắm vào ô ảnh vừa chụp. */
   const [flying, setFlying] = useState<string | null>(null);
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -343,42 +336,95 @@ function CameraBody() {
     };
   });
   const startFly = (uri: string) => {
-    setPendingPhoto(uri);
+    setHeldThumb(uri);
     setFlying(uri);
     fly.set(0);
     fly.set(
       withTiming(1, { duration: cameraUi.flyMs, easing: easeIO }, (done) => {
-        if (done) scheduleOnRN(setFlying, null);
+        if (!done) return;
+        scheduleOnRN(setFlying, null);
+        scheduleOnRN(setHeldThumb, null);
       }),
     );
   };
 
-  const save = async (shot: Shot) => {
-    try {
-      const assetId = await saveToAlbum(shot.uri);
-      useSessionPhotos.getState().add({ ...shot, assetId });
-      haptic.saved();
-    } catch (e) {
-      if (e instanceof PhotoPermissionError) {
-        Alert.alert(t.camera.photoPermissionTitle, t.camera.photoPermission, [
-          { text: t.common.cancel, style: 'cancel' },
-          { text: t.common.openSettings, onPress: () => Linking.openSettings() },
-        ]);
-        return;
+  // ---- Chụp liên tục (góp ý Phase 4): mỗi lần bấm là một lần chớp màn và một ảnh. ----
+  // Bấm lại được ngay khi camera chụp xong (camera chỉ chụp một ảnh mỗi lúc); cắt và lưu album
+  // chạy nền theo hàng đợi, từng ảnh một để không giữ nhiều ảnh lớn trong bộ nhớ. Ngừng bấm thì
+  // ảnh mới nhất bay vào ô ảnh vừa chụp.
+  const burst = useRef({
+    /** Lần bấm chưa chụp (bấm nhanh hơn tốc độ camera). */
+    taps: 0,
+    capturing: false,
+    /** Ảnh đã chụp, chờ cắt và lưu. */
+    queue: [] as { pic: Shot; frame: Rect; preview: { width: number; height: number } }[],
+    saving: false,
+    /** Ảnh mới nhất đã lưu trong đợt chụp này, sẽ bay vào ô. */
+    last: null as string | null,
+    failed: 0,
+    settle: null as ReturnType<typeof setTimeout> | null,
+  });
+
+  /** Hết bấm, hết chụp, hết lưu thì kết thúc đợt: ảnh bay vào ô, báo lỗi (nếu có) một lần. */
+  const settleBurst = () => {
+    const b = burst.current;
+    if (b.settle) clearTimeout(b.settle);
+    b.settle = setTimeout(() => {
+      b.settle = null;
+      if (b.taps > 0 || b.capturing || b.saving || b.queue.length) return;
+      if (b.last) {
+        startFly(b.last);
+        haptic.saved();
+      } else {
+        setHeldThumb(null);
       }
-      // BR-12: ảnh đã cắt vẫn nằm trong file tạm, cho thử lại.
-      Alert.alert(t.errors.saveFailed, undefined, [
-        { text: t.common.cancel, style: 'cancel' },
-        { text: t.common.retry, onPress: () => save(shot) },
-      ]);
-    }
+      b.last = null;
+      if (b.failed) {
+        b.failed = 0;
+        Alert.alert(t.errors.saveFailed);
+      }
+    }, cameraUi.burstSettleMs);
   };
 
-  const shoot = async () => {
-    const cam = cameraRef.current;
-    if (!cam || busy) return;
-    setBusy(true);
-    try {
+  const saveQueue = async () => {
+    const b = burst.current;
+    if (b.saving) return;
+    b.saving = true;
+    while (b.queue.length) {
+      const job = b.queue.shift()!;
+      try {
+        // Khung ngắm tính trong hệ của màn xem trước (previewRect).
+        const out = await cropToFrame(job.pic, job.frame, job.preview);
+        if (out.uri !== job.pic.uri) deleteTemp(job.pic.uri);
+        const assetId = await saveToAlbum(out.uri);
+        useSessionPhotos.getState().add({ ...out, assetId });
+        b.last = out.uri;
+      } catch (e) {
+        if (e instanceof PhotoPermissionError) {
+          // Không có quyền thì các ảnh còn lại cũng không lưu được: dừng đợt, hỏi một lần.
+          b.queue.length = 0;
+          b.taps = 0;
+          Alert.alert(t.camera.photoPermissionTitle, t.camera.photoPermission, [
+            { text: t.common.cancel, style: 'cancel' },
+            { text: t.common.openSettings, onPress: () => Linking.openSettings() },
+          ]);
+          break;
+        }
+        b.failed += 1;
+      }
+    }
+    b.saving = false;
+    settleBurst();
+  };
+
+  const captureLoop = async () => {
+    const b = burst.current;
+    if (b.capturing) return;
+    b.capturing = true;
+    while (b.taps > 0) {
+      const cam = cameraRef.current;
+      if (!cam) break;
+      b.taps -= 1;
       haptic.capture();
       flashOpacity.set(
         withSequence(
@@ -386,22 +432,36 @@ function CameraBody() {
           withTiming(0, { duration: cameraUi.shutterFlashMs * 2, easing: ease }),
         ),
       );
-      const pic = await cam.takePictureAsync({ quality: 1, shutterSound: true });
-      // Khung ngắm tính trong hệ của màn xem trước (đặt theo previewRect, không còn phủ cả màn).
-      const out = await cropToFrame(
-        pic,
-        { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
-        preview,
-      );
-      startFly(out.uri);
-      await save(out);
-      setPendingPhoto(null);
-    } catch {
-      setPendingPhoto(null);
-      Alert.alert(t.errors.saveFailed);
-    } finally {
-      setBusy(false);
+      try {
+        const pic = await cam.takePictureAsync({ quality: PHOTO_QUALITY, shutterSound: true });
+        b.queue.push({
+          pic,
+          frame: { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
+          preview: { width: preview.width, height: preview.height },
+        });
+        saveQueue();
+      } catch {
+        b.failed += 1;
+      }
     }
+    b.capturing = false;
+    settleBurst();
+  };
+
+  const shoot = () => {
+    const b = burst.current;
+    // Giới hạn số ảnh đang chờ: bấm quá nhanh lâu thì bỏ qua bớt, tránh nóng máy và đầy bộ nhớ.
+    if (b.taps + b.queue.length >= cameraUi.burstMaxPending) return;
+    if (!b.capturing && !b.saving && !b.queue.length && !b.settle) {
+      // Đầu đợt: giữ ảnh đang hiện ở ô cho tới khi ngừng chụp.
+      setHeldThumb(lastPhoto ?? '');
+    }
+    if (b.settle) {
+      clearTimeout(b.settle);
+      b.settle = null;
+    }
+    b.taps += 1;
+    captureLoop();
   };
 
   // Hẹn giờ gọi bản shoot mới nhất (khung có thể đổi trong lúc đếm).
@@ -421,7 +481,7 @@ function CameraBody() {
       cancelCountdown();
       return;
     }
-    if (!ready || busy) return;
+    if (!ready) return;
     if (timer === 0) {
       shoot();
       return;
@@ -567,17 +627,13 @@ function CameraBody() {
           onPress={() => router.push('/review')}
           style={[styles.thumb, lastPhoto ? styles.thumbOn : styles.thumbEmpty]}
         >
-          {busy ? (
-            <ActivityIndicator size="small" color={color.camInk} />
-          ) : lastPhoto ? (
-            <Image source={{ uri: lastPhoto }} style={styles.thumbImage} />
-          ) : null}
+          {lastPhoto ? <Image source={{ uri: lastPhoto }} style={styles.thumbImage} /> : null}
         </PressableScale>
 
         <PressableScale
           accessibilityRole="button"
           accessibilityLabel={countdown != null ? t.camera.cancelTimer : t.camera.capture}
-          accessibilityState={{ disabled: !ready || busy }}
+          accessibilityState={{ disabled: !ready }}
           onPress={onShutter}
           style={styles.shutter}
         >

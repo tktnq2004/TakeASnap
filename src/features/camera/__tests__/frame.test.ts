@@ -1,4 +1,4 @@
-import { ASPECTS, frameToPhotoCrop, previewRect, viewfinderRect } from '../frame';
+import { ASPECTS, frameToPhotoCrop, isWholeImage, previewRect, viewfinderRect } from '../frame';
 
 // iPhone 15 Pro Max: 430 × 932 pt; thanh trên 100, dưới 200 (ước lượng).
 const SW = 430;
@@ -73,5 +73,19 @@ describe('previewRect (màn xem trước đúng tỉ lệ cảm biến)', () => 
     expect(p.height).toBeCloseTo(693.33);
     expect(p.width).toBeCloseTo(520);
     expect(p.x).toBeCloseTo(-65);
+  });
+});
+
+describe('isWholeImage (chụp liên tục: khung trùng cả ảnh thì không cắt)', () => {
+  const photo = { width: 3024, height: 4032 };
+  it('khung 3:4 trùng màn xem trước thì là cả ảnh', () => {
+    const frame = { x: 0, y: 0, width: 390, height: 520 };
+    const crop = frameToPhotoCrop(frame, 390, 520, photo.width, photo.height);
+    expect(isWholeImage(crop, photo)).toBe(true);
+  });
+  it('khung 1:1 thì phải cắt', () => {
+    const frame = { x: 0, y: 65, width: 390, height: 390 };
+    const crop = frameToPhotoCrop(frame, 390, 520, photo.width, photo.height);
+    expect(isWholeImage(crop, photo)).toBe(false);
   });
 });

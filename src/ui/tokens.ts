@@ -279,6 +279,10 @@ export const cameraUi = {
   shutterFlashMs: 120,
   /** Ảnh vừa chụp bay từ khung ngắm vào ô ảnh vừa chụp. */
   flyMs: 420,
+  /** Chụp liên tục: ngừng bấm chừng này (và đã lưu xong) thì ảnh mới nhất bay vào ô. */
+  burstSettleMs: 350,
+  /** Chụp liên tục: tối đa số ảnh đang chờ chụp / lưu; bấm thêm thì bỏ qua. */
+  burstMaxPending: 8,
   countdownSize: 96,
 } as const;
 

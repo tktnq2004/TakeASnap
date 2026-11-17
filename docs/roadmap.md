@@ -420,6 +420,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - [x] Bảng màu nổi cạnh ô màu (design.md §6.10), thêm ô dấu cộng vào hàng màu
 - [x] Chạm ảnh vừa chụp → màn **Xem ảnh vừa chụp** (business-flow §4.5)
 - [x] Phản hồi khi chụp: chớp màn + rung, ảnh vừa chụp thu nhỏ bay vào ô ảnh vừa chụp
+- [x] Chụp liên tục: bấm tiếp ngay khi camera chụp xong; cắt và lưu album chạy nền theo hàng đợi (tối đa 8 ảnh chờ); khung 3:4 không cắt lại; quyền và album chỉ hỏi một lần; ngừng bấm thì ảnh mới nhất bay vào ô
 - [x] Chưa có pose: nút pose là ô tròn dấu cộng, không gợi ý (business-flow §7.2)
 - [x] Rà bố cục thanh trên, rail, vùng dưới ở cả 3 tỉ lệ khung và Android (phiếu 9.3); máy màn nhỏ chuyển sang Phase 6
 - [x] Nhóm pose mẫu **Selfie** (7 ảnh camera trước)
