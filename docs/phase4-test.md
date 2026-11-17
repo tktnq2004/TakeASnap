@@ -213,11 +213,14 @@ Theo góp ý 15.5 và 15.8: bỏ hàng chờ lần bấm. Bấm lúc camera đan
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 16.1 | Bấm liên tục 20–30 lần thật nhanh rồi dừng hẳn | Dừng bấm là camera dừng chớp ngay (cùng lắm một lần chớp nữa); số ảnh có thể ít hơn số lần bấm | | | |
-| 16.2 | Bấm đều tay vừa phải (khoảng 2 lần / giây) | Lần bấm nào cũng ra ảnh | | | |
-| 16.3 | Đang bấm liên tục thì đổi sang camera trước, bấm tiếp ngay | Không crash; không có ảnh nào tự chụp bằng camera trước; nút chụp ăn lại khi camera trước đã hiện | | | |
-| 16.4 | Lặp 16.3 vài lần, đổi qua lại | Không crash, không treo | | | |
-| 16.5 | Đếm ảnh trong album sau 16.1–16.4 | Ảnh nào đã chớp đều có trong album | | | |
+| 16.1 | Bấm liên tục 20–30 lần thật nhanh rồi dừng hẳn | Dừng bấm là camera dừng chớp ngay (cùng lắm một lần chớp nữa); số ảnh có thể ít hơn số lần bấm |đạt |đạt |nháy 30 lần thì còn 15 vẫn chấp nhận được |
+| 16.2 | Bấm đều tay vừa phải (khoảng 2 lần / giây) | Lần bấm nào cũng ra ảnh |đạt |đạt | mượt mà đầy đủ |
+| 16.3 | Đang bấm liên tục thì đổi sang camera trước, bấm tiếp ngay | Không crash; không có ảnh nào tự chụp bằng camera trước; nút chụp ăn lại khi camera trước đã hiện | đạt|đạt | |
+| 16.4 | Lặp 16.3 vài lần, đổi qua lại | Không crash, không treo |đạt |đạt | |
+| 16.5 | Đếm ảnh trong album sau 16.1–16.4 | Ảnh nào đã chớp đều có trong album | đạt| đạt| |
 
 ## Góp ý thêm
 
+tiếp theo sửa giao diện của editor 
+vấn đề : màn hình editor nền trắng khiến việc nhìn các màu sáng và tập trung sẽ rất mỏi mắt và dễ bị stress, mỏi mắt, .... nên những phần này cần màn hình nền tối để tăng độ tập trung và không mỏi mắt, mang lại cảm giác dễ chịu
+nhưng cần phải cân bằng , xem xét nên chuyển app về màu khác để thay màu trắng xanh để có 1 thể thống nhất, cân bằng về giao diện
