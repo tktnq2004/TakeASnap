@@ -12,9 +12,10 @@
 | Nền tảng | **iOS và Android, một codebase.** Test chính trên iPhone của bạn | Mọi thư viện phải chạy được trên cả hai nền tảng |
 | Môi trường | **Windows + VS Code + Expo Go** | **Không có code native tự viết** (Swift/Kotlin), không cần Mac, không cần build |
 | Mục đích | **Đồ án portfolio**, không phát hành store | Không cần Sentry, chính sách quyền riêng tư hay ảnh store. Thay vào đó cần video demo và bài viết case study |
-| Ngân sách GPU | **Không có** | **Bỏ hẳn server.** App chạy 100% trên máy, kể cả Thay nền |
+| Ngân sách GPU | **Không có** | **Bỏ hẳn server.** App chạy 100% trên máy, kể cả phân tích bố cục; không dùng AI trên cloud |
 | Ngôn ngữ | **Chỉ tiếng Việt** | Không cài thư viện i18n; mọi chuỗi nằm trong `src/ui/strings.ts` |
 | Ảnh pose mẫu | Dùng được (phi thương mại) | Model có license phi thương mại cũng dùng được, vẫn ghi nguồn |
+| Chức năng 3 (đổi 2026-11-17) | **Bỏ Thay nền, thay bằng Trợ lý bố cục** | App tập trung vào việc chụp ảnh: pose lo dáng đứng, bố cục lo vị trí trong khung và góc máy. Thay nền không liên quan việc chụp và rủi ro cao (cổng quyết định riêng ở Phase 5 cũ). Nghiên cứu ở [composition.md](composition.md), ý tưởng ở [phase5-bo-cuc.md](phase5-bo-cuc.md) |
 
 ### Vì sao Expo Go đủ
 
@@ -38,7 +39,7 @@ Phần tách người đi qua interface `Segmenter` (§3.3). Khi có điều ki�
 | Code backend bị mất | Không cần backend nữa. Mọi thứ nằm trong một repo |
 | Cử chỉ chồng chéo, giật | `react-native-gesture-handler` Gesture API + `react-native-reanimated` shared value, chạy trên UI thread. **Không có setState nào trong lúc cử chỉ đang diễn ra** (riêng zoom camera, xem §3.5) |
 | Viền không đổi được độ dày | Viền vẽ từ **contour vector** bằng Skia, đổi độ dày và màu realtime |
-| Thay nền chỉ dán ảnh lên | Pipeline Skia trên máy: mask mềm, khớp màu, relight giả lập, light wrap, bóng tiếp xúc và bóng đổ. Có **cổng quyết định** để cắt chức năng nếu không đạt (Phase 5) |
+| Thay nền chỉ dán ảnh lên | **Bỏ Thay nền khỏi v1** (2026-11-17). Thay bằng **Trợ lý bố cục**: model trên máy tìm người, mắt, khớp; cảm biến đo góc máy; quy tắc của nghề ảnh viết bằng TypeScript ra gợi ý giải thích được (§3.6). Có **cổng quyết định** cho gợi ý lúc ngắm (Phase 5) |
 | Flash auto giả, crop sai | `expo-camera` dùng `flash="auto"` gốc; crop theo kích thước ảnh thật, không theo % màn hình |
 | Điều hướng bằng `useState` trong `App.tsx` | **`expo-router`** |
 | Lưu metadata bằng file JSON | **`expo-sqlite`**. File ảnh nằm trong `documentDirectory` |
@@ -75,6 +76,8 @@ Các lỗi đã đọc thấy trong code. Đây là danh sách phải tránh l�
 
 ### 2.3 Thay nền — [ChangeBackground.tsx](../src/screens/ChangeBackground.tsx)
 
+Chức năng này đã bỏ khỏi bản rebuild (2026-11-17); bảng dưới giữ làm bài học.
+
 | # | Lỗi | Hậu quả |
 |---|---|---|
 | L14 | `setFgX/setFgY` mỗi lần ngón tay di chuyển | Re-render mỗi frame |
@@ -104,17 +107,21 @@ flowchart LR
         UI[expo-router screens]
         CAM[expo-camera<br/>component cô lập]
         GES[Gesture Handler + Reanimated<br/>UI thread]
-        SKIA[Skia renderer<br/>overlay, editor, compose]
+        SKIA[Skia renderer<br/>overlay, editor, lớp bố cục]
         SEGI[Segmenter interface]
         WV[WebView ẩn<br/>MediaPipe / ONNX Runtime Web]
         MODEL[(file model<br/>đóng gói kèm app)]
         CONT[Contour engine<br/>marching squares + làm mượt]
+        COMP[Composition engine<br/>quy tắc bố cục, TypeScript thuần]
+        SENS[Cảm biến trọng lực<br/>useAnimatedSensor]
         DB[(expo-sqlite)]
         FS[(documentDirectory)]
     end
     UI --> CAM & GES & SKIA
     UI --> SEGI --> WV --> MODEL
     SEGI --> CONT --> SKIA
+    SEGI --> COMP
+    SENS --> COMP --> SKIA
     UI --> DB & FS
     SEGI -. "sau này, khi có dev build" .-> NATIVE[Vision / ML Kit]
 ```
@@ -130,9 +137,9 @@ Mọi thư viện dưới đây đều có sẵn trong Expo Go hoặc là JS thu
 | Camera | `expo-camera` | `flash="auto"` gốc, `mirror`, `selectedLens` (chọn ống góc rộng trên iOS) |
 | Cử chỉ | `react-native-gesture-handler` v2 (Gesture API) | `Gesture.Simultaneous`, `Gesture.Exclusive`, bật/tắt theo chế độ |
 | Animation | `react-native-reanimated` | Shared value, worklet |
-| Vẽ | `@shopify/react-native-skia` (đã có trong `package.json`, bản cũ chưa dùng) | Overlay 3 lớp, editor, `RuntimeEffect` shader cho compose |
+| Vẽ | `@shopify/react-native-skia` (đã có trong `package.json`, bản cũ chưa dùng) | Overlay 3 lớp, editor, lớp bố cục |
 | Tách người | `react-native-webview` + model chạy trong WebView | Ứng viên ở §3.3 |
-| Cảm biến | `expo-sensors` (Accelerometer) | Ghi vào shared value, không setState |
+| Cảm biến | `useAnimatedSensor` của Reanimated (trọng lực) | Ghi vào shared value, không setState; dùng cho thước cân bằng và gợi ý góc máy |
 | State | `zustand` cho state phiên, SQLite cho dữ liệu lưu | |
 | Lưu trữ | `expo-sqlite`, `expo-file-system`, `expo-media-library`, `expo-image-manipulator` | |
 | Sheet | `presentation: 'formSheet'` của expo-router; dự phòng `@gorhom/bottom-sheet` | Kiểm tra trên Android ở Phase 0 |
@@ -173,25 +180,23 @@ Cách `WebViewSegmenter` chạy:
 
 | Dùng cho | Model | Thư viện | Đo trên iPhone |
 |---|---|---|---|
-| **Pose** | MediaPipe `selfie_multiclass_256x256` | `@mediapipe/tasks-vision` 1.1.1, GPU | ~105 ms cả vòng |
-| **Thay nền** | RMBG-1.4 **fp16** (84 MB) | `onnxruntime-web` 1.30.0, **WebGPU** | ~0.96 s cả vòng |
-| Thay nền, không có WebGPU | RMBG-1.4 int8 (42 MB) | `onnxruntime-web` 1.30.0, WASM 1 luồng | ~7.9 s cả vòng |
+| **Pose** và **bố cục** | MediaPipe `selfie_multiclass_256x256` + FaceLandmarker + PoseLandmarker | `@mediapipe/tasks-vision` 1.1.1, GPU | ~105 ms cả vòng (tách người) |
+
+Spike B còn đo RMBG-1.4 cho Thay nền (fp16 WebGPU ~0.96 s, int8 WASM ~7.9 s). Thay nền đã bỏ nên RMBG không còn dùng; số đo giữ ở [spikes.md](spikes.md).
 
 - Multiclass: lấy `1 − kênh nền` rồi kéo dãn [0.25, 0.65] → [0, 1] (kênh nền chỉ đạt 0.8–0.96 trên vùng nền).
-- RMBG chỉ nhận đúng 1024 × 1024. **Không đưa bản int8 lên WebGPU**: lần đo 2 treo quá 180 s.
 - Đã loại: MediaPipe Selfie (cắt mất chân, váy), DeepLab v3 (mép nhòe, dính nền), U²-Net human seg (176 MB).
 - Đã thử và bỏ: guided filter làm mịn mép (quầng sáng, lem nền).
 **Cách đưa model vào app: đã chốt phương án C, tải khi dùng lần đầu và lưu vĩnh viễn trong máy.**
 
 | Gói | Gồm | Dung lượng | Tải khi |
 |---|---|---|---|
-| `pose` | Multiclass 15.6 MB + FaceLandmarker 3.6 MB + PoseLandmarker full 9.0 MB + MediaPipe wasm 12.9 MB + JS | ~42 MB | Tạo pose lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
-| `compose-gpu` | RMBG fp16 84.1 MB + ORT wasm (WebGPU) 27.0 MB + JS | ~111 MB | Thay nền lần đầu, máy có WebGPU |
-| `compose-cpu` | RMBG int8 42.3 MB + ORT wasm 13.6 MB + JS | ~56 MB | Thay nền lần đầu, máy không có WebGPU |
+| `pose` | Multiclass 15.6 MB + FaceLandmarker 3.6 MB + PoseLandmarker full 9.0 MB + MediaPipe wasm 12.9 MB + JS | ~42 MB | Tạo pose lần đầu, hoặc gợi ý bố cục cần phân tích người lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
 
-- Tải từ **CDN gốc** với phiên bản cố định: jsDelivr (MediaPipe, ORT), Google Storage (Multiclass), Hugging Face (RMBG). Chưa làm bản sao trên GitHub Releases; nếu CDN gốc gặp sự cố thì thêm sau, chỉ phải đổi URL.
+Hai gói `compose-gpu` / `compose-cpu` (RMBG, ~111 MB / ~56 MB) bỏ cùng Thay nền.
+
+- Tải từ **CDN gốc** với phiên bản cố định: jsDelivr (MediaPipe), Google Storage (Multiclass, FaceLandmarker, PoseLandmarker). Chưa làm bản sao trên GitHub Releases; nếu CDN gốc gặp sự cố thì thêm sau, chỉ phải đổi URL.
 - Lưu trong `Paths.document/models/<gói>/`, kèm `manifest.json` (URL, kích thước, phiên bản). Mở app thấy đủ file đúng kích thước thì không tải lại.
-- Không đóng gói, không đăng lại RMBG: license BRIA chỉ cho dùng phi thương mại, phân phối lại phải đọc kỹ điều khoản.
 - Đã cân nhắc và bỏ: A. đóng gói tất cả (~196 MB trong app và repo, vướng license); B. đóng gói riêng pose (hai cơ chế, mà trong Expo Go app vẫn tải qua mạng ở lần mở đầu nên lợi thế offline gần như không có); D. tải từ CDN mỗi lần (iOS có thể xóa cache, không offline thật).
 - Việc kỹ thuật cần làm ở Phase 1: đưa file từ `Paths.document` vào WebView (đọc file và truyền vào, hoặc cho WebView quyền đọc thư mục model).
 
@@ -232,31 +237,29 @@ Quy tắc:
 - Cử chỉ chỉnh overlay nhận trên **toàn khung ngắm**, không chỉ trên vùng overlay, nên pose nhỏ vẫn chỉnh được.
 - Chỉ gọi `scheduleOnRN` khi cử chỉ **kết thúc** (lưu placement, haptics).
 - Hít góc 0°/90° khi lệch dưới 3°. Giới hạn scale 0.2×–4×.
-- Cùng một hook `useTransformGesture` dùng cho overlay camera và cho bước Vị trí của Thay nền.
+- Hook `useTransformGesture` dùng cho overlay camera; Phase 5 thêm dính vào đường 1/3 / trục giữa của lớp bố cục.
 
 **Ngoại lệ: zoom camera.** `expo-camera` nhận zoom qua prop, nên bắt buộc phải có state. Cách làm:
 - `CameraView` nằm trong một component riêng, `React.memo`, chỉ nhận `zoom` và vài prop camera. Overlay, lưới và thanh điều khiển nằm **ngoài** component này.
 - Shared value `zoomSV` đẩy sang state bằng `useAnimatedReaction` + `runOnJS`, giới hạn khoảng 30 lần/giây.
 - Chỉ component camera re-render; overlay không bị ảnh hưởng.
 
-### 3.6 Thay nền — pipeline trên máy
+### 3.6 Trợ lý bố cục — trên máy
 
-Không có server, nên phần "relight bằng model diffusion" được thay bằng **relight giả lập**. Mục tiêu là ảnh **trông tự nhiên ở mức portfolio**, không nhắm tới mức của các model GPU. Toàn bộ chạy bằng Skia (`RuntimeEffect` shader + đọc pixel ảnh thu nhỏ).
+Thay cho pipeline Thay nền (bỏ 2026-11-17). Nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục), danh mục kỹ thuật ở [composition.md](composition.md).
 
-| Bước | Cách làm |
+**Cách nghĩ:** model chỉ dùng để **phát hiện** (người, mắt, khớp); lời khuyên đến từ **quy tắc** viết bằng TypeScript thuần, có unit test. Không dùng model chấm thẩm mỹ (điểm mơ hồ, không giải thích được).
+
+| Lớp | Cách làm |
 |---|---|
-| 1. Mask mềm | Model mép đẹp (§3.3); feather thêm 1–2 px ở mép |
-| 2. Phân tích nền | Thu nền xuống 256 px, đọc pixel: trung bình và độ lệch chuẩn Lab, lưới sáng 8×8 (ước lượng hướng sáng), mức mờ (phương sai Laplacian), mức nhiễu |
-| 3. Mặt đất | Mặc định: vùng dưới đường chân trời ước lượng. Tùy chọn: model độ sâu nhỏ trong WebView (Depth Anything V2 Small, lượng tử hóa), chỉ làm nếu còn thời gian |
-| 4. Khớp màu | Chuyển thống kê Lab của người về phía nền (Reinhard), slider 0–100% |
-| 5. Relight giả lập | Gradient sáng/tối trên người theo hướng sáng, nhân với mask; thêm rim light mảnh ở mép phía nguồn sáng, màu lấy từ vùng sáng nhất của nền |
-| 6. Light wrap | Làm mờ nền rồi tràn nhẹ vào mép người, 4–12 px |
-| 7. Bóng tiếp xúc | Bóng elip mềm dưới điểm thấp nhất của mask |
-| 8. Bóng đổ | Chiếu silhouette theo hướng sáng lên mặt đất (skew + scale Y), làm mờ dần theo khoảng cách, độ đậm theo độ tương phản của nền |
-| 9. Khớp độ nét và nhiễu | Làm mờ người theo mức mờ của nền; thêm grain theo mức nhiễu |
-| 10. Xuất | Skia offscreen (`makeImageSnapshot`), độ phân giải gốc của ảnh nền, tối đa 12 MP |
+| 1. Nguồn dữ liệu | Cảm biến trọng lực (nghiêng, ngửa / cúi), zoom và camera trước / sau đang dùng; với ảnh: vùng người (Multiclass), mắt và hướng mặt (FaceLandmarker), 33 khớp (PoseLandmarker) |
+| 2. Đặc trưng | `features.ts`: khung người, đỉnh đầu, vị trí mắt, hướng mặt, khớp sát mép, cỡ cảnh, cỡ mặt, độ nghiêng, độ ngửa, đỉnh đầu từng người. Tọa độ chuẩn hóa theo khung ảnh sẽ lưu |
+| 3. Quy tắc | Mỗi kỹ thuật một hàm thuần `(features) → { reached, hint, target }`, ngưỡng nằm trong token (dữ liệu thuần, test được) |
+| 4. Chọn gợi ý | Thứ tự ưu tiên + chống nhảy: một gợi ý mỗi lúc, chỉ hiện khi ổn định ~0,5 s (BR-15) |
+| 5. Vẽ | Lớp bố cục bằng Skia trong vùng ảnh sẽ lưu: đường kẻ, chấm đích, màu nhấn khi đạt |
+| 6. Nhận xét sau khi chụp | Chạy bộ tách người trên ảnh vừa chụp (thu nhỏ), áp cùng quy tắc, tính khung cắt gợi ý |
 
-Người dùng chỉnh được: hướng sáng (vòng xoay, mặc định là giá trị ước lượng), độ mềm và độ đậm bóng, mức khớp màu.
+**Gợi ý lúc ngắm (cần đo, Phase 5 tuần 2):** Expo Go không có frame processor, nên lấy ảnh bằng `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ, gửi vào WebView đang có, nhận đặc trưng về. Cần đo: số lần phân tích mỗi giây, độ trễ, có nháy màn / tiếng không, pin và nhiệt máy trên iPhone và Android. Ảnh tạm xóa ngay (BR-16). Gợi ý chỉ cần cảm biến thì chạy tức thì trên UI thread, không phụ thuộc phần này.
 
 ### 3.7 Cấu trúc thư mục
 
@@ -267,15 +270,14 @@ src/
     index.tsx                 # Camera (Phase 0: menu spike)
     library.tsx               # Thư viện pose (formSheet)
     editor/[poseId].tsx       # Chỉnh pose
-    compose/
-      _layout.tsx             # stepper 4 bước
-      subject.tsx  background.tsx  place.tsx  result.tsx
+    review.tsx                # Xem ảnh vừa chụp (+ nhận xét bố cục, Phase 5)
+    learn/                    # Thẻ học bố cục (Phase 5; hoặc tab trong library, chốt khi thiết kế)
     settings.tsx
-    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 5
+    spike/                    # màn đo của Phase 0; sau Phase 2 chỉ còn spike B (tách người), xóa khi xong Phase 5 (kèm mã RMBG)
   features/
     camera/                   # CameraLayer (memo), controls, overlay, capture
     pose/                     # library, editor, repository
-    compose/                  # placement, analysis, skia pipeline
+    composition/              # kỹ thuật, đặc trưng, quy tắc, chọn gợi ý (TypeScript thuần + test), lớp bố cục Skia
   engine/
     segmentation/             # types.ts, WebViewSegmenter.tsx, web/ (HTML + JS chạy trong WebView)
     contour.ts                # marching squares, DP, Catmull–Rom (có unit test)
@@ -445,32 +447,61 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 **Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; Thay nền có sẵn khung để Phase 5 điền nội dung; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.
 
-### Phase 5 — Thay nền (timebox 3 tuần, có cổng quyết định)
+### Phase 5 — Trợ lý bố cục (timebox 3 tuần, có cổng quyết định)
 
-- [ ] Phân tích nền (§3.6 bước 2–3)
-- [ ] Nội dung 4 bước trong khung đã dựng ở Phase 4, bước Vị trí dùng `useTransformGesture`
-- [ ] Pipeline Skia 10 bước, preview tức thì ở độ phân giải màn hình
-- [ ] Vòng chỉnh hướng sáng, độ mềm/đậm bóng, mức khớp màu
-- [ ] Xuất độ phân giải gốc (tối đa 12 MP), giữ để so sánh với ảnh trước khi xử lý, lưu album
-- [ ] Bộ ảnh test: 30 cặp người/nền (trong nhà, ngoài trời nắng, ngoài trời râm, đêm)
+**Đổi hướng 2026-11-17:** bỏ Thay nền, thay bằng hướng dẫn bố cục khi chụp người. Lý do và cách làm ở [phase5-bo-cuc.md](phase5-bo-cuc.md); nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục); kỹ thuật ở §3.6.
 
-**Cổng quyết định ở cuối tuần 2:** chấm 10 cặp theo 6 tiêu chí ở [business-flow §6.1](business-flow.md#61-mục-tiêu-chất-lượng), 3 người chấm không biết trước ảnh nào là ghép.
+**Đã chốt tạm (theo đề xuất, đổi được trước khi code):** chỉ chạy trên máy, không AI cloud; người dùng chọn kỹ thuật rồi app dẫn (app tự đoán để sau v1); 15 kỹ thuật, 10 có hướng dẫn trên camera; nhận xét sau khi chụp làm trước, gợi ý lúc ngắm qua cổng quyết định.
 
-| Điểm trung bình | Quyết định |
+**Bước 0 — Nghiên cứu**
+
+- [x] Nghiên cứu kỹ thuật bố cục chụp người bằng điện thoại, có nguồn: [composition.md](composition.md)
+- [x] Giải thích ý tưởng, luồng dùng, lịch làm: [phase5-bo-cuc.md](phase5-bo-cuc.md)
+- [x] Cập nhật business-flow §6 và roadmap
+
+**Bước 1 — Thiết kế (duyệt trước khi viết code)**
+
+- [ ] Vẽ phương án trên canvas thiết kế: nút Bố cục và danh sách kỹ thuật, lớp bố cục (đường kẻ, chấm đích, trạng thái đạt), dòng gợi ý, nhận xét ở Xem ảnh vừa chụp, thẻ học (tab thứ ba của Thư viện hay màn riêng)
+- [ ] Chốt chỗ đặt thẻ học và có hay không mục "Gợi ý lúc ngắm" trong Cài đặt
+- [ ] Cập nhật [design.md](design.md): component và màn mới; bỏ khung Thay nền
+
+**Bước 2 — Phần chắc chắn làm được (tuần 1)**
+
+- [ ] `src/features/composition/`: danh mục 15 kỹ thuật, đặc trưng, quy tắc, chọn gợi ý; unit test cho từng quy tắc
+- [ ] Nút Bố cục thay nút Lưới; lớp bố cục cho từng kỹ thuật (lưới 3×3 / 4×4 giữ trong danh sách)
+- [ ] Gợi ý từ cảm biến: máy thẳng, góc thấp, selfie cao hơn mắt
+- [ ] Pose dính đường 1/3 / trục giữa khi kéo; gắn kỹ thuật cho 32 pose mẫu
+- [ ] Thẻ học cho 15 kỹ thuật (ảnh ví dụ đúng / sai, nút Chụp thử)
+- [ ] Dọn Thay nền khỏi code: chuỗi, Cài đặt (dung lượng bộ Thay nền), mã RMBG trong engine (RMBG chỉ còn trong spike B, xóa cùng spike)
+
+**Bước 3 — Phân tích người (tuần 2, có cổng quyết định)**
+
+- [ ] Nhận xét sau khi chụp ở Xem ảnh vừa chụp: lớp bố cục trên ảnh, đạt / chưa đạt, khung cắt gợi ý (lưu thành ảnh mới)
+- [ ] Spike gợi ý lúc ngắm: `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ → WebView → đặc trưng; đo lần / giây, độ trễ, nháy màn, pin, nhiệt trên iPhone và Android
+- [ ] Bộ ảnh thử ~30 ảnh có người, đúng và sai từng kỹ thuật, để đo độ đúng của quy tắc
+
+**Cổng quyết định cuối tuần 2:**
+
+| Kết quả đo | Quyết định |
 |---|---|
-| ≥ 3/5 | Làm tiếp tuần 3, hoàn thiện |
-| 2–3/5 | Thu hẹp phạm vi: chỉ giữ cảnh **ngoài trời râm và trong nhà** (ánh sáng mềm, dễ khớp); app gợi ý chọn nền có ánh sáng mềm |
-| < 2/5 | **Bỏ chức năng Thay nền.** Ghi lại thử nghiệm vào case study (đã thử gì, vì sao chưa đạt), chuyển sang Phase 6 |
+| Gợi ý lúc ngắm ≥ 2 lần/giây, không nháy màn / tiếng, máy không nóng sau 5 phút; quy tắc đúng ≥ 70% trên bộ ảnh thử | Làm gợi ý lúc ngắm cho cả 10 kỹ thuật |
+| Gợi ý lúc ngắm chậm, nháy hoặc nóng máy; quy tắc vẫn đúng ≥ 70% | Gợi ý lúc ngắm chỉ từ cảm biến; phân tích người chỉ ở nhận xét sau khi chụp |
+| Quy tắc đúng dưới 70% | Giữ Bước 2 (lớp bố cục, thẻ học, pose dính 1/3, gợi ý cảm biến); nhận xét chỉ cho kỹ thuật đạt ngưỡng |
 
-**Xong khi:** đạt ≥ 3/5 trên cả 30 cặp (hoặc phạm vi đã thu hẹp); xuất ảnh dưới 5 s.
+**Bước 4 — Hoàn thiện (tuần 3)**
+
+- [ ] Chữ gợi ý ngắn theo quy tắc chữ của app; chuyển động khi đạt; trường hợp không thấy người, chưa tải bộ tách
+- [ ] Phiếu `phase5-test.md`, thử trên iPhone và Android, sửa theo góp ý từng vòng
+
+**Xong khi:** chọn được kỹ thuật và thấy lớp bố cục trên camera; gợi ý cảm biến chạy tức thì; có nhận xét sau khi chụp (hoặc đã ghi rõ vì sao bỏ theo cổng); 15 thẻ học; phiếu `phase5-test.md` đạt trên iPhone và Android.
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 
 - [ ] Hiệu năng: mở app tới khi thấy preview dưới 2 s; bộ nhớ ổn định khi mở ảnh 12 MP
 - [ ] Accessibility: nhãn cho mọi nút icon (VoiceOver, TalkBack), cỡ chữ hệ thống, tôn trọng Reduce Motion
 - [ ] Phần để lại từ Phase 4: chuyển màn và motion thống nhất (design.md §3.5), rà bố cục ở máy màn nhỏ, sửa chú thích trỏ số mục design.md cũ
-- [ ] **Video demo** 60–90 s quay trên iPhone: chọn pose → chỉnh → chụp theo → (thay nền); thêm vài giây trên Android để chứng minh chạy hai nền tảng
-- [ ] **Case study** trong README: vấn đề của bản cũ, cách sửa hệ cử chỉ, contour vector, tách người offline bằng WebView, pipeline thay nền, số đo trước/sau
+- [ ] **Video demo** 60–90 s quay trên iPhone: chọn pose → chỉnh → bật bố cục, chỉnh theo gợi ý → chụp → nhận xét; thêm vài giây trên Android để chứng minh chạy hai nền tảng
+- [ ] **Case study** trong README: vấn đề của bản cũ, cách sửa hệ cử chỉ, contour vector, tách người offline bằng WebView, trợ lý bố cục (phát hiện bằng model trên máy + quy tắc của nghề ảnh), vì sao bỏ Thay nền, số đo trước/sau
 - [ ] Ảnh/GIF trước–sau cho từng chức năng
 - [ ] Ghi nguồn ảnh mẫu và license model trong README
 - [ ] (Tùy chọn) `eas update` để người xem mở app bằng Expo Go qua link/QR mà không cần clone repo
@@ -482,7 +513,8 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 - `NativeSegmenter` qua dev build: ML Kit trên Android (build được trên Windows), Apple Vision trên iOS (cần Mac hoặc GitHub Actions + Sideloadly)
 - `react-native-vision-camera` thay `expo-camera`: zoom không qua state, chạm lấy nét, frame processor
 - Điểm khớp dáng realtime: ước lượng tư thế người thật, so với pose mẫu, hiện % khớp
-- Gợi ý vị trí đứng trong Thay nền dựa trên độ sâu
+- Bố cục: app tự đoán kỹ thuật hợp cảnh; phát hiện đường dẫn và vật "mọc" sau đầu bằng dò đường thẳng; khoảng trống âm, tách người khỏi nền, ngược sáng ([composition.md](composition.md) §4)
+- Thay nền (đã bỏ khỏi v1): pipeline Skia và số đo RMBG ở git history trước 2026-11-17 và [spikes.md](spikes.md)
 - Chia sẻ pose qua file `.tasnap`
 
 ---
@@ -491,12 +523,14 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 | Rủi ro | Khả năng | Ứng phó |
 |---|---|---|
-| Model trong WebView chậm trên iPhone | **Đã loại** (spike B) | Multiclass ~105 ms, RMBG fp16 WebGPU ~0.96 s trên iPhone 15 Pro Max |
-| Android WebView không có WebGPU, hoặc GPU đọc mask sai | Trung bình (emulator bị cả hai) | MediaPipe tự lùi CPU (~0.3 s); RMBG lùi int8 WASM (~9 s), Thay nền trên Android chậm hơn nhưng vẫn chạy |
-| WebView tốn bộ nhớ khi gửi ảnh base64 lớn | Trung bình | Giới hạn 1024 px cho pose; Thay nền tách ở 1024 px rồi phóng mask lên bằng làm mịn có hướng dẫn theo ảnh gốc |
+| Model trong WebView chậm trên iPhone | **Đã loại** (spike B) | Multiclass ~105 ms trên iPhone 15 Pro Max |
+| Android WebView GPU đọc mask sai | Trung bình (emulator bị) | MediaPipe tự lùi CPU (~0.3 s) |
+| WebView tốn bộ nhớ khi gửi ảnh base64 lớn | Trung bình | Giới hạn 1024 px cho pose; ảnh phân tích bố cục còn nhỏ hơn |
 | Mask kém với người toàn thân ở xa | Trung bình | So 4 model ở spike B; với pose thì mask thô vẫn đủ vì chỉ dùng làm dáng |
 | Expo Go chỉ chạy SDK mới nhất | Chắc chắn | Khi App Store cập nhật Expo Go thì nâng SDK; không dùng thư viện ngoài danh sách của Expo Go |
 | Expo Go trên Android giới hạn quyền thư viện ảnh | Trung bình | Spike D; dự phòng: lưu bằng `saveToLibraryAsync` không cần album riêng |
 | Zoom camera qua state làm giật overlay | Thấp–trung bình | `CameraLayer` cô lập (§3.5); spike A |
-| Thay nền trên máy không đủ tự nhiên | **Cao** | Cổng quyết định ở Phase 5; Phase 3 đã là mốc portfolio tối thiểu |
+| Gợi ý bố cục lúc ngắm chậm, nháy màn hoặc nóng máy (Expo Go không có frame processor) | **Cao** | Cổng quyết định ở Phase 5; lùi về gợi ý cảm biến + nhận xét sau khi chụp |
+| Quy tắc bố cục gợi ý sai, làm phiền | Trung bình | Bộ ảnh thử đo độ đúng; một gợi ý mỗi lúc, chống nhảy, tắt được; không chặn chụp, không chấm "đúng / sai" |
+| Nội dung chuyên môn sai (không phải người trong nghề) | Trung bình | Mọi kỹ thuật có nguồn trong composition.md; ghi cả "khi nào phá lệ"; quy tắc là gợi ý |
 | Mất code lần nữa | Đã xảy ra | Push lên GitHub từ ngày đầu; CI chạy trên mỗi push |

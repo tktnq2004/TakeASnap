@@ -17,11 +17,11 @@ Bản làm lại (rebuild v1) trên nhánh `rebuild`. Bản cũ được tag `le
 | 1 | Pose engine, Chỉnh pose | Xong |
 | 2 | Camera và overlay pose | Xong |
 | 3 | Thư viện pose, chọn nhiều, cọ sửa viền | Xong (còn thử không có mạng) |
-| 4 | Giao diện chụp ảnh và giao diện chung | Đã chốt giao diện, đang làm code |
-| 5 | Thay nền | Chưa làm |
+| 4 | Giao diện chụp ảnh và giao diện chung | Xong |
+| 5 | Trợ lý bố cục (thay cho Thay nền) | Đã chốt hướng, chưa làm |
 | 6 | Hoàn thiện portfolio | Chưa làm |
 
-Phase 1–3 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi tiết và phiếu kiểm tra ở [docs/roadmap.md](docs/roadmap.md).
+Phase 1–4 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi tiết và phiếu kiểm tra ở [docs/roadmap.md](docs/roadmap.md).
 
 ---
 
@@ -31,7 +31,7 @@ Phase 1–3 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi ti
 |---|---|---|
 | 1 | **Chụp theo pose** | Camera đủ điều khiển: flash, hẹn giờ, tỉ lệ khung, lưới, thước cân bằng, zoom, đổi camera. Pose nằm trên khung ngắm, kéo / phóng to / xoay cho khớp. Cột công cụ pose (chỉnh pose, độ hiện, lật ngang, giữ để ẩn) dời được bằng một ngón. Ảnh lưu vào album SnapShot, không kèm pose |
 | 2 | **Tạo và chỉnh pose** | Chọn pose mẫu hoặc ảnh trong máy → tách người (ảnh nhiều người: chạm chọn người ngay trên màn xử lý) → chỉnh 4 tab: **Viền** (viền và nét mặt), **Phủ**, **Nền** (độ hiện người và nền), **Cọ** (thêm / xóa vùng người, hoàn tác không giới hạn) → lưu vào thư viện |
-| 3 | **Thay nền** | Chọn ảnh người và ảnh nền → đặt vị trí → tạo ảnh ghép có khớp màu, ánh sáng và bóng. Có cổng quyết định giữ hay bỏ ở Phase 5 |
+| 3 | **Trợ lý bố cục** | Chọn kỹ thuật (quy tắc 1/3, đặt ở giữa, góc thấp, selfie…) → lớp bố cục và gợi ý ngắn trên khung ngắm → nhận xét sau khi chụp; thẻ học cho 15 kỹ thuật. Thay cho Thay nền (bỏ 2026-11-17) |
 
 ---
 
@@ -40,8 +40,10 @@ Phase 1–3 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi ti
 | File | Nội dung |
 |---|---|
 | [docs/business-flow.md](docs/business-flow.md) | Người dùng, thuật ngữ, bản đồ màn hình, luồng của 3 chức năng, quy tắc nghiệp vụ, mô hình dữ liệu, trạng thái và lỗi |
-| [docs/roadmap.md](docs/roadmap.md) | Phạm vi, vì sao Expo Go đủ, kiến trúc, tách người bằng WebView, phân phối model, pipeline Thay nền, 7 phase và tiêu chí xong |
+| [docs/roadmap.md](docs/roadmap.md) | Phạm vi, vì sao Expo Go đủ, kiến trúc, tách người bằng WebView, phân phối model, trợ lý bố cục, 7 phase và tiêu chí xong |
 | [docs/design.md](docs/design.md) | Giao diện xanh dương – trắng: token màu / chữ / kích thước / motion, icon Lucide, component, chữ trên giao diện, bố cục 13 màn |
+| [docs/composition.md](docs/composition.md) | Nghiên cứu kỹ thuật bố cục chụp người bằng điện thoại, có nguồn (Phase 5) |
+| [docs/phase5-bo-cuc.md](docs/phase5-bo-cuc.md) | Giải thích Trợ lý bố cục: là gì, dùng ra sao, làm thế nào, kết quả |
 | [docs/spikes.md](docs/spikes.md) | Kết quả đo của Phase 0 |
 | `docs/phase*-test.md` | Phiếu kiểm tra trên máy thật của từng phase |
 
@@ -59,8 +61,8 @@ Mọi thư viện đều chạy được trong **Expo Go**, không cần build n
 | Điều hướng | `expo-router` |
 | Camera, cảm biến | `expo-camera`, `expo-sensors` (thước cân bằng) |
 | Cử chỉ và animation | `react-native-gesture-handler` 3 (API hook) + `react-native-reanimated` 4 + `react-native-worklets` |
-| Vẽ overlay, editor, ghép ảnh | `@shopify/react-native-skia` |
-| Tách người | Model chạy trong `react-native-webview` ẩn: MediaPipe Multiclass + FaceLandmarker (pose), RMBG-1.4 trên `onnxruntime-web` (Thay nền) |
+| Vẽ overlay, editor, lớp bố cục | `@shopify/react-native-skia` |
+| Tách người | Model chạy trong `react-native-webview` ẩn: MediaPipe Multiclass + FaceLandmarker + PoseLandmarker (pose và bố cục) |
 | Lưu trữ | `expo-sqlite`, `expo-file-system`, `expo-media-library`, `zustand` cho state phiên |
 | Chữ, icon, rung | `@expo-google-fonts` (Nunito từ Phase 4, thay Urbanist), `lucide-react-native`, `expo-haptics` |
 
@@ -124,5 +126,4 @@ Lưu ý: Expo Go trên App Store chỉ chạy được SDK mới nhất. Khi Exp
 
 Đồ án portfolio, phi thương mại.
 - 32 ảnh pose mẫu trong `assets/poses/source/` (5 nhóm, nhóm Selfie cho camera trước): dùng cho mục đích portfolio.
-- RMBG-1.4 của BRIA dùng giấy phép phi thương mại: app tải từ nguồn gốc, không lưu lại hay phát hành lại model.
 - Model và thư viện bên thứ ba khác: ghi đầy đủ ở Phase 6.

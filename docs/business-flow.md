@@ -7,7 +7,7 @@
 
 ## 1. Sản phẩm trong một câu
 
-**SnapShot là app camera chụp theo dáng mẫu:** tách dáng người từ một ảnh mẫu, đặt dáng đó lên khung ngắm làm lớp hướng dẫn, rồi chụp người thật theo đúng dáng. Ngoài ra app có công cụ ghép người vào nền mới với ánh sáng và bóng đổ khớp cảnh.
+**SnapShot là app camera chụp theo dáng mẫu:** tách dáng người từ một ảnh mẫu, đặt dáng đó lên khung ngắm làm lớp hướng dẫn, rồi chụp người thật theo đúng dáng. Cùng lúc, **trợ lý bố cục** hướng dẫn đặt người ở đâu trong khung và cầm máy góc nào theo các kỹ thuật của nghề ảnh, kèm thẻ học từng kỹ thuật.
 
 Phạm vi v1: **iOS và Android (chạy trong Expo Go), chỉ tiếng Việt, chạy hoàn toàn trên máy, không có server**, là đồ án portfolio.
 
@@ -15,10 +15,10 @@ Phạm vi v1: **iOS và Android (chạy trong Expo Go), chỉ tiếng Việt, ch
 
 | Vai trò | Họ cần gì | Dùng chức năng |
 |---|---|---|
-| **Người cầm máy** (bạn bè, người yêu, nhiếp ảnh nghiệp dư) | Biết cần bảo người mẫu đứng thế nào, căn khung ra sao | 1 — Chụp theo pose |
+| **Người cầm máy** (bạn bè, người yêu, nhiếp ảnh nghiệp dư) | Biết cần bảo người mẫu đứng thế nào, căn khung ra sao | 1 — Chụp theo pose, 3 — Trợ lý bố cục |
 | **Người được chụp** | Xem nhanh dáng cần tạo, so với dáng mình đang đứng | 1 — Chụp theo pose |
 | **Người sưu tầm dáng** (content creator, người hay chụp ảnh du lịch) | Lưu dáng đẹp thấy trên mạng thành thư viện riêng | 2 — Tạo và chỉnh pose |
-| **Người muốn đổi bối cảnh ảnh** | Đưa mình vào một khung cảnh khác mà ảnh không lộ ghép | 3 — Thay nền |
+| **Người mới tập chụp** | Biết đặt người ở đâu trong khung, cầm máy góc nào, tránh lỗi hay gặp; học dần kỹ thuật | 3 — Trợ lý bố cục |
 
 ---
 
@@ -36,8 +36,11 @@ Phạm vi v1: **iOS và Android (chạy trong Expo Go), chỉ tiếng Việt, ch
 | **Lớp phủ** | Màu phủ lên vùng mask (bật/tắt, màu, độ đậm) | `style.fill` |
 | **Lớp người** | Phần ảnh người thật đã tách (độ hiện) | `style.subject` |
 | **Overlay** | Pose đang hiện trên khung ngắm, kèm vị trí/tỉ lệ/góc xoay | `OverlayState` |
-| **Ảnh nền** | Ảnh bối cảnh mới ở chức năng 3 | `backgroundImage` |
-| **Ảnh ghép** | Kết quả cuối của chức năng 3 | `Composite` |
+| **Kỹ thuật bố cục** | Một kỹ thuật của nghề ảnh mà app hướng dẫn (quy tắc 1/3, góc thấp…), danh mục ở [composition.md](composition.md) | `CompositionTechnique` |
+| **Lớp bố cục** | Đường kẻ và chấm đích của kỹ thuật đang chọn, vẽ trên khung ngắm | `CompositionGuide` |
+| **Gợi ý** | Một câu ngắn kèm mũi tên chỉ cách chỉnh (dời máy, nghiêng máy, lùi ra) | `Hint` |
+| **Nhận xét** | Kết quả phân tích bố cục của ảnh vừa chụp | `CompositionReview` |
+| **Thẻ học** | Giải thích một kỹ thuật: ảnh đúng / sai, vài câu, nút Chụp thử | `Lesson` |
 
 Trong UI chỉ dùng chữ **"pose"**. Không dùng "segment" hay "form" (bản cũ dùng tên "Danh sách Form").
 
@@ -61,14 +64,13 @@ flowchart TD
 
     Camera -- "Nút Chỉnh pose" --> Editor
     Camera -- "Nút Cài đặt" --> Settings[Cài đặt]
-    Camera -- "Thay nền (chỗ vào chốt ở Phase 5)" --> C1[Bước 1: Chọn ảnh người]
-    C1 --> C2[Bước 2: Chọn ảnh nền]
-    C2 --> C3[Bước 3: Đặt vị trí]
-    C3 -- "Tạo ảnh" --> C4[Bước 4: Kết quả]
-    C4 -- "Lưu vào Ảnh" --> Photos[(Album SnapShot)]
+    Camera -- "Nút Bố cục" --> Pick[Chọn kỹ thuật bố cục]
+    Pick --> Camera
+    Camera -- "Thẻ học (chỗ đặt chốt ở Phase 5)" --> Lessons[Thẻ học]
+    Lessons -- "Chụp thử" --> Camera
 
     Camera -- "Chụp" --> Photos
-    Camera -- "Ảnh vừa chụp" --> Review[Xem ảnh vừa chụp]
+    Camera -- "Ảnh vừa chụp" --> Review[Xem ảnh vừa chụp<br/>+ nhận xét bố cục]
     Review --> Photos
 ```
 
@@ -124,7 +126,7 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 |---|---|---|
 | Đổi camera | sau / trước | Camera trước: preview soi gương, ảnh lưu không soi gương (theo cài đặt) |
 | Flash | tắt / bật / tự động | Dùng flash gốc của camera, không dùng đèn pin |
-| Lưới | tắt / 3×3 / 4×4 | Vẽ trong vùng ảnh thật sẽ được lưu |
+| Bố cục (thay nút Lưới, Phase 5) | tắt / lưới 3×3 / lưới 4×4 / một kỹ thuật bố cục ([§6](#6-chức-năng-3--trợ-lý-bố-cục)) | Vẽ trong vùng ảnh thật sẽ được lưu |
 | Thước cân bằng | bật / tắt | Đổi sang màu nhấn khi máy lệch dưới 1° |
 | Tỉ lệ khung | 3:4 / 9:16 / 1:1 | Khung ngắm hiển thị đúng vùng ảnh sẽ được lưu |
 | Hẹn giờ | tắt / 3 s / 10 s | Cho người chụp tự đặt máy |
@@ -141,10 +143,10 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 
 ---
 
-### 4.5 Chỗ vào Thay nền và ảnh vừa chụp
+### 4.5 Ảnh vừa chụp
 
-- **Chỗ vào Thay nền**: Phase 4 bỏ hàng chọn chế độ "Chụp theo pose · Thay nền" dưới nút chụp cho vùng dưới gọn hơn. Chỗ vào mới (nút trên thanh trên, mục trong Cài đặt, hay vuốt ngang khung ngắm) chốt ở Phase 5. Dù vào từ đâu, Thay nền mở luồng 4 bước ở [§6.2](#62-luồng-chính); đóng luồng thì về Camera, overlay và vị trí pose giữ nguyên.
-- **Ảnh vừa chụp**: ô nhỏ bên trái nút chụp hiện ảnh mới nhất. Chạm vào mở màn **Xem ảnh vừa chụp**: các ảnh chụp trong lần mở app này, vuốt ngang để xem ảnh trước, có nút Chia sẻ và Xóa (xóa khỏi album, có xác nhận). Chưa chụp ảnh nào thì ô trống và không bấm được.
+- **Chức năng Thay nền đã bỏ** (2026-11-17): không liên quan việc chụp ảnh và rủi ro cao. Thay bằng Trợ lý bố cục ở [§6](#6-chức-năng-3--trợ-lý-bố-cục), nằm ngay trong Camera nên không cần chỗ vào riêng.
+- **Ảnh vừa chụp**: ô nhỏ bên trái nút chụp hiện ảnh mới nhất. Chạm vào mở màn **Xem ảnh vừa chụp**: các ảnh chụp trong lần mở app này, vuốt ngang để xem ảnh trước, có nút Chia sẻ và Xóa (xóa khỏi album, có xác nhận). Chưa chụp ảnh nào thì ô trống và không bấm được. Phase 5 thêm **nhận xét bố cục** cho từng ảnh ([§6.5](#65-nhận-xét-sau-khi-chụp)).
 - **Phản hồi khi chụp**: màn trập tối nhanh trong khoảng một khung hình, rung nhẹ khi đã lưu xong. Lưu lỗi thì báo theo [§10.3](#103-thông-báo-lỗi).
 
 ---
@@ -215,42 +217,95 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 
 ---
 
-## 6. Chức năng 3 — Thay nền
+## 6. Chức năng 3 — Trợ lý bố cục
 
-### 6.1 Mục tiêu chất lượng
+Thay cho Thay nền từ 2026-11-17. Nghiên cứu kỹ thuật và nguồn ở [composition.md](composition.md), giải thích ý tưởng ở [phase5-bo-cuc.md](phase5-bo-cuc.md). Làm ở [roadmap Phase 5](roadmap.md#phase-5--trợ-lý-bố-cục-timebox-3-tuần-có-cổng-quyết-định).
 
-Ảnh ghép đạt yêu cầu khi người xem **không chỉ ra được ngay đâu là ảnh ghép**. Có 6 tiêu chí, dùng để chấm điểm (xem [roadmap.md](roadmap.md), Phase 5):
+### 6.1 Mục tiêu
 
-1. **Viền**: tóc và mép áo mềm, không còn viền màu của nền cũ.
-2. **Tỉ lệ và phối cảnh**: người to nhỏ đúng với vị trí đứng trong cảnh, chân chạm mặt đất.
-3. **Hướng sáng**: phía sáng/tối trên người cùng phía với nguồn sáng của nền.
-4. **Màu và nhiệt độ màu**: tông da và áo ăn theo không khí màu của nền.
-5. **Bóng**: có bóng tiếp xúc dưới chân, và bóng đổ theo hướng sáng khi nền có nắng gắt.
-6. **Độ nét, nhiễu, độ mờ hậu cảnh**: người không nét hơn hoặc sạch nhiễu hơn hẳn so với nền.
+- Người chưa biết chụp vẫn **đặt người đúng chỗ** trong khung và **cầm máy đúng góc**, ngay lúc chụp.
+- Người dùng **học dần** kỹ thuật qua gợi ý và thẻ học.
+- Lời khuyên **giải thích được** (nói rõ chỉnh gì, chỉnh thế nào), không phải một điểm số.
 
-### 6.2 Luồng chính
+Nguyên tắc: quy tắc bố cục là **gợi ý, không phải luật**. Nghiên cứu cho thấy quy tắc 1/3 không phải lúc nào cũng đẹp hơn đặt ở giữa, nên app không chấm ảnh "đúng / sai". Người dùng chọn kỹ thuật, app dẫn tới kỹ thuật đó.
+
+### 6.2 Kỹ thuật trong v1
+
+Chỉ những kỹ thuật dùng được trên điện thoại và có người trong ảnh. 15 kỹ thuật, trong đó 10 có hướng dẫn trên camera.
+
+| # | Kỹ thuật | App kiểm tra | Gợi ý ví dụ | Nguồn dữ liệu |
+|---|---|---|---|---|
+| 1 | Quy tắc 1/3 | Mắt gần đường 1/3 trên, người trên đường dọc 1/3 | "Dời máy sang phải" | Mắt, khung người |
+| 2 | Đặt ở giữa | Người ở trục giữa | "Đưa người vào giữa" | Khung người |
+| 3 | Khoảng trên đầu | Khoảng từ đỉnh đầu tới mép trên | "Thừa khoảng trên đầu, nghiêng máy xuống" | Đỉnh đầu |
+| 4 | Khoảng phía nhìn | Phía người đang nhìn / đi tới còn chỗ | "Chừa chỗ phía người đang nhìn" | Hướng mặt, vai |
+| 5 | Không sát mép | Người không chạm mép khung | "Người đang sát mép trái" | Khung người |
+| 6 | Cỡ cảnh, không cắt khớp | Mép khung không đi qua cổ, khuỷu, cổ tay, gối, cổ chân | "Đang cắt ngang gối, lùi ra hoặc cắt ở đùi" | 33 khớp |
+| 7 | Máy thẳng | Máy không nghiêng trái / phải | "Nghiêng 3°" | Cảm biến |
+| 8 | Góc thấp kéo chân | Máy hạ thấp, ngửa lên, thấy cả chân | "Hạ máy ngang hông, ngửa lên nhẹ" | Cảm biến, khớp, zoom |
+| 9 | Selfie | Camera trước cao hơn mắt một chút | "Giơ máy cao hơn mắt một chút" | Cảm biến, camera trước |
+| 10 | Khoảng cách, ống kính | Mặt quá to khi đang ở 0,5× / 1× | "Đứng xa ra và dùng 2× để mặt không méo" | Cỡ mặt, zoom |
+| + | Nhóm người | Các đầu không cùng một độ cao | "Cho một người ngồi xuống hoặc đứng lên bậc" | Đỉnh đầu từng người |
+
+**Chỉ có thẻ học, chưa tự phát hiện:** vật "mọc" sau đầu và chân trời cắt cổ, đường dẫn, khung trong khung, tiền cảnh, ánh sáng.
+
+### 6.3 Luồng chính
 
 ```mermaid
 flowchart TD
-    S1[Bước 1: Chọn ảnh người] --> SEG[Tách người<br/>model mép mềm]
-    SEG --> S2[Bước 2: Chọn ảnh nền]
-    S2 --> AN[Phân tích nền trên máy<br/>độ sáng, tông màu, độ sâu, hướng sáng ước lượng]
-    AN --> S3[Bước 3: Đặt vị trí<br/>kéo, pinch, xoay người trên nền]
-    S3 --> ADJ[Tinh chỉnh: hướng sáng, bóng, mức khớp màu]
-    ADJ --> PRE[Xem trước tức thì]
-    PRE -- "Tạo ảnh" --> OUT[Render full độ phân giải]
-    OUT --> S4[Bước 4: Kết quả]
-    S4 -- "Lưu vào Ảnh" --> SAVE[(Album SnapShot)]
-    S4 -- "Giữ để so sánh" --> CMP[Hiện ảnh trước khi xử lý]
-    S4 -- "Chỉnh lại" --> S3
+    CAM[Camera] -- "Nút Bố cục" --> PICK[Chọn kỹ thuật<br/>tắt · lưới · 1/3 · giữa · góc thấp · selfie · nhóm]
+    POSE[Chọn pose mẫu] -- "kỹ thuật gắn với pose" --> PICK
+    PICK --> GUIDE[Lớp bố cục trên khung ngắm<br/>đường kẻ + chấm đích]
+    GUIDE --> SENSE{Kỹ thuật cần<br/>phân tích người?}
+    SENSE -- "Không (máy thẳng, selfie…)" --> HINT[Gợi ý từ cảm biến<br/>tức thì]
+    SENSE -- "Có" --> LIVE{Gợi ý lúc ngắm<br/>qua cổng Phase 5?}
+    LIVE -- "Có" --> ANALYZE[Chụp ảnh nhỏ không tiếng định kỳ<br/>→ tìm người, mắt, khớp]
+    ANALYZE --> HINT
+    LIVE -- "Không" --> SHOOT
+    HINT --> OK{Đã đạt?}
+    OK -- "Chưa" --> HINT
+    OK -- "Rồi" --> GREEN[Đường kẻ xanh + rung nhẹ]
+    GREEN --> SHOOT[Chụp]
+    SHOOT --> REVIEW[Xem ảnh vừa chụp<br/>nhận xét + khung cắt gợi ý]
 ```
 
-### 6.3 Giới hạn của bản v1
+### 6.4 Gợi ý lúc ngắm
 
-- Toàn bộ xử lý trên điện thoại, không gửi ảnh đi đâu. Mục tiêu xuất ảnh dưới 5 s.
-- Không có relight bằng model AI (cần GPU). App dùng **relight giả lập**: tô sáng/tối theo hướng sáng và thêm viền sáng ở phía nguồn sáng.
-- Kết quả tốt nhất với nền có **ánh sáng mềm** (trong nhà, ngoài trời râm). Nền nắng gắt và cảnh đêm khó khớp hơn.
-- Chức năng này có **cổng quyết định** ở [roadmap Phase 5](roadmap.md#phase-5--thay-nền-timebox-3-tuần-có-cổng-quyết-định): có thể bị thu hẹp chỉ còn nền ánh sáng mềm, hoặc bị bỏ khỏi v1.
+- **Một gợi ý mỗi lúc**, một dòng ngắn dưới khung ngắm kèm mũi tên; không che khung, không chặn nút chụp.
+- **Thứ tự ưu tiên** (đề xuất, chốt sau khi thử): máy thẳng → cắt khớp → khoảng cách và ống kính → kỹ thuật đang chọn (1/3, giữa, góc thấp, selfie, nhóm) → khoảng trên đầu → khoảng phía nhìn → sát mép.
+- **Không nhảy**: gợi ý chỉ hiện khi tình trạng giữ ổn định khoảng 0,5 s, và chỉ đổi sang gợi ý khác khi gợi ý cũ đã hết.
+- **Đạt**: đường kẻ chuyển màu nhấn, rung nhẹ một lần, dòng gợi ý biến mất.
+- **Không thấy người**: chỉ còn gợi ý từ cảm biến; không báo lỗi.
+- Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread. Gợi ý cần phân tích người phụ thuộc kết quả đo ở cổng quyết định Phase 5; không đạt thì chỉ có nhận xét sau khi chụp.
+
+### 6.5 Nhận xét sau khi chụp
+
+Ở màn Xem ảnh vừa chụp, mỗi ảnh có:
+
+- lớp bố cục của kỹ thuật đã dùng vẽ lên ảnh (bật / tắt);
+- 1–3 dòng: điều đã đạt và điều chưa đạt (ví dụ "Mắt nằm trên đường 1/3", "Cắt ngang đầu gối");
+- **khung cắt gợi ý** khi cắt lại sẽ đạt kỹ thuật; lưu bản cắt thành ảnh mới, ảnh gốc giữ nguyên.
+
+Ảnh chụp khi đang tắt bố cục thì không có nhận xét.
+
+### 6.6 Thẻ học
+
+- Mỗi kỹ thuật (15) một thẻ: tên, một ảnh đúng và một ảnh sai cạnh nhau có lớp bố cục, 2–3 câu (là gì, khi nào dùng, khi nào nên phá lệ), nút **Chụp thử** mở Camera với kỹ thuật đó bật sẵn.
+- Thẻ của kỹ thuật chưa tự phát hiện vẫn có nút Chụp thử, mở Camera với lưới phù hợp.
+- Chỗ đặt (tab thứ ba trong Thư viện hay màn riêng) chốt ở bước thiết kế Phase 5.
+
+### 6.7 Đi cùng pose
+
+- Mỗi pose mẫu gắn 1–2 kỹ thuật. Chọn pose thì kỹ thuật đó tự bật nếu đang tắt bố cục; người dùng đổi được.
+- Kéo pose trên khung ngắm thì pose dính vào đường và giao điểm 1/3, hoặc trục giữa, theo kỹ thuật đang chọn (rung nhẹ khi dính).
+- Pose của bạn (tạo từ ảnh) không gắn kỹ thuật; app gợi ý theo cỡ cảnh của pose.
+
+### 6.8 Giới hạn của bản v1
+
+- Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
+- App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
+- Chưa tự đoán kỹ thuật hợp cảnh; người dùng chọn (tự đoán để sau v1).
+- Gợi ý lúc ngắm cần phân tích người có **cổng quyết định** ở roadmap Phase 5; có thể chỉ còn nhận xét sau khi chụp.
 
 ---
 
@@ -260,7 +315,7 @@ flowchart TD
 
 | Quyền | Xin khi nào | Nếu bị từ chối |
 |---|---|---|
-| Camera | Lần đầu mở app, bằng hộp thoại của máy (không có màn riêng) | Trong khung ngắm: một câu + nút "Mở Cài đặt" (`Linking.openSettings()`). App vẫn vào được Thư viện pose và Thay nền |
+| Camera | Lần đầu mở app, bằng hộp thoại của máy (không có màn riêng) | Trong khung ngắm: một câu + nút "Mở Cài đặt" (`Linking.openSettings()`). App vẫn vào được Thư viện pose và thẻ học |
 | Ảnh (đọc) | Lần đầu chọn ảnh từ máy | Dùng image picker của hệ thống. Không cần quyền đọc toàn bộ thư viện |
 | Ảnh (ghi) | Lần đầu lưu ảnh | Báo không lưu được, giữ ảnh tạm, cho thử lại |
 
@@ -274,10 +329,10 @@ Không xin quyền nào trước khi người dùng cần đến nó.
 
 ### 7.3 Khung giao diện chung
 
-Làm ở roadmap Phase 4, trước Thay nền. Giao diện cụ thể chốt ở bước 1 của phase đó (bản mẫu để chọn) rồi ghi vào [design.md](design.md).
+Làm ở roadmap Phase 4. Giao diện cụ thể chốt ở bước 1 của phase đó (bản mẫu để chọn) rồi ghi vào [design.md](design.md).
 
-- **Một màn gốc**: Camera. Thư viện pose, Chỉnh pose, Thay nền, Cài đặt, Xem ảnh vừa chụp đều mở từ Camera và đóng về Camera.
-- **Hai kiểu đầu màn, cố định theo loại màn**: màn mở đè lên Camera (Thư viện, Cài đặt, Xem ảnh vừa chụp) có tiêu đề to bên trái và nút Đóng bên phải; màn là một bước trong luồng (Chỉnh pose, các bước Thay nền) có "Quay lại" bên trái và tên màn ở giữa.
+- **Một màn gốc**: Camera. Thư viện pose, Chỉnh pose, thẻ học, Cài đặt, Xem ảnh vừa chụp đều mở từ Camera và đóng về Camera.
+- **Hai kiểu đầu màn, cố định theo loại màn**: màn mở đè lên Camera (Thư viện, Cài đặt, Xem ảnh vừa chụp) có tiêu đề to bên trái và nút Đóng bên phải; màn là một bước trong luồng (Chỉnh pose) có "Quay lại" bên trái và tên màn ở giữa.
 - **Một kiểu cho trạng thái rỗng, lỗi, thiếu quyền**: một câu nói chuyện gì đã xảy ra, một nút làm tiếp ([§10](#10-trạng-thái-và-lỗi)).
 - **Một kiểu chuyển màn và chuyển động** cho mọi màn, theo design.md.
 - **Icon app và màn mở app** cùng ngôn ngữ với giao diện trong app.
@@ -290,7 +345,8 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 |---|---|---|
 | Chụp | Ảnh camera trước | Lưu như thật (mặc định) / Lưu soi gương như lúc xem |
 | Chụp | Rung phản hồi | Bật (mặc định) / Tắt |
-| Dung lượng | Bộ tách người, bộ Thay nền | Dung lượng đã tải; nút Xóa (lần dùng sau tải lại, [§11](#11-online--offline)) |
+| Bố cục | Gợi ý lúc ngắm | Bật (mặc định) / Tắt (đề xuất, chốt ở Phase 5) |
+| Dung lượng | Bộ tách người | Dung lượng đã tải; nút Xóa (lần dùng sau tải lại, [§11](#11-online--offline)) |
 | Giới thiệu | Phiên bản, nguồn ảnh mẫu, giấy phép model | Chỉ đọc |
 | Nhà phát triển | Màn thử nghiệm | Chỉ hiện trong bản dev |
 
@@ -302,17 +358,21 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 |---|---|
 | BR-01 | Ảnh chụp ở chức năng 1 **không bao giờ** kèm overlay. Overlay chỉ để hướng dẫn |
 | BR-02 | Ảnh lưu vào album "SnapShot" đúng tỉ lệ khung đang chọn. Vùng ảnh lưu trùng đúng vùng thấy trên khung ngắm |
-| BR-03 | Mọi xử lý ảnh (tách người, phân tích nền, ghép ảnh) chạy **hoàn toàn trên máy**. Ảnh không bao giờ được gửi đi. Kết nối mạng duy nhất là tải bộ tách người (BR-13) |
-| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu; gói Thay nền (~111 MB nếu máy có WebGPU, ~56 MB nếu không) khi Thay nền lần đầu. Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
-| BR-04 | Ảnh ghép xuất ra đúng độ phân giải gốc của ảnh nền. Người trong ảnh không bị phóng quá 1.5× độ phân giải gốc của ảnh người (vượt quá thì báo "Ảnh người sẽ bị vỡ nét ở cỡ này") |
-| BR-05 | Trong Thay nền, chân người phải nằm trong ảnh nền. Kéo chân ra ngoài mép dưới thì bóng không được vẽ, và app hiện gợi ý "Kéo người lên để thấy bóng" |
+| BR-03 | Mọi xử lý ảnh (tách người, phân tích bố cục) chạy **hoàn toàn trên máy**. Ảnh không bao giờ được gửi đi. Kết nối mạng duy nhất là tải bộ tách người (BR-13) |
+| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu, hoặc khi gợi ý bố cục cần phân tích người lần đầu (dùng chung gói này). Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
 | BR-06 | Một pose phải có ít nhất một vùng người chiếm từ 2% diện tích ảnh trở lên. Nhỏ hơn thì báo "Người trong ảnh quá nhỏ" |
-| BR-07 | Ảnh nguồn được chuẩn hóa: xoay theo EXIF, cạnh dài tối đa 2048 px cho pose, giữ nguyên độ phân giải gốc cho chức năng 3 |
+| BR-07 | Ảnh nguồn được chuẩn hóa: xoay theo EXIF, cạnh dài tối đa 2048 px cho pose |
 | BR-08 | Mọi file của pose nằm trong `documentDirectory`, không bao giờ nằm trong cache |
 | BR-09 | Pose mẫu chỉ đọc. Sửa pose mẫu là tạo bản sao |
 | BR-10 | Overlay nhớ vị trí/tỉ lệ/góc lần dùng gần nhất của từng pose |
 | BR-11 | Lượt chạm bắt đầu trên pose thì camera không nhận pinch-zoom |
 | BR-12 | Lưu ảnh lỗi thì không mất ảnh: giữ bản tạm và cho thử lại |
+| BR-14 | Bố cục chỉ là gợi ý: không chặn nút chụp, không chấm ảnh "đúng / sai". Ảnh lưu **không bao giờ** kèm lớp bố cục (như BR-01) |
+| BR-15 | Mỗi lúc chỉ một gợi ý trên khung ngắm; gợi ý chỉ hiện khi tình trạng giữ ổn định khoảng 0,5 s |
+| BR-16 | Ảnh nhỏ chụp để phân tích bố cục chỉ nằm trong bộ nhớ tạm, không vào album, xóa ngay sau khi phân tích |
+| BR-17 | Khung cắt gợi ý lưu thành ảnh mới; ảnh gốc trong album giữ nguyên |
+
+BR-04 và BR-05 thuộc Thay nền, đã bỏ cùng chức năng đó.
 
 ---
 
@@ -323,7 +383,6 @@ erDiagram
     PHOTO ||--o{ CONTOUR : has
     PHOTO ||--o{ POSE_VARIANT : "có nhiều bản"
     POSE_VARIANT ||--o| PLACEMENT : remembers
-    COMPOSE_JOB }o--|| PHOTO : "may use"
 
     PHOTO {
         string id PK
@@ -370,16 +429,6 @@ erDiagram
         float rotation "radian"
         bool mirrored
     }
-    COMPOSE_JOB {
-        string id PK
-        string status
-        string subjectUri
-        string backgroundUri
-        json placement
-        json lighting "hướng sáng, độ mềm bóng, mức khớp màu"
-        string resultUri
-        datetime createdAt
-    }
 ```
 
 Khác với bản cũ:
@@ -387,6 +436,8 @@ Khác với bản cũ:
 - Độ hiện nền vẫn có, nhưng tách nền bằng viền (cắt ngược) thay cho file `bg.png` riêng như bản cũ.
 - Bỏ file `outline.png`. Viền được vẽ từ contour vector nên đổi độ dày được.
 - Kiểu `SegmentData` không còn bị khai báo lặp ở 3 file.
+
+Bố cục (Phase 5) không thêm bảng SQLite: kỹ thuật đang chọn lưu cùng trạng thái camera (zustand + kv-store); kỹ thuật gắn với pose mẫu nằm trong dữ liệu pose mẫu (`samples.json`); nhận xét tính lại khi mở ảnh, không lưu.
 
 ---
 
@@ -410,21 +461,25 @@ stateDiagram-v2
     Saved --> [*]
 ```
 
-### 10.2 Ghép ảnh (chức năng 3)
+### 10.2 Gợi ý bố cục (chức năng 3)
 
 ```mermaid
 stateDiagram-v2
-    [*] --> SubjectPicked: chọn ảnh người
-    SubjectPicked --> Analyzing: chọn ảnh nền
-    Analyzing --> Placing: phân tích xong
-    Analyzing --> Placing: không ước lượng được hướng sáng<br/>(dùng hướng mặc định: trên-trái)
-    Placing --> Rendering: Tạo ảnh
-    Rendering --> Result
-    Rendering --> Failed: hết bộ nhớ
-    Failed --> Rendering: Thử lại ở cỡ nhỏ hơn
-    Result --> Placing: Chỉnh lại
-    Result --> Saved: Lưu vào Ảnh
-    Saved --> [*]
+    [*] --> Off: bố cục tắt
+    Off --> Guide: chọn kỹ thuật
+    Guide --> SensorHint: kỹ thuật chỉ cần cảm biến
+    Guide --> NeedPack: cần phân tích người, chưa có bộ tách
+    NeedPack --> Analyzing: tải xong
+    NeedPack --> SensorHint: không tải (chỉ còn gợi ý cảm biến)
+    Guide --> Analyzing: cần phân tích người
+    Analyzing --> NoPerson: không thấy người
+    Analyzing --> Hint: chưa đạt
+    Analyzing --> Reached: đạt
+    NoPerson --> Analyzing: lần phân tích sau
+    Hint --> Analyzing: lần phân tích sau
+    Reached --> Hint: lệch lại
+    SensorHint --> Reached
+    Guide --> Off: tắt bố cục
 ```
 
 ### 10.3 Thông báo lỗi
@@ -437,8 +492,8 @@ Mỗi thông báo nói **chuyện gì xảy ra** và **làm gì tiếp**, không
 | Người quá nhỏ | Người trong ảnh quá nhỏ để lấy dáng. Chọn ảnh chụp gần hơn. | Chọn ảnh khác |
 | Lưu ảnh lỗi | Chưa lưu được ảnh vào máy. Ảnh vẫn được giữ tạm. | Thử lưu lại |
 | Tải bộ tách người lỗi | Chưa tải được bộ tách người. Kiểm tra kết nối mạng rồi thử lại. | Thử tải lại |
-| Không đoán được hướng sáng | Chưa xác định được hướng sáng của nền. Xoay vòng Hướng sáng để chọn. | (vòng xoay được làm nổi) |
-| Ghép ảnh hết bộ nhớ | Ảnh nền quá lớn để ghép. Thử lại ở 12 MP. | Thử lại ở 12 MP |
+| Gợi ý bố cục cần bộ tách người | Gợi ý theo người cần bộ tách người, tải một lần khoảng 42 MB. | Tải bộ tách người |
+| Không thấy người trong khung (bố cục) | (không báo lỗi; chỉ còn gợi ý từ cảm biến) | — |
 | Thiếu quyền camera | SnapShot cần camera để chụp theo pose. | Mở Cài đặt |
 
 ---
@@ -452,4 +507,4 @@ App chỉ dùng mạng để **tải bộ tách người một lần** (BR-13). 
 | Camera, chụp, lưu | `expo-camera`, `expo-media-library` |
 | Tách người, chỉnh pose, thư viện | Model trong WebView ẩn (tải một lần lần đầu), Skia, SQLite |
 | Pose mẫu | Đóng gói sẵn trong app (mask + contour tính trước) |
-| Thay nền | Model trong WebView ẩn (tải một lần lần đầu), Skia |
+| Trợ lý bố cục | Cảm biến (Reanimated), model trong WebView ẩn dùng chung gói pose, quy tắc bằng TypeScript, Skia |
