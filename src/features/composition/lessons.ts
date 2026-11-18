@@ -87,8 +87,14 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'thirds',
     sources: [
-      { title: '3 portrait composition tips for framing your subject perfectly', by: 'Photography Mad' },
-      { title: 'Evaluating the rule of thirds in photographs and paintings', by: 'Amirshahi và cộng sự, Art & Perception, 2014' },
+      {
+        title: '3 portrait composition tips for framing your subject perfectly',
+        by: 'Photography Mad',
+      },
+      {
+        title: 'Evaluating the rule of thirds in photographs and paintings',
+        by: 'Amirshahi và cộng sự, Art & Perception, 2014',
+      },
     ],
     wrong: { guides: 'thirds', people: [{ x: 45, y: 46 }] },
     right: { guides: 'thirds', people: [{ x: 30, y: 40 }] },
@@ -98,7 +104,10 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'center',
     sources: [
-      { title: 'Evaluating the rule of thirds in photographs and paintings', by: 'Amirshahi và cộng sự, Art & Perception, 2014' },
+      {
+        title: 'Evaluating the rule of thirds in photographs and paintings',
+        by: 'Amirshahi và cộng sự, Art & Perception, 2014',
+      },
       { title: 'Aesthetics of spatial composition', by: 'Palmer lab, UC Berkeley' },
     ],
     wrong: { guides: 'center', people: [{ x: 36, y: 40 }] },
@@ -108,9 +117,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'headroom',
     onCamera: false,
     tryTechnique: 'thirds',
-    sources: [
-      { title: 'Headroom (photographic framing)', by: 'Wikipedia' },
-    ],
+    sources: [{ title: 'Headroom (photographic framing)', by: 'Wikipedia' }],
     wrong: { guides: 'thirds', people: [{ x: 45, y: 72, s: 0.7 }] },
     right: { guides: 'thirds', people: [{ x: 45, y: 40, s: 1.1 }] },
   },
@@ -118,9 +125,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'lookroom',
     onCamera: false,
     tryTechnique: 'thirds',
-    sources: [
-      { title: 'Headroom', by: 'Photography Icon' },
-    ],
+    sources: [{ title: 'Headroom', by: 'Photography Icon' }],
     wrong: { guides: 'thirds', people: [{ x: 66, y: 40, facing: 'right' }] },
     right: { guides: 'thirds', people: [{ x: 28, y: 40, facing: 'right' }] },
   },
@@ -128,9 +133,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'edges',
     onCamera: false,
     tryTechnique: 'grid',
-    sources: [
-      { title: 'Photography tips for landscapes with people in them', by: 'PetaPixel' },
-    ],
+    sources: [{ title: 'Photography tips for landscapes with people in them', by: 'PetaPixel' }],
     wrong: { people: [{ x: 6, y: 40 }] },
     right: { people: [{ x: 32, y: 40 }] },
   },
@@ -140,7 +143,10 @@ export const LESSONS: readonly Lesson[] = [
     tryTechnique: 'grid',
     sources: [
       { title: 'How to crop portraits: an essential guide', by: 'PhotographyTalk' },
-      { title: 'Portrait cropping guide: bad portrait crops and how to fix them', by: 'SLR Lounge' },
+      {
+        title: 'Portrait cropping guide: bad portrait crops and how to fix them',
+        by: 'SLR Lounge',
+      },
     ],
     // Gối ở 6,7u = 43,6·s dưới tâm đầu; giữa đùi ở 5,9u = 38,4·s (figurePath).
     wrong: { people: [{ x: 45, y: 120 - 43.6 * 1.6, s: 1.6 }], cut: { y: 120 } },
@@ -151,7 +157,10 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'horizon',
     sources: [
-      { title: 'In portrait photography, beware lines intersecting your subject\'s head', by: 'PetaPixel, 2022' },
+      {
+        title: "In portrait photography, beware lines intersecting your subject's head",
+        by: 'PetaPixel, 2022',
+      },
     ],
     wrong: { horizon: { y1: 66, y2: 86 }, people: [{ x: 30, y: 40 }] },
     right: { guides: 'thirds', horizon: { y1: 80, y2: 80 }, people: [{ x: 30, y: 40 }] },
@@ -171,9 +180,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'selfie',
     onCamera: true,
     tryTechnique: 'selfie',
-    sources: [
-      { title: 'Take better selfies', by: 'Popular Science' },
-    ],
+    sources: [{ title: 'Take better selfies', by: 'Popular Science' }],
     wrong: { face: { x: 40, y: 60, r: 18 }, phone: { x: 74, y: 100 } },
     right: { face: { x: 40, y: 60, r: 18 }, phone: { x: 74, y: 22 } },
   },
@@ -182,7 +189,10 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { title: 'Why people look different in photos taken with different lenses', by: 'How-To Geek' },
+      {
+        title: 'Why people look different in photos taken with different lenses',
+        by: 'How-To Geek',
+      },
       { title: 'How you can take better portrait pictures on your smartphone', by: 'PhoneArena' },
     ],
     wrong: { face: { x: 45, y: 62, r: 34 }, label: '0,5×' },
@@ -192,9 +202,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'group',
     onCamera: true,
     tryTechnique: 'group',
-    sources: [
-      { title: 'Group photos', by: 'Daily Photo Tips' },
-    ],
+    sources: [{ title: 'Group photos', by: 'Daily Photo Tips' }],
     wrong: {
       people: [
         { x: 22, y: 42, s: 0.8 },
@@ -215,9 +223,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'lead',
     onCamera: true,
     tryTechnique: 'lead',
-    sources: [
-      { title: 'Photography composition techniques', by: 'Imaginated' },
-    ],
+    sources: [{ title: 'Photography composition techniques', by: 'Imaginated' }],
     wrong: {
       lines: [
         [8, 120, 76, 46],
@@ -238,7 +244,10 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { title: 'In portrait photography, beware lines intersecting your subject\'s head', by: 'PetaPixel, 2022' },
+      {
+        title: "In portrait photography, beware lines intersecting your subject's head",
+        by: 'PetaPixel, 2022',
+      },
       { title: 'A common, easily fixed mistake in portrait photography', by: 'Fstoppers' },
     ],
     wrong: { pole: { x: 45, to: 38 }, people: [{ x: 45, y: 44 }] },
@@ -248,9 +257,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'frame',
     onCamera: false,
     tryTechnique: 'grid',
-    sources: [
-      { title: 'Frame within a frame', by: 'Imaginated' },
-    ],
+    sources: [{ title: 'Frame within a frame', by: 'Imaginated' }],
     wrong: { people: [{ x: 45, y: 40 }] },
     right: { inner: { x: 16, y: 14, w: 58, h: 106 }, people: [{ x: 45, y: 40, s: 0.9 }] },
   },
@@ -258,9 +265,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'foreground',
     onCamera: false,
     tryTechnique: 'grid',
-    sources: [
-      { title: 'Photography composition techniques', by: 'Imaginated' },
-    ],
+    sources: [{ title: 'Photography composition techniques', by: 'Imaginated' }],
     wrong: { people: [{ x: 50, y: 40 }] },
     right: { leaves: true, people: [{ x: 50, y: 40 }] },
   },
@@ -268,9 +273,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'light',
     onCamera: false,
     tryTechnique: 'grid',
-    sources: [
-      { title: 'How to improve your smartphone photography', by: 'Engadget' },
-    ],
+    sources: [{ title: 'How to improve your smartphone photography', by: 'Engadget' }],
     wrong: { bright: true, people: [{ x: 45, y: 40, dark: true }] },
     right: { people: [{ x: 45, y: 40 }] },
   },

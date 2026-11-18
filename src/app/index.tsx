@@ -52,6 +52,7 @@ import { CompositionGuide } from '@/features/composition/CompositionGuide';
 import { CompositionHint } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
 import type { Pt } from '@/features/composition/guides';
+import type { TechniqueId } from '@/features/composition/techniques';
 import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '@/features/composition/snap';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
@@ -438,7 +439,12 @@ function CameraBody() {
     /** Đổi camera được bấm lúc đang chụp: đổi ngay khi ảnh đang chụp xong. */
     switchPending: false,
     /** Ảnh đã chụp, chờ cắt và lưu. */
-    queue: [] as { pic: Shot; frame: Rect; preview: { width: number; height: number } }[],
+    queue: [] as {
+      pic: Shot;
+      frame: Rect;
+      preview: { width: number; height: number };
+      technique: TechniqueId;
+    }[],
     saving: false,
     /** Ảnh mới nhất đã lưu trong đợt chụp này, sẽ bay vào ô. */
     last: null as string | null,
@@ -478,7 +484,7 @@ function CameraBody() {
         const out = await cropToFrame(job.pic, job.frame, job.preview);
         if (out.uri !== job.pic.uri) deleteTemp(job.pic.uri);
         const assetId = await saveToAlbum(out.uri);
-        useSessionPhotos.getState().add({ ...out, assetId });
+        useSessionPhotos.getState().add({ ...out, assetId, technique: job.technique });
         b.last = out.uri;
       } catch (e) {
         if (e instanceof PhotoPermissionError) {
@@ -518,6 +524,8 @@ function CameraBody() {
           pic,
           frame: { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
           preview: { width: preview.width, height: preview.height },
+          // Kỹ thuật lúc bấm, không phải lúc lưu xong (chụp liên tục rồi đổi kỹ thuật).
+          technique: useCameraStore.getState().technique,
         });
         saveQueue();
       } catch {

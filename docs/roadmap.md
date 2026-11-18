@@ -462,7 +462,7 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Bước 3 — Phân tích người (tuần 2, có cổng quyết định)**
 
-- [ ] Nhận xét sau khi chụp ở Xem ảnh vừa chụp: lớp bố cục trên ảnh, đạt / chưa đạt, khung cắt gợi ý (lưu thành ảnh mới)
+- [x] Nhận xét sau khi chụp ở Xem ảnh vừa chụp: lớp bố cục trên ảnh, đạt / chưa đạt, khung cắt gợi ý (lưu thành ảnh mới). `features.ts` (đặc trưng từ tách người + khung xương), `review.ts` (quy tắc + khung cắt, `review.test.ts`), `usePhotoReview.ts` (chạy qua WebView đang có, xếp hàng, chưa có bộ tách thì hỏi trước khi tải)
 - [ ] Spike gợi ý lúc ngắm: `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ → WebView → đặc trưng; đo lần / giây, độ trễ, nháy màn, pin, nhiệt trên iPhone và Android
 - [ ] Bộ ảnh thử ~30 ảnh có người, đúng và sai từng kỹ thuật, để đo độ đúng của quy tắc
 

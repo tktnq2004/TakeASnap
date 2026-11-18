@@ -35,6 +35,25 @@ export async function cropToFrame(
   return { uri: out.uri, width: out.width, height: out.height };
 }
 
+/**
+ * Cắt ảnh theo khung chuẩn hóa 0..1 (khung cắt gợi ý của nhận xét bố cục, business-flow §6.5).
+ * Lưu thành file mới; ảnh gốc giữ nguyên (BR-15).
+ */
+export async function cropNormalized(
+  shot: Shot,
+  c: { x: number; y: number; w: number; h: number },
+): Promise<Shot> {
+  const originX = Math.round(c.x * shot.width);
+  const originY = Math.round(c.y * shot.height);
+  const width = Math.min(shot.width - originX, Math.round(c.w * shot.width));
+  const height = Math.min(shot.height - originY, Math.round(c.h * shot.height));
+  const ref = await ImageManipulator.manipulate(shot.uri)
+    .crop({ originX, originY, width, height })
+    .renderAsync();
+  const out = await ref.saveAsync({ format: SaveFormat.JPEG, compress: PHOTO_QUALITY });
+  return { uri: out.uri, width: out.width, height: out.height };
+}
+
 /** Chất lượng JPEG khi chụp và khi cắt (cùng một mức để ảnh không cắt và ảnh cắt như nhau). */
 export const PHOTO_QUALITY = 0.92;
 

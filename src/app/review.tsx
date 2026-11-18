@@ -1,13 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
 import * as Sharing from 'expo-sharing';
-import { Share, Trash2 } from 'lucide-react-native';
+import { Check, Crop, Share, Trash2, X } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
   Platform,
+  Pressable,
   ScrollView,
   type ScrollViewInstance,
   StyleSheet,
@@ -24,8 +26,17 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { deleteFromLibrary } from '@/features/camera/capture';
-import { useSessionPhotos } from '@/features/camera/sessionPhotos';
+import { POSE_PACK, packBytes } from '@/engine/models/packs';
+import { cropNormalized, deleteFromLibrary, saveToAlbum } from '@/features/camera/capture';
+import { type SessionPhoto, useSessionPhotos } from '@/features/camera/sessionPhotos';
+import { CompositionGuide } from '@/features/composition/CompositionGuide';
+import type { Crop as CropRect } from '@/features/composition/review';
+import {
+  type ReviewEntry,
+  usePhotoReview,
+  useReviewNotes,
+} from '@/features/composition/usePhotoReview';
+import { haptic } from '@/lib/haptics';
 import { useGoBack } from '@/lib/useGoBack';
 import { Button, CloseButton, OverlayHeader } from '@/ui/components';
 import { t } from '@/ui/strings';
@@ -43,6 +54,10 @@ const clock = (ms: number) => {
 /**
  * Xem ảnh vừa chụp (business-flow §4.5, design.md §6.12): các ảnh chụp trong lần mở app này, mở
  * ở ảnh mới nhất, vuốt ngang để xem ảnh trước. Xóa ảnh (khỏi album, có xác nhận) và Chia sẻ ảnh.
+ *
+ * Ảnh chụp lúc bật một kỹ thuật bố cục có nhận xét (business-flow §6.5, design.md §6.15 bản A):
+ * lớp bố cục trên ảnh (chạm ảnh để bật / tắt), thẻ đạt / chưa đạt dưới ảnh, khung cắt gợi ý lưu
+ * thành ảnh mới.
  */
 export default function ReviewScreen() {
   const insets = useSafeAreaInsets();
@@ -53,9 +68,19 @@ export default function ReviewScreen() {
   const scrollRef = useRef<ScrollViewInstance>(null);
   const placed = useRef(false);
   const [busy, setBusy] = useState(false);
+  /** Người dùng đã bấm tải bộ tách người cho nhận xét. */
+  const [allowDownload, setAllowDownload] = useState(false);
+  /** Lớp bố cục trên ảnh (chạm ảnh để bật / tắt). */
+  const [guide, setGuide] = useState(true);
+  /** Đang xem khung cắt gợi ý của ảnh này. */
+  const [cropFor, setCropFor] = useState<string | null>(null);
+  const reviews = useReviewNotes((s) => s.byId);
 
   const current = photos[Math.min(index, photos.length - 1)];
   const top = Platform.OS === 'ios' ? space[5] : insets.top + space[3];
+  const { entry, wanted, packReady } = usePhotoReview(current, allowDownload);
+  const cropping = !!current && cropFor === current.assetId;
+  const crop = cropping && entry?.status === 'done' ? entry.review.crop : null;
 
   // Chấm trang chạy cùng lúc với ảnh khi vuốt, không đợi ảnh dừng (góp ý Phase 4, mục 5.2).
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -122,6 +147,7 @@ export default function ReviewScreen() {
             await deleteFromLibrary(current.assetId);
             const left = photos.length - 1;
             useSessionPhotos.getState().remove(current.assetId);
+            useReviewNotes.getState().clear(current.assetId);
             if (left === 0) goBack();
             else setIndex((i) => Math.min(i, left - 1));
           } catch {
@@ -133,6 +159,27 @@ export default function ReviewScreen() {
         },
       },
     ]);
+  };
+
+  /** Lưu bản cắt thành ảnh mới trong album (ảnh gốc giữ nguyên, BR-15) rồi chuyển tới ảnh đó. */
+  const saveCrop = async (photo: SessionPhoto, c: CropRect) => {
+    setBusy(true);
+    try {
+      const out = await cropNormalized(photo, c);
+      const assetId = await saveToAlbum(out.uri);
+      useSessionPhotos.getState().add({ ...out, assetId, technique: photo.technique });
+      haptic.saved();
+      setCropFor(null);
+      const last = useSessionPhotos.getState().photos.length - 1;
+      setIndex(last);
+      requestAnimationFrame(() =>
+        scrollRef.current?.scrollTo({ x: last * page.w, animated: true }),
+      );
+    } catch {
+      Alert.alert(t.errors.saveFailed);
+    } finally {
+      setBusy(false);
+    }
   };
 
   // Ảnh vừa khít vùng xem, đúng tỉ lệ chụp, bo góc.
@@ -151,7 +198,13 @@ export default function ReviewScreen() {
         <OverlayHeader title={t.review.title} right={<CloseButton onPress={goBack} />} />
         {current && (
           <Text style={[type.hint, styles.counter]}>
-            {t.review.counter(index + 1, photos.length, clock(current.takenAt))}
+            {current.technique === 'off'
+              ? t.review.counter(index + 1, photos.length, clock(current.takenAt))
+              : t.review.counterTech(
+                  index + 1,
+                  photos.length,
+                  t.composition.names[current.technique],
+                )}
           </Text>
         )}
       </View>
@@ -178,18 +231,39 @@ export default function ReviewScreen() {
             showsHorizontalScrollIndicator={false}
             onScroll={onScroll}
             scrollEventThrottle={16}
+            scrollEnabled={!cropping}
           >
             {photos.map((p) => {
               const s = imageSize(p.width, p.height);
               return (
                 <View key={p.assetId} style={[styles.page, { width: page.w, height: page.h }]}>
-                  <View style={[styles.photo, s]}>
+                  <Pressable
+                    accessibilityRole={p.technique === 'off' ? 'image' : 'button'}
+                    accessibilityLabel={p.technique === 'off' ? undefined : t.review.toggleGuide}
+                    disabled={p.technique === 'off' || cropFor === p.assetId}
+                    onPress={() => setGuide((g) => !g)}
+                    style={[styles.photo, s]}
+                  >
                     <Image
                       source={{ uri: p.uri }}
                       style={[styles.image, s]}
                       accessibilityIgnoresInvertColors
                     />
-                  </View>
+                    {cropFor === p.assetId ? (
+                      <CropFrame size={s} crop={crop} />
+                    ) : (
+                      guide &&
+                      p.technique !== 'off' && (
+                        <View pointerEvents="none" style={[styles.guide, s]}>
+                          <CompositionGuide
+                            frame={{ x: 0, y: 0, width: s.width, height: s.height }}
+                            technique={p.technique}
+                            anchor={eyeOf(reviews[p.assetId])}
+                          />
+                        </View>
+                      )
+                    )}
+                  </Pressable>
                 </View>
               );
             })}
@@ -219,27 +293,168 @@ export default function ReviewScreen() {
         </GestureDetector>
       )}
 
-      <View style={[styles.actions, { paddingBottom: insets.bottom + space[3] }]}>
-        <View style={styles.actionSecondary}>
-          <Button
-            label={t.review.remove}
-            icon={Trash2}
-            variant="dangerText"
-            onPress={remove}
-            disabled={!current || busy}
-            fullWidth
-          />
+      {current && wanted && (
+        <ReviewCard
+          entry={entry}
+          packReady={packReady || allowDownload}
+          cropping={cropping}
+          onDownload={() => setAllowDownload(true)}
+          onRetry={() => useReviewNotes.getState().clear(current.assetId)}
+          onShowCrop={() => setCropFor(current.assetId)}
+        />
+      )}
+
+      {cropping ? (
+        <View style={[styles.actions, { paddingBottom: insets.bottom + space[3] }]}>
+          <View style={styles.actionSecondary}>
+            <Button
+              label={t.review.cropOriginal}
+              variant="secondary"
+              onPress={() => setCropFor(null)}
+              disabled={busy}
+              fullWidth
+            />
+          </View>
+          <View style={styles.actionPrimary}>
+            <Button
+              label={t.review.saveCrop}
+              icon={Crop}
+              onPress={() => current && crop && saveCrop(current, crop)}
+              disabled={!crop || busy}
+              fullWidth
+            />
+          </View>
         </View>
-        <View style={styles.actionPrimary}>
-          <Button
-            label={t.review.share}
-            icon={Share}
-            onPress={share}
-            disabled={!current || busy}
-            fullWidth
-          />
+      ) : (
+        <View style={[styles.actions, { paddingBottom: insets.bottom + space[3] }]}>
+          <View style={styles.actionSecondary}>
+            <Button
+              label={t.review.remove}
+              icon={Trash2}
+              variant="dangerText"
+              onPress={remove}
+              disabled={!current || busy}
+              fullWidth
+            />
+          </View>
+          <View style={styles.actionPrimary}>
+            <Button
+              label={t.review.share}
+              icon={Share}
+              onPress={share}
+              disabled={!current || busy}
+              fullWidth
+            />
+          </View>
         </View>
+      )}
+    </View>
+  );
+}
+
+const eyeOf = (e: ReviewEntry | undefined) => (e?.status === 'done' ? e.features.eye : null);
+
+/** Khung cắt gợi ý trên ảnh: viền nét đứt màu nhấn, phần bị cắt bỏ tối đi. */
+function CropFrame({
+  size: s,
+  crop,
+}: {
+  size: { width: number; height: number };
+  crop: CropRect | null;
+}) {
+  if (!crop) return null;
+  const x = crop.x * s.width;
+  const y = crop.y * s.height;
+  const w = crop.w * s.width;
+  const h = crop.h * s.height;
+  return (
+    <View pointerEvents="none" style={[styles.guide, s]}>
+      <View style={[styles.shade, { left: 0, top: 0, width: s.width, height: y }]} />
+      <View style={[styles.shade, { left: 0, top: y + h, width: s.width, bottom: 0 }]} />
+      <View style={[styles.shade, { left: 0, top: y, width: x, height: h }]} />
+      <View style={[styles.shade, { left: x + w, top: y, right: 0, height: h }]} />
+      <View style={[styles.cropBox, { left: x, top: y, width: w, height: h }]} />
+    </View>
+  );
+}
+
+/** Thẻ nhận xét dưới ảnh (design.md §6.15, bản A). */
+function ReviewCard({
+  entry,
+  packReady,
+  cropping,
+  onDownload,
+  onRetry,
+  onShowCrop,
+}: {
+  entry: ReviewEntry | undefined;
+  packReady: boolean;
+  cropping: boolean;
+  onDownload: () => void;
+  onRetry: () => void;
+  onShowCrop: () => void;
+}) {
+  let body: React.ReactNode;
+  if (cropping) {
+    body = <Text style={[type.body, styles.ink]}>{t.review.cropHint}</Text>;
+  } else if (!entry && !packReady) {
+    const mb = (packBytes(POSE_PACK) / 1e6).toFixed(1).replace('.', ',');
+    body = (
+      <>
+        <Text style={[type.body, styles.muted]}>{t.review.needPack}</Text>
+        <Button label={t.review.downloadPack(mb)} variant="soft" small onPress={onDownload} />
+      </>
+    );
+  } else if (!entry || entry.status === 'running') {
+    const text =
+      entry?.stage === 'download'
+        ? t.status.downloadingModel
+        : entry?.stage === 'load'
+          ? t.status.loadingModel
+          : t.review.analyzing;
+    body = (
+      <View style={styles.row}>
+        <ActivityIndicator color={color.accent} />
+        <Text style={[type.body, styles.muted]}>{text}</Text>
       </View>
+    );
+  } else if (entry.status === 'none') {
+    body = <Text style={[type.body, styles.muted]}>{t.review.noPerson}</Text>;
+  } else if (entry.status === 'error') {
+    body = (
+      <>
+        <Text style={[type.body, styles.muted]}>{t.review.failed}</Text>
+        <Button label={t.common.retry} variant="soft" small onPress={onRetry} />
+      </>
+    );
+  } else {
+    const { notes, crop } = entry.review;
+    body = (
+      <>
+        {notes.length === 0 ? (
+          <NoteRow ok text={t.review.allGood} />
+        ) : (
+          notes.map((n) => <NoteRow key={n.id} ok={n.ok} text={t.review.notes[n.id]} />)
+        )}
+        {crop && <Button label={t.review.showCrop} variant="soft" small onPress={onShowCrop} />}
+      </>
+    );
+  }
+  return (
+    <View style={styles.card} accessibilityLiveRegion="polite">
+      {body}
+    </View>
+  );
+}
+
+function NoteRow({ ok, text }: { ok: boolean; text: string }) {
+  const Icon = ok ? Check : X;
+  return (
+    <View style={styles.row}>
+      <View style={[styles.mark, ok ? styles.markOk : styles.markBad]}>
+        <Icon size={16} strokeWidth={3} color={ok ? color.accent : color.danger} />
+      </View>
+      <Text style={[type.label, styles.ink, styles.flex]}>{text}</Text>
     </View>
   );
 }
@@ -274,6 +489,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: size.edge,
     paddingTop: space[4],
   },
+  guide: { position: 'absolute', left: 0, top: 0, borderRadius: radius.xl, overflow: 'hidden' },
+  shade: { position: 'absolute', backgroundColor: color.popoverScrim },
+  cropBox: {
+    position: 'absolute',
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: color.accent,
+    borderRadius: 4,
+  },
+  card: {
+    marginHorizontal: size.edge,
+    marginTop: space[3],
+    padding: space[4],
+    gap: space[3],
+    minHeight: 96,
+    justifyContent: 'center',
+    borderRadius: radius.xl,
+    backgroundColor: color.surface,
+  },
+  row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
+  mark: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markOk: { backgroundColor: color.accentSoft },
+  markBad: { backgroundColor: 'rgba(242,139,130,0.16)' },
+  ink: { color: color.ink },
+  muted: { color: color.muted },
+  flex: { flex: 1 },
   actionSecondary: { flex: 1 },
   actionPrimary: { flex: 1.4 },
 });

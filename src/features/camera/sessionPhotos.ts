@@ -4,6 +4,8 @@
  */
 import { create } from 'zustand';
 
+import type { TechniqueId } from '@/features/composition/techniques';
+
 export type SessionPhoto = {
   /** Mã ảnh trong thư viện ảnh của máy, để xóa khỏi album. */
   assetId: string;
@@ -11,6 +13,8 @@ export type SessionPhoto = {
   uri: string;
   width: number;
   height: number;
+  /** Kỹ thuật bố cục lúc bấm chụp, cho nhận xét sau khi chụp (business-flow §6.5). */
+  technique: TechniqueId;
   takenAt: number;
 };
 
