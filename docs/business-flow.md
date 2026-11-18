@@ -231,7 +231,7 @@ Nguyên tắc: quy tắc bố cục là **gợi ý, không phải luật**. Nghi
 
 ### 6.2 Kỹ thuật trong v1
 
-Chỉ những kỹ thuật dùng được trên điện thoại và có người trong ảnh. 15 kỹ thuật: 10 có hướng dẫn trên camera, đường dẫn có lớp kẻ, 4 chỉ có thẻ học. Góc thấp, selfie, khoảng cách – ống kính và ánh sáng không hẳn là quy tắc bố cục mà là mẹo chụp người bằng điện thoại; giữ lại vì giúp ảnh có người đẹp hơn.
+Chỉ những kỹ thuật dùng được trên điện thoại và có người trong ảnh. 16 kỹ thuật: 11 có hướng dẫn trên camera (10 kỹ thuật đánh số + nhóm người), đường dẫn có lớp kẻ, 4 chỉ có thẻ học (đếm lại khi làm thẻ học: bản trước ghi 15 vì quên nhóm người). Góc thấp, selfie, khoảng cách – ống kính và ánh sáng không hẳn là quy tắc bố cục mà là mẹo chụp người bằng điện thoại; giữ lại vì giúp ảnh có người đẹp hơn.
 
 Đường chân trời và đường dẫn chia hai mức: **đơn giản** ở Phase 5 (lớp kẻ để người dùng tự xếp cảnh theo, app không dò cảnh), **nâng cao** ở Phase 5a (app dò đường thẳng trong ảnh, §6.9).
 
@@ -295,7 +295,7 @@ flowchart TD
 
 ### 6.6 Thẻ học
 
-- Mỗi kỹ thuật (15) một thẻ: tên, một ảnh đúng và một ảnh sai cạnh nhau có lớp bố cục, 2–3 câu (là gì, khi nào dùng, khi nào nên phá lệ), nút **Chụp thử** mở Camera với kỹ thuật đó bật sẵn.
+- Mỗi kỹ thuật (16) một thẻ: tên, một hình đúng và một hình sai cạnh nhau có lớp bố cục (Phase 5: hình vẽ đơn giản; ảnh thật thay sau), 2–3 câu (là gì, khi nào dùng, khi nào nên phá lệ), nút **Chụp thử** mở Camera với kỹ thuật đó bật sẵn.
 - Thẻ của kỹ thuật chưa tự phát hiện vẫn có nút Chụp thử, mở Camera với lưới phù hợp.
 - Chỗ đặt: tab thứ ba "Bố cục" trong Thư viện, sau "Pose mẫu" và "Pose của bạn"; bảng Bố cục trên Camera có lối "Học các kỹ thuật" mở thẳng tab này (design §6.15).
 

@@ -95,7 +95,7 @@ Chấm mỗi kỹ thuật theo 4 tiêu chí: hợp ảnh có người, hợp đi
 
 **Để sau (cần đo thêm hoặc model mới):** A6 Không gian âm, D1 Tách nền, E2 Khoảng cách, F1 Ngược sáng, phát hiện D2 / D3 bằng dò đường thẳng.
 
-Tổng v1: **15 kỹ thuật**, trong đó **10 có hướng dẫn** trên camera.
+Tổng v1: **16 kỹ thuật**, trong đó **11 có hướng dẫn** trên camera (bản đầu ghi 15 / 10 vì quên đếm E1 Đầu so le; sửa khi làm thẻ học).
 
 **Đã chốt phạm vi:**
 - Giữ cả các mục không hẳn là quy tắc bố cục (góc thấp, selfie, khoảng cách – ống kính, ánh sáng) vì giúp ảnh có người đẹp hơn.

@@ -107,5 +107,18 @@ Lưới gộp lại vào Bố cục: nút Bố cục về chỗ nút Lưới tr�
 | 7.3 | Đường dẫn: thả mắt gần điểm hội tụ | Dính vào điểm hội tụ; gần đường dọc mà xa điểm thì không dính | | | |
 | 7.4 | Đặt ở giữa: thả mắt gần trục giữa ở bất kỳ độ cao nào | Dính vào trục dọc; gần chấm đích thì dính cả vào chấm | | | |
 
+## 8. Thẻ học
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 8.1 | Mở Thư viện | Có tab thứ ba "Bố cục" sau Pose mẫu, Pose của bạn | | | |
+| 8.2 | Chạm tab Bố cục | Lưới 2 cột, 16 ô: hình vẽ nhỏ, tên, nhãn "Có trên Camera" (xanh) hoặc "Chỉ đọc" (xám); không có nút Thêm ảnh từ máy | | | |
+| 8.3 | Chạm một ô | Mở màn thẻ: nút Quay lại, tiêu đề "Bố cục", tên kỹ thuật to; hai hình Chưa đạt (X đỏ) / Đạt (dấu tích xanh); thẻ ba đoạn Là gì · Khi nào dùng · Khi nào phá lệ; nút Chụp thử ở đáy | | | |
+| 8.4 | Xem lần lượt cả 16 thẻ | Hình vẽ đúng ý câu chữ (ví dụ Không cắt khớp: mép dưới cắt gối / cắt giữa đùi; Nhóm người: đầu thẳng hàng / tam giác); chữ không tràn, cuộn được tới hết | | | |
+| 8.5 | Quay lại từ màn thẻ | Về tab Bố cục của Thư viện | | | |
+| 8.6 | Thẻ Quy tắc 1/3 → Chụp thử | Đóng thẻ và Thư viện, về thẳng Camera; Bố cục đang chọn Quy tắc 1/3 | | | |
+| 8.7 | Thẻ Máy thẳng, đường chân trời → Chụp thử; thẻ Tiền cảnh → Chụp thử | Lần lượt bật Đường chân trời; Lưới 3×3 | | | |
+| 8.8 | Camera → nút Bố cục → "Học các kỹ thuật" | Bảng đóng, Thư viện mở thẳng tab Bố cục | | | |
+
 ## Góp ý thêm
 

@@ -33,7 +33,7 @@ Phase 1–4 đạt trên iPhone 15 Pro Max và Android emulator Pixel_8a. Chi ti
 |---|---|---|
 | 1 | **Chụp theo pose** | Camera đủ điều khiển: flash, hẹn giờ, tỉ lệ khung, lưới, thước cân bằng, zoom, đổi camera. Pose nằm trên khung ngắm, kéo / phóng to / xoay cho khớp. Cột công cụ pose (chỉnh pose, độ hiện, lật ngang, giữ để ẩn) dời được bằng một ngón. Ảnh lưu vào album SnapShot, không kèm pose |
 | 2 | **Tạo và chỉnh pose** | Chọn pose mẫu hoặc ảnh trong máy → tách người (ảnh nhiều người: chạm chọn người ngay trên màn xử lý) → chỉnh 4 tab: **Viền** (viền và nét mặt), **Phủ**, **Nền** (độ hiện người và nền), **Cọ** (thêm / xóa vùng người, hoàn tác không giới hạn) → lưu vào thư viện |
-| 3 | **Trợ lý bố cục** | Chọn kỹ thuật (quy tắc 1/3, đặt ở giữa, góc thấp, selfie…) → lớp bố cục và gợi ý ngắn trên khung ngắm → nhận xét sau khi chụp; thẻ học cho 15 kỹ thuật |
+| 3 | **Trợ lý bố cục** | Chọn kỹ thuật (quy tắc 1/3, đặt ở giữa, góc thấp, selfie…) → lớp bố cục và gợi ý ngắn trên khung ngắm → nhận xét sau khi chụp; thẻ học cho 16 kỹ thuật |
 
 ---
 

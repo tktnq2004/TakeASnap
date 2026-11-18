@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { Check, ImagePlus } from 'lucide-react-native';
 import { StatusBar } from 'expo-status-bar';
@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
 import { clearPlacement, useCameraStore } from '@/features/camera/cameraStore';
+import { LearnGrid } from '@/features/composition/LearnGrid';
 import type { Contour } from '@/engine/contour';
 import {
   analyzeImage,
@@ -45,9 +46,12 @@ import { Button, CloseButton, OverlayHeader, Segmented } from '@/ui/components';
 import { t } from '@/ui/strings';
 import { color, elevation, library, processing, radius, size, space, type } from '@/ui/tokens';
 
+type Tab = 'samples' | 'mine' | 'learn';
+
 const tabs = [
   { key: 'samples', label: t.library.tabSamples },
   { key: 'mine', label: t.library.tabMine },
+  { key: 'learn', label: t.lessons.tab },
 ] as const;
 
 type Picked = { uri: string; width: number; height: number };
@@ -65,7 +69,9 @@ export default function LibraryScreen() {
   const [rootW, setRootW] = useState(0);
   const [rootH, setRootH] = useState(0);
   const [menu, setMenu] = useState<{ pose: Pose; mine: boolean; from: TileRect } | null>(null);
-  const [tab, setTab] = useState<'samples' | 'mine'>('samples');
+  // `?tab=learn`: mở thẳng tab Bố cục (lối "Học các kỹ thuật" trong bảng Bố cục của Camera).
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<Tab>(params.tab === 'learn' ? 'learn' : 'samples');
   const [mine, setMine] = useState<Pose[]>([]);
   const [progress, setProgress] = useState<CreateProgress | null>(null);
   /** Lần xử lý này có phải tải bộ tách người không (để hiện bước tải trong danh sách bước). */
@@ -152,7 +158,7 @@ export default function LibraryScreen() {
     ]);
   };
 
-  const changeTab = (k: 'samples' | 'mine') => {
+  const changeTab = (k: Tab) => {
     if (selecting) stopSelecting();
     setTab(k);
   };
@@ -385,6 +391,10 @@ export default function LibraryScreen() {
               </View>
             ))}
 
+          {tab === 'learn' && (
+            <LearnGrid width={screenW} onOpen={(id) => router.push(`/lesson/${id}`)} />
+          )}
+
           {tab === 'mine' &&
             (mine.length === 0 ? (
               <Text style={[type.body, styles.ink, styles.empty]}>{t.library.empty}</Text>
@@ -425,7 +435,8 @@ export default function LibraryScreen() {
           </View>
         </View>
       ) : (
-        !work && (
+        !work &&
+        tab !== 'learn' && (
           <View style={[styles.fab, { bottom: insets.bottom + space[5] }]} pointerEvents="box-none">
             <Button label={t.library.addFromDevice} onPress={addFromDevice} icon={ImagePlus} />
           </View>

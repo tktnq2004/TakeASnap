@@ -767,6 +767,10 @@ function CameraBody() {
           setCompositionOpen(false);
         }}
         onClose={() => setCompositionOpen(false)}
+        onLearn={() => {
+          setCompositionOpen(false);
+          router.push('/library?tab=learn');
+        }}
       />
     </View>
   );

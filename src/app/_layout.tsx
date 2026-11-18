@@ -42,6 +42,8 @@ export default function RootLayout() {
             <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
             {/* Chỉnh pose mở từ sheet nên phải là modal để hiện được trên sheet. */}
             <Stack.Screen name="editor/[poseId]" options={{ presentation: 'fullScreenModal' }} />
+            {/* Thẻ học mở từ tab Bố cục của Thư viện (modal) nên cũng phải là modal. */}
+            <Stack.Screen name="lesson/[id]" options={{ presentation: 'fullScreenModal' }} />
           </Stack>
         </SegmenterProvider>
       </SQLiteProvider>
