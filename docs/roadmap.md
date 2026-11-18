@@ -453,10 +453,10 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Bước 2 — Phần chắc chắn làm được (tuần 1)**
 
-- [ ] `src/features/composition/`: danh mục 15 kỹ thuật, đặc trưng, quy tắc, chọn gợi ý; unit test cho từng quy tắc. Đã có: danh mục 9 dòng của bảng Bố cục, hình lớp bố cục, quy tắc cảm biến, dính pose (`composition.test.ts`); còn quy tắc phân tích người (Bước 3)
-- [x] Nút Bố cục thay nút Lưới, bảng Bố cục kéo lên; lớp bố cục cho từng kỹ thuật (lưới 3×3 giữ trong danh sách, 4×4 bỏ)
+- [ ] `src/features/composition/`: danh mục 15 kỹ thuật, đặc trưng, quy tắc, chọn gợi ý; unit test cho từng quy tắc. Đã có: danh mục 8 dòng của bảng Bố cục, hình lớp bố cục, quy tắc cảm biến, dính pose (`composition.test.ts`); còn quy tắc phân tích người (Bước 3)
+- [x] Nút Bố cục (cạnh cụm zoom), bảng Bố cục kéo lên; lớp bố cục cho từng kỹ thuật. Lưới 3×3 / 4×4 giữ là nút riêng trên thanh trên (phiếu lần 1)
 - [x] Gợi ý từ cảm biến: máy thẳng, góc thấp, selfie cao hơn mắt (dòng gợi ý dưới khung ngắm, giữ yên 0,5 s mới hiện, đạt thì rung và tự ẩn)
-- [x] Pose dính đường 1/3 / trục giữa khi thả (neo giữa hai mắt); gắn kỹ thuật cho pose mẫu theo nhóm (Selfie → Selfie, còn lại → 1/3)
+- [x] Pose dính đường 1/3 / trục giữa khi thả (neo giữa hai mắt); chấm đích bám theo pose. Bỏ việc tự bật kỹ thuật khi chọn pose (phiếu lần 1)
 - [x] Đường chân trời đơn giản: lớp kẻ hai đường ngang 1/3 + thước cân bằng; đường dẫn đơn giản: lớp kẻ hai đường chéo hội tụ về một giao điểm 1/3 (không dò cảnh)
 - [ ] Thẻ học cho 15 kỹ thuật (ảnh ví dụ đúng / sai, nút Chụp thử)
 

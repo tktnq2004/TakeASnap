@@ -1,23 +1,17 @@
-import { guideShape, thirdsTarget } from '../guides';
+import { guideShape, INTERSECTIONS } from '../guides';
 import { cameraPitchDeg, isAchieved, SENSOR, sensorHint } from '../sensor';
 import { anchorOnFrame, poseAnchor, snapLines, snapPlacement } from '../snap';
-import { isTechnique, TECHNIQUES, techniqueForSample } from '../techniques';
+import { isTechnique, TECHNIQUES } from '../techniques';
 
 const G = 9.81;
 const rad = (d: number) => (d * Math.PI) / 180;
 
 describe('techniques', () => {
-  it('9 dòng, bắt đầu bằng Tắt', () => {
-    expect(TECHNIQUES).toHaveLength(9);
+  it('8 dòng, bắt đầu bằng Tắt; Lưới là nút riêng, không nằm trong danh sách', () => {
+    expect(TECHNIQUES).toHaveLength(8);
     expect(TECHNIQUES[0]).toBe('off');
     expect(isTechnique('thirds')).toBe(true);
-    expect(isTechnique('3')).toBe(false);
-  });
-
-  it('pose mẫu nhóm Selfie gắn Selfie, nhóm khác gắn 1/3, pose của bạn không gắn', () => {
-    expect(techniqueForSample('selfie')).toBe('selfie');
-    expect(techniqueForSample('travel')).toBe('thirds');
-    expect(techniqueForSample(null)).toBeNull();
+    expect(isTechnique('grid')).toBe(false);
   });
 });
 
@@ -28,17 +22,27 @@ describe('guideShape', () => {
     expect(g.target).toBeNull();
   });
 
-  it('1/3 có lưới 3×3 và đích ở giao điểm trên trái, lật thì sang phải', () => {
-    expect(guideShape('thirds').target).toEqual({ x: 1 / 3, y: 1 / 3 });
-    expect(guideShape('thirds', true).target).toEqual({ x: 2 / 3, y: 1 / 3 });
-    expect(guideShape('thirds').v).toHaveLength(2);
+  it('1/3 chưa có pose: đủ 4 giao điểm, chưa có đích', () => {
+    const g = guideShape('thirds');
+    expect(g.v).toHaveLength(2);
+    expect(g.target).toBeNull();
+    expect(g.points).toEqual(INTERSECTIONS);
+  });
+
+  it('1/3 có pose: đích là giao điểm gần mắt người mẫu nhất', () => {
+    expect(guideShape('thirds', { x: 0.7, y: 0.3 }).target).toEqual({ x: 2 / 3, y: 1 / 3 });
+    expect(guideShape('thirds', { x: 0.2, y: 0.8 }).target).toEqual({ x: 1 / 3, y: 2 / 3 });
+    expect(guideShape('thirds', { x: 0.2, y: 0.8 }).points).toEqual([]);
   });
 
   it('Chân trời tô đường 1/3 dưới, Đường dẫn có hai đường chéo về đích', () => {
     expect(guideShape('horizon').accentH).toEqual([2 / 3]);
     const lead = guideShape('lead');
     expect(lead.diagonals).toHaveLength(2);
-    for (const d of lead.diagonals) expect(d.to).toEqual(thirdsTarget(false));
+    for (const d of lead.diagonals) expect(d.to).toEqual({ x: 1 / 3, y: 1 / 3 });
+    // Pose ở bên phải, dưới: vẫn chụm về giao điểm TRÊN gần nhất.
+    const right = guideShape('lead', { x: 0.8, y: 0.8 });
+    for (const d of right.diagonals) expect(d.to).toEqual({ x: 2 / 3, y: 1 / 3 });
   });
 });
 
@@ -61,9 +65,8 @@ describe('cameraPitchDeg', () => {
 });
 
 describe('sensorHint', () => {
-  it('Tắt và Lưới không có gợi ý', () => {
+  it('Tắt không có gợi ý', () => {
     expect(sensorHint('off', 10, 0, false, null)).toBeNull();
-    expect(sensorHint('grid', 10, 0, false, null)).toBeNull();
   });
 
   it('máy nghiêng đứng trước mọi gợi ý khác, có độ trễ', () => {
@@ -129,7 +132,7 @@ describe('snap', () => {
 
   it('dính đường 1/3 gần nhất trong bán kính, mỗi trục riêng', () => {
     const lines = snapLines('thirds', frame);
-    // Đường dọc ±50, đường ngang −66.7.
+    // Đường dọc ±50, đường ngang ±66.7.
     const p = snapPlacement(id, { x: 40, y: 0 }, lines, 16);
     expect(p).toEqual({ ...id, x: 10, y: 0 });
     const q = snapPlacement(id, { x: -45, y: -60 }, lines, 16);

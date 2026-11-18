@@ -238,7 +238,7 @@ Cấm:
 | Flash tắt / bật / tự động | `zap-off` / `zap` / `zap` + huy hiệu "A" |
 | Hẹn giờ | `timer` (+ huy hiệu số giây khi bật) |
 | Mở thêm công cụ | `chevron-down` (xoay 180° khi đang mở) |
-| Bố cục · Thước cân bằng | `grid-3x3` (đang chọn kỹ thuật khác Lưới: hình nhỏ của kỹ thuật, §6.15) · `ruler` |
+| Lưới · Thước cân bằng | `grid-3x3` · `ruler` (nút Bố cục cạnh cụm zoom dùng hình nhỏ của kỹ thuật, §6.15) |
 | Cài đặt | `settings` |
 | Nút pose | thumbnail pose đang dùng; chưa có pose thì `plus` |
 | Chỉnh pose · Độ hiện · Lật ngang · Ẩn / hiện pose | `pencil` · `contrast` · `flip-horizontal-2` · `eye-off` (đang ẩn: `eye`, nền `accent`) |
@@ -362,8 +362,8 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 ```
 
 - **Không còn hàng chọn chế độ** dưới nút chụp (vòng 3).
-- **Thanh trên** (góp ý Phase 4): Đèn flash (huy hiệu "A" khi tự động), Hẹn giờ (huy hiệu số giây), Bố cục (mở bảng Bố cục, §6.15), Thước cân bằng (mặc định bật), Tỉ lệ (chữ `3:4`), nút Mở thêm. Chạm nút trên thanh để đổi nhanh. Cài đặt tách riêng bên phải.
-- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Hai hàng cao 48 để chọn thẳng giá trị: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]` (hàng Lưới bỏ ở Phase 5, thay bằng bảng Bố cục). **Thả xuống** cao dần từ 0 trong 200 ms `easeIO`, các hàng trượt xuống 12 px và hiện dần; **kéo lên** ngược lại; mũi tên xoay 180° theo. Chạm ra ngoài hoặc nút ⌃ thì thu lên.
+- **Thanh trên** (góp ý Phase 4): Đèn flash (huy hiệu "A" khi tự động), Hẹn giờ (huy hiệu số giây), Lưới (huy hiệu 3 / 4), Thước cân bằng (mặc định bật), Tỉ lệ (chữ `3:4`), nút Mở thêm. Chạm nút trên thanh để đổi nhanh. Cài đặt tách riêng bên phải.
+- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Ba hàng cao 48 để chọn thẳng giá trị: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]`, Lưới `[Tắt | 3×3 | 4×4]`. **Thả xuống** cao dần từ 0 trong 200 ms `easeIO`, các hàng trượt xuống 12 px và hiện dần; **kéo lên** ngược lại; mũi tên xoay 180° theo. Chạm ra ngoài hoặc nút ⌃ thì thu lên.
 - **Thước cân bằng:** vạch giữa 80×2 màu `camWarn` xoay theo độ nghiêng; lệch dưới 1° thì ba vạch nối thẳng, đổi `camAccent`, rung `selection`.
 - **Cột công cụ (`ToolRail`):**
   - Chạm nhanh một nút = bấm nút. Kéo ở **bất kỳ đâu trên cột** (ngón đi quá 10 px) = dời cột; khi đó lượt chạm của nút bị hủy nên thả tay không bấm nhầm.
@@ -548,15 +548,14 @@ Chốt qua `logo-design-skill` (canvas thiết kế, trang "Icon chốt + màn m
 
 Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố cục", hàng "Bản chốt": **Kỹ thuật A · Gợi ý A · Nhận xét A · Thẻ học A**. Nghiệp vụ ở business-flow §6.
 
-**Nút Bố cục** thay nút Lưới trên thanh trên của Camera, cùng chỗ, cùng cỡ 44. Đang tắt: icon `grid` trắng, nền trong suốt. Đang bật một kỹ thuật: nền `accent` như các nút đang bật khác của thanh, icon trắng (Lưới: `grid`; kỹ thuật khác: hình nhỏ của kỹ thuật); `accessibilityLabel` "Bố cục: <tên kỹ thuật>".
+**Nút Bố cục** (sửa sau phiếu Phase 5 lần 1: Lưới phải giữ nút bật nhanh riêng, thanh trên không còn chỗ) là nút tròn 44 **bên trái cụm zoom**, thẳng cột với ô ảnh vừa chụp. Đang tắt: nền `camGlass`, hình nhỏ 1/3 màu trắng. Đang bật: nền `camAccent`, hình nhỏ của kỹ thuật màu `accentInk`. `accessibilityLabel` "Bố cục: <tên kỹ thuật>". Ẩn mờ khi cụm zoom thành thước cuộn và khi đang kéo pose (cùng cụm zoom). Lưới 3×3 / 4×4 vẫn là nút riêng trên thanh trên như Phase 4, vẽ chồng được với kỹ thuật bố cục.
 
 **Bảng Bố cục (A — bảng kéo lên).** Chạm nút Bố cục thì bảng trượt lên từ đáy, nền `surface` 97%, bo trên 28, có vạch kéo; vuốt xuống, chạm nút đóng hoặc chạm ra ngoài thì đóng. Đầu bảng "Bố cục" (`head` cỡ 20) + `CloseButton` nhỏ. Mỗi dòng cao 52: ô 40 nền `surfaceAlt` vẽ hình nhỏ của kỹ thuật, tên (`label` 15) + mô tả một dòng (`caption` cỡ 13 nét `semibold`, `muted`); dòng đang chọn nền `accentSoft` + dấu tích `accent`. Chạm một dòng là chọn và đóng bảng. Đáy bảng là nút phụ "Học các kỹ thuật" mở tab Bố cục của Thư viện.
 
 | Dòng | Mô tả | Phase |
 |---|---|---|
 | Tự chọn | App nhìn khung cảnh, chọn giúp | 5b, chỉ khi qua cổng |
-| Tắt | Không có đường kẻ | 5 |
-| Lưới 3×3 | Chỉ đường kẻ, không gợi ý | 5 |
+| Tắt | Không có hướng dẫn | 5 |
 | Quy tắc 1/3 | Mắt trên đường 1/3 | 5 |
 | Đặt ở giữa | Người ở trục giữa | 5 |
 | Đường chân trời | Chân trời trên một đường 1/3 | 5 (lớp kẻ), 5a (tự dò) |
@@ -565,13 +564,11 @@ Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố c
 | Selfie | Máy cao hơn mắt | 5 |
 | Nhóm người | Đầu so le, xếp tam giác | 5 |
 
-Lưới 4×4 cũ bỏ khỏi danh sách (ít dùng; thẻ học vẫn nói tới).
-
 **Lớp bố cục trên khung ngắm.** Đường kẻ `grid` (trắng 35%) 1 px như lưới cũ.
-- 1/3: lưới 3×3 + **chấm đích** ở giao điểm gần người nhất: vòng 34 viền `camAccent` 2 px, chấm giữa 8.
+- 1/3: lưới 3×3 + **chấm đích** ở giao điểm gần mắt người nhất: vòng 34 viền `camAccent` 2 px, chấm giữa 8. Phase 5 lấy mắt người mẫu của pose (cập nhật khi thả pose); chưa có pose thì cả 4 giao điểm là vòng nhỏ 14.
 - Giữa: trục dọc giữa + chấm đích trên trục ở 1/3 trên.
 - Chân trời (Phase 5): đường 1/3 dưới tô `camAccent` 2 px, đường 1/3 trên giữ trắng; thước cân bằng hiện cùng.
-- Đường dẫn (Phase 5): hai đường chéo nét đứt `camAccent` 85% (8/6) từ hai góc dưới hội tụ ở giao điểm 1/3 trên-trái (lật sang phải khi pose lật); chấm đích ở điểm hội tụ.
+- Đường dẫn (Phase 5): hai đường chéo nét đứt `camAccent` 85% (8/6) từ hai góc dưới hội tụ ở giao điểm 1/3 trên gần mắt người mẫu nhất (chưa có pose: bên trái); chấm đích ở điểm hội tụ.
 - Góc thấp, selfie, nhóm: lưới 3×3, gợi ý qua dòng gợi ý.
 
 **Gợi ý (A — đích + một dòng).** Dòng gợi ý là viên 38 bo 19 ngay dưới khung ngắm, nền `camBg` 72%, chữ trắng `label` cỡ 14, mũi tên `camAccent` chỉ hướng dời máy khi có. Chấm trắng 12 (viền tối) là mắt người khi đã có phân tích người, nét đứt trắng nối tới chấm đích. Mỗi lúc một dòng, giữ ổn định 0,5 s mới hiện (business-flow §6.4). **Đạt:** lưới đổi sang `camAccent`, chấm đích thành vòng đặc `camAccent` có dấu tích, viên gợi ý nền `camAccent` chữ `accentInk` "Đạt <kỹ thuật>", rung `haptic.levelReached` một lần; 1,5 s sau viên tự ẩn.

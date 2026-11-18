@@ -5,7 +5,7 @@ import { color } from '@/ui/tokens';
 import type { TechniqueId } from './techniques';
 
 /** Hình nhỏ của một kỹ thuật (bảng Bố cục, thẻ học): khung + đường kẻ + chấm. */
-export type IconKind = TechniqueId | 'auto';
+export type IconKind = TechniqueId | 'grid' | 'auto';
 
 export function TechniqueIcon({
   kind,

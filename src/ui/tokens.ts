@@ -311,6 +311,8 @@ export const compositionUi = {
   /** Vòng chấm đích và chấm giữa. */
   target: 34,
   targetDot: 8,
+  /** Các giao điểm 1/3 khi chưa có pose: vòng nhỏ. */
+  point: 14,
   targetStroke: 2,
   /** Nét đậm của đường chân trời / đường dẫn. */
   accentStroke: 2,
@@ -325,6 +327,8 @@ export const compositionUi = {
   introMs: 4000,
   /** Thả pose cách đường bố cục trong chừng này (px) thì dính vào. */
   snapRadius: 18,
+  /** Nút Bố cục cạnh cụm zoom. */
+  button: 44,
   /** Bảng Bố cục: dòng, ô hình nhỏ. */
   sheetRow: 52,
   sheetIcon: 40,

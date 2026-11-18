@@ -4,41 +4,50 @@ import Svg, { Path } from 'react-native-svg';
 import type { Rect } from '@/features/camera/frame';
 import { color, compositionUi, gridLine } from '@/ui/tokens';
 
-import { guideShape } from './guides';
+import type { GridMode } from '@/features/camera/cameraStore';
+
+import { guideShape, type Pt } from './guides';
 import type { TechniqueId } from './techniques';
 
 /**
  * Lớp bố cục trên khung ngắm (design.md §6.15): đường kẻ, chấm đích, đường chân trời tô màu
- * nhấn, đường chéo của đường dẫn. Vẽ TRONG vùng ảnh sẽ được lưu.
+ * nhấn, đường chéo của đường dẫn. Vẽ TRONG vùng ảnh sẽ được lưu. Lưới (nút riêng) vẽ ở lớp
+ * dưới; lưới 3×3 đang bật thì không vẽ lại đường 1/3.
  */
 export function CompositionGuide({
   frame,
   technique,
-  mirrored,
+  grid,
+  anchor,
 }: {
   frame: Rect;
   technique: TechniqueId;
-  mirrored: boolean;
+  grid: GridMode;
+  /** Mắt người mẫu của pose trên khung (0..1), null khi chưa có pose. */
+  anchor: Pt | null;
 }) {
   if (technique === 'off') return null;
-  const g = guideShape(technique, mirrored);
+  const g = guideShape(technique, anchor);
+  const v = grid === '3' ? g.v.filter((f) => !isThird(f)) : g.v;
+  const h = grid === '3' ? g.h.filter((f) => !isThird(f)) : g.h;
   const W = frame.width;
   const H = frame.height;
   const T = compositionUi.target;
+  const P = compositionUi.point;
 
   return (
     <View
       pointerEvents="none"
       style={[styles.abs, { left: frame.x, top: frame.y, width: W, height: H }]}
     >
-      {g.v.map((f) => (
+      {v.map((f) => (
         <View key={`v${f}`} style={[styles.v, { left: `${f * 100}%` }]}>
           <View style={styles.halo} />
           <View style={styles.stroke} />
           <View style={styles.halo} />
         </View>
       ))}
-      {g.h.map((f) => (
+      {h.map((f) => (
         <View key={`h${f}`} style={[styles.h, { top: `${f * 100}%` }]}>
           <View style={styles.halo} />
           <View style={styles.stroke} />
@@ -62,6 +71,12 @@ export function CompositionGuide({
           ))}
         </Svg>
       )}
+      {g.points.map((p) => (
+        <View
+          key={`p${p.x}${p.y}`}
+          style={[styles.point, { left: p.x * W - P / 2, top: p.y * H - P / 2 }]}
+        />
+      ))}
       {g.target && (
         <View
           style={[styles.target, { left: g.target.x * W - T / 2, top: g.target.y * H - T / 2 }]}
@@ -74,6 +89,7 @@ export function CompositionGuide({
 }
 
 const GRID_THICK = gridLine.width + gridLine.halo * 2;
+const isThird = (f: number) => Math.abs(f - 1 / 3) < 1e-6 || Math.abs(f - 2 / 3) < 1e-6;
 
 const styles = StyleSheet.create({
   abs: { position: 'absolute' },
@@ -111,6 +127,14 @@ const styles = StyleSheet.create({
     borderColor: color.camAccent,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  point: {
+    position: 'absolute',
+    width: compositionUi.point,
+    height: compositionUi.point,
+    borderRadius: compositionUi.point / 2,
+    borderWidth: compositionUi.targetStroke,
+    borderColor: color.camAccent,
   },
   targetDot: {
     width: compositionUi.targetDot,

@@ -64,6 +64,7 @@ export function snapLines(t: TechniqueId, frame: { width: number; height: number
   const h = frame.height;
   switch (t) {
     case 'thirds':
+      return { v: [-w / 6, w / 6], h: [-h / 6, h / 6] };
     case 'lead':
       return { v: [-w / 6, w / 6], h: [-h / 6] };
     case 'center':

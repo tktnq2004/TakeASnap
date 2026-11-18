@@ -55,7 +55,7 @@ export function sensorHint(
   prev: SensorHintId | null,
 ): SensorHintId | null {
   'worklet';
-  if (tech === 'off' || tech === 'grid') return null;
+  if (tech === 'off') return null;
   if (tech === 'selfie' && !front) return 'selfieFront';
 
   const roll = Math.abs(rollDeg);

@@ -40,7 +40,7 @@ import {
   type Shot,
 } from '@/features/camera/capture';
 import { ASPECTS, previewRect, type Rect, viewfinderRect } from '@/features/camera/frame';
-import { LevelGuide } from '@/features/camera/FrameGuides';
+import { FrameGrid, LevelGuide } from '@/features/camera/FrameGuides';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
 import { PoseOverlay } from '@/features/camera/PoseOverlay';
 import { useSessionPhotos } from '@/features/camera/sessionPhotos';
@@ -51,6 +51,8 @@ import { ZoomControl, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CompositionGuide } from '@/features/composition/CompositionGuide';
 import { CompositionHint } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
+import type { Pt } from '@/features/composition/guides';
+import { TechniqueIcon } from '@/features/composition/TechniqueIcon';
 import { anchorOnFrame, poseAnchor, snapLines, snapPlacement } from '@/features/composition/snap';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
@@ -110,6 +112,7 @@ function CameraBody() {
   const cameraRef = useRef<CameraView>(null);
 
   const flash = useCameraStore((s) => s.flash);
+  const grid = useCameraStore((s) => s.grid);
   const technique = useCameraStore((s) => s.technique);
   const levelOn = useCameraStore((s) => s.level);
   const timer = useCameraStore((s) => s.timer);
@@ -225,17 +228,37 @@ function CameraBody() {
       haptic.snap();
     }
     savePlacement(poseId, snapped ?? p, frame.height);
+    setPlaced({ id: poseId, p: snapped ?? p });
   };
 
+  // Mắt người mẫu của pose (điểm neo) trong ảnh pose, và vị trí của nó trên khung.
+  const poseEye = useMemo(
+    () => (pose ? poseAnchor(pose.landmarks?.bodyPoints, pose.contours) : null),
+    [pose],
+  );
+  const poseBox = useMemo(
+    () => (pose ? containSize(pose.width, pose.height, frame.width, frame.height) : null),
+    [pose, frame.width, frame.height],
+  );
+
   const snapPose = (p: Placement): Placement | null => {
-    if (!pose) return null;
+    if (!poseEye || !poseBox) return null;
     const lines = snapLines(technique, frame);
     if (lines.v.length === 0 && lines.h.length === 0) return null;
-    const a = poseAnchor(pose.landmarks?.bodyPoints, pose.contours);
-    if (!a) return null;
-    const box = containSize(pose.width, pose.height, frame.width, frame.height);
-    return snapPlacement(p, anchorOnFrame(a, box, p, mirrored), lines, compositionUi.snapRadius);
+    const a = anchorOnFrame(poseEye, poseBox, p, mirrored);
+    return snapPlacement(p, a, lines, compositionUi.snapRadius);
   };
+
+  // Placement mới nhất của pose (thả tay xong, hoặc đã nhớ): chấm đích bố cục bám theo mắt
+  // người mẫu (design.md §6.15). Chỉ cập nhật khi nhấc tay, không theo từng khung hình.
+  const [placed, setPlaced] = useState<{ id: string; p: Placement } | null>(null);
+  const anchorN = useMemo((): Pt | null => {
+    if (!pose || !poseEye || !poseBox || frame.height <= 0) return null;
+    const p =
+      placed?.id === pose.id ? placed.p : (loadPlacement(pose.id, frame.height) ?? IDENTITY);
+    const a = anchorOnFrame(poseEye, poseBox, p, mirrored);
+    return { x: 0.5 + a.x / frame.width, y: 0.5 + a.y / frame.height };
+  }, [pose, poseEye, poseBox, placed, mirrored, frame.width, frame.height]);
 
   const overlay = useTransformGesture({
     enabled: pose != null,
@@ -348,6 +371,11 @@ function CameraBody() {
   const dragging = useDerivedValue(() => moved.get() || inTrash.get());
   const zoomStyle = useAnimatedStyle(() => ({
     opacity: withTiming(dragging.get() ? 0 : 1, { duration: motion.in, easing: ease }),
+  }));
+  // Cụm zoom thành thước cuộn (rộng gần hết màn): nút Bố cục nhường chỗ.
+  const zoomBusy = useSharedValue(false);
+  const compositionBtnStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(zoomBusy.get() ? 0 : 1, { duration: motion.in, easing: ease }),
   }));
   const shutterRowStyle = useAnimatedStyle(() => ({
     opacity: withTiming(dragging.get() ? cameraRail.dimOpacity : 1, {
@@ -601,7 +629,8 @@ function CameraBody() {
       {root.height > 0 && (
         <>
           <FrameMask frame={frame} root={root} />
-          <CompositionGuide frame={frame} technique={technique} mirrored={mirrored} />
+          <FrameGrid frame={frame} mode={grid} />
+          <CompositionGuide frame={frame} technique={technique} grid={grid} anchor={anchorN} />
           {levelOn && <LevelGuide frame={frame} />}
 
           {/* Vùng nhận cử chỉ phủ cả màn hình, nằm dưới các nút. Pose là lớp trên cùng của
@@ -675,7 +704,32 @@ function CameraBody() {
         style={[styles.zoomRow, { bottom: zoomBottom }, zoomStyle]}
         pointerEvents="box-none"
       >
-        <ZoomControl factor={factor} settle={settle} min={zoomMin} />
+        {/* Nút Bố cục: bên trái cụm zoom, thẳng cột ô ảnh vừa chụp (design.md §6.15). */}
+        <Animated.View style={[styles.compositionSlot, compositionBtnStyle]}>
+          <PressableScale
+            accessibilityRole="button"
+            accessibilityLabel={
+              technique === 'off'
+                ? t.composition.buttonOff
+                : t.composition.button(t.composition.names[technique])
+            }
+            hitSlop={4}
+            onPress={() => {
+              setToolsOpen(false);
+              setCompositionOpen(true);
+            }}
+            style={[styles.compositionBtn, technique !== 'off' && styles.compositionOn]}
+          >
+            <TechniqueIcon
+              kind={technique === 'off' ? 'thirds' : technique}
+              width={20}
+              height={24}
+              ink={technique === 'off' ? color.camInk : color.accentInk}
+              accent={technique === 'off' ? color.camInk : color.accentInk}
+            />
+          </PressableScale>
+        </Animated.View>
+        <ZoomControl factor={factor} settle={settle} min={zoomMin} busy={zoomBusy} />
       </Animated.View>
 
       {flying && (
@@ -731,10 +785,6 @@ function CameraBody() {
         open={toolsOpen}
         onToggleOpen={() => setToolsOpen((o) => !o)}
         onSettings={() => router.push('/settings')}
-        onComposition={() => {
-          setToolsOpen(false);
-          setCompositionOpen(true);
-        }}
       />
 
       <CompositionSheet
@@ -811,6 +861,20 @@ const styles = StyleSheet.create({
   shutterFlash: { backgroundColor: color.shutterFlash },
   flying: { borderWidth: 2, borderColor: color.camInk, overflow: 'hidden' },
   zoomRow: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  compositionSlot: {
+    position: 'absolute',
+    left: SIDE + (size.thumb - compositionUi.button) / 2,
+    top: (zoomControlHeight - compositionUi.button) / 2,
+  },
+  compositionBtn: {
+    width: compositionUi.button,
+    height: compositionUi.button,
+    borderRadius: radius.full,
+    backgroundColor: color.camGlass,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compositionOn: { backgroundColor: color.camAccent },
   shutterRow: {
     position: 'absolute',
     left: SIDE,

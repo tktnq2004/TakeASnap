@@ -22,7 +22,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
 import { clearPlacement, useCameraStore } from '@/features/camera/cameraStore';
-import { techniqueForSample } from '@/features/composition/techniques';
 import type { Contour } from '@/engine/contour';
 import {
   analyzeImage,
@@ -159,7 +158,7 @@ export default function LibraryScreen() {
   };
 
   const pickForCamera = (p: Pose) => {
-    useCameraStore.getState().selectPose(p.id, techniqueForSample(p.sampleGroup));
+    useCameraStore.getState().selectPose(p.id);
     goBack();
   };
 
