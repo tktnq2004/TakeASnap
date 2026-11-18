@@ -138,16 +138,11 @@ Lưới gộp lại vào Bố cục: nút Bố cục về chỗ nút Lưới tr�
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.1 | Thẻ học: nhìn hình ở tab Bố cục và trong từng thẻ | Người vẽ giống biểu tượng đã gửi: viền một nét, đầu tròn tách thân, tay có khe ở nách, vạch giữa hai chân | | | |
-| 10.2 | Thẻ Ánh sáng, thẻ Không cắt khớp | Ánh sáng: người tối đặc trên nền sáng / người viền sáng; Không cắt khớp: vạch mép dưới qua gối / qua giữa đùi | | | |
-| 10.3 | Màn thẻ: mục Nguồn | Mỗi nguồn là tên bài + nơi đăng, không có link, chạm vào không mở gì | | | |
-| 10.4 | Chỉnh pose: vuốt từ sát mép trái sang phải | Màn trượt theo tay; thả xa hoặc vuốt nhanh thì về màn trước (như nút Quay lại, không lưu) | | | |
-| 10.5 | Chỉnh pose: tô cọ / kéo ảnh bắt đầu sát mép trái vùng ảnh | Cọ vẫn vẽ, không bị hiểu là vuốt quay lại | | | |
+| 10.1 | Thẻ học: nhìn hình ở tab Bố cục và trong từng thẻ | Người vẽ giống biểu tượng đã gửi: viền một nét, đầu tròn tách thân, tay có khe ở nách, vạch giữa hai chân |d |d | |
+| 10.2 | Thẻ Ánh sáng, thẻ Không cắt khớp | Ánh sáng: người tối đặc trên nền sáng / người viền sáng; Không cắt khớp: vạch mép dưới qua gối / qua giữa đùi |d |d | |
+| 10.3 | Màn thẻ: mục Nguồn | Mỗi nguồn là tên bài + nơi đăng, không có link, chạm vào không mở gì |d |d | |
+| 10.4 | Chỉnh pose: vuốt từ sát mép trái sang phải | Màn trượt theo tay; thả xa hoặc vuốt nhanh thì về màn trước (như nút Quay lại, không lưu) |d |d | |
+| 10.5 | Chỉnh pose: tô cọ / kéo ảnh bắt đầu sát mép trái vùng ảnh | Cọ vẫn vẽ, không bị hiểu là vuốt quay lại |l |l | tô từ mép trái kéo vào thì vẫn bị nhưng chấp nhận được  |
 
 ## Góp ý thêm
-Hiện tại ở tỉ lệ 9:16 xảy ra 1 số vấn đề:
-mép dưới camera cắt 3/4 nút chụp, album, switch cam
-mép trên camera cũng cắt cụm tool camera như vậy 
--> tạm chấp nhận được , nêus được thì hạ xuống - nâng lên để cho nó cắt 1/2
 
-vấn đè lớn nhất ở gợi ý của bố cục khi dùng ở tỉ lệ này đang bị nút chụp che mất
