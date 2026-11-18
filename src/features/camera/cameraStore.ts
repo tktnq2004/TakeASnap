@@ -2,7 +2,7 @@
  * Trạng thái của Camera, nhớ qua các lần mở app (expo-sqlite/kv-store, ghi đồng bộ nên đọc lại
  * được ngay khi khởi động, không nháy giá trị mặc định).
  *
- * - Cài đặt camera: flash, lưới, kỹ thuật bố cục (design.md §6.15), thước, hẹn giờ, tỉ lệ khung.
+ * - Cài đặt camera: flash, kỹ thuật bố cục (gồm cả lưới, design.md §6.15), thước, hẹn giờ, tỉ lệ khung.
  * - Pose đang dùng + điều khiển nhanh: độ hiện, lật ngang (business-flow §4.4).
  * - Vị trí cột công cụ pose (design.md §6.1): mép trái / phải và độ cao trong khung ngắm.
  * - Placement theo từng pose (BR-10): lưu riêng một khóa mỗi pose, chỉ ghi khi nhấc tay.
@@ -17,7 +17,6 @@ import type { Placement } from '@/gestures/useTransformGesture';
 import type { AspectId } from './frame';
 
 export type FlashMode = 'off' | 'on' | 'auto';
-export type GridMode = 'off' | '3' | '4';
 export type TimerSec = 0 | 3 | 10;
 /** Độ hiện overlay: chạm để đổi nhanh qua 3 mức này; giữ nút để kéo liên tục 0–100%. */
 export const OVERLAY_OPACITY = [1, 0.6, 0.3] as const;
@@ -33,7 +32,6 @@ export type RailSide = 'left' | 'right';
 
 type State = {
   flash: FlashMode;
-  grid: GridMode;
   technique: TechniqueId;
   level: boolean;
   timer: TimerSec;
@@ -51,7 +49,6 @@ type State = {
 
 type Actions = {
   cycleFlash: () => void;
-  cycleGrid: () => void;
   toggleLevel: () => void;
   cycleTimer: () => void;
   cycleAspect: () => void;
@@ -62,7 +59,6 @@ type Actions = {
   cycleOpacity: () => void;
   setOpacity: (v: number) => void;
   toggleMirror: () => void;
-  setGrid: (g: GridMode) => void;
   setTechnique: (t: TechniqueId) => void;
   setFlash: (f: FlashMode) => void;
   setTimer: (s: TimerSec) => void;
@@ -84,7 +80,6 @@ export const useCameraStore = create<State & Actions>()(
   persist(
     (set) => ({
       flash: 'off',
-      grid: 'off',
       technique: 'off',
       level: true,
       timer: 0,
@@ -96,7 +91,6 @@ export const useCameraStore = create<State & Actions>()(
       railY: 0.25,
       railCollapsed: false,
       cycleFlash: () => set((s) => ({ flash: next(['off', 'auto', 'on'] as const, s.flash) })),
-      cycleGrid: () => set((s) => ({ grid: next(['off', '3', '4'] as const, s.grid) })),
       toggleLevel: () => set((s) => ({ level: !s.level })),
       cycleTimer: () => set((s) => ({ timer: next([0, 3, 10] as const, s.timer) })),
       cycleAspect: () => set((s) => ({ aspect: next(['3:4', '9:16', '1:1'] as const, s.aspect) })),
@@ -114,7 +108,6 @@ export const useCameraStore = create<State & Actions>()(
       cycleOpacity: () => set((s) => ({ opacity: nextOpacity(s.opacity) })),
       setOpacity: (v) => set({ opacity: Math.min(1, Math.max(0, v)) }),
       toggleMirror: () => set((s) => ({ mirrored: !s.mirrored })),
-      setGrid: (grid) => set({ grid }),
       setTechnique: (technique) => set({ technique }),
       setFlash: (flash) => set({ flash }),
       setTimer: (timer) => set({ timer }),
@@ -123,18 +116,18 @@ export const useCameraStore = create<State & Actions>()(
     }),
     {
       name: 'camera',
-      version: 5,
+      version: 6,
       storage: syncStorage,
       // v1 lưu độ hiện là mức 0/1/2; v2 lưu giá trị 0..1 và vị trí cột công cụ.
       migrate: (old, version) => {
-        const o = (old ?? {}) as Partial<State> & {
-          opacityLevel?: 0 | 1 | 2;
-          technique?: string;
-        };
-        // v4 gộp lưới vào kỹ thuật bố cục ('grid'); v5 tách lưới ra lại thành nút riêng.
-        if (version === 4 && (o.technique as string) === 'grid') o.grid = '3';
+        const o = (old ?? {}) as Partial<State> & { opacityLevel?: 0 | 1 | 2; grid?: string };
+        // Lưới cũ ('3' / '4': trước v4 và ở v5) thành dòng Lưới của bảng Bố cục khi chưa chọn
+        // kỹ thuật nào khác.
+        const grid = o.grid;
+        delete o.grid;
         if (!isTechnique(o.technique)) o.technique = 'off';
-        if (o.grid !== 'off' && o.grid !== '3' && o.grid !== '4') o.grid = 'off';
+        if (o.technique === 'off' && grid === '3') o.technique = 'grid';
+        if (o.technique === 'off' && grid === '4') o.technique = 'grid4';
         if (version < 2) {
           const { opacityLevel, ...rest } = o;
           return {
@@ -152,7 +145,6 @@ export const useCameraStore = create<State & Actions>()(
       },
       partialize: (s) => ({
         flash: s.flash,
-        grid: s.grid,
         technique: s.technique,
         level: s.level,
         timer: s.timer,

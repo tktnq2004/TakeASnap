@@ -24,6 +24,7 @@ export type GuideShape = {
 };
 
 const THIRDS = [1 / 3, 2 / 3];
+const QUARTERS = [1 / 4, 1 / 2, 3 / 4];
 const EMPTY: GuideShape = { v: [], h: [], accentH: [], target: null, points: [], diagonals: [] };
 
 /** Bốn giao điểm 1/3. */
@@ -49,6 +50,8 @@ export function guideShape(t: TechniqueId, anchor: Pt | null = null): GuideShape
   switch (t) {
     case 'off':
       return EMPTY;
+    case 'grid4':
+      return { ...EMPTY, v: QUARTERS, h: QUARTERS };
     case 'thirds':
       return anchor
         ? { ...EMPTY, v: THIRDS, h: THIRDS, target: nearest(INTERSECTIONS, anchor) }
@@ -69,7 +72,7 @@ export function guideShape(t: TechniqueId, anchor: Pt | null = null): GuideShape
       };
     }
     default:
-      // Góc thấp, selfie, nhóm: lưới 3×3, gợi ý qua dòng gợi ý.
+      // Lưới 3×3, góc thấp, selfie, nhóm: lưới 3×3 (ba kỹ thuật sau gợi ý qua dòng gợi ý).
       return { ...EMPTY, v: THIRDS, h: THIRDS };
   }
 }

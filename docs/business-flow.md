@@ -126,8 +126,7 @@ Bản cũ giật vì mọi cử chỉ chồng lên nhau. Bản mới quyết đ�
 |---|---|---|
 | Đổi camera | sau / trước | Camera trước: preview soi gương, ảnh lưu không soi gương (theo cài đặt) |
 | Flash | tắt / bật / tự động | Dùng flash gốc của camera, không dùng đèn pin |
-| Lưới | tắt / 3×3 / 4×4 | Vẽ trong vùng ảnh thật sẽ được lưu |
-| Bố cục (Phase 5, nút cạnh cụm zoom) | tắt / một kỹ thuật bố cục ([§6](#6-chức-năng-3--trợ-lý-bố-cục)) | Vẽ chồng được lên lưới |
+| Bố cục (thay nút Lưới, Phase 5) | tắt / lưới 3×3 / lưới 4×4 / một kỹ thuật bố cục ([§6](#6-chức-năng-3--trợ-lý-bố-cục)) | Mỗi lúc một lớp kẻ; vẽ trong vùng ảnh thật sẽ được lưu |
 | Thước cân bằng | bật / tắt | Đổi sang màu nhấn khi máy lệch dưới 1° |
 | Tỉ lệ khung | 3:4 / 9:16 / 1:1 | Khung ngắm hiển thị đúng vùng ảnh sẽ được lưu |
 | Hẹn giờ | tắt / 3 s / 10 s | Cho người chụp tự đặt máy |
@@ -257,7 +256,7 @@ Chỉ những kỹ thuật dùng được trên điện thoại và có người
 
 ```mermaid
 flowchart TD
-    CAM[Camera] -- "Nút Bố cục" --> PICK[Chọn kỹ thuật<br/>tự chọn · tắt · 1/3 · giữa · chân trời · đường dẫn · góc thấp · selfie · nhóm]
+    CAM[Camera] -- "Nút Bố cục" --> PICK[Chọn kỹ thuật<br/>tự chọn · tắt · lưới 3×3 / 4×4 · 1/3 · giữa · chân trời · đường dẫn · góc thấp · selfie · nhóm]
     PICK -- "Tự chọn (Phase 5b)" --> AUTO[Model trên máy nhìn khung cảnh<br/>đoán kỹ thuật hợp, người dùng đổi được]
     AUTO --> GUIDE
     POSE[Chọn pose mẫu] -- "kỹ thuật gắn với pose" --> PICK

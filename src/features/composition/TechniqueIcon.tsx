@@ -5,7 +5,7 @@ import { color } from '@/ui/tokens';
 import type { TechniqueId } from './techniques';
 
 /** Hình nhỏ của một kỹ thuật (bảng Bố cục, thẻ học): khung + đường kẻ + chấm. */
-export type IconKind = TechniqueId | 'grid' | 'auto';
+export type IconKind = TechniqueId | 'auto';
 
 export function TechniqueIcon({
   kind,
@@ -43,6 +43,12 @@ export function TechniqueIcon({
       break;
     case 'grid':
       body = thirds;
+      break;
+    case 'grid4':
+      body = [1, 2, 3].flatMap((i) => [
+        <Path key={`v${i}`} d={`M${(W * i) / 4} 1V${H - 1}`} {...line} />,
+        <Path key={`h${i}`} d={`M1 ${(H * i) / 4}H${W - 1}`} {...line} />,
+      ]);
       break;
     case 'thirds':
       body = (

@@ -4,32 +4,26 @@ import Svg, { Path } from 'react-native-svg';
 import type { Rect } from '@/features/camera/frame';
 import { color, compositionUi, gridLine } from '@/ui/tokens';
 
-import type { GridMode } from '@/features/camera/cameraStore';
-
 import { guideShape, type Pt } from './guides';
 import type { TechniqueId } from './techniques';
 
 /**
  * Lớp bố cục trên khung ngắm (design.md §6.15): đường kẻ, chấm đích, đường chân trời tô màu
- * nhấn, đường chéo của đường dẫn. Vẽ TRONG vùng ảnh sẽ được lưu. Lưới (nút riêng) vẽ ở lớp
- * dưới; lưới 3×3 đang bật thì không vẽ lại đường 1/3.
+ * nhấn, đường chéo của đường dẫn. Vẽ TRONG vùng ảnh sẽ được lưu.
  */
 export function CompositionGuide({
   frame,
   technique,
-  grid,
   anchor,
 }: {
   frame: Rect;
   technique: TechniqueId;
-  grid: GridMode;
   /** Mắt người mẫu của pose trên khung (0..1), null khi chưa có pose. */
   anchor: Pt | null;
 }) {
   if (technique === 'off') return null;
   const g = guideShape(technique, anchor);
-  const v = grid === '3' ? g.v.filter((f) => !isThird(f)) : g.v;
-  const h = grid === '3' ? g.h.filter((f) => !isThird(f)) : g.h;
+  const { v, h } = g;
   const W = frame.width;
   const H = frame.height;
   const T = compositionUi.target;
@@ -89,7 +83,6 @@ export function CompositionGuide({
 }
 
 const GRID_THICK = gridLine.width + gridLine.halo * 2;
-const isThird = (f: number) => Math.abs(f - 1 / 3) < 1e-6 || Math.abs(f - 2 / 3) < 1e-6;
 
 const styles = StyleSheet.create({
   abs: { position: 'absolute' },

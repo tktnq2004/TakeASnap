@@ -238,7 +238,7 @@ Cấm:
 | Flash tắt / bật / tự động | `zap-off` / `zap` / `zap` + huy hiệu "A" |
 | Hẹn giờ | `timer` (+ huy hiệu số giây khi bật) |
 | Mở thêm công cụ | `chevron-down` (xoay 180° khi đang mở) |
-| Lưới · Thước cân bằng | `grid-3x3` · `ruler` (nút Bố cục cạnh cụm zoom dùng hình nhỏ của kỹ thuật, §6.15) |
+| Bố cục · Thước cân bằng | `grid-3x3` (tắt / lưới; kỹ thuật khác: hình nhỏ của kỹ thuật, §6.15) · `ruler` |
 | Cài đặt | `settings` |
 | Nút pose | thumbnail pose đang dùng; chưa có pose thì `plus` |
 | Chỉnh pose · Độ hiện · Lật ngang · Ẩn / hiện pose | `pencil` · `contrast` · `flip-horizontal-2` · `eye-off` (đang ẩn: `eye`, nền `accent`) |
@@ -362,8 +362,8 @@ Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế 
 ```
 
 - **Không còn hàng chọn chế độ** dưới nút chụp (vòng 3).
-- **Thanh trên** (góp ý Phase 4): Đèn flash (huy hiệu "A" khi tự động), Hẹn giờ (huy hiệu số giây), Lưới (huy hiệu 3 / 4), Thước cân bằng (mặc định bật), Tỉ lệ (chữ `3:4`), nút Mở thêm. Chạm nút trên thanh để đổi nhanh. Cài đặt tách riêng bên phải.
-- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Ba hàng cao 48 để chọn thẳng giá trị: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]`, Lưới `[Tắt | 3×3 | 4×4]`. **Thả xuống** cao dần từ 0 trong 200 ms `easeIO`, các hàng trượt xuống 12 px và hiện dần; **kéo lên** ngược lại; mũi tên xoay 180° theo. Chạm ra ngoài hoặc nút ⌃ thì thu lên.
+- **Thanh trên** (góp ý Phase 4): Đèn flash (huy hiệu "A" khi tự động), Hẹn giờ (huy hiệu số giây), Bố cục (thay nút Lưới; lưới có huy hiệu 3 / 4, §6.15), Thước cân bằng (mặc định bật), Tỉ lệ (chữ `3:4`), nút Mở thêm. Chạm nút trên thanh để đổi nhanh. Cài đặt tách riêng bên phải.
+- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Hai hàng cao 48 để chọn thẳng giá trị: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]` (lưới chọn trong bảng Bố cục). **Thả xuống** cao dần từ 0 trong 200 ms `easeIO`, các hàng trượt xuống 12 px và hiện dần; **kéo lên** ngược lại; mũi tên xoay 180° theo. Chạm ra ngoài hoặc nút ⌃ thì thu lên.
 - **Thước cân bằng:** vạch giữa 80×2 màu `camWarn` xoay theo độ nghiêng; lệch dưới 1° thì ba vạch nối thẳng, đổi `camAccent`, rung `selection`.
 - **Cột công cụ (`ToolRail`):**
   - Chạm nhanh một nút = bấm nút. Kéo ở **bất kỳ đâu trên cột** (ngón đi quá 10 px) = dời cột; khi đó lượt chạm của nút bị hủy nên thả tay không bấm nhầm.
@@ -548,14 +548,16 @@ Chốt qua `logo-design-skill` (canvas thiết kế, trang "Icon chốt + màn m
 
 Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố cục", hàng "Bản chốt": **Kỹ thuật A · Gợi ý A · Nhận xét A · Thẻ học A**. Nghiệp vụ ở business-flow §6.
 
-**Nút Bố cục** (sửa sau phiếu Phase 5 lần 1: Lưới phải giữ nút bật nhanh riêng, thanh trên không còn chỗ) là nút tròn 44 **bên trái cụm zoom**, thẳng cột với ô ảnh vừa chụp. Đang tắt: nền `camGlass`, hình nhỏ 1/3 màu trắng. Đang bật: nền `camAccent`, hình nhỏ của kỹ thuật màu `accentInk`. `accessibilityLabel` "Bố cục: <tên kỹ thuật>". Ẩn mờ khi cụm zoom thành thước cuộn và khi đang kéo pose (cùng cụm zoom). Lưới 3×3 / 4×4 vẫn là nút riêng trên thanh trên như Phase 4, vẽ chồng được với kỹ thuật bố cục.
+**Nút Bố cục** thay nút Lưới trên thanh trên của Camera, cùng chỗ, cùng cỡ 44. Lưới 3×3 và 4×4 là hai dòng của bảng Bố cục, nên mỗi lúc chỉ có một lớp kẻ (phiếu Phase 5 lần 2: tách lưới thành nút riêng thì lưới chồng lớp bố cục, rối mắt; thử đặt nút Bố cục cạnh cụm zoom ở lần 1 rồi bỏ). Đang tắt: icon `grid` trắng. Đang bật: nền `accent` như các nút đang bật khác; lưới: icon `grid` + huy hiệu 3 / 4 như nút Lưới cũ; kỹ thuật khác: hình nhỏ của kỹ thuật màu trắng. `accessibilityLabel` "Bố cục: <tên kỹ thuật>".
 
 **Bảng Bố cục (A — bảng kéo lên).** Chạm nút Bố cục thì bảng trượt lên từ đáy, nền `surface` 97%, bo trên 28, có vạch kéo; vuốt xuống, chạm nút đóng hoặc chạm ra ngoài thì đóng. Đầu bảng "Bố cục" (`head` cỡ 20) + `CloseButton` nhỏ. Mỗi dòng cao 52: ô 40 nền `surfaceAlt` vẽ hình nhỏ của kỹ thuật, tên (`label` 15) + mô tả một dòng (`caption` cỡ 13 nét `semibold`, `muted`); dòng đang chọn nền `accentSoft` + dấu tích `accent`. Chạm một dòng là chọn và đóng bảng. Đáy bảng là nút phụ "Học các kỹ thuật" mở tab Bố cục của Thư viện.
 
 | Dòng | Mô tả | Phase |
 |---|---|---|
 | Tự chọn | App nhìn khung cảnh, chọn giúp | 5b, chỉ khi qua cổng |
-| Tắt | Không có hướng dẫn | 5 |
+| Tắt | Không có đường kẻ | 5 |
+| Lưới 3×3 | Chỉ đường kẻ, không gợi ý | 5 |
+| Lưới 4×4 | Lưới dày hơn, để căn thẳng | 5 |
 | Quy tắc 1/3 | Mắt trên đường 1/3 | 5 |
 | Đặt ở giữa | Người ở trục giữa | 5 |
 | Đường chân trời | Chân trời trên một đường 1/3 | 5 (lớp kẻ), 5a (tự dò) |

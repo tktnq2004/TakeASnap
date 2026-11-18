@@ -7,11 +7,11 @@ const G = 9.81;
 const rad = (d: number) => (d * Math.PI) / 180;
 
 describe('techniques', () => {
-  it('8 dòng, bắt đầu bằng Tắt; Lưới là nút riêng, không nằm trong danh sách', () => {
-    expect(TECHNIQUES).toHaveLength(8);
-    expect(TECHNIQUES[0]).toBe('off');
+  it('10 dòng: Tắt, Lưới 3×3, Lưới 4×4 rồi các kỹ thuật', () => {
+    expect(TECHNIQUES).toHaveLength(10);
+    expect(TECHNIQUES.slice(0, 3)).toEqual(['off', 'grid', 'grid4']);
     expect(isTechnique('thirds')).toBe(true);
-    expect(isTechnique('grid')).toBe(false);
+    expect(isTechnique('3')).toBe(false);
   });
 });
 
@@ -20,6 +20,14 @@ describe('guideShape', () => {
     const g = guideShape('off');
     expect(g.v.length + g.h.length + g.accentH.length + g.diagonals.length).toBe(0);
     expect(g.target).toBeNull();
+  });
+
+  it('Lưới 4×4: ba đường mỗi chiều, không có chấm', () => {
+    const g = guideShape('grid4');
+    expect(g.v).toEqual([0.25, 0.5, 0.75]);
+    expect(g.h).toHaveLength(3);
+    expect(g.target).toBeNull();
+    expect(g.points).toEqual([]);
   });
 
   it('1/3 chưa có pose: đủ 4 giao điểm, chưa có đích', () => {
@@ -65,8 +73,10 @@ describe('cameraPitchDeg', () => {
 });
 
 describe('sensorHint', () => {
-  it('Tắt không có gợi ý', () => {
+  it('Tắt và hai kiểu Lưới không có gợi ý', () => {
     expect(sensorHint('off', 10, 0, false, null)).toBeNull();
+    expect(sensorHint('grid', 10, 0, false, null)).toBeNull();
+    expect(sensorHint('grid4', 10, 0, false, null)).toBeNull();
   });
 
   it('máy nghiêng đứng trước mọi gợi ý khác, có độ trễ', () => {

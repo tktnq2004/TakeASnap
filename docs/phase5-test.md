@@ -74,7 +74,7 @@ Ngày thử: d là đạt , l là lỗi
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 5.1 | Nhìn thanh trên | Nút Lưới về chỗ cũ: chạm đổi Tắt → 3×3 → 4×4 (huy hiệu số); Mở thêm có lại hàng Lưới | | | |
+| 5.1 | Nhìn thanh trên | Nút Lưới về chỗ cũ: chạm đổi Tắt → 3×3 → 4×4 (huy hiệu số); Mở thêm có lại hàng Lưới |d |d | nhưng bật cùng lúc lưới 4x4 và bố cục sẽ bị lưới chồng lưới tạo nhiều đường kẻ rối mắt. Gộp lại về như ban đầu và thêm bố cục lưới 4x4 là được  |
 | 5.2 | Mở app lần đầu sau bản này (vòng trước đang chọn "Lưới 3×3" trong Bố cục) | Lưới bật 3×3, Bố cục tắt | | | |
 | 5.3 | Nhìn hàng zoom | Nút tròn Bố cục bên trái cụm zoom, thẳng cột ô ảnh vừa chụp; không còn nút Bố cục trên thanh trên | | | |
 | 5.4 | Chạm nút Bố cục | Mở bảng Bố cục, 8 dòng (không còn dòng Lưới); chọn kỹ thuật thì nút thành nền xanh với hình nhỏ của kỹ thuật | | | |
@@ -85,8 +85,18 @@ Ngày thử: d là đạt , l là lỗi
 | 5.9 | Đường dẫn, kéo pose sang phải rồi thả | Hai nét đứt chụm về giao điểm trên bên phải | | | |
 | 5.10 | Bố cục đang Tắt, chọn một pose mẫu bất kỳ | Bố cục vẫn Tắt (không tự bật nữa) | | | |
 
+## 6. Sửa theo phiếu lần 2
+
+Lưới gộp lại vào Bố cục: nút Bố cục về chỗ nút Lưới trên thanh trên, bảng có thêm Lưới 3×3 và Lưới 4×4. Nút Bố cục cạnh zoom bỏ. Mục 5.2–5.6 không còn áp dụng.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 6.1 | Mở app sau bản này (vòng trước Lưới 4×4 đang bật, Bố cục tắt) | Bố cục đang chọn Lưới 4×4; nút trên thanh trên có icon lưới + huy hiệu 4 | | | |
+| 6.2 | Nhìn thanh trên và hàng zoom | Nút Bố cục ở chỗ nút Lưới cũ; cạnh cụm zoom không còn nút; Mở thêm chỉ còn Đèn flash, Hẹn giờ | | | |
+| 6.3 | Chạm nút Bố cục | 10 dòng: Tắt, Lưới 3×3, Lưới 4×4, Quy tắc 1/3, Đặt ở giữa, Đường chân trời, Đường dẫn, Góc thấp, Selfie, Nhóm người; bảng không tràn màn | | | |
+| 6.4 | Chọn Lưới 4×4, rồi Quy tắc 1/3 | Mỗi lúc chỉ một lớp kẻ, không còn lưới chồng lưới | | | |
+| 6.5 | Chọn Lưới 3×3 / 4×4 | Nút có huy hiệu 3 / 4 như nút Lưới cũ; không có dòng gợi ý | | | |
+| 6.6 | Lặp 5.7–5.10 (chấm 1/3, đường dẫn theo pose, không tự bật kỹ thuật) | Như kỳ vọng ở mục 5 | | | |
+
 ## Góp ý thêm
-Hiện tại có vài thắc mắc:
-- Có những bố cục đang dựa vào ảnh trên màn hình camera (không phải ảnh đã chụp) để gợi ý 
-- Có những bố cục đang dựa vào phần cứng của điện thoại để gợi ý
-- Có những bố cục nào đang dựa vào pose để gợi ý
+

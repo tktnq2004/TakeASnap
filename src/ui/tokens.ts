@@ -327,8 +327,6 @@ export const compositionUi = {
   introMs: 4000,
   /** Thả pose cách đường bố cục trong chừng này (px) thì dính vào. */
   snapRadius: 18,
-  /** Nút Bố cục cạnh cụm zoom. */
-  button: 44,
   /** Bảng Bố cục: dòng, ô hình nhỏ. */
   sheetRow: 52,
   sheetIcon: 40,
