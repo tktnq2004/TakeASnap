@@ -303,7 +303,7 @@ flowchart TD
 
 - Chọn pose **không** tự bật kỹ thuật (bỏ sau phiếu Phase 5 lần 1: không cần thiết); người dùng tự chọn trong bảng Bố cục.
 - Phase 5 chưa phân tích ảnh camera: chấm đích 1/3 và điểm hội tụ của đường dẫn đặt ở giao điểm gần mắt người mẫu của pose nhất; chưa có pose thì hiện đủ 4 giao điểm.
-- Thả pose trên khung ngắm thì mắt người mẫu dính vào đường và giao điểm 1/3, hoặc trục giữa, theo kỹ thuật đang chọn (rung nhẹ khi dính).
+- Thả pose trên khung ngắm thì mắt người mẫu dính theo kỹ thuật đang chọn (rung nhẹ khi dính): 1/3 và đường dẫn chỉ dính vào **giao điểm** khi mắt ở gần (không dính riêng một đường); đặt ở giữa dính trục dọc giữa.
 - Pose của bạn (tạo từ ảnh) không gắn kỹ thuật; app gợi ý theo cỡ cảnh của pose.
 
 ### 6.8 Giới hạn của bản v1

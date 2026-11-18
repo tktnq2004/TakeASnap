@@ -58,47 +58,63 @@ export function anchorOnFrame(
   return { x: p.x + lx * c - ly * s, y: p.y + lx * s + ly * c };
 }
 
-/** Đường dính theo kỹ thuật, tính từ tâm khung (px). */
-export function snapLines(t: TechniqueId, frame: { width: number; height: number }) {
+export type SnapTargets = {
+  /** Điểm dính (cả hai trục cùng lúc): giao điểm 1/3, điểm hội tụ. */
+  points: Pt[];
+  /** Đường dọc dính riêng trục x (trục giữa). */
+  v: number[];
+};
+
+/**
+ * Chỗ dính theo kỹ thuật, tính từ tâm khung (px). 1/3 và đường dẫn chỉ dính vào GIAO ĐIỂM
+ * (phiếu Phase 5 lần 3: dính từng trục riêng làm mặt bị kéo vào cột dọc dù còn xa vòng đích).
+ * Đặt ở giữa dính trục dọc (đúng nghĩa kỹ thuật) và điểm đích trên trục.
+ */
+export function snapTargets(t: TechniqueId, frame: { width: number; height: number }): SnapTargets {
   const w = frame.width;
   const h = frame.height;
   switch (t) {
     case 'thirds':
-      return { v: [-w / 6, w / 6], h: [-h / 6, h / 6] };
+      return {
+        points: [-h / 6, h / 6].flatMap((y) => [-w / 6, w / 6].map((x) => ({ x, y }))),
+        v: [],
+      };
     case 'lead':
-      return { v: [-w / 6, w / 6], h: [-h / 6] };
+      return { points: [-w / 6, w / 6].map((x) => ({ x, y: -h / 6 })), v: [] };
     case 'center':
-      return { v: [0], h: [-h / 6] };
+      return { points: [{ x: 0, y: -h / 6 }], v: [0] };
     default:
-      return { v: [], h: [] };
+      return { points: [], v: [] };
   }
 }
 
 /**
- * Dời placement để điểm neo dính vào đường gần nhất trong khoảng `radius` px (mỗi trục riêng).
- * Trả về null khi không dính đường nào.
+ * Dời placement để điểm neo dính vào chỗ gần nhất: trước hết điểm trong bán kính `pointRadius`
+ * (dời cả hai trục), không có thì đường dọc trong `lineRadius` (chỉ dời x). Null khi không dính.
  */
 export function snapPlacement(
   p: Placement,
   anchor: Pt,
-  lines: { v: number[]; h: number[] },
-  radius: number,
+  targets: SnapTargets,
+  pointRadius: number,
+  lineRadius: number,
 ): Placement | null {
-  const near = (v: number, list: number[]) => {
-    let best: number | null = null;
-    for (const l of list) {
-      if (Math.abs(l - v) <= radius && (best == null || Math.abs(l - v) < Math.abs(best - v))) {
-        best = l;
-      }
+  let best: Pt | null = null;
+  let bestD = pointRadius;
+  for (const q of targets.points) {
+    const d = Math.hypot(q.x - anchor.x, q.y - anchor.y);
+    if (d <= bestD) {
+      best = q;
+      bestD = d;
     }
-    return best;
-  };
-  const sx = near(anchor.x, lines.v);
-  const sy = near(anchor.y, lines.h);
-  if (sx == null && sy == null) return null;
-  return {
-    ...p,
-    x: p.x + (sx == null ? 0 : sx - anchor.x),
-    y: p.y + (sy == null ? 0 : sy - anchor.y),
-  };
+  }
+  if (best) return { ...p, x: p.x + best.x - anchor.x, y: p.y + best.y - anchor.y };
+
+  let line: number | null = null;
+  for (const l of targets.v) {
+    const d = Math.abs(l - anchor.x);
+    if (d <= lineRadius && (line == null || d < Math.abs(line - anchor.x))) line = l;
+  }
+  if (line == null) return null;
+  return { ...p, x: p.x + line - anchor.x };
 }

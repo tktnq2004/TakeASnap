@@ -325,7 +325,9 @@ export const compositionUi = {
   okHideMs: 1500,
   /** Dòng hướng dẫn khi vừa chọn kỹ thuật. */
   introMs: 4000,
-  /** Thả pose cách đường bố cục trong chừng này (px) thì dính vào. */
+  /** Thả pose: mắt cách giao điểm / điểm đích trong chừng này (px) thì dính vào điểm đó. */
+  snapPointRadius: 28,
+  /** Thả pose: mắt cách trục giữa trong chừng này (px) thì dính vào trục. */
   snapRadius: 18,
   /** Bảng Bố cục: dòng, ô hình nhỏ. */
   sheetRow: 52,

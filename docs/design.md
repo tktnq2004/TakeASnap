@@ -567,7 +567,7 @@ Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố c
 | Nhóm người | Đầu so le, xếp tam giác | 5 |
 
 **Lớp bố cục trên khung ngắm.** Đường kẻ `grid` (trắng 35%) 1 px như lưới cũ.
-- 1/3: lưới 3×3 + **chấm đích** ở giao điểm gần mắt người nhất: vòng 34 viền `camAccent` 2 px, chấm giữa 8. Phase 5 lấy mắt người mẫu của pose (cập nhật khi thả pose); chưa có pose thì cả 4 giao điểm là vòng nhỏ 14.
+- 1/3: lưới 3×3 + **chấm đích** ở giao điểm gần mắt người nhất: vòng 34 viền `camAccent` 2 px, chấm giữa 8. Phase 5 lấy mắt người mẫu của pose (cập nhật khi thả pose); chưa có pose thì cả 4 giao điểm là vòng nhỏ 14. Thả pose: mắt cách giao điểm dưới `compositionUi.snapPointRadius` (28) thì dính vào điểm đó; chỉ gần một đường thì không dính.
 - Giữa: trục dọc giữa + chấm đích trên trục ở 1/3 trên.
 - Chân trời (Phase 5): đường 1/3 dưới tô `camAccent` 2 px, đường 1/3 trên giữ trắng; thước cân bằng hiện cùng.
 - Đường dẫn (Phase 5): hai đường chéo nét đứt `camAccent` 85% (8/6) từ hai góc dưới hội tụ ở giao điểm 1/3 trên gần mắt người mẫu nhất (chưa có pose: bên trái); chấm đích ở điểm hội tụ.

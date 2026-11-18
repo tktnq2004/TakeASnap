@@ -52,7 +52,7 @@ import { CompositionGuide } from '@/features/composition/CompositionGuide';
 import { CompositionHint } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
 import type { Pt } from '@/features/composition/guides';
-import { anchorOnFrame, poseAnchor, snapLines, snapPlacement } from '@/features/composition/snap';
+import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '@/features/composition/snap';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
@@ -241,10 +241,10 @@ function CameraBody() {
 
   const snapPose = (p: Placement): Placement | null => {
     if (!poseEye || !poseBox) return null;
-    const lines = snapLines(technique, frame);
-    if (lines.v.length === 0 && lines.h.length === 0) return null;
+    const targets = snapTargets(technique, frame);
+    if (targets.points.length === 0 && targets.v.length === 0) return null;
     const a = anchorOnFrame(poseEye, poseBox, p, mirrored);
-    return snapPlacement(p, a, lines, compositionUi.snapRadius);
+    return snapPlacement(p, a, targets, compositionUi.snapPointRadius, compositionUi.snapRadius);
   };
 
   // Placement mới nhất của pose (thả tay xong, hoặc đã nhớ): chấm đích bố cục bám theo mắt

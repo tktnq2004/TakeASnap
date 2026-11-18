@@ -80,10 +80,10 @@ Ngày thử: d là đạt , l là lỗi
 | 5.4 | Chạm nút Bố cục | Mở bảng Bố cục, 8 dòng (không còn dòng Lưới); chọn kỹ thuật thì nút thành nền xanh với hình nhỏ của kỹ thuật | | | |
 | 5.5 | Giữ rồi kéo ngang cụm zoom | Nút Bố cục mờ đi khi thước cuộn hiện, hiện lại khi thả tay | | | |
 | 5.6 | Bật Lưới 4×4 + Quy tắc 1/3 cùng lúc | Thấy cả lưới 4×4 và đường 1/3 + chấm; tắt Lưới thì lớp 1/3 vẫn còn | | | |
-| 5.7 | Quy tắc 1/3, chưa có pose | Cả 4 giao điểm có vòng nhỏ xanh | | | |
-| 5.8 | Quy tắc 1/3, có pose: kéo pose sang nửa phải hoặc nửa dưới rồi thả | Vòng đích lớn chuyển tới giao điểm gần mắt người mẫu nhất (kể cả hai giao điểm dưới); thả gần thì mắt dính vào giao điểm đó | | | |
-| 5.9 | Đường dẫn, kéo pose sang phải rồi thả | Hai nét đứt chụm về giao điểm trên bên phải | | | |
-| 5.10 | Bố cục đang Tắt, chọn một pose mẫu bất kỳ | Bố cục vẫn Tắt (không tự bật nữa) | | | |
+| 5.7 | Quy tắc 1/3, chưa có pose | Cả 4 giao điểm có vòng nhỏ xanh |d |d | |
+| 5.8 | Quy tắc 1/3, có pose: kéo pose sang nửa phải hoặc nửa dưới rồi thả | Vòng đích lớn chuyển tới giao điểm gần mắt người mẫu nhất (kể cả hai giao điểm dưới); thả gần thì mắt dính vào giao điểm đó | d|d | không chỉ dính mắt, cột dọc tự kéo mặt của pose vào cột dù mặt người không phải ngay giao điểm 2 đường kẻ (vòng đích) |
+| 5.9 | Đường dẫn, kéo pose sang phải rồi thả | Hai nét đứt chụm về giao điểm trên bên phải |d |d | |
+| 5.10 | Bố cục đang Tắt, chọn một pose mẫu bất kỳ | Bố cục vẫn Tắt (không tự bật nữa) |d | d| |
 
 ## 6. Sửa theo phiếu lần 2
 
@@ -91,12 +91,21 @@ Lưới gộp lại vào Bố cục: nút Bố cục về chỗ nút Lưới tr�
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 6.1 | Mở app sau bản này (vòng trước Lưới 4×4 đang bật, Bố cục tắt) | Bố cục đang chọn Lưới 4×4; nút trên thanh trên có icon lưới + huy hiệu 4 | | | |
-| 6.2 | Nhìn thanh trên và hàng zoom | Nút Bố cục ở chỗ nút Lưới cũ; cạnh cụm zoom không còn nút; Mở thêm chỉ còn Đèn flash, Hẹn giờ | | | |
-| 6.3 | Chạm nút Bố cục | 10 dòng: Tắt, Lưới 3×3, Lưới 4×4, Quy tắc 1/3, Đặt ở giữa, Đường chân trời, Đường dẫn, Góc thấp, Selfie, Nhóm người; bảng không tràn màn | | | |
-| 6.4 | Chọn Lưới 4×4, rồi Quy tắc 1/3 | Mỗi lúc chỉ một lớp kẻ, không còn lưới chồng lưới | | | |
-| 6.5 | Chọn Lưới 3×3 / 4×4 | Nút có huy hiệu 3 / 4 như nút Lưới cũ; không có dòng gợi ý | | | |
+| 6.1 | Mở app sau bản này (vòng trước Lưới 4×4 đang bật, Bố cục tắt) | Bố cục đang chọn Lưới 4×4; nút trên thanh trên có icon lưới + huy hiệu 4 d| d| | |
+| 6.2 | Nhìn thanh trên và hàng zoom | Nút Bố cục ở chỗ nút Lưới cũ; cạnh cụm zoom không còn nút; Mở thêm chỉ còn Đèn flash, Hẹn giờ |d | d| |
+| 6.3 | Chạm nút Bố cục | 10 dòng: Tắt, Lưới 3×3, Lưới 4×4, Quy tắc 1/3, Đặt ở giữa, Đường chân trời, Đường dẫn, Góc thấp, Selfie, Nhóm người; bảng không tràn màn |d |d | |
+| 6.4 | Chọn Lưới 4×4, rồi Quy tắc 1/3 | Mỗi lúc chỉ một lớp kẻ, không còn lưới chồng lưới |d |d | |
+| 6.5 | Chọn Lưới 3×3 / 4×4 | Nút có huy hiệu 3 / 4 như nút Lưới cũ; không có dòng gợi ý |d |d | |
 | 6.6 | Lặp 5.7–5.10 (chấm 1/3, đường dẫn theo pose, không tự bật kỹ thuật) | Như kỳ vọng ở mục 5 | | | |
+
+## 7. Sửa theo phiếu lần 3
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 7.1 | Quy tắc 1/3: thả pose sao cho mắt người mẫu sát một đường dọc nhưng xa mọi giao điểm (ví dụ giữa khung theo chiều cao) | Pose đứng yên chỗ thả, không bị kéo vào đường dọc | | | |
+| 7.2 | Quy tắc 1/3: thả pose với mắt gần vòng đích (cách khoảng một đốt ngón tay) | Mắt dính đúng vào giao điểm, rung nhẹ | | | |
+| 7.3 | Đường dẫn: thả mắt gần điểm hội tụ | Dính vào điểm hội tụ; gần đường dọc mà xa điểm thì không dính | | | |
+| 7.4 | Đặt ở giữa: thả mắt gần trục giữa ở bất kỳ độ cao nào | Dính vào trục dọc; gần chấm đích thì dính cả vào chấm | | | |
 
 ## Góp ý thêm
 

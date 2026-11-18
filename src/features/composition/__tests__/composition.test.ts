@@ -1,6 +1,6 @@
 import { guideShape, INTERSECTIONS } from '../guides';
 import { cameraPitchDeg, isAchieved, SENSOR, sensorHint } from '../sensor';
-import { anchorOnFrame, poseAnchor, snapLines, snapPlacement } from '../snap';
+import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '../snap';
 import { isTechnique, TECHNIQUES } from '../techniques';
 
 const G = 9.81;
@@ -140,18 +140,26 @@ describe('snap', () => {
     expect(a.x).toBeCloseTo(75);
   });
 
-  it('dính đường 1/3 gần nhất trong bán kính, mỗi trục riêng', () => {
-    const lines = snapLines('thirds', frame);
-    // Đường dọc ±50, đường ngang ±66.7.
-    const p = snapPlacement(id, { x: 40, y: 0 }, lines, 16);
-    expect(p).toEqual({ ...id, x: 10, y: 0 });
-    const q = snapPlacement(id, { x: -45, y: -60 }, lines, 16);
+  it('1/3: chỉ dính vào giao điểm, không dính riêng một trục', () => {
+    const tg = snapTargets('thirds', frame);
+    // Giao điểm (±50, ±66.7).
+    const q = snapPlacement(id, { x: -45, y: -60 }, tg, 28, 18);
     expect(q!.x).toBeCloseTo(-5);
     expect(q!.y).toBeCloseTo(-400 / 6 + 60);
-    expect(snapPlacement(id, { x: 0, y: 0 }, lines, 16)).toBeNull();
+    // Sát đường dọc nhưng xa giao điểm: không dính (lỗi phiếu lần 3).
+    expect(snapPlacement(id, { x: 48, y: 0 }, tg, 28, 18)).toBeNull();
+    expect(snapPlacement(id, { x: 0, y: 0 }, tg, 28, 18)).toBeNull();
   });
 
-  it('Góc thấp không có đường dính', () => {
-    expect(snapLines('low', frame)).toEqual({ v: [], h: [] });
+  it('Đặt ở giữa: dính trục dọc, gần điểm đích thì dính cả điểm', () => {
+    const tg = snapTargets('center', frame);
+    expect(snapPlacement(id, { x: 10, y: 100 }, tg, 28, 18)).toEqual({ ...id, x: -10, y: 0 });
+    const q = snapPlacement(id, { x: 5, y: -60 }, tg, 28, 18);
+    expect(q!.x).toBeCloseTo(-5);
+    expect(q!.y).toBeCloseTo(-400 / 6 + 60);
+  });
+
+  it('Góc thấp không có chỗ dính', () => {
+    expect(snapTargets('low', frame)).toEqual({ points: [], v: [] });
   });
 });
