@@ -183,14 +183,13 @@ Cần bộ tách người (gói tải ở lần tạo pose đầu tiên). Nếu 
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 13.1 | Mở bảng Bố cục | 11 dòng, có "Lấp đầy khung · Người chiếm gần hết khung" sau Đặt ở giữa; bảng không tràn màn | | | |
-| 13.2 | Chọn Lấp đầy khung | Lưới 3×3, dòng "Tiến lại gần để người lấp đầy khung" vài giây; nút Bố cục có hình đầu và vai | | | |
-| 13.3 | Lấp đầy khung: chụp người nhỏ giữa khung, mở Xem ảnh | "Người còn nhỏ, tiến lại gần hoặc zoom vào"; có khung cắt gợi ý ôm sát người | | | |
-| 13.4 | Lấp đầy khung: chụp cận người (từ ngực trở lên) | "Người chiếm gần hết khung" (dấu tích), không có khung cắt | | | |
-| 13.5 | Tab Bố cục trong Thư viện | 19 thẻ; có Lấp đầy khung (Có trên Camera), Cân bằng, Sự lặp lại (Chỉ đọc) | | | |
-| 13.6 | Thẻ Cân bằng, Sự lặp lại | Cân bằng: người bên trái + con bướm bên phải; Sự lặp lại: hàng sáu người | | | |
-| 13.7 | Thẻ Hậu cảnh gọn, Tiền cảnh và chiều sâu, Góc thấp, góc cao | Tên mới; chữ có thêm ý nền khác tông / nhiều lớp xa gần / chụp từ trên cao; hình chiều sâu có hai lớp đồi | | | |
-| 13.8 | Thẻ Lấp đầy khung → Chụp thử | Về Camera với Lấp đầy khung | | | |
+| 13.1 | Mở bảng Bố cục | 11 dòng, có "Lấp đầy khung · Người chiếm gần hết khung" sau Đặt ở giữa; bảng không tràn màn |d |d | |
+| 13.2 | Chọn Lấp đầy khung | Lưới 3×3, dòng "Tiến lại gần để người lấp đầy khung" vài giây; nút Bố cục có hình đầu và vai |d | d| |
+| 13.3 | Lấp đầy khung: chụp người nhỏ giữa khung, mở Xem ảnh | "Người còn nhỏ, tiến lại gần hoặc zoom vào"; có khung cắt gợi ý ôm sát người |d |d | |
+| 13.4 | Lấp đầy khung: chụp cận người (từ ngực trở lên) | "Người chiếm gần hết khung" (dấu tích), không có khung cắt |d |d | |
+| 13.5 | Tab Bố cục trong Thư viện | 19 thẻ; có Lấp đầy khung (Có trên Camera), Cân bằng, Sự lặp lại (Chỉ đọc) |d |d | |
+| 13.6 | Thẻ Cân bằng, Sự lặp lại | Cân bằng: người bên trái + con bướm bên phải; Sự lặp lại: hàng sáu người |d |d | |
+| 13.7 | Thẻ Hậu cảnh gọn, Tiền cảnh và chiều sâu, Góc thấp, góc cao | Tên mới; chữ có thêm ý nền khác tông / nhiều lớp xa gần / chụp từ trên cao; hình chiều sâu có hai lớp đồi | d|d | |
+| 13.8 | Thẻ Lấp đầy khung → Chụp thử | Về Camera với Lấp đầy khung |d |d | |
 
 ## Góp ý thêm
-tôi có gửi thêm ảnh 1 số nguyên tắc tôi tìm được, xem thử có áp dụng được không
