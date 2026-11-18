@@ -7,47 +7,56 @@ import { DIAGRAM, type Figure, type Scene } from './lessons';
 const { w: W, h: H } = DIAGRAM;
 
 /**
- * Người vẽ kiểu biểu tượng (phiếu Phase 5 lần 4: bản thân hình thang trông thô): đầu tròn, thân,
- * tay, chân là các nét bo tròn đầu, cùng một màu đặc. Tọa độ theo tâm đầu, cỡ `s`; gối nằm
- * khoảng 47·s dưới tâm đầu, hông 32·s.
+ * Người vẽ theo biểu tượng người dùng gửi (phiếu Phase 5 lần 5): viền một nét, đầu tròn tách
+ * khỏi thân, vai bo tròn, tay buông có khe ở nách, đầu tay và bàn chân bo tròn, một vạch giữa
+ * hai chân. Đơn vị `u` = bán kính đầu = 6,5·s. Tính từ tâm đầu (theo u): vai 1,3; nách 2,3; đầu
+ * tay 4,6; hông 5,2; gối ~6,7; bàn chân 5,2 + 3·legs.
  */
-function person(f: Figure, ok: boolean, i: number) {
-  const s = f.s ?? 1;
-  const legs = f.legs ?? 1;
+export function figurePath(x: number, y: number, s = 1, legs = 1) {
+  const u = 6.5 * s;
+  const X = (v: number) => (x + v * u).toFixed(2);
+  const Y = (v: number) => (y + v * u).toFixed(2);
+  const foot = 5.2 + 3 * legs;
+  const ra = 0.42 * u;
+  const rl = 0.53 * u;
+  const rc = 0.6 * u;
+  const body =
+    `M${X(-1.3)} ${Y(1.3)}H${X(1.3)}` +
+    `A${rc} ${rc} 0 0 1 ${X(1.9)} ${Y(1.9)}V${Y(4.6)}` +
+    `A${ra} ${ra} 0 0 1 ${X(1.06)} ${Y(4.6)}V${Y(foot)}` +
+    `A${rl} ${rl} 0 0 1 ${X(0)} ${Y(foot)}` +
+    `A${rl} ${rl} 0 0 1 ${X(-1.06)} ${Y(foot)}V${Y(4.6)}` +
+    `A${ra} ${ra} 0 0 1 ${X(-1.9)} ${Y(4.6)}V${Y(1.9)}` +
+    `A${rc} ${rc} 0 0 1 ${X(-1.3)} ${Y(1.3)}Z`;
+  const inner =
+    `M${X(1.06)} ${Y(2.3)}V${Y(4.6)}M${X(-1.06)} ${Y(2.3)}V${Y(4.6)}` +
+    `M${X(0)} ${Y(5.2)}V${Y(foot)}`;
+  return { body, inner, head: { cx: x, cy: y, r: u }, stroke: 0.24 * u };
+}
+
+function person(f: Figure, ok: boolean, bg: string, i: number) {
   const { x, y } = f;
-  const hip = y + 32 * s;
-  const foot = hip + 30 * s * legs;
-  const fill = f.dark ? color.surface : color.ink;
+  const p = figurePath(x, y, f.s ?? 1, f.legs ?? 1);
+  // Ngược sáng: cả người tối đặc, không thấy chi tiết.
+  const line = f.dark ? color.bg : color.ink;
+  const fill = f.dark ? color.bg : bg;
   const dir = f.facing === 'right' ? 1 : f.facing === 'left' ? -1 : 0;
-  const limb = { stroke: fill, strokeLinecap: 'round' as const, fill: 'none' };
+  const u = p.head.r;
   return (
     <G key={i}>
-      <G opacity={f.dark ? 1 : 0.88}>
-        {/* Hai chân hơi choãi, hai tay buông dọc thân. */}
-        <Path d={`M${x - 2.6 * s} ${hip}L${x - 4 * s} ${foot}`} {...limb} strokeWidth={4.6 * s} />
-        <Path d={`M${x + 2.6 * s} ${hip}L${x + 4 * s} ${foot}`} {...limb} strokeWidth={4.6 * s} />
-        <Path
-          d={`M${x - 6 * s} ${y + 12 * s}L${x - 9 * s} ${y + 29 * s}`}
-          {...limb}
-          strokeWidth={3.6 * s}
-        />
-        <Path
-          d={`M${x + 6 * s} ${y + 12 * s}L${x + 9 * s} ${y + 29 * s}`}
-          {...limb}
-          strokeWidth={3.6 * s}
-        />
-        <Path d={`M${x} ${y + 12 * s}L${x} ${hip - 1 * s}`} {...limb} strokeWidth={10 * s} />
-        <Circle cx={x} cy={y} r={5.6 * s} fill={fill} />
-        {dir !== 0 && (
-          <Path
-            d={`M${x + dir * 5 * s} ${y - 1.6 * s}L${x + dir * 7.6 * s} ${y + 0.8 * s}L${x + dir * 5 * s} ${y + 2 * s}Z`}
-            fill={fill}
-          />
-        )}
-      </G>
+      <Path d={p.body} fill={fill} stroke={line} strokeWidth={p.stroke} strokeLinejoin="round" />
+      <Path d={p.inner} stroke={line} strokeWidth={p.stroke} strokeLinecap="round" />
+      <Circle
+        cx={p.head.cx}
+        cy={p.head.cy}
+        r={u}
+        fill={fill}
+        stroke={line}
+        strokeWidth={p.stroke}
+      />
       {dir !== 0 && (
         <Path
-          d={`M${x + dir * 10 * s} ${y}H${x + dir * 26 * s}`}
+          d={`M${x + dir * u * 1.5} ${y}H${x + dir * u * 4}`}
           stroke={ok ? color.accent : color.danger}
           strokeWidth={1.5}
           strokeDasharray={[3, 3]}
@@ -80,11 +89,7 @@ export function LessonDiagram({ scene, ok, width }: { scene: Scene; ok: boolean;
       {scene.guides === 'center' && <Path d={`M${W / 2} 0V${H}`} {...guide} />}
 
       {scene.horizon && (
-        <Path
-          d={`M0 ${scene.horizon.y1}L${W} ${scene.horizon.y2}`}
-          stroke={mark}
-          strokeWidth={2}
-        />
+        <Path d={`M0 ${scene.horizon.y1}L${W} ${scene.horizon.y2}`} stroke={mark} strokeWidth={2} />
       )}
       {scene.lines?.map(([x1, y1, x2, y2], i) => (
         <Path key={i} d={`M${x1} ${y1}L${x2} ${y2}`} stroke={mark} strokeWidth={2} />
@@ -109,7 +114,7 @@ export function LessonDiagram({ scene, ok, width }: { scene: Scene; ok: boolean;
         />
       )}
 
-      {scene.people?.map((f, i) => person(f, ok, i))}
+      {scene.people?.map((f, i) => person(f, ok, scene.bright ? color.ink : color.surfaceAlt, i))}
 
       {scene.triangle && scene.people && (
         <Path
@@ -162,14 +167,26 @@ export function LessonDiagram({ scene, ok, width }: { scene: Scene; ok: boolean;
 
       {scene.leaves && (
         <G>
-          <Ellipse cx={6} cy={112} rx={18} ry={7} fill={color.muted} transform="rotate(-35 6 112)" />
-          <Ellipse cx={14} cy={120} rx={16} ry={6} fill={color.faint} transform="rotate(-15 14 120)" />
+          <Ellipse
+            cx={6}
+            cy={112}
+            rx={18}
+            ry={7}
+            fill={color.muted}
+            transform="rotate(-35 6 112)"
+          />
+          <Ellipse
+            cx={14}
+            cy={120}
+            rx={16}
+            ry={6}
+            fill={color.faint}
+            transform="rotate(-15 14 120)"
+          />
         </G>
       )}
 
-      {scene.cut && (
-        <Path d={`M0 ${scene.cut.y - 1.5}H${W}`} stroke={mark} strokeWidth={3} />
-      )}
+      {scene.cut && <Path d={`M0 ${scene.cut.y - 1.5}H${W}`} stroke={mark} strokeWidth={3} />}
 
       {scene.label && (
         <SvgText

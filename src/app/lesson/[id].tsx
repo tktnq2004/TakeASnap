@@ -1,15 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Camera, Check, ExternalLink, X } from 'lucide-react-native';
-import {
-  Linking,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { Camera, Check, X } from 'lucide-react-native';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -102,17 +94,10 @@ export default function LessonScreen() {
           <View style={styles.sources}>
             <Text style={[type.caption, styles.muted]}>{t.lessons.sources}</Text>
             {lesson.sources.map((src) => (
-              <Pressable
-                key={src.url}
-                accessibilityRole="link"
-                accessibilityLabel={t.lessons.openSource(src.name)}
-                hitSlop={6}
-                onPress={() => Linking.openURL(src.url).catch(() => {})}
-                style={({ pressed }) => [styles.source, pressed && styles.pressed]}
-              >
-                <Text style={[type.hint, styles.accent, styles.flex]}>{src.name}</Text>
-                <ExternalLink size={16} strokeWidth={2} color={color.accent} />
-              </Pressable>
+              <View key={src.title} style={styles.source}>
+                <Text style={[type.hint, styles.ink]}>{src.title}</Text>
+                <Text style={[type.caption, styles.muted]}>{src.by}</Text>
+              </View>
             ))}
           </View>
         </ScrollView>
@@ -137,8 +122,7 @@ const styles = StyleSheet.create({
   card: { padding: 18, borderRadius: radius.xl, backgroundColor: color.surface, gap: space[4] },
   para: { gap: 6 },
   sources: { paddingHorizontal: space[1], gap: space[2] },
-  source: { flexDirection: 'row', alignItems: 'center', gap: space[2], minHeight: 32 },
-  pressed: { opacity: 0.6 },
+  source: { gap: 2 },
   bottom: { position: 'absolute', left: size.edge, right: size.edge },
   ink: { color: color.ink },
   muted: { color: color.muted },

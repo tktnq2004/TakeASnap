@@ -63,7 +63,11 @@ export type Scene = {
   triangle?: boolean;
 };
 
-export type Source = { name: string; url: string };
+/**
+ * Nguồn ghi bằng chữ (tên bài + nơi đăng), không có link: app chạy offline (phiếu Phase 5 lần 5).
+ * Link đầy đủ nằm trong docs/composition.md. Tên bài giữ nguyên tiếng Anh như bản gốc.
+ */
+export type Source = { title: string; by: string };
 
 export type Lesson = {
   id: LessonId;
@@ -71,7 +75,7 @@ export type Lesson = {
   onCamera: boolean;
   /** Kỹ thuật bật khi bấm Chụp thử. Thẻ chỉ đọc mở lưới 3×3. */
   tryTechnique: TechniqueId;
-  /** Nguồn (lấy từ docs/composition.md), mở bằng trình duyệt của máy. */
+  /** Nguồn (lấy từ docs/composition.md). */
   sources: readonly Source[];
   wrong: Scene;
   right: Scene;
@@ -83,8 +87,8 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'thirds',
     sources: [
-      { name: 'Photography Mad', url: 'https://www.photographymad.com/pages/view/3-portrait-composition-tips-for-framing-your-subject-perfectly' },
-      { name: 'Amirshahi và cộng sự, 2014', url: 'https://uniklinikum-jena.de/anatomie1_media/Inhalte/AmirshahiARTP2014-font-1.pdf' },
+      { title: '3 portrait composition tips for framing your subject perfectly', by: 'Photography Mad' },
+      { title: 'Evaluating the rule of thirds in photographs and paintings', by: 'Amirshahi và cộng sự, Art & Perception, 2014' },
     ],
     wrong: { guides: 'thirds', people: [{ x: 45, y: 46 }] },
     right: { guides: 'thirds', people: [{ x: 30, y: 40 }] },
@@ -94,8 +98,8 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'center',
     sources: [
-      { name: 'Amirshahi và cộng sự, 2014', url: 'https://uniklinikum-jena.de/anatomie1_media/Inhalte/AmirshahiARTP2014-font-1.pdf' },
-      { name: 'Palmer lab, UC Berkeley', url: 'https://palmerlab.berkeley.edu/spatial.html' },
+      { title: 'Evaluating the rule of thirds in photographs and paintings', by: 'Amirshahi và cộng sự, Art & Perception, 2014' },
+      { title: 'Aesthetics of spatial composition', by: 'Palmer lab, UC Berkeley' },
     ],
     wrong: { guides: 'center', people: [{ x: 36, y: 40 }] },
     right: { guides: 'center', people: [{ x: 45, y: 40 }] },
@@ -105,7 +109,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'thirds',
     sources: [
-      { name: 'Wikipedia: Headroom', url: 'https://en.wikipedia.org/wiki/Headroom_(photographic_framing)' },
+      { title: 'Headroom (photographic framing)', by: 'Wikipedia' },
     ],
     wrong: { guides: 'thirds', people: [{ x: 45, y: 72, s: 0.7 }] },
     right: { guides: 'thirds', people: [{ x: 45, y: 40, s: 1.1 }] },
@@ -115,7 +119,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'thirds',
     sources: [
-      { name: 'Photography Icon', url: 'https://photographyicon.com/headroom/' },
+      { title: 'Headroom', by: 'Photography Icon' },
     ],
     wrong: { guides: 'thirds', people: [{ x: 66, y: 40, facing: 'right' }] },
     right: { guides: 'thirds', people: [{ x: 28, y: 40, facing: 'right' }] },
@@ -125,7 +129,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { name: 'PetaPixel', url: 'https://petapixel.com/photography-tips-for-landscapes-with-people-in-them/' },
+      { title: 'Photography tips for landscapes with people in them', by: 'PetaPixel' },
     ],
     wrong: { people: [{ x: 6, y: 40 }] },
     right: { people: [{ x: 32, y: 40 }] },
@@ -135,19 +139,19 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { name: 'PhotographyTalk', url: 'https://www.photographytalk.com/contest-articles/7375-how-to-crop-portraits-an-essential-guide' },
-      { name: 'SLR Lounge', url: 'https://www.slrlounge.com/portrait-cropping-guide-bad-portrait-crops-how-to-fix-them/' },
+      { title: 'How to crop portraits: an essential guide', by: 'PhotographyTalk' },
+      { title: 'Portrait cropping guide: bad portrait crops and how to fix them', by: 'SLR Lounge' },
     ],
-    // Gối ở 48·s dưới tâm đầu; giữa đùi ở 40·s.
-    wrong: { people: [{ x: 45, y: 120 - 48 * 1.6, s: 1.6 }], cut: { y: 120 } },
-    right: { people: [{ x: 45, y: 120 - 40 * 1.6, s: 1.6 }], cut: { y: 120 } },
+    // Gối ở 6,7u = 43,6·s dưới tâm đầu; giữa đùi ở 5,9u = 38,4·s (figurePath).
+    wrong: { people: [{ x: 45, y: 120 - 43.6 * 1.6, s: 1.6 }], cut: { y: 120 } },
+    right: { people: [{ x: 45, y: 120 - 38.4 * 1.6, s: 1.6 }], cut: { y: 120 } },
   },
   {
     id: 'level',
     onCamera: true,
     tryTechnique: 'horizon',
     sources: [
-      { name: 'PetaPixel', url: 'https://petapixel.com/2022/05/22/in-portrait-photography-beware-lines-intersecting-your-subjects-head' },
+      { title: 'In portrait photography, beware lines intersecting your subject\'s head', by: 'PetaPixel, 2022' },
     ],
     wrong: { horizon: { y1: 66, y2: 86 }, people: [{ x: 30, y: 40 }] },
     right: { guides: 'thirds', horizon: { y1: 80, y2: 80 }, people: [{ x: 30, y: 40 }] },
@@ -157,8 +161,8 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'low',
     sources: [
-      { name: 'Adorama', url: 'https://www.adorama.com/alc/low-angle-shot' },
-      { name: 'iPhotography', url: 'https://www.iphotography.com/blog/low-angle-photography-without-kneeling/' },
+      { title: 'Low angle shot', by: 'Adorama' },
+      { title: 'Low angle photography without kneeling', by: 'iPhotography' },
     ],
     wrong: { people: [{ x: 45, y: 30, s: 1.1, legs: 0.6 }] },
     right: { people: [{ x: 45, y: 18, s: 1.1, legs: 1.3 }] },
@@ -168,7 +172,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'selfie',
     sources: [
-      { name: 'Popular Science', url: 'https://www.popsci.com/story/diy/take-better-selfies/' },
+      { title: 'Take better selfies', by: 'Popular Science' },
     ],
     wrong: { face: { x: 40, y: 60, r: 18 }, phone: { x: 74, y: 100 } },
     right: { face: { x: 40, y: 60, r: 18 }, phone: { x: 74, y: 22 } },
@@ -178,8 +182,8 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { name: 'How-To Geek', url: 'https://www.howtogeek.com/678397/why-people-look-different-in-photos-taken-with-different-lenses/' },
-      { name: 'PhoneArena', url: 'https://www.phonearena.com/news/Did-you-know-here-is-how-you-can-take-better-portrait-pictures-on-your-smartphone_id74860' },
+      { title: 'Why people look different in photos taken with different lenses', by: 'How-To Geek' },
+      { title: 'How you can take better portrait pictures on your smartphone', by: 'PhoneArena' },
     ],
     wrong: { face: { x: 45, y: 62, r: 34 }, label: '0,5×' },
     right: { people: [{ x: 45, y: 34, s: 1.3 }], label: '2×' },
@@ -189,8 +193,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'group',
     sources: [
-      { name: 'Digital Photo Mentor', url: 'https://www.digitalphotomentor.com/?p=79479' },
-      { name: 'Daily Photo Tips', url: 'https://dailyphototips.com/portraits/group-photos/' },
+      { title: 'Group photos', by: 'Daily Photo Tips' },
     ],
     wrong: {
       people: [
@@ -213,7 +216,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'lead',
     sources: [
-      { name: 'Imaginated', url: 'https://www.imaginated.com/photography/composition/techniques/' },
+      { title: 'Photography composition techniques', by: 'Imaginated' },
     ],
     wrong: {
       lines: [
@@ -235,8 +238,8 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { name: 'PetaPixel', url: 'https://petapixel.com/2022/05/22/in-portrait-photography-beware-lines-intersecting-your-subjects-head' },
-      { name: 'Fstoppers', url: 'https://fstoppers.com/education/common-easily-fixed-mistake-portrait-photography-275518' },
+      { title: 'In portrait photography, beware lines intersecting your subject\'s head', by: 'PetaPixel, 2022' },
+      { title: 'A common, easily fixed mistake in portrait photography', by: 'Fstoppers' },
     ],
     wrong: { pole: { x: 45, to: 38 }, people: [{ x: 45, y: 44 }] },
     right: { pole: { x: 72, to: 120 }, people: [{ x: 34, y: 44 }] },
@@ -246,7 +249,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { name: 'Imaginated', url: 'https://imaginated.com/photography/composition/techniques/frame-within-a-frame' },
+      { title: 'Frame within a frame', by: 'Imaginated' },
     ],
     wrong: { people: [{ x: 45, y: 40 }] },
     right: { inner: { x: 16, y: 14, w: 58, h: 106 }, people: [{ x: 45, y: 40, s: 0.9 }] },
@@ -256,7 +259,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { name: 'Imaginated', url: 'https://www.imaginated.com/photography/composition/techniques/' },
+      { title: 'Photography composition techniques', by: 'Imaginated' },
     ],
     wrong: { people: [{ x: 50, y: 40 }] },
     right: { leaves: true, people: [{ x: 50, y: 40 }] },
@@ -266,7 +269,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: false,
     tryTechnique: 'grid',
     sources: [
-      { name: 'Engadget', url: 'https://www.engadget.com/cameras/how-to-improve-your-smartphone-photography-010037588.html' },
+      { title: 'How to improve your smartphone photography', by: 'Engadget' },
     ],
     wrong: { bright: true, people: [{ x: 45, y: 40, dark: true }] },
     right: { people: [{ x: 45, y: 40 }] },

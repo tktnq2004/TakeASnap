@@ -12,16 +12,16 @@ import { edgeSwipe, motion } from '@/ui/tokens';
 
 /**
  * Vuốt từ mép trái sang phải để quay lại (phiếu Phase 5 lần 4), cho các màn mở kiểu
- * `fullScreenModal` (iOS không có cử chỉ này sẵn). Chỉ bắt đầu trong dải `edgeSwipe.edge` px sát
- * mép trái; màn trượt theo ngón tay, thả quá `edgeSwipe.distance` hoặc vuốt nhanh thì quay lại,
+ * `fullScreenModal` (iOS không có cử chỉ này sẵn): thẻ học, Chỉnh pose. Chỉ bắt đầu trong dải
+ * `edge` px sát mép trái (mặc định `edgeSwipe.edge`; Chỉnh pose hẹp hơn để không giẫm lên cọ); màn trượt theo ngón tay, thả quá `edgeSwipe.distance` hoặc vuốt nhanh thì quay lại,
  * không thì trượt về chỗ cũ. Chạy trên UI thread, chỉ sang JS khi quyết định quay lại.
  */
-export function useEdgeSwipeBack(onBack: () => void, width: number) {
+export function useEdgeSwipeBack(onBack: () => void, width: number, edge: number = edgeSwipe.edge) {
   const x = useSharedValue(0);
   const reduceMotion = useReducedMotion();
 
   const gesture = usePanGesture({
-    hitSlop: { left: 0, width: edgeSwipe.edge },
+    hitSlop: { left: 0, width: edge },
     activeOffsetX: 12,
     failOffsetY: [-14, 14],
     onUpdate: (e) => {

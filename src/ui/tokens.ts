@@ -335,7 +335,13 @@ export const compositionUi = {
 } as const;
 
 /** Vuốt từ mép trái để quay lại (màn mở kiểu fullScreenModal). */
-export const edgeSwipe = { edge: 28, distance: 90, velocity: 600 } as const;
+export const edgeSwipe = {
+  edge: 28,
+  /** Chỉnh pose: vùng ảnh bắt đầu ở 12 px, dải hẹp để vuốt mép không cướp nét cọ. */
+  editorEdge: 16,
+  distance: 90,
+  velocity: 600,
+} as const;
 
 /** Giới hạn của overlay (roadmap §3.5). */
 export const transformLimits = {

@@ -124,15 +124,25 @@ Lưới gộp lại vào Bố cục: nút Bố cục về chỗ nút Lưới tr�
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 9.1 | Quy tắc 1/3: thả pose cho mắt dính vào giao điểm | Vòng đích ẩn đi; kéo pose lệch ra rồi thả thì vòng hiện lại | | | |
-| 9.2 | Lặp 9.1 với Đường dẫn và Đặt ở giữa | Vòng đích ẩn khi mắt trong vòng (hai nét đứt của đường dẫn vẫn còn) | | | |
-| 9.3 | Tỉ lệ 9:16 | Mép trên khung đi qua khoảng giữa thanh công cụ trên, mép dưới qua khoảng giữa nút chụp / ô ảnh / đổi camera | | | |
-| 9.4 | Tỉ lệ 9:16 + một kỹ thuật bố cục có dòng gợi ý (ví dụ Góc thấp) | Dòng gợi ý nằm trên cụm zoom, không bị nút chụp che | | | |
-| 9.5 | Tỉ lệ 3:4 và 1:1 | Khung như cũ; dòng gợi ý vẫn ở đáy khung | | | |
-| 9.6 | Thẻ học: nhìn các hình | Người vẽ kiểu biểu tượng có tay, nét bo tròn; dễ nhìn hơn bản trước | | | |
-| 9.7 | Màn thẻ: vuốt từ sát mép trái sang phải | Màn trượt theo tay; thả quá khoảng 1/4 màn hoặc vuốt nhanh thì về Thư viện, không thì trượt lại | | | |
-| 9.8 | Màn thẻ: vuốt dọc để cuộn, vuốt ngang ở giữa màn | Cuộn bình thường; vuốt ngang ở giữa màn không quay lại | | | |
-| 9.9 | Màn thẻ: mục Nguồn | Có 1–2 nguồn dưới thẻ chữ; chạm mở trang trong trình duyệt | | | |
+| 9.1 | Quy tắc 1/3: thả pose cho mắt dính vào giao điểm | Vòng đích ẩn đi; kéo pose lệch ra rồi thả thì vòng hiện lại |d |d | |
+| 9.2 | Lặp 9.1 với Đường dẫn và Đặt ở giữa | Vòng đích ẩn khi mắt trong vòng (hai nét đứt của đường dẫn vẫn còn) |d |d | |
+| 9.3 | Tỉ lệ 9:16 | Mép trên khung đi qua khoảng giữa thanh công cụ trên, mép dưới qua khoảng giữa nút chụp / ô ảnh / đổi camera |d |d | |
+| 9.4 | Tỉ lệ 9:16 + một kỹ thuật bố cục có dòng gợi ý (ví dụ Góc thấp) | Dòng gợi ý nằm trên cụm zoom, không bị nút chụp che |d |d | |
+| 9.5 | Tỉ lệ 3:4 và 1:1 | Khung như cũ; dòng gợi ý vẫn ở đáy khung |d |d | |
+| 9.6 | Thẻ học: nhìn các hình | Người vẽ kiểu biểu tượng có tay, nét bo tròn; dễ nhìn hơn bản trước | d|d |sử dụng hình người tôi gửi |
+| 9.7 | Màn thẻ: vuốt từ sát mép trái sang phải | Màn trượt theo tay; thả quá khoảng 1/4 màn hoặc vuốt nhanh thì về Thư viện, không thì trượt lại |d |d |thêm tính năng này cho editor luôn |
+| 9.8 | Màn thẻ: vuốt dọc để cuộn, vuốt ngang ở giữa màn | Cuộn bình thường; vuốt ngang ở giữa màn không quay lại |d |d | |
+| 9.9 | Màn thẻ: mục Nguồn | Có 1–2 nguồn dưới thẻ chữ; chạm mở trang trong trình duyệt |l |l |trích từ tiêu đề, tác giả, hoặc cuốn sách, .... nếu là link thì sẽ bị vi phạm tính offline của app |
+
+## 10. Sửa theo phiếu lần 5
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 10.1 | Thẻ học: nhìn hình ở tab Bố cục và trong từng thẻ | Người vẽ giống biểu tượng đã gửi: viền một nét, đầu tròn tách thân, tay có khe ở nách, vạch giữa hai chân | | | |
+| 10.2 | Thẻ Ánh sáng, thẻ Không cắt khớp | Ánh sáng: người tối đặc trên nền sáng / người viền sáng; Không cắt khớp: vạch mép dưới qua gối / qua giữa đùi | | | |
+| 10.3 | Màn thẻ: mục Nguồn | Mỗi nguồn là tên bài + nơi đăng, không có link, chạm vào không mở gì | | | |
+| 10.4 | Chỉnh pose: vuốt từ sát mép trái sang phải | Màn trượt theo tay; thả xa hoặc vuốt nhanh thì về màn trước (như nút Quay lại, không lưu) | | | |
+| 10.5 | Chỉnh pose: tô cọ / kéo ảnh bắt đầu sát mép trái vùng ảnh | Cọ vẫn vẽ, không bị hiểu là vuốt quay lại | | | |
 
 ## Góp ý thêm
 Hiện tại ở tỉ lệ 9:16 xảy ra 1 số vấn đề:

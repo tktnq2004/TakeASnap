@@ -23,10 +23,14 @@ describe('lessons', () => {
     }
   });
 
-  it('thẻ nào cũng có ít nhất một nguồn https', () => {
+  it('thẻ nào cũng có ít nhất một nguồn ghi bằng chữ (không link, app chạy offline)', () => {
     for (const l of LESSONS) {
       expect(l.sources.length).toBeGreaterThan(0);
-      for (const s of l.sources) expect(s.url).toMatch(/^https:\/\//);
+      for (const s of l.sources) {
+        expect(s.title.length).toBeGreaterThan(0);
+        expect(s.by.length).toBeGreaterThan(0);
+        expect(`${s.title} ${s.by}`).not.toMatch(/https?:|www\./);
+      }
     }
   });
 
