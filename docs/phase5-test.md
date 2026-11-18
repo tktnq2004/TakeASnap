@@ -102,23 +102,42 @@ Lưới gộp lại vào Bố cục: nút Bố cục về chỗ nút Lưới tr�
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 7.1 | Quy tắc 1/3: thả pose sao cho mắt người mẫu sát một đường dọc nhưng xa mọi giao điểm (ví dụ giữa khung theo chiều cao) | Pose đứng yên chỗ thả, không bị kéo vào đường dọc | | | |
-| 7.2 | Quy tắc 1/3: thả pose với mắt gần vòng đích (cách khoảng một đốt ngón tay) | Mắt dính đúng vào giao điểm, rung nhẹ | | | |
-| 7.3 | Đường dẫn: thả mắt gần điểm hội tụ | Dính vào điểm hội tụ; gần đường dọc mà xa điểm thì không dính | | | |
-| 7.4 | Đặt ở giữa: thả mắt gần trục giữa ở bất kỳ độ cao nào | Dính vào trục dọc; gần chấm đích thì dính cả vào chấm | | | |
+| 7.1 | Quy tắc 1/3: thả pose sao cho mắt người mẫu sát một đường dọc nhưng xa mọi giao điểm (ví dụ giữa khung theo chiều cao) | Pose đứng yên chỗ thả, không bị kéo vào đường dọc |d |d |khi mắt người vào được vòng tròn rồi thì nên ẩn, khi mắt không còn khớp mới hiện lên |
+| 7.2 | Quy tắc 1/3: thả pose với mắt gần vòng đích (cách khoảng một đốt ngón tay) | Mắt dính đúng vào giao điểm, rung nhẹ |d |d | |
+| 7.3 | Đường dẫn: thả mắt gần điểm hội tụ | Dính vào điểm hội tụ; gần đường dọc mà xa điểm thì không dính |d |d |cũng như 1/3 ẩn khi mắt đã vào ô tròn |
+| 7.4 | Đặt ở giữa: thả mắt gần trục giữa ở bất kỳ độ cao nào | Dính vào trục dọc; gần chấm đích thì dính cả vào chấm |d |d |cũng như 1/3 ẩn khi mắt đã vào ô tròn |
 
 ## 8. Thẻ học
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 8.1 | Mở Thư viện | Có tab thứ ba "Bố cục" sau Pose mẫu, Pose của bạn | | | |
-| 8.2 | Chạm tab Bố cục | Lưới 2 cột, 16 ô: hình vẽ nhỏ, tên, nhãn "Có trên Camera" (xanh) hoặc "Chỉ đọc" (xám); không có nút Thêm ảnh từ máy | | | |
-| 8.3 | Chạm một ô | Mở màn thẻ: nút Quay lại, tiêu đề "Bố cục", tên kỹ thuật to; hai hình Chưa đạt (X đỏ) / Đạt (dấu tích xanh); thẻ ba đoạn Là gì · Khi nào dùng · Khi nào phá lệ; nút Chụp thử ở đáy | | | |
-| 8.4 | Xem lần lượt cả 16 thẻ | Hình vẽ đúng ý câu chữ (ví dụ Không cắt khớp: mép dưới cắt gối / cắt giữa đùi; Nhóm người: đầu thẳng hàng / tam giác); chữ không tràn, cuộn được tới hết | | | |
-| 8.5 | Quay lại từ màn thẻ | Về tab Bố cục của Thư viện | | | |
-| 8.6 | Thẻ Quy tắc 1/3 → Chụp thử | Đóng thẻ và Thư viện, về thẳng Camera; Bố cục đang chọn Quy tắc 1/3 | | | |
-| 8.7 | Thẻ Máy thẳng, đường chân trời → Chụp thử; thẻ Tiền cảnh → Chụp thử | Lần lượt bật Đường chân trời; Lưới 3×3 | | | |
-| 8.8 | Camera → nút Bố cục → "Học các kỹ thuật" | Bảng đóng, Thư viện mở thẳng tab Bố cục | | | |
+| 8.1 | Mở Thư viện | Có tab thứ ba "Bố cục" sau Pose mẫu, Pose của bạn |d |d | |
+| 8.2 | Chạm tab Bố cục | Lưới 2 cột, 16 ô: hình vẽ nhỏ, tên, nhãn "Có trên Camera" (xanh) hoặc "Chỉ đọc" (xám); không có nút Thêm ảnh từ máy |d |d | vẽ nhân vật từ các hình trụ tròn nhẫn và có tay đi người này hơi xấu |
+| 8.3 | Chạm một ô | Mở màn thẻ: nút Quay lại, tiêu đề "Bố cục", tên kỹ thuật to; hai hình Chưa đạt (X đỏ) / Đạt (dấu tích xanh); thẻ ba đoạn Là gì · Khi nào dùng · Khi nào phá lệ; nút Chụp thử ở đáy |d |d |nên thêm vuốt từ mép trái qua phải để về cho tiện. Có thể trích dẫn thêm nguồn để tăng độ tin cậy |
+| 8.4 | Xem lần lượt cả 16 thẻ | Hình vẽ đúng ý câu chữ (ví dụ Không cắt khớp: mép dưới cắt gối / cắt giữa đùi; Nhóm người: đầu thẳng hàng / tam giác); chữ không tràn, cuộn được tới hết |d |d | |
+| 8.5 | Quay lại từ màn thẻ | Về tab Bố cục của Thư viện |d |d | |
+| 8.6 | Thẻ Quy tắc 1/3 → Chụp thử | Đóng thẻ và Thư viện, về thẳng Camera; Bố cục đang chọn Quy tắc 1/3 |d |d | |
+| 8.7 | Thẻ Máy thẳng, đường chân trời → Chụp thử; thẻ Tiền cảnh → Chụp thử | Lần lượt bật Đường chân trời; Lưới 3×3 |d |d | |
+| 8.8 | Camera → nút Bố cục → "Học các kỹ thuật" | Bảng đóng, Thư viện mở thẳng tab Bố cục |d |d | |
+
+## 9. Sửa theo phiếu lần 4
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 9.1 | Quy tắc 1/3: thả pose cho mắt dính vào giao điểm | Vòng đích ẩn đi; kéo pose lệch ra rồi thả thì vòng hiện lại | | | |
+| 9.2 | Lặp 9.1 với Đường dẫn và Đặt ở giữa | Vòng đích ẩn khi mắt trong vòng (hai nét đứt của đường dẫn vẫn còn) | | | |
+| 9.3 | Tỉ lệ 9:16 | Mép trên khung đi qua khoảng giữa thanh công cụ trên, mép dưới qua khoảng giữa nút chụp / ô ảnh / đổi camera | | | |
+| 9.4 | Tỉ lệ 9:16 + một kỹ thuật bố cục có dòng gợi ý (ví dụ Góc thấp) | Dòng gợi ý nằm trên cụm zoom, không bị nút chụp che | | | |
+| 9.5 | Tỉ lệ 3:4 và 1:1 | Khung như cũ; dòng gợi ý vẫn ở đáy khung | | | |
+| 9.6 | Thẻ học: nhìn các hình | Người vẽ kiểu biểu tượng có tay, nét bo tròn; dễ nhìn hơn bản trước | | | |
+| 9.7 | Màn thẻ: vuốt từ sát mép trái sang phải | Màn trượt theo tay; thả quá khoảng 1/4 màn hoặc vuốt nhanh thì về Thư viện, không thì trượt lại | | | |
+| 9.8 | Màn thẻ: vuốt dọc để cuộn, vuốt ngang ở giữa màn | Cuộn bình thường; vuốt ngang ở giữa màn không quay lại | | | |
+| 9.9 | Màn thẻ: mục Nguồn | Có 1–2 nguồn dưới thẻ chữ; chạm mở trang trong trình duyệt | | | |
 
 ## Góp ý thêm
+Hiện tại ở tỉ lệ 9:16 xảy ra 1 số vấn đề:
+mép dưới camera cắt 3/4 nút chụp, album, switch cam
+mép trên camera cũng cắt cụm tool camera như vậy 
+-> tạm chấp nhận được , nêus được thì hạ xuống - nâng lên để cho nó cắt 1/2
 
+vấn đè lớn nhất ở gợi ý của bố cục khi dùng ở tỉ lệ này đang bị nút chụp che mất

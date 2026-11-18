@@ -63,12 +63,16 @@ export type Scene = {
   triangle?: boolean;
 };
 
+export type Source = { name: string; url: string };
+
 export type Lesson = {
   id: LessonId;
   /** Có hướng dẫn trên Camera ở bản hiện tại (dòng trong bảng Bố cục). */
   onCamera: boolean;
   /** Kỹ thuật bật khi bấm Chụp thử. Thẻ chỉ đọc mở lưới 3×3. */
   tryTechnique: TechniqueId;
+  /** Nguồn (lấy từ docs/composition.md), mở bằng trình duyệt của máy. */
+  sources: readonly Source[];
   wrong: Scene;
   right: Scene;
 };
@@ -78,6 +82,10 @@ export const LESSONS: readonly Lesson[] = [
     id: 'thirds',
     onCamera: true,
     tryTechnique: 'thirds',
+    sources: [
+      { name: 'Photography Mad', url: 'https://www.photographymad.com/pages/view/3-portrait-composition-tips-for-framing-your-subject-perfectly' },
+      { name: 'Amirshahi và cộng sự, 2014', url: 'https://uniklinikum-jena.de/anatomie1_media/Inhalte/AmirshahiARTP2014-font-1.pdf' },
+    ],
     wrong: { guides: 'thirds', people: [{ x: 45, y: 46 }] },
     right: { guides: 'thirds', people: [{ x: 30, y: 40 }] },
   },
@@ -85,6 +93,10 @@ export const LESSONS: readonly Lesson[] = [
     id: 'center',
     onCamera: true,
     tryTechnique: 'center',
+    sources: [
+      { name: 'Amirshahi và cộng sự, 2014', url: 'https://uniklinikum-jena.de/anatomie1_media/Inhalte/AmirshahiARTP2014-font-1.pdf' },
+      { name: 'Palmer lab, UC Berkeley', url: 'https://palmerlab.berkeley.edu/spatial.html' },
+    ],
     wrong: { guides: 'center', people: [{ x: 36, y: 40 }] },
     right: { guides: 'center', people: [{ x: 45, y: 40 }] },
   },
@@ -92,6 +104,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'headroom',
     onCamera: false,
     tryTechnique: 'thirds',
+    sources: [
+      { name: 'Wikipedia: Headroom', url: 'https://en.wikipedia.org/wiki/Headroom_(photographic_framing)' },
+    ],
     wrong: { guides: 'thirds', people: [{ x: 45, y: 72, s: 0.7 }] },
     right: { guides: 'thirds', people: [{ x: 45, y: 40, s: 1.1 }] },
   },
@@ -99,6 +114,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'lookroom',
     onCamera: false,
     tryTechnique: 'thirds',
+    sources: [
+      { name: 'Photography Icon', url: 'https://photographyicon.com/headroom/' },
+    ],
     wrong: { guides: 'thirds', people: [{ x: 66, y: 40, facing: 'right' }] },
     right: { guides: 'thirds', people: [{ x: 28, y: 40, facing: 'right' }] },
   },
@@ -106,6 +124,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'edges',
     onCamera: false,
     tryTechnique: 'grid',
+    sources: [
+      { name: 'PetaPixel', url: 'https://petapixel.com/photography-tips-for-landscapes-with-people-in-them/' },
+    ],
     wrong: { people: [{ x: 6, y: 40 }] },
     right: { people: [{ x: 32, y: 40 }] },
   },
@@ -113,6 +134,10 @@ export const LESSONS: readonly Lesson[] = [
     id: 'joints',
     onCamera: false,
     tryTechnique: 'grid',
+    sources: [
+      { name: 'PhotographyTalk', url: 'https://www.photographytalk.com/contest-articles/7375-how-to-crop-portraits-an-essential-guide' },
+      { name: 'SLR Lounge', url: 'https://www.slrlounge.com/portrait-cropping-guide-bad-portrait-crops-how-to-fix-them/' },
+    ],
     // Gối ở 48·s dưới tâm đầu; giữa đùi ở 40·s.
     wrong: { people: [{ x: 45, y: 120 - 48 * 1.6, s: 1.6 }], cut: { y: 120 } },
     right: { people: [{ x: 45, y: 120 - 40 * 1.6, s: 1.6 }], cut: { y: 120 } },
@@ -121,6 +146,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'level',
     onCamera: true,
     tryTechnique: 'horizon',
+    sources: [
+      { name: 'PetaPixel', url: 'https://petapixel.com/2022/05/22/in-portrait-photography-beware-lines-intersecting-your-subjects-head' },
+    ],
     wrong: { horizon: { y1: 66, y2: 86 }, people: [{ x: 30, y: 40 }] },
     right: { guides: 'thirds', horizon: { y1: 80, y2: 80 }, people: [{ x: 30, y: 40 }] },
   },
@@ -128,6 +156,10 @@ export const LESSONS: readonly Lesson[] = [
     id: 'low',
     onCamera: true,
     tryTechnique: 'low',
+    sources: [
+      { name: 'Adorama', url: 'https://www.adorama.com/alc/low-angle-shot' },
+      { name: 'iPhotography', url: 'https://www.iphotography.com/blog/low-angle-photography-without-kneeling/' },
+    ],
     wrong: { people: [{ x: 45, y: 30, s: 1.1, legs: 0.6 }] },
     right: { people: [{ x: 45, y: 18, s: 1.1, legs: 1.3 }] },
   },
@@ -135,6 +167,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'selfie',
     onCamera: true,
     tryTechnique: 'selfie',
+    sources: [
+      { name: 'Popular Science', url: 'https://www.popsci.com/story/diy/take-better-selfies/' },
+    ],
     wrong: { face: { x: 40, y: 60, r: 18 }, phone: { x: 74, y: 100 } },
     right: { face: { x: 40, y: 60, r: 18 }, phone: { x: 74, y: 22 } },
   },
@@ -142,6 +177,10 @@ export const LESSONS: readonly Lesson[] = [
     id: 'lens',
     onCamera: false,
     tryTechnique: 'grid',
+    sources: [
+      { name: 'How-To Geek', url: 'https://www.howtogeek.com/678397/why-people-look-different-in-photos-taken-with-different-lenses/' },
+      { name: 'PhoneArena', url: 'https://www.phonearena.com/news/Did-you-know-here-is-how-you-can-take-better-portrait-pictures-on-your-smartphone_id74860' },
+    ],
     wrong: { face: { x: 45, y: 62, r: 34 }, label: '0,5×' },
     right: { people: [{ x: 45, y: 34, s: 1.3 }], label: '2×' },
   },
@@ -149,6 +188,10 @@ export const LESSONS: readonly Lesson[] = [
     id: 'group',
     onCamera: true,
     tryTechnique: 'group',
+    sources: [
+      { name: 'Digital Photo Mentor', url: 'https://www.digitalphotomentor.com/?p=79479' },
+      { name: 'Daily Photo Tips', url: 'https://dailyphototips.com/portraits/group-photos/' },
+    ],
     wrong: {
       people: [
         { x: 22, y: 42, s: 0.8 },
@@ -169,6 +212,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'lead',
     onCamera: true,
     tryTechnique: 'lead',
+    sources: [
+      { name: 'Imaginated', url: 'https://www.imaginated.com/photography/composition/techniques/' },
+    ],
     wrong: {
       lines: [
         [8, 120, 76, 46],
@@ -188,6 +234,10 @@ export const LESSONS: readonly Lesson[] = [
     id: 'background',
     onCamera: false,
     tryTechnique: 'grid',
+    sources: [
+      { name: 'PetaPixel', url: 'https://petapixel.com/2022/05/22/in-portrait-photography-beware-lines-intersecting-your-subjects-head' },
+      { name: 'Fstoppers', url: 'https://fstoppers.com/education/common-easily-fixed-mistake-portrait-photography-275518' },
+    ],
     wrong: { pole: { x: 45, to: 38 }, people: [{ x: 45, y: 44 }] },
     right: { pole: { x: 72, to: 120 }, people: [{ x: 34, y: 44 }] },
   },
@@ -195,6 +245,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'frame',
     onCamera: false,
     tryTechnique: 'grid',
+    sources: [
+      { name: 'Imaginated', url: 'https://imaginated.com/photography/composition/techniques/frame-within-a-frame' },
+    ],
     wrong: { people: [{ x: 45, y: 40 }] },
     right: { inner: { x: 16, y: 14, w: 58, h: 106 }, people: [{ x: 45, y: 40, s: 0.9 }] },
   },
@@ -202,6 +255,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'foreground',
     onCamera: false,
     tryTechnique: 'grid',
+    sources: [
+      { name: 'Imaginated', url: 'https://www.imaginated.com/photography/composition/techniques/' },
+    ],
     wrong: { people: [{ x: 50, y: 40 }] },
     right: { leaves: true, people: [{ x: 50, y: 40 }] },
   },
@@ -209,6 +265,9 @@ export const LESSONS: readonly Lesson[] = [
     id: 'light',
     onCamera: false,
     tryTechnique: 'grid',
+    sources: [
+      { name: 'Engadget', url: 'https://www.engadget.com/cameras/how-to-improve-your-smartphone-photography-010037588.html' },
+    ],
     wrong: { bright: true, people: [{ x: 45, y: 40, dark: true }] },
     right: { people: [{ x: 45, y: 40 }] },
   },

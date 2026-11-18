@@ -153,7 +153,19 @@ function CameraBody() {
   const shutterBottom = insets.bottom + BOTTOM_PAD;
   const zoomBottom = shutterBottom + size.shutter + ROW_GAP;
   const bottomH = zoomBottom + zoomControlHeight + space[3];
-  const frame: Rect = viewfinderRect(root.width, root.height, topH, bottomH, ASPECTS[aspect]);
+  // Khung tràn ra sau các thanh (9:16): mép đi qua giữa thanh trên và giữa hàng nút chụp.
+  const cut = {
+    top: barTop + TOP_BAR_H / 2,
+    bottom: root.height - shutterBottom - size.shutter / 2,
+  };
+  const frame: Rect = viewfinderRect(
+    root.width,
+    root.height,
+    topH,
+    bottomH,
+    ASPECTS[aspect],
+    cut,
+  );
   // Giữ cùng object khi khung không đổi: CameraLayer bọc memo, rect mới mỗi lần sẽ render lại.
   const preview = useMemo(
     () => previewRect({ x: frame.x, y: frame.y, width: frame.width, height: frame.height }),
@@ -659,7 +671,12 @@ function CameraBody() {
             </View>
           )}
 
-          <CompositionHint frame={frame} technique={technique} front={facing === 'front'} />
+          <CompositionHint
+            frame={frame}
+            technique={technique}
+            front={facing === 'front'}
+            maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
+          />
 
           {/* Cột công cụ pose: dọc, kéo được, nằm trong khung ngắm (design.md §6.1). */}
           <ToolRail

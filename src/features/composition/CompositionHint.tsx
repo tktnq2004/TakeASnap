@@ -48,10 +48,14 @@ export function CompositionHint({
   frame,
   technique,
   front,
+  maxBottom,
 }: {
   frame: Rect;
   technique: TechniqueId;
   front: boolean;
+  /** Đáy viên gợi ý không xuống dưới chỗ này (mép trên cụm zoom): khung 9:16 tràn ra sau các
+   *  nút, đặt ở đáy khung thì bị nút chụp che (phiếu Phase 5 lần 4). */
+  maxBottom: number;
 }) {
   const sensor = useAnimatedSensor(SensorType.GRAVITY, { interval: 'auto' });
   const prev = useSharedValue<SensorHintId | null>(null);
@@ -151,7 +155,7 @@ export function CompositionHint({
   }
   if (!text) return null;
 
-  const top = frame.y + frame.height - compositionUi.hintH - space[3];
+  const top = Math.min(frame.y + frame.height - space[3], maxBottom) - compositionUi.hintH;
   return (
     <View pointerEvents="none" style={[styles.wrap, { top }]}>
       <Animated.View

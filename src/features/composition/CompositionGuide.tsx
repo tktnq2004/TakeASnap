@@ -28,6 +28,11 @@ export function CompositionGuide({
   const H = frame.height;
   const T = compositionUi.target;
   const P = compositionUi.point;
+  // Mắt người mẫu đã nằm trong vòng đích thì ẩn vòng; lệch ra mới hiện lại (phiếu Phase 5 lần 4).
+  const reached =
+    g.target != null &&
+    anchor != null &&
+    Math.hypot((anchor.x - g.target.x) * W, (anchor.y - g.target.y) * H) <= T / 2;
 
   return (
     <View
@@ -71,7 +76,7 @@ export function CompositionGuide({
           style={[styles.point, { left: p.x * W - P / 2, top: p.y * H - P / 2 }]}
         />
       ))}
-      {g.target && (
+      {g.target && !reached && (
         <View
           style={[styles.target, { left: g.target.x * W - T / 2, top: g.target.y * H - T / 2 }]}
         >

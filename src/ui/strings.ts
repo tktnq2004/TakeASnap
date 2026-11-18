@@ -115,6 +115,8 @@ export const t = {
     right: 'Đạt',
     open: (name: string) => `Mở thẻ ${name}`,
     notFound: 'Không tìm thấy thẻ học này.',
+    sources: 'Nguồn',
+    openSource: (name: string) => `Mở nguồn ${name}`,
     items: {
       thirds: {
         name: 'Quy tắc 1/3',

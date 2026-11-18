@@ -15,8 +15,10 @@ export type Rect = { x: number; y: number; width: number; height: number };
 
 /**
  * Khung ngắm rộng bằng màn hình, cao theo tỉ lệ. Vừa giữa thanh trên và thanh dưới thì đặt giữa
- * vùng đó; không vừa (9:16 trên máy dài) thì được tràn ra sau các thanh, đặt giữa màn hình, và
- * không bao giờ cao quá màn hình.
+ * vùng đó. Không vừa (9:16 trên máy dài) thì tràn ra sau các thanh và không bao giờ cao quá màn
+ * hình; có `cut` (giữa thanh trên và giữa hàng nút chụp, tọa độ màn hình) thì mép khung đi qua
+ * đúng giữa hai cụm nút: khung đặt giữa hai đường đó và thấp lại cho vừa (phiếu Phase 5 lần 4:
+ * mép khung cắt 3/4 nút chụp trông lệch). Không có `cut` thì đặt giữa màn hình.
  */
 export function viewfinderRect(
   screenW: number,
@@ -24,6 +26,7 @@ export function viewfinderRect(
   topH: number,
   bottomH: number,
   aspect: number,
+  cut?: { top: number; bottom: number },
 ): Rect {
   let width = screenW;
   let height = width / aspect;
@@ -32,8 +35,19 @@ export function viewfinderRect(
     width = height * aspect;
   }
   const available = screenH - topH - bottomH;
-  const y = height <= available ? topH + (available - height) / 2 : (screenH - height) / 2;
-  return { x: (screenW - width) / 2, y, width, height };
+  if (height <= available) {
+    return { x: (screenW - width) / 2, y: topH + (available - height) / 2, width, height };
+  }
+  if (cut && cut.bottom > cut.top) {
+    const span = cut.bottom - cut.top;
+    if (height > span) {
+      height = span;
+      width = height * aspect;
+    }
+    const mid = (cut.top + cut.bottom) / 2;
+    return { x: (screenW - width) / 2, y: mid - height / 2, width, height };
+  }
+  return { x: (screenW - width) / 2, y: (screenH - height) / 2, width, height };
 }
 
 /** Tỉ lệ cảm biến khi chụp (CameraView ratio "4:3"), dựng đứng: rộng / cao = 3 / 4. */

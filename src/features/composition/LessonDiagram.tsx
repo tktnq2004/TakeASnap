@@ -6,36 +6,52 @@ import { DIAGRAM, type Figure, type Scene } from './lessons';
 
 const { w: W, h: H } = DIAGRAM;
 
-/** Người vẽ đơn giản: đầu tròn, thân thang, hai chân. Tọa độ theo tâm đầu, cỡ `s`. */
+/**
+ * Người vẽ kiểu biểu tượng (phiếu Phase 5 lần 4: bản thân hình thang trông thô): đầu tròn, thân,
+ * tay, chân là các nét bo tròn đầu, cùng một màu đặc. Tọa độ theo tâm đầu, cỡ `s`; gối nằm
+ * khoảng 47·s dưới tâm đầu, hông 32·s.
+ */
 function person(f: Figure, ok: boolean, i: number) {
   const s = f.s ?? 1;
   const legs = f.legs ?? 1;
   const { x, y } = f;
-  const hip = y + 33 * s;
+  const hip = y + 32 * s;
   const foot = hip + 30 * s * legs;
-  const body =
-    `M${x - 8 * s} ${y + 9 * s}L${x + 8 * s} ${y + 9 * s}L${x + 6 * s} ${hip}` +
-    `L${x + 4.5 * s} ${foot}L${x + 1.2 * s} ${foot}L${x} ${hip + 5 * s}L${x - 1.2 * s} ${foot}` +
-    `L${x - 4.5 * s} ${foot}L${x - 6 * s} ${hip}Z`;
   const fill = f.dark ? color.surface : color.ink;
   const dir = f.facing === 'right' ? 1 : f.facing === 'left' ? -1 : 0;
+  const limb = { stroke: fill, strokeLinecap: 'round' as const, fill: 'none' };
   return (
     <G key={i}>
-      <Path d={body} fill={fill} fillOpacity={f.dark ? 1 : 0.8} />
-      <Circle cx={x} cy={y} r={6 * s} fill={fill} fillOpacity={f.dark ? 1 : 0.9} />
-      {dir !== 0 && (
-        <>
+      <G opacity={f.dark ? 1 : 0.88}>
+        {/* Hai chân hơi choãi, hai tay buông dọc thân. */}
+        <Path d={`M${x - 2.6 * s} ${hip}L${x - 4 * s} ${foot}`} {...limb} strokeWidth={4.6 * s} />
+        <Path d={`M${x + 2.6 * s} ${hip}L${x + 4 * s} ${foot}`} {...limb} strokeWidth={4.6 * s} />
+        <Path
+          d={`M${x - 6 * s} ${y + 12 * s}L${x - 9 * s} ${y + 29 * s}`}
+          {...limb}
+          strokeWidth={3.6 * s}
+        />
+        <Path
+          d={`M${x + 6 * s} ${y + 12 * s}L${x + 9 * s} ${y + 29 * s}`}
+          {...limb}
+          strokeWidth={3.6 * s}
+        />
+        <Path d={`M${x} ${y + 12 * s}L${x} ${hip - 1 * s}`} {...limb} strokeWidth={10 * s} />
+        <Circle cx={x} cy={y} r={5.6 * s} fill={fill} />
+        {dir !== 0 && (
           <Path
-            d={`M${x + dir * 6 * s} ${y - 2 * s}L${x + dir * 9 * s} ${y + 1 * s}L${x + dir * 6 * s} ${y + 2 * s}Z`}
+            d={`M${x + dir * 5 * s} ${y - 1.6 * s}L${x + dir * 7.6 * s} ${y + 0.8 * s}L${x + dir * 5 * s} ${y + 2 * s}Z`}
             fill={fill}
           />
-          <Path
-            d={`M${x + dir * 11 * s} ${y}H${x + dir * 26 * s}`}
-            stroke={ok ? color.accent : color.danger}
-            strokeWidth={1.5}
-            strokeDasharray={[3, 3]}
-          />
-        </>
+        )}
+      </G>
+      {dir !== 0 && (
+        <Path
+          d={`M${x + dir * 10 * s} ${y}H${x + dir * 26 * s}`}
+          stroke={ok ? color.accent : color.danger}
+          strokeWidth={1.5}
+          strokeDasharray={[3, 3]}
+        />
       )}
     </G>
   );

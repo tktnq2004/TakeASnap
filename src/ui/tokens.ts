@@ -334,6 +334,9 @@ export const compositionUi = {
   sheetIcon: 40,
 } as const;
 
+/** Vuốt từ mép trái để quay lại (màn mở kiểu fullScreenModal). */
+export const edgeSwipe = { edge: 28, distance: 90, velocity: 600 } as const;
+
 /** Giới hạn của overlay (roadmap §3.5). */
 export const transformLimits = {
   minScale: 0.2,

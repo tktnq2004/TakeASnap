@@ -23,6 +23,13 @@ describe('lessons', () => {
     }
   });
 
+  it('thẻ nào cũng có ít nhất một nguồn https', () => {
+    for (const l of LESSONS) {
+      expect(l.sources.length).toBeGreaterThan(0);
+      for (const s of l.sources) expect(s.url).toMatch(/^https:\/\//);
+    }
+  });
+
   it('thẻ có trên Camera bật đúng kỹ thuật của nó', () => {
     expect(lessonById('level')?.tryTechnique).toBe('horizon');
     expect(lessonById('selfie')?.tryTechnique).toBe('selfie');

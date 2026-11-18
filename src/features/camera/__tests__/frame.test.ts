@@ -18,6 +18,27 @@ describe('viewfinderRect', () => {
     expect(r.y).toBeCloseTo((932 - 764.44) / 2, 1);
   });
 
+  it('9:16 có đường giữa hai cụm nút → mép khung đi qua giữa thanh trên và giữa nút chụp', () => {
+    // Giữa thanh trên y = 93, giữa nút chụp y = 841: cách nhau 748 < 764 → khung thấp lại.
+    const r = viewfinderRect(SW, SH, 100, 200, ASPECTS['9:16'], { top: 93, bottom: 841 });
+    expect(r.y).toBeCloseTo(93);
+    expect(r.y + r.height).toBeCloseTo(841);
+    expect(r.width).toBeCloseTo(748 * (9 / 16));
+    expect(r.x).toBeCloseTo((SW - r.width) / 2);
+  });
+
+  it('9:16 thấp hơn khoảng giữa hai cụm nút → giữ cỡ, đặt giữa hai đường', () => {
+    const r = viewfinderRect(SW, SH, 100, 200, ASPECTS['9:16'], { top: 60, bottom: 900 });
+    expect(r.height).toBeCloseTo(764.44, 1);
+    expect(r.y + r.height / 2).toBeCloseTo(480);
+  });
+
+  it('3:4 vừa thì không dùng đường cắt', () => {
+    const a = viewfinderRect(SW, SH, 100, 200, ASPECTS['3:4']);
+    const b = viewfinderRect(SW, SH, 100, 200, ASPECTS['3:4'], { top: 93, bottom: 841 });
+    expect(b).toEqual(a);
+  });
+
   it('không bao giờ cao quá màn hình', () => {
     const r = viewfinderRect(400, 500, 50, 50, ASPECTS['9:16']);
     expect(r.height).toBe(500);
