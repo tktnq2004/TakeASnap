@@ -7,11 +7,13 @@ import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
 
 /**
- * Màn thử nghiệm, chỉ hiện trong bản dev (Cài đặt → Nhà phát triển). Còn spike B: so các model
- * MediaPipe tách người trên máy thật, xóa khi xong Phase 5.
+ * Màn thử nghiệm, chỉ hiện trong bản dev (Cài đặt → Nhà phát triển). Spike B: so các model MediaPipe
+ * tách người trên máy thật. Spike gợi ý lúc ngắm (Phase 5 Bước 3). Xóa khi xong Phase 5.
  */
 const spikes: { href: Href; title: string }[] = [
   { href: '/spike/segment', title: t.spike.segmentTitle },
+  // Kiểu route mới sinh lại khi chạy dev server.
+  { href: '/spike/live' as Href, title: t.spike.liveTitle },
 ];
 
 export default function SpikeMenu() {

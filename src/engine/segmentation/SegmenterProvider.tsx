@@ -5,7 +5,7 @@ import { prepareImage, type PreparedImage } from '@/engine/image';
 import { downloadPack, isPackReady, readPackFileBase64 } from '@/engine/models/modelStore';
 import { POSE_PACK, packBytes } from '@/engine/models/packs';
 
-import type { Landmarks } from './types';
+import type { FrameOptions, FrameResult, Landmarks } from './types';
 import { useWebSegmenter } from './WebSegmenterBridge';
 
 export type PoseProgress =
@@ -26,6 +26,15 @@ type Ctx = {
     input: { uri: string; width: number; height: number },
     onProgress?: (p: PoseProgress) => void,
   ) => Promise<PoseSegmentation>;
+  /**
+   * Khung hình nhỏ lúc ngắm (spike, Phase 5 Bước 3): ảnh JPEG base64 đã thu nhỏ → lưới người +
+   * khung xương. Dùng chung gói pose; tự tải lần đầu như segmentForPose.
+   */
+  analyzeFrame: (
+    base64: string,
+    opts: FrameOptions,
+    onProgress?: (p: PoseProgress) => void,
+  ) => Promise<FrameResult>;
 };
 
 const SegmenterContext = createContext<Ctx | null>(null);
@@ -87,6 +96,10 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
           grid: { width: r.grid.width, height: r.grid.height, data: base64ToBytes(r.grid.base64) },
           landmarks: { face: lm.face ?? null, bodyPoints: lm.bodyPoints ?? null },
         };
+      },
+      analyzeFrame: async (base64, opts, onProgress) => {
+        await ensurePoseLoaded(onProgress);
+        return segRef.current.frame(base64, opts);
       },
     };
   }, []);

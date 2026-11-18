@@ -14,6 +14,8 @@
  *   WV → RN  { id, ok: true, maskBase64, grid?: { width, height, base64 }, … }  grid = alpha Uint8
  *   RN → WV  { id, type: 'landmarks', base64 }             nét mặt + khung xương
  *   WV → RN  { id, ok: true, face, bodyPoints, timings }   nét mặt (đoạn thẳng) + 33 khớp [x,y,vis]
+ *   RN → WV  { id, type: 'frame', base64, seg, body, gridSide, bodyGpu }   khung hình nhỏ lúc ngắm
+ *   WV → RN  { id, ok: true, grid, bodyPoints, backend, timings }  bản nhẹ: không mask PNG, không mặt
  *   WV → RN  { type: 'ready', info }                       trang đã nạp xong thư viện
  *   WV → RN  { id, ok: true, maskBase64, width, height, backend, timings }
  *   WV → RN  { id, ok: false, error }
@@ -364,7 +366,83 @@ async function maskGrid(maskB64, side) {
   return { width: w, height: h, base64: bytesToB64(alpha) };
 }
 
+// ---- Khung hình lúc ngắm (spike gợi ý lúc ngắm, Phase 5 Bước 3) -----------------------------
+// Bản nhẹ cho ảnh nhỏ chụp liên tục: lưới người thu nhỏ đọc thẳng từ mask (không phóng lên, không
+// PNG), một khung xương ở chế độ VIDEO (bám theo khung trước, bỏ bước dò lại), không nét mặt.
+let frameBody = null, frameBodyGpu = null, lastFrameTs = 0;
+async function getFrameBody(gpu) {
+  if (frameBody && frameBodyGpu === gpu) return frameBody;
+  if (frameBody) { try { frameBody.close(); } catch (e) {} frameBody = null; }
+  await loadMp();
+  await getFileset();
+  frameBody = await mp.PoseLandmarker.createFromOptions(fileset, {
+    baseOptions: Object.assign({ delegate: gpu ? 'GPU' : 'CPU' }, await modelOptions('body')),
+    runningMode: 'VIDEO', numPoses: 1,
+  });
+  frameBodyGpu = gpu;
+  return frameBody;
+}
+async function runFrame(msg) {
+  const t0 = now();
+  const img = await loadImage(msg.base64);
+  const decodeMs = now() - t0;
+  let grid = null, backend = '', segMs = 0, bodyMs = 0, bodyPoints = null;
+  if (msg.seg) {
+    let { entry } = await getMediaPipe('multiclass');
+    const s0 = now();
+    let result = entry.seg.segment(img);
+    let masks = result.confidenceMasks || [];
+    if (entry.backend === 'mediapipe-GPU' && masks.length && maxOf(masks[0].getAsFloat32Array()) < 1e-6) {
+      log('frame: GPU trả mask rỗng, chuyển CPU');
+      result.close();
+      dropGpuSegmenters();
+      entry = (await getMediaPipe('multiclass')).entry;
+      result = entry.seg.segment(img);
+      masks = result.confidenceMasks || [];
+    }
+    backend = entry.backend;
+    const bg = masks[0].getAsFloat32Array();
+    const mw = masks[0].width, mh = masks[0].height;
+    result.close();
+    const k = Math.min(1, msg.gridSide / Math.max(mw, mh));
+    const w = Math.max(1, Math.round(mw * k)), h = Math.max(1, Math.round(mh * k));
+    const alpha = new Uint8Array(w * h);
+    for (let y = 0; y < h; y++) {
+      const sy = Math.min(mh - 1, Math.floor((y + 0.5) / k));
+      for (let x = 0; x < w; x++) {
+        const sx = Math.min(mw - 1, Math.floor((x + 0.5) / k));
+        // Như runMediaPipe: người = 1 − nền, kéo dãn [0.25, 0.65] → [0, 1].
+        const p = (1 - bg[sy * mw + sx] - 0.25) / 0.4;
+        alpha[y * w + x] = p <= 0 ? 0 : p >= 1 ? 255 : Math.round(p * 255);
+      }
+    }
+    grid = { width: w, height: h, base64: bytesToB64(alpha) };
+    segMs = now() - s0;
+  }
+  if (msg.body) {
+    const lm = await getFrameBody(!!msg.bodyGpu);
+    const b0 = now();
+    lastFrameTs = Math.max(lastFrameTs + 1, Math.round(now()));
+    const b = (lm.detectForVideo(img, lastFrameTs).landmarks || [])[0];
+    bodyPoints = b ? b.flatMap((p) => [r4(p.x), r4(p.y), r4(p.visibility ?? 1)]) : null;
+    bodyMs = now() - b0;
+  }
+  return { grid: grid, bodyPoints: bodyPoints, backend: backend,
+    width: img.naturalWidth, height: img.naturalHeight,
+    timings: { decodeMs: decodeMs, segMs: segMs, bodyMs: bodyMs } };
+}
+
 async function handle(msg) {
+  if (msg && msg.type === 'frame') {
+    try {
+      post(Object.assign({ id: msg.id, ok: true }, await runFrame(msg)));
+    } catch (e) {
+      const error = (e && e.message) || String(e);
+      log('frame lỗi: ' + error);
+      post({ id: msg.id, ok: false, error: error });
+    }
+    return;
+  }
   if (msg && msg.type === 'asset') {
     try {
       addAssetChunk(msg);

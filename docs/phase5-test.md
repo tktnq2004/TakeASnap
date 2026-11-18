@@ -192,4 +192,27 @@ Cần bộ tách người (gói tải ở lần tạo pose đầu tiên). Nếu 
 | 13.7 | Thẻ Hậu cảnh gọn, Tiền cảnh và chiều sâu, Góc thấp, góc cao | Tên mới; chữ có thêm ý nền khác tông / nhiều lớp xa gần / chụp từ trên cao; hình chiều sâu có hai lớp đồi | d|d | |
 | 13.8 | Thẻ Lấp đầy khung → Chụp thử | Về Camera với Lấp đầy khung |d |d | |
 
+## 14. Spike gợi ý lúc ngắm (Bước 3, cổng quyết định)
+
+Mở **Cài đặt → Nhà phát triển → Màn thử nghiệm → Phase 5 · Gợi ý lúc ngắm**. Màn này tự chụp ảnh nhỏ liên tục (không tiếng), tìm người + khung xương rồi áp quy tắc nhận xét như sau khi chụp. Trên khung xem: khung xanh = người, chấm xanh = giữa hai mắt, dòng dưới = gợi ý. Cần bộ tách người (đã có nếu đã tạo pose; chưa có thì lần đầu tự tải).
+
+Mặc định: **Không ghi file · Người + xương · 256 · CPU · cỡ Mặc định**. Cho một người đứng trước camera (hoặc tự cầm máy chĩa vào gương / ảnh người trên màn khác).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 14.1 | Mở màn | Khung xem camera hiện; nút Bắt đầu đo bấm được | | | |
+| 14.2 | Bắt đầu đo, giữ 1 phút | Ghi lại: lần / giây, độ trễ trung bình, lâu nhất, và 6 bước (Chụp · Thu nhỏ · Giải mã · Tách người · Khung xương · Quy tắc) | | | |
+| 14.3 | Trong lúc đo | Khung xem **không nháy, không đứng hình**, **không có tiếng chụp** | | | |
+| 14.4 | Người đi chậm qua lại, rồi đứng yên | Chấm mắt và khung xanh bám theo, trễ bao lâu (ước lượng); đứng yên thì dòng gợi ý có đổi qua lại liên tục không (xem "Dòng gợi ý đổi") | | | |
+| 14.5 | Đổi Kỹ thuật: 1/3 · Ở giữa · Lấp đầy khung | Dòng gợi ý đổi theo kỹ thuật, đúng với ảnh đang ngắm | | | |
+| 14.6 | Phân tích **Khung xương**, rồi **Người** | Ghi lần / giây mỗi chế độ (Khung xương: không có khung xanh; Người: không có chấm mắt) | | | |
+| 14.7 | Cạnh ảnh gửi vào **192** và **384** | Ghi lần / giây mỗi cỡ; 192 có còn bắt được người ở xa không | | | |
+| 14.8 | Khung xương chạy **GPU** | Ghi lần / giây; có lỗi không | | | |
+| 14.9 | Cách chụp **Ghi file** | Ghi bước Chụp (ms) so với Không ghi file | | | |
+| 14.10 | Dừng đo → Cỡ chụp **Nhỏ nhất** → Bắt đầu đo | Ghi Cỡ ảnh chụp, lần / giây, bước Chụp; khung xem có mờ đi không | | | |
+| 14.11 | Cấu hình nhanh nhất ở trên, chạy **5 phút** | Ghi % pin trước và sau, máy mát / ấm / nóng, lần / giây phút cuối, số lỗi | | | |
+| 14.12 | Thoát màn, về Camera chính | Camera chính chạy bình thường, chụp được, không đen màn | | | |
+
+Ngưỡng cổng (roadmap Phase 5 Bước 3): **≥ 2 lần / giây, không nháy / không tiếng, máy không nóng sau 5 phút** → làm gợi ý lúc ngắm theo người cho các kỹ thuật. Chưa đạt → lúc ngắm chỉ giữ gợi ý cảm biến, phân tích người chỉ ở nhận xét sau khi chụp.
+
 ## Góp ý thêm

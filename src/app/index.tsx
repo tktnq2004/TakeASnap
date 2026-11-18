@@ -58,6 +58,7 @@ import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
 import { useSettings } from '@/features/settings/settingsStore';
+import { useLiveSpikeCamera } from '@/features/spike/liveCameraLock';
 import { haptic } from '@/lib/haptics';
 import { EmptyState, PressableScale } from '@/ui/components';
 import { ease, easeIO } from '@/ui/easing';
@@ -113,6 +114,8 @@ function CameraBody() {
 
   const flash = useCameraStore((s) => s.flash);
   const technique = useCameraStore((s) => s.technique);
+  // Màn spike gợi ý lúc ngắm đang mở camera riêng.
+  const spikeCamera = useLiveSpikeCamera((s) => s.busy);
   const levelOn = useCameraStore((s) => s.level);
   const timer = useCameraStore((s) => s.timer);
   const aspect = useCameraStore((s) => s.aspect);
@@ -633,6 +636,7 @@ function CameraBody() {
       }}
     >
       <StatusBar style="light" />
+      {!spikeCamera && (
       <CameraLayer
         cameraRef={cameraRef}
         facing={facing}
@@ -645,6 +649,7 @@ function CameraBody() {
         onLenses={onLenses}
         onReady={onCameraReady}
       />
+      )}
 
       {root.height > 0 && (
         <>

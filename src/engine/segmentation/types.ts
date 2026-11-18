@@ -49,6 +49,27 @@ export type SegmentResult = {
   regions: { bbox: [number, number, number, number]; areaRatio: number }[];
 };
 
+/** Khung hình nhỏ lúc ngắm (spike gợi ý lúc ngắm, Phase 5 Bước 3). */
+export type FrameOptions = {
+  /** Tách người, trả lưới alpha cạnh dài ≤ gridSide. */
+  seg: boolean;
+  /** Một khung xương, chế độ VIDEO. */
+  body: boolean;
+  gridSide: number;
+  /** Khung xương chạy GPU (mặc định CPU như lớp Nét). */
+  bodyGpu: boolean;
+};
+
+export type FrameResult = {
+  /** Alpha Uint8 base64; null khi không tách người. */
+  grid: { width: number; height: number; base64: string } | null;
+  bodyPoints: number[] | null;
+  backend: string;
+  width: number;
+  height: number;
+  timings: { decodeMs: number; segMs: number; bodyMs: number };
+};
+
 export interface Segmenter {
   /** Nạp model một lần. */
   ready(): Promise<void>;
