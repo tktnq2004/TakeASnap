@@ -385,6 +385,7 @@ export default function LibraryScreen() {
                         plain
                         onPress={() => pickForCamera(p)}
                         onLongPress={(r) => showActions(p, false, r)}
+                        onEdit={() => openEditor(p)}
                       />
                     ))}
                 </ScrollView>
@@ -412,6 +413,7 @@ export default function LibraryScreen() {
                 selected={selected}
                 onPress={selecting ? toggle : pickForCamera}
                 onLongPress={(p, r) => showActions(p, true, r)}
+                onEdit={openEditor}
                 onRange={selectRange}
               />
             ))}

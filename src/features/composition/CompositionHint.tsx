@@ -167,9 +167,41 @@ export function CompositionHint({
         style={[styles.pill, ok && styles.pillOk]}
       >
         {Icon && (
-          <Icon size={size.iconSmall} strokeWidth={2.5} color={ok ? color.accentInk : color.camAccent} />
+          <Icon
+            size={size.iconSmall}
+            strokeWidth={2.5}
+            color={ok ? color.accentInk : color.camAccent}
+          />
         )}
         <Text style={[styles.text, ok && styles.textOk]} maxFontSizeMultiplier={1.3}>
+          {text}
+        </Text>
+      </Animated.View>
+    </View>
+  );
+}
+
+/** Một viên chữ ở chỗ dòng gợi ý (vd "Đã tắt bố cục"), mờ dần vào / ra. */
+export function HintPill({
+  frame,
+  maxBottom,
+  text,
+}: {
+  frame: Rect;
+  maxBottom: number;
+  text: string;
+}) {
+  const top = Math.min(frame.y + frame.height - space[3], maxBottom) - compositionUi.hintH;
+  return (
+    <View pointerEvents="none" style={[styles.wrap, { top }]}>
+      <Animated.View
+        entering={FadeIn.duration(motion.in)}
+        exiting={FadeOut.duration(motion.in)}
+        accessibilityRole="text"
+        accessibilityLiveRegion="polite"
+        style={styles.pill}
+      >
+        <Text style={styles.text} maxFontSizeMultiplier={1.3}>
           {text}
         </Text>
       </Animated.View>

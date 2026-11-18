@@ -58,6 +58,9 @@ export const t = {
     title: 'Bố cục',
     button: (name: string) => `Bố cục: ${name}`,
     buttonOff: 'Bố cục tắt',
+    /** Nút Bố cục khi đang bật: chạm là tắt (phiếu Phase 5 lần 7). */
+    turnOff: (name: string) => `Tắt bố cục ${name}`,
+    turnedOff: 'Đã tắt bố cục',
     learn: 'Học các kỹ thuật',
     names: {
       off: 'Tắt',
@@ -258,6 +261,7 @@ export const t = {
     remove: 'Xóa',
     removeConfirm: 'Xóa pose này cùng ảnh gốc của nó? Không hoàn tác được.',
     duplicate: 'Tạo bản sao để sửa',
+    editPose: 'Sửa pose',
     menuDismiss: 'Chạm ra ngoài để hủy',
     /** Menu pose: chữ ngắn (góp ý Phase 4, mục 6.2–6.3). */
     menuUse: 'Chụp',

@@ -66,7 +66,7 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings, onCompositio
   const compositionLabel =
     technique === 'off'
       ? t.composition.buttonOff
-      : t.composition.button(t.composition.names[technique]);
+      : t.composition.turnOff(t.composition.names[technique]);
 
   return (
     <>

@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react-native';
+import { Check, Pencil } from 'lucide-react-native';
 import { useRef } from 'react';
 import { type HostInstance, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { type SharedValue, useAnimatedStyle } from 'react-native-reanimated';
@@ -26,6 +26,8 @@ type Props = {
   onPress: () => void;
   /** Giữ lâu: nhận vị trí ô trong cửa sổ. */
   onLongPress?: (rect: TileRect) => void;
+  /** Nút bút chì ở góc dưới phải: mở Chỉnh pose ngay (phiếu Phase 5 lần 7). */
+  onEdit?: () => void;
   /** Đang ở chế độ chọn nhiều: hiện dấu chọn ở góc. */
   selecting?: boolean;
   selected?: boolean;
@@ -48,6 +50,7 @@ export function PoseTile({
   plain,
   onPress,
   onLongPress,
+  onEdit,
   selecting,
   selected,
   index,
@@ -89,6 +92,17 @@ export function PoseTile({
         faceColor={s.faceColor}
         faceWidth={Math.min(s.faceWidth, 1)}
       />
+      {!selecting && onEdit && (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t.library.editPose}
+          hitSlop={8}
+          onPress={onEdit}
+          style={({ pressed }) => [styles.edit, pressed && styles.editPressed]}
+        >
+          <Pencil size={tileSelect.editIcon} strokeWidth={2.25} color={color.camInk} />
+        </Pressable>
+      )}
       {selecting && drag && index != null && (
         <SelectMark selected={!!selected} index={index} drag={drag} corner={corner} />
       )}
@@ -141,6 +155,20 @@ const mark = {
 
 const styles = StyleSheet.create({
   tile: { overflow: 'hidden', backgroundColor: color.surface },
+  edit: {
+    position: 'absolute',
+    right: tileSelect.markInset,
+    bottom: tileSelect.markInset,
+    width: tileSelect.edit,
+    height: tileSelect.edit,
+    borderRadius: radius.full,
+    backgroundColor: color.camScrim,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  editPressed: { backgroundColor: color.accent },
   ring: {
     ...mark,
     borderWidth: tileSelect.ring,

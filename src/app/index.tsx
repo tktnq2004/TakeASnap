@@ -49,7 +49,7 @@ import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CompositionGuide } from '@/features/composition/CompositionGuide';
-import { CompositionHint } from '@/features/composition/CompositionHint';
+import { CompositionHint, HintPill } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
 import type { Pt } from '@/features/composition/guides';
 import type { TechniqueId } from '@/features/composition/techniques';
@@ -136,6 +136,20 @@ function CameraBody() {
   const setHidden = (h: boolean) => setHiddenFor(h ? poseId : null);
   const [toolsOpen, setToolsOpen] = useState(false);
   const [compositionOpen, setCompositionOpen] = useState(false);
+  /** Viên "Đã tắt bố cục" sau khi chạm nút Bố cục để tắt. */
+  const [offNotice, setOffNotice] = useState(false);
+  const offTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showOffNotice = () => {
+    if (offTimer.current) clearTimeout(offTimer.current);
+    setOffNotice(true);
+    offTimer.current = setTimeout(() => setOffNotice(false), compositionUi.okHideMs);
+  };
+  useEffect(
+    () => () => {
+      if (offTimer.current) clearTimeout(offTimer.current);
+    },
+    [],
+  );
   const [pose, setPose] = useState<Pose | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
   // Ảnh vừa chụp: ảnh mới nhất đã lưu trong lần mở app này; chạm để mở màn Xem ảnh vừa chụp.
@@ -159,14 +173,7 @@ function CameraBody() {
     top: barTop + TOP_BAR_H / 2,
     bottom: root.height - shutterBottom - size.shutter / 2,
   };
-  const frame: Rect = viewfinderRect(
-    root.width,
-    root.height,
-    topH,
-    bottomH,
-    ASPECTS[aspect],
-    cut,
-  );
+  const frame: Rect = viewfinderRect(root.width, root.height, topH, bottomH, ASPECTS[aspect], cut);
   // Giữ cùng object khi khung không đổi: CameraLayer bọc memo, rect mới mỗi lần sẽ render lại.
   const preview = useMemo(
     () => previewRect({ x: frame.x, y: frame.y, width: frame.width, height: frame.height }),
@@ -685,6 +692,13 @@ function CameraBody() {
             front={facing === 'front'}
             maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
           />
+          {offNotice && technique === 'off' && (
+            <HintPill
+              frame={frame}
+              maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
+              text={t.composition.turnedOff}
+            />
+          )}
 
           {/* Cột công cụ pose: dọc, kéo được, nằm trong khung ngắm (design.md §6.1). */}
           <ToolRail
@@ -779,7 +793,14 @@ function CameraBody() {
         onSettings={() => router.push('/settings')}
         onComposition={() => {
           setToolsOpen(false);
-          setCompositionOpen(true);
+          // Đang bật: chạm là tắt nhanh; đang tắt: mở bảng chọn (phiếu Phase 5 lần 7).
+          if (technique !== 'off') {
+            store().setTechnique('off');
+            haptic.snap();
+            showOffNotice();
+          } else {
+            setCompositionOpen(true);
+          }
         }}
       />
 

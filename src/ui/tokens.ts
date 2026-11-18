@@ -207,6 +207,9 @@ export const personPick = {
 
 /** Chọn nhiều pose (design.md §4 PoseTile): dấu chọn tròn góc trên phải, ô đã chọn viền 3 px. */
 export const tileSelect = {
+  /** Nút bút chì ở góc dưới phải ô pose (sửa nhanh, phiếu Phase 5 lần 7). */
+  edit: 28,
+  editIcon: 14,
   mark: 24,
   markInset: 6,
   ring: 2,

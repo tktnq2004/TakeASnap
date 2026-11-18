@@ -17,6 +17,7 @@ type Props = {
   selected: ReadonlySet<string>;
   onPress: (p: Pose) => void;
   onLongPress: (p: Pose, rect: TileRect) => void;
+  onEdit: (p: Pose) => void;
   /** Nhấc ngón tay sau khi vuốt chọn: dải ô [a, b] và chọn hay bỏ chọn. */
   onRange: (a: number, b: number, select: boolean) => void;
 };
@@ -35,6 +36,7 @@ export function MineGrid({
   selected,
   onPress,
   onLongPress,
+  onEdit,
   onRange,
 }: Props) {
   const drag = useSharedValue<DragRange>(IDLE);
@@ -84,6 +86,7 @@ export function MineGrid({
             height={layout.tileH}
             onPress={() => onPress(p)}
             onLongPress={(r) => onLongPress(p, r)}
+            onEdit={() => onEdit(p)}
             selecting={selecting}
             selected={selected.has(p.id)}
             index={i}

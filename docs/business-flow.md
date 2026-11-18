@@ -211,7 +211,7 @@ Chỉnh trên **nền ô caro** (vùng trống). Thứ tự lớp từ dưới l
 
 - **Ô pose luôn hiện ảnh gốc đầy đủ màu (người + nền)**: người dùng chọn pose nhờ nhìn cả người mẫu lẫn bối cảnh, để so với bối cảnh mình đang có.
 - **Pose mẫu**: đi kèm app, chia nhóm (Quán cà phê, Trường học, Đường phố, Du lịch). Ô là ảnh gốc + viền trắng mảnh. Viền, nét mặt và tay chân đã tách sẵn nên chọn là dùng ngay.
-- **Pose của bạn**: lưới phẳng, **mỗi bản pose một ô**, sửa gần nhất trước. Ô là ảnh gốc + style của chính bản đó (phủ, viền, nét), nên các bản từ cùng một ảnh vẫn phân biệt được. Chạm để dùng chụp; giữ lâu để chọn Dùng để chụp / Sửa / Xóa (pose mẫu: Dùng để chụp / Tạo bản sao để sửa). **Chọn nhiều để xóa:** nút "Chọn pose" ở đầu màn; chạm từng ô, hoặc vuốt ngang qua các ô để chọn cả dải như album ảnh iPhone (ô bắt đầu đang chọn thì cả dải bỏ chọn; vuốt dọc vẫn cuộn); nút "Xóa n pose" ở đáy, có xác nhận.
+- **Pose của bạn**: lưới phẳng, **mỗi bản pose một ô**, sửa gần nhất trước. Ô là ảnh gốc + style của chính bản đó (phủ, viền, nét), nên các bản từ cùng một ảnh vẫn phân biệt được. Chạm để dùng chụp; chạm nút bút chì ở góc ô để sửa ngay; giữ lâu để chọn Dùng để chụp / Sửa / Xóa (pose mẫu: Dùng để chụp / Tạo bản sao để sửa). **Chọn nhiều để xóa:** nút "Chọn pose" ở đầu màn; chạm từng ô, hoặc vuốt ngang qua các ô để chọn cả dải như album ảnh iPhone (ô bắt đầu đang chọn thì cả dải bỏ chọn; vuốt dọc vẫn cuộn); nút "Xóa n pose" ở đáy, có xác nhận.
 - **Một ảnh gốc, nhiều bản pose:** các bản dùng chung ảnh gốc, viền và nét; chỉ style khác nhau. Lưu nhiều lần từ cùng một pose mẫu cũng không chép lại ảnh.
 - Xóa bản cuối cùng của một ảnh thì xóa luôn ảnh gốc và mọi file của nó (ảnh nguồn, mask).
 
