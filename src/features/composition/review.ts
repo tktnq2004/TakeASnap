@@ -17,6 +17,8 @@ export type NoteId =
   | 'offVertical'
   | 'centered'
   | 'offCenter'
+  | 'fillOk'
+  | 'fillSmall'
   | 'headsStaggered'
   | 'headsLevel'
   | 'feetIn'
@@ -49,6 +51,9 @@ export const RULE = {
   /** Coi là "đứng giữa khung". */
   middleBand: 0.1,
   centerBand: 0.05,
+  /** Lấp đầy khung: người cao từ chừng này phần khung, hoặc chiếm từ `fillArea` diện tích. */
+  fillHeight: 0.7,
+  fillArea: 0.3,
   /**
    * Đỉnh các đầu chênh dưới chừng này nhân chiều cao người thấp nhất trong ảnh là thẳng hàng
    * (đầu cao khoảng 1/7 người: chênh dưới chừng một nửa chiều cao đầu).
@@ -133,6 +138,10 @@ function techniqueNotes(t: TechniqueId, f: PhotoFeatures): Note[] {
       const ok = Math.abs(cx - 0.5) <= RULE.centerBand;
       return [{ id: ok ? 'centered' : 'offCenter', ok }];
     }
+    case 'fill': {
+      const ok = p.box[3] - p.box[1] >= RULE.fillHeight || p.area >= RULE.fillArea;
+      return [{ id: ok ? 'fillOk' : 'fillSmall', ok }];
+    }
     case 'lead':
       return near(cx, THIRDS, RULE.verticalBand) ? [{ id: 'onVertical', ok: true }] : [];
     case 'group': {
@@ -165,6 +174,7 @@ function techniqueNotes(t: TechniqueId, f: PhotoFeatures): Note[] {
 export function suggestCrop(t: TechniqueId, f: PhotoFeatures): Crop | null {
   const p = f.people[f.main];
   if (!p) return null;
+  if (t === 'fill') return fillCrop(p.box);
   let target: Pt;
   let anchor: Pt;
   if (t === 'thirds' && f.eye) {
@@ -194,6 +204,18 @@ export function suggestCrop(t: TechniqueId, f: PhotoFeatures): Crop | null {
 }
 
 const clamp = (v: number, a: number, b: number) => Math.min(b, Math.max(a, v));
+
+/**
+ * Lấp đầy khung: khung cắt cùng tỉ lệ ảnh ôm sát người (chừa 8% mỗi bên, chừa trên đầu), không
+ * nhỏ hơn 45% cạnh ảnh để không vỡ ảnh. Null khi cắt không bớt được bao nhiêu.
+ */
+function fillCrop([x0, y0, x1, y1]: [number, number, number, number]): Crop | null {
+  const k = clamp(Math.max(x1 - x0, y1 - y0) * 1.16, 0.45, 1);
+  if (k >= 0.9) return null;
+  const x = clamp((x0 + x1) / 2 - k / 2, 0, 1 - k);
+  const y = clamp(y0 - 0.06 * k, 0, 1 - k);
+  return { x, y, w: k, h: k };
+}
 
 /**
  * Nhận xét: dòng chưa đạt trước, tối đa `RULE.maxNotes` dòng; kỹ thuật đang dùng trước dòng

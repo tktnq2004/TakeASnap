@@ -437,7 +437,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [phase5-bo-cuc.md](phase5-bo-cuc.md); nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục); kỹ thuật ở §3.6.
 
-**Đã chốt:** chỉ chạy trên máy, không AI cloud; người dùng chọn kỹ thuật rồi app dẫn (app tự đoán là Phase 5b, model tự huấn luyện); 16 kỹ thuật: 11 có hướng dẫn trên camera, đường dẫn có lớp kẻ, 4 chỉ có thẻ học; giữ cả các mẹo không hẳn là bố cục (góc thấp, selfie, ống kính, ánh sáng) vì giúp ảnh có người đẹp hơn; đường chân trời và đường dẫn bản **đơn giản** ở đây (lớp kẻ, không dò cảnh), bản **nâng cao** (dò đường thẳng) ở Phase 5a; nhận xét sau khi chụp làm trước, gợi ý lúc ngắm qua cổng quyết định.
+**Đã chốt:** chỉ chạy trên máy, không AI cloud; người dùng chọn kỹ thuật rồi app dẫn (app tự đoán là Phase 5b, model tự huấn luyện); 19 kỹ thuật: 12 có hướng dẫn trên camera, đường dẫn có lớp kẻ, 6 chỉ có thẻ học; giữ cả các mẹo không hẳn là bố cục (góc thấp, selfie, ống kính, ánh sáng) vì giúp ảnh có người đẹp hơn; đường chân trời và đường dẫn bản **đơn giản** ở đây (lớp kẻ, không dò cảnh), bản **nâng cao** (dò đường thẳng) ở Phase 5a; nhận xét sau khi chụp làm trước, gợi ý lúc ngắm qua cổng quyết định.
 
 **Bước 0 — Nghiên cứu**
 
@@ -453,12 +453,12 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Bước 2 — Phần chắc chắn làm được (tuần 1)**
 
-- [ ] `src/features/composition/`: danh mục 16 kỹ thuật, đặc trưng, quy tắc, chọn gợi ý; unit test cho từng quy tắc. Đã có: danh mục 10 dòng của bảng Bố cục, hình lớp bố cục, quy tắc cảm biến, dính pose (`composition.test.ts`); còn quy tắc phân tích người (Bước 3)
+- [ ] `src/features/composition/`: danh mục 19 kỹ thuật, đặc trưng, quy tắc, chọn gợi ý; unit test cho từng quy tắc. Đã có: danh mục 11 dòng của bảng Bố cục, hình lớp bố cục, quy tắc cảm biến, dính pose (`composition.test.ts`); còn quy tắc phân tích người (Bước 3)
 - [x] Nút Bố cục thay nút Lưới, bảng Bố cục kéo lên 10 dòng (gồm Lưới 3×3 và 4×4); lớp bố cục cho từng kỹ thuật, mỗi lúc một lớp (phiếu lần 1–2)
 - [x] Gợi ý từ cảm biến: máy thẳng, góc thấp, selfie cao hơn mắt (dòng gợi ý dưới khung ngắm, giữ yên 0,5 s mới hiện, đạt thì rung và tự ẩn)
 - [x] Pose dính đường 1/3 / trục giữa khi thả (neo giữa hai mắt); chấm đích bám theo pose. Bỏ việc tự bật kỹ thuật khi chọn pose (phiếu lần 1)
 - [x] Đường chân trời đơn giản: lớp kẻ hai đường ngang 1/3 + thước cân bằng; đường dẫn đơn giản: lớp kẻ hai đường chéo hội tụ về một giao điểm 1/3 (không dò cảnh)
-- [x] Thẻ học cho 16 kỹ thuật: tab Bố cục trong Thư viện, màn thẻ (hình vẽ đúng / sai, 3 đoạn, nút Chụp thử), lối "Học các kỹ thuật" từ bảng Bố cục. Ảnh thật thay hình vẽ: để sau
+- [x] Thẻ học cho 19 kỹ thuật (thêm Lấp đầy khung, Cân bằng, Sự lặp lại ở phiếu lần 8): tab Bố cục trong Thư viện, màn thẻ (hình vẽ đúng / sai, 3 đoạn, nút Chụp thử), lối "Học các kỹ thuật" từ bảng Bố cục. Ảnh thật thay hình vẽ: để sau
 
 **Bước 3 — Phân tích người (tuần 2, có cổng quyết định)**
 
@@ -479,7 +479,7 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 - [ ] Chữ gợi ý ngắn theo quy tắc chữ của app; chuyển động khi đạt; trường hợp không thấy người, chưa tải bộ tách
 - [ ] Phiếu `phase5-test.md`, thử trên iPhone và Android, sửa theo góp ý từng vòng
 
-**Xong khi:** chọn được kỹ thuật và thấy lớp bố cục trên camera; gợi ý cảm biến chạy tức thì; có nhận xét sau khi chụp (hoặc đã ghi rõ vì sao bỏ theo cổng); 16 thẻ học; phiếu `phase5-test.md` đạt trên iPhone và Android.
+**Xong khi:** chọn được kỹ thuật và thấy lớp bố cục trên camera; gợi ý cảm biến chạy tức thì; có nhận xét sau khi chụp (hoặc đã ghi rõ vì sao bỏ theo cổng); 19 thẻ học; phiếu `phase5-test.md` đạt trên iPhone và Android.
 
 ### Phase 5a — Dò đường chân trời và đường dẫn (khoảng 1 tuần, có cổng quyết định)
 

@@ -231,7 +231,7 @@ Nguyên tắc: quy tắc bố cục là **gợi ý, không phải luật**. Nghi
 
 ### 6.2 Kỹ thuật trong v1
 
-Chỉ những kỹ thuật dùng được trên điện thoại và có người trong ảnh. 16 kỹ thuật: 11 có hướng dẫn trên camera (10 kỹ thuật đánh số + nhóm người), đường dẫn có lớp kẻ, 4 chỉ có thẻ học (đếm lại khi làm thẻ học: bản trước ghi 15 vì quên nhóm người). Góc thấp, selfie, khoảng cách – ống kính và ánh sáng không hẳn là quy tắc bố cục mà là mẹo chụp người bằng điện thoại; giữ lại vì giúp ảnh có người đẹp hơn.
+Chỉ những kỹ thuật dùng được trên điện thoại và có người trong ảnh. 19 kỹ thuật: 12 có hướng dẫn trên camera (10 kỹ thuật đánh số + nhóm người + lấp đầy khung), đường dẫn có lớp kẻ, 6 chỉ có thẻ học. Phiếu Phase 5 lần 8 thêm lấp đầy khung, cân bằng, sự lặp lại và mở rộng hậu cảnh, chiều sâu, điểm nhìn theo bảng 12 nguyên tắc người dùng gửi (composition.md §5). Góc thấp, selfie, khoảng cách – ống kính và ánh sáng không hẳn là quy tắc bố cục mà là mẹo chụp người bằng điện thoại; giữ lại vì giúp ảnh có người đẹp hơn.
 
 Đường chân trời và đường dẫn chia hai mức: **đơn giản** ở Phase 5 (lớp kẻ để người dùng tự xếp cảnh theo, app không dò cảnh), **nâng cao** ở Phase 5a (app dò đường thẳng trong ảnh, §6.9).
 
@@ -248,9 +248,10 @@ Chỉ những kỹ thuật dùng được trên điện thoại và có người
 | 9 | Selfie | Camera trước cao hơn mắt một chút | "Giơ máy cao hơn mắt một chút" | Cảm biến, camera trước |
 | 10 | Khoảng cách, ống kính | Mặt quá to khi đang ở 0,5× / 1× | "Đứng xa ra và dùng 2× để mặt không méo" | Cỡ mặt, zoom |
 | + | Nhóm người | Các đầu không cùng một độ cao | "Cho một người ngồi xuống hoặc đứng lên bậc" | Đỉnh đầu từng người |
+| + | Lấp đầy khung | Người cao từ 70% khung hoặc chiếm từ 30% diện tích | "Tiến lại gần để người lấp đầy khung"; nhận xét có khung cắt ôm sát người | Khung người |
 | + | Đường dẫn (đơn giản) | Không dò cảnh: lớp kẻ hai đường chéo hội tụ về một giao điểm 1/3 để người dùng tự xếp đường đi, hàng rào, cầu thang dẫn tới người; người ở điểm hội tụ thì đạt như quy tắc 1/3 | "Đưa người vào điểm hội tụ" | Mắt, khung người |
 
-**Chỉ có thẻ học, chưa tự phát hiện:** vật "mọc" sau đầu và chân trời cắt cổ (tự phát hiện ở Phase 5a), khung trong khung, tiền cảnh, ánh sáng.
+**Chỉ có thẻ học, chưa tự phát hiện:** hậu cảnh gọn (vật "mọc" sau đầu, chân trời cắt cổ: tự phát hiện ở Phase 5a), khung trong khung, tiền cảnh và chiều sâu, ánh sáng, cân bằng (cần nhận ra vật khác ngoài người), sự lặp lại (cần dò mẫu lặp).
 
 ### 6.3 Luồng chính
 

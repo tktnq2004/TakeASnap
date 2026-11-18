@@ -172,6 +172,23 @@ describe('reviewPhoto', () => {
     expect(ids(reviewPhoto('grid', f))).toContain('-noLookRoom');
   });
 
+  it('Lấp đầy khung: người nhỏ → chưa đạt, có khung cắt ôm sát người; người to → đạt', () => {
+    const small = features([[0.42, 0.4, 0.58, 0.8]], standing(0.5, 0.45));
+    const r = reviewPhoto('fill', small);
+    expect(ids(r)).toContain('-fillSmall');
+    const c = r.crop!;
+    expect(c.w).toBeLessThan(0.9);
+    expect(c.w).toBeGreaterThanOrEqual(0.45);
+    // Khung chứa trọn người.
+    expect(c.x).toBeLessThanOrEqual(0.42);
+    expect(c.x + c.w).toBeGreaterThanOrEqual(0.58);
+    expect(c.y).toBeLessThanOrEqual(0.4);
+    expect(c.y + c.h).toBeGreaterThanOrEqual(0.8);
+    const big = features([[0.15, 0.05, 0.85, 1]], standing(0.5, 0.3));
+    expect(ids(reviewPhoto('fill', big))).toContain('+fillOk');
+    expect(reviewPhoto('fill', big).crop).toBeNull();
+  });
+
   it('không cắt được cho đạt thì không có khung cắt', () => {
     // Mắt sát mép trên: đặt mắt vào 1/3 sẽ phải cắt ra ngoài ảnh.
     const f = features([[0.38, 0.02, 0.62, 0.95]], standing(0.5, 0.05));

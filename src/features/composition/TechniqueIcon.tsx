@@ -86,6 +86,18 @@ export function TechniqueIcon({
         </>
       );
       break;
+    case 'fill':
+      // Đầu và vai to chiếm gần hết khung.
+      body = (
+        <>
+          <Circle cx={W / 2} cy={H * 0.4} r={W * 0.24} fill={accent} />
+          <Path
+            d={`M${W * 0.12} ${H - 1}Q${W * 0.14} ${H * 0.66} ${W / 2} ${H * 0.66}Q${W * 0.86} ${H * 0.66} ${W * 0.88} ${H - 1}Z`}
+            fill={accent}
+          />
+        </>
+      );
+      break;
     case 'low':
       body = (
         <Path

@@ -79,6 +79,21 @@ export function LessonDiagram({ scene, ok, width }: { scene: Scene; ok: boolean;
     <Svg width={width} height={height} viewBox={`0 0 ${W} ${H}`}>
       <Rect x={0} y={0} width={W} height={H} fill={scene.bright ? color.ink : color.surfaceAlt} />
 
+      {scene.layers && (
+        <G>
+          <Path
+            d={`M0 ${H * 0.52}Q${W * 0.3} ${H * 0.4} ${W * 0.6} ${H * 0.5}T${W} ${H * 0.46}V${H}H0Z`}
+            fill={color.muted}
+            fillOpacity={0.22}
+          />
+          <Path
+            d={`M0 ${H * 0.68}Q${W * 0.4} ${H * 0.56} ${W} ${H * 0.66}V${H}H0Z`}
+            fill={color.muted}
+            fillOpacity={0.38}
+          />
+        </G>
+      )}
+
       {scene.guides === 'thirds' &&
         [1, 2].map((k) => (
           <G key={k}>
@@ -112,6 +127,19 @@ export function LessonDiagram({ scene, ok, width }: { scene: Scene; ok: boolean;
           stroke={color.muted}
           strokeWidth={5}
         />
+      )}
+
+      {scene.object && (
+        <G>
+          {/* Con bướm: hai cánh tam giác, phần đạt màu nhấn. */}
+          <Path
+            d={`M${scene.object.x} ${scene.object.y}l-6 -5v10zM${scene.object.x} ${scene.object.y}l6 -5v10z`}
+            fill={mark}
+            stroke={mark}
+            strokeWidth={1}
+            strokeLinejoin="round"
+          />
+        </G>
       )}
 
       {scene.people?.map((f, i) => person(f, ok, scene.bright ? color.ink : color.surfaceAlt, i))}

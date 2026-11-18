@@ -4,9 +4,9 @@ import { lessonById, LESSONS } from '../lessons';
 import { isTechnique } from '../techniques';
 
 describe('lessons', () => {
-  it('16 thẻ, id không trùng, thẻ nào cũng có đủ chữ', () => {
-    expect(LESSONS).toHaveLength(16);
-    expect(new Set(LESSONS.map((l) => l.id)).size).toBe(16);
+  it('19 thẻ, id không trùng, thẻ nào cũng có đủ chữ', () => {
+    expect(LESSONS).toHaveLength(19);
+    expect(new Set(LESSONS.map((l) => l.id)).size).toBe(19);
     for (const l of LESSONS) {
       const item = t.lessons.items[l.id];
       for (const k of ['name', 'wrong', 'right', 'what', 'when', 'breakRule'] as const) {
@@ -37,6 +37,8 @@ describe('lessons', () => {
   it('thẻ có trên Camera bật đúng kỹ thuật của nó', () => {
     expect(lessonById('level')?.tryTechnique).toBe('horizon');
     expect(lessonById('selfie')?.tryTechnique).toBe('selfie');
+    expect(lessonById('fill')?.tryTechnique).toBe('fill');
+    expect(lessonById('balance')?.onCamera).toBe(false);
     expect(lessonById('nope')).toBeUndefined();
   });
 });

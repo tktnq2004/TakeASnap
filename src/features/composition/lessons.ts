@@ -8,6 +8,7 @@ import type { TechniqueId } from './techniques';
 export type LessonId =
   | 'thirds'
   | 'center'
+  | 'fill'
   | 'headroom'
   | 'lookroom'
   | 'edges'
@@ -21,6 +22,8 @@ export type LessonId =
   | 'background'
   | 'frame'
   | 'foreground'
+  | 'balance'
+  | 'repetition'
   | 'light';
 
 /** Khung hình minh họa. */
@@ -59,6 +62,10 @@ export type Scene = {
   leaves?: boolean;
   /** Nền sáng chói (ngược sáng). */
   bright?: boolean;
+  /** Hai lớp đồi xa phía sau (chiều sâu). */
+  layers?: boolean;
+  /** Vật nhỏ cân lại người (cân bằng): con bướm. */
+  object?: { x: number; y: number };
   /** Tam giác nối các đầu (nhóm). */
   triangle?: boolean;
 };
@@ -112,6 +119,17 @@ export const LESSONS: readonly Lesson[] = [
     ],
     wrong: { guides: 'center', people: [{ x: 36, y: 40 }] },
     right: { guides: 'center', people: [{ x: 45, y: 40 }] },
+  },
+  {
+    id: 'fill',
+    onCamera: true,
+    tryTechnique: 'fill',
+    sources: [
+      { title: '30 photography composition techniques', by: 'Imaginated' },
+      { title: "Wildlife photography when you can't fill the frame", by: 'Adorama' },
+    ],
+    wrong: { people: [{ x: 45, y: 60, s: 0.6 }] },
+    right: { people: [{ x: 45, y: 40, s: 2.4 }] },
   },
   {
     id: 'headroom',
@@ -170,6 +188,7 @@ export const LESSONS: readonly Lesson[] = [
     onCamera: true,
     tryTechnique: 'low',
     sources: [
+      { title: '30 photography composition techniques', by: 'Imaginated' },
       { title: 'Low angle shot', by: 'Adorama' },
       { title: 'Low angle photography without kneeling', by: 'iPhotography' },
     ],
@@ -223,7 +242,7 @@ export const LESSONS: readonly Lesson[] = [
     id: 'lead',
     onCamera: true,
     tryTechnique: 'lead',
-    sources: [{ title: 'Photography composition techniques', by: 'Imaginated' }],
+    sources: [{ title: '30 photography composition techniques', by: 'Imaginated' }],
     wrong: {
       lines: [
         [8, 120, 76, 46],
@@ -265,9 +284,27 @@ export const LESSONS: readonly Lesson[] = [
     id: 'foreground',
     onCamera: false,
     tryTechnique: 'grid',
-    sources: [{ title: 'Photography composition techniques', by: 'Imaginated' }],
+    sources: [{ title: '30 photography composition techniques', by: 'Imaginated' }],
     wrong: { people: [{ x: 50, y: 40 }] },
-    right: { leaves: true, people: [{ x: 50, y: 40 }] },
+    right: { layers: true, leaves: true, people: [{ x: 50, y: 40 }] },
+  },
+  {
+    id: 'balance',
+    onCamera: false,
+    tryTechnique: 'thirds',
+    sources: [{ title: '30 photography composition techniques', by: 'Imaginated' }],
+    wrong: { guides: 'thirds', people: [{ x: 30, y: 44 }] },
+    right: { guides: 'thirds', people: [{ x: 30, y: 44 }], object: { x: 68, y: 30 } },
+  },
+  {
+    id: 'repetition',
+    onCamera: false,
+    tryTechnique: 'grid',
+    sources: [{ title: '30 photography composition techniques', by: 'Imaginated' }],
+    wrong: { people: [{ x: 45, y: 46 }] },
+    right: {
+      people: [12, 25, 38, 51, 64, 77].map((x) => ({ x, y: 70, s: 0.42 })),
+    },
   },
   {
     id: 'light',

@@ -562,6 +562,7 @@ Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố c
 | Lưới 4×4 | Lưới dày hơn, để căn thẳng | 5 |
 | Quy tắc 1/3 | Mắt trên đường 1/3 | 5 |
 | Đặt ở giữa | Người ở trục giữa | 5 |
+| Lấp đầy khung | Người chiếm gần hết khung | 5 (phiếu lần 8) |
 | Đường chân trời | Chân trời trên một đường 1/3 | 5 (lớp kẻ), 5a (tự dò) |
 | Đường dẫn | Đường đi dẫn tới người | 5 (lớp kẻ), 5a (tự dò) |
 | Góc thấp | Kéo dài chân | 5 |

@@ -95,7 +95,7 @@ Chấm mỗi kỹ thuật theo 4 tiêu chí: hợp ảnh có người, hợp đi
 
 **Để sau (cần đo thêm hoặc model mới):** A6 Không gian âm, D1 Tách nền, E2 Khoảng cách, F1 Ngược sáng, phát hiện D2 / D3 bằng dò đường thẳng.
 
-Tổng v1: **16 kỹ thuật**, trong đó **11 có hướng dẫn** trên camera (bản đầu ghi 15 / 10 vì quên đếm E1 Đầu so le; sửa khi làm thẻ học).
+Tổng v1: **19 kỹ thuật**, trong đó **12 có hướng dẫn** trên camera (bản đầu ghi 15 / 10 vì quên đếm E1 Đầu so le; phiếu Phase 5 lần 8 thêm A6 lấp đầy khung, cân bằng, sự lặp lại, xem §5).
 
 **Đã chốt phạm vi:**
 - Giữ cả các mục không hẳn là quy tắc bố cục (góc thấp, selfie, khoảng cách – ống kính, ánh sáng) vì giúp ảnh có người đẹp hơn.
@@ -113,3 +113,22 @@ Tổng v1: **16 kỹ thuật**, trong đó **11 có hướng dẫn** trên camer
 2. Gợi ý sau khi chụp, lúc đang ngắm, hay cả hai? Phụ thuộc kết quả đo `takePictureAsync({ shutterSound: false })`.
 3. Thẻ học đặt ở đâu.
 4. Có cho AI trên cloud hay không (khuyên không, giữ nguyên tắc ảnh không rời máy).
+
+## 5. Đối chiếu bảng 12 nguyên tắc người dùng gửi (phiếu Phase 5 lần 8)
+
+Người dùng gửi một bảng hình 12 nguyên tắc bố cục (Quy tắc 1/3, Cân bằng, Đóng khung, Điểm nhìn, Đường dẫn, Hậu cảnh, Đối xứng / mẫu hình, Chiều sâu, Cắt hình, Đường chân trời, Quy tắc không gian, Sự lặp lại). Đối chiếu với các kỹ thuật ở §4:
+
+| Nguyên tắc | Trong app | Quyết định |
+|---|---|---|
+| Quy tắc 1/3, Đường dẫn, Đường chân trời | A1, D3, C1 | Đã có |
+| Đóng khung | D4 Khung trong khung | Đã có |
+| Đối xứng | A2 Ở giữa | Đã có; phần mẫu hình gộp vào Sự lặp lại |
+| Quy tắc không gian | A4 Khoảng phía nhìn | Đã có |
+| Hậu cảnh | D2 Vật mọc sau đầu | Mở rộng thẻ thành **Hậu cảnh gọn** (gồm D1 tách người khỏi nền) |
+| Chiều sâu | D5 Tiền cảnh | Mở rộng thẻ thành **Tiền cảnh và chiều sâu** |
+| Điểm nhìn | C2 Góc thấp | Mở rộng thẻ thành **Góc thấp, góc cao** (chụp từ trên cao) |
+| Cắt hình | A6 Lấp đầy khung | **Thêm vào bảng Bố cục** + nhận xét (diện tích / chiều cao người) + khung cắt ôm sát người |
+| Cân bằng | — | **Thêm thẻ học**; tự phát hiện cần nhận ra vật khác ngoài người (để sau) |
+| Sự lặp lại | — | **Thêm thẻ học**; tự phát hiện cần dò mẫu lặp (để sau) |
+
+Nguồn cho ba thẻ mới: [Imaginated, 30 photography composition techniques](https://www.imaginated.com/photography/composition/techniques/) (mục Fill the frame, Balance in a scene, Creating patterns, Photographing from above), [Adorama, Wildlife photography when you can't fill the frame](https://www.adorama.com/alc/wildlife-photography-when-you-cant-fill-the-frame/).

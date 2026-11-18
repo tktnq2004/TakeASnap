@@ -7,8 +7,9 @@ const G = 9.81;
 const rad = (d: number) => (d * Math.PI) / 180;
 
 describe('techniques', () => {
-  it('10 dòng: Tắt, Lưới 3×3, Lưới 4×4 rồi các kỹ thuật', () => {
-    expect(TECHNIQUES).toHaveLength(10);
+  it('11 dòng: Tắt, Lưới 3×3, Lưới 4×4 rồi các kỹ thuật (có Lấp đầy khung)', () => {
+    expect(TECHNIQUES).toHaveLength(11);
+    expect(TECHNIQUES).toContain('fill');
     expect(TECHNIQUES.slice(0, 3)).toEqual(['off', 'grid', 'grid4']);
     expect(isTechnique('thirds')).toBe(true);
     expect(isTechnique('3')).toBe(false);

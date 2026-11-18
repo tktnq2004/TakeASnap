@@ -5,7 +5,17 @@
  */
 
 export type TechniqueId =
-  'off' | 'grid' | 'grid4' | 'thirds' | 'center' | 'horizon' | 'lead' | 'low' | 'selfie' | 'group';
+  | 'off'
+  | 'grid'
+  | 'grid4'
+  | 'thirds'
+  | 'center'
+  | 'fill'
+  | 'horizon'
+  | 'lead'
+  | 'low'
+  | 'selfie'
+  | 'group';
 
 /** Thứ tự các dòng trong bảng Bố cục. "Tự chọn" (Phase 5b) sẽ đứng đầu khi qua cổng. */
 export const TECHNIQUES: readonly TechniqueId[] = [
@@ -14,6 +24,7 @@ export const TECHNIQUES: readonly TechniqueId[] = [
   'grid4',
   'thirds',
   'center',
+  'fill',
   'horizon',
   'lead',
   'low',
