@@ -150,21 +150,34 @@ Cần bộ tách người (gói tải ở lần tạo pose đầu tiên). Nếu 
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 11.1 | Bố cục Tắt, chụp rồi mở Xem ảnh vừa chụp | Như cũ: "Ảnh n trên m · giờ", không có thẻ nhận xét | | | |
-| 11.2 | Chưa có bộ tách người (xóa ở Cài đặt): chụp với Quy tắc 1/3, mở Xem ảnh | Thẻ: câu "Nhận xét bố cục cần bộ tách người…" + nút "Tải bộ tách người (x MB)"; bấm thì tải rồi nhận xét | | | |
-| 11.3 | Quy tắc 1/3: chụp một người đứng giữa khung | Dòng trên: "Ảnh n trên m · Quy tắc 1/3"; ảnh có lưới 3×3; thẻ có "Người đứng giữa khung, chưa theo đường 1/3" (X đỏ) | | | |
-| 11.4 | Quy tắc 1/3: chụp người có mắt gần giao điểm 1/3 | Thẻ có "Mắt gần đường 1/3 trên" và "Người đứng trên đường dọc 1/3" (dấu tích) | | | |
-| 11.5 | Từ 11.3: bấm "Xem khung cắt gợi ý" | Khung nét đứt xanh trên ảnh, ngoài khung tối đi; nút đáy "Ảnh gốc" · "Lưu bản cắt"; không vuốt sang ảnh khác được | | | |
-| 11.6 | Bấm "Lưu bản cắt" | Rung nhẹ; nhảy sang ảnh mới (bản cắt) ở cuối; ảnh mới có nhận xét đạt hơn; album có cả ảnh gốc và bản cắt | | | |
-| 11.7 | Bấm "Ảnh gốc" trong chế độ cắt | Thoát chế độ cắt, ảnh và thẻ như trước | | | |
-| 11.8 | Chạm vào ảnh | Lớp bố cục trên ảnh tắt / bật | | | |
-| 11.9 | Đặt ở giữa: chụp người lệch trục | "Người lệch khỏi trục giữa"; có khung cắt gợi ý đưa người vào giữa | | | |
-| 11.10 | Góc thấp: chụp mất bàn chân / lấy cả chân | "Mất bàn chân…" / "Thấy cả bàn chân" | | | |
-| 11.11 | Nhóm người: 3 người đầu ngang nhau / so le | "Các đầu gần như cùng một độ cao" / "Các đầu cao thấp so le" | | | |
-| 11.12 | Chụp mà mép dưới cắt ngang gối; chụp người sát mép trái | "Mép ảnh cắt ngang gối"; "Người sát mép trái" | | | |
-| 11.13 | Chụp ảnh không có người (bố cục đang bật) | "Không thấy người trong ảnh nên chưa nhận xét được." | | | |
-| 11.14 | Chụp liên tục 5 ảnh với 1/3, mở Xem ảnh, vuốt qua lại | Mỗi ảnh nhận xét một lần (vuốt lại không chạy lại); ảnh nhảy cỡ ít khi đổi ảnh | | | |
-| 11.15 | Thời gian: từ lúc mở ảnh tới khi thẻ hiện nhận xét | Ghi số giây ở cột Ghi chú (lần đầu có nạp bộ tách, các lần sau) | | | |
+| 11.1 | Bố cục Tắt, chụp rồi mở Xem ảnh vừa chụp | Như cũ: "Ảnh n trên m · giờ", không có thẻ nhận xét |d |d | |
+| 11.2 | Chưa có bộ tách người (xóa ở Cài đặt): chụp với Quy tắc 1/3, mở Xem ảnh | Thẻ: câu "Nhận xét bố cục cần bộ tách người…" + nút "Tải bộ tách người (x MB)"; bấm thì tải rồi nhận xét |d |d | |
+| 11.3 | Quy tắc 1/3: chụp một người đứng giữa khung | Dòng trên: "Ảnh n trên m · Quy tắc 1/3"; ảnh có lưới 3×3; thẻ có "Người đứng giữa khung, chưa theo đường 1/3" (X đỏ) |d |d | |
+| 11.4 | Quy tắc 1/3: chụp người có mắt gần giao điểm 1/3 | Thẻ có "Mắt gần đường 1/3 trên" và "Người đứng trên đường dọc 1/3" (dấu tích) |d |d | |
+| 11.5 | Từ 11.3: bấm "Xem khung cắt gợi ý" | Khung nét đứt xanh trên ảnh, ngoài khung tối đi; nút đáy "Ảnh gốc" · "Lưu bản cắt"; không vuốt sang ảnh khác được | d|d | |
+| 11.6 | Bấm "Lưu bản cắt" | Rung nhẹ; nhảy sang ảnh mới (bản cắt) ở cuối; ảnh mới có nhận xét đạt hơn; album có cả ảnh gốc và bản cắt |d |d | |
+| 11.7 | Bấm "Ảnh gốc" trong chế độ cắt | Thoát chế độ cắt, ảnh và thẻ như trước | d|d | |
+| 11.8 | Chạm vào ảnh | Lớp bố cục trên ảnh tắt / bật | d|d | |
+| 11.9 | Đặt ở giữa: chụp người lệch trục | "Người lệch khỏi trục giữa"; có khung cắt gợi ý đưa người vào giữa |d |d | |
+| 11.10 | Góc thấp: chụp mất bàn chân / lấy cả chân | "Mất bàn chân…" / "Thấy cả bàn chân" |d |d | |
+| 11.11 | Nhóm người: 3 người đầu ngang nhau / so le | "Các đầu gần như cùng một độ cao" / "Các đầu cao thấp so le" |d |d | |
+| 11.12 | Chụp mà mép dưới cắt ngang gối; chụp người sát mép trái | "Mép ảnh cắt ngang gối"; "Người sát mép trái" |d |d | |
+| 11.13 | Chụp ảnh không có người (bố cục đang bật) | "Không thấy người trong ảnh nên chưa nhận xét được." |d |d | |
+| 11.14 | Chụp liên tục 5 ảnh với 1/3, mở Xem ảnh, vuốt qua lại | Mỗi ảnh nhận xét một lần (vuốt lại không chạy lại); ảnh nhảy cỡ ít khi đổi ảnh |d |d |5 ảnh nhận xét giống nhau |
+| 11.15 | Thời gian: từ lúc mở ảnh tới khi thẻ hiện nhận xét | Ghi số giây ở cột Ghi chú (lần đầu có nạp bộ tách, các lần sau) | d| d| 1s - 2s|
+
+## 12. Tắt bố cục nhanh, sửa pose nhanh
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 12.1 | Đang bật một kỹ thuật (ví dụ 1/3), chạm nút Bố cục | Tắt ngay, rung nhẹ, viên "Đã tắt bố cục" khoảng 1,5 s; không mở bảng |d |d | |
+| 12.2 | Đang tắt, chạm nút Bố cục | Mở bảng Bố cục như cũ |d |d | |
+| 12.3 | Thư viện → Pose mẫu: nhìn các ô | Mỗi ô có nút bút chì tròn nhỏ ở góc dưới phải |d |d | |
+| 12.4 | Chạm bút chì trên một pose mẫu | Mở Chỉnh pose; lưu thì thành pose mới trong Pose của bạn (pose mẫu giữ nguyên) |d | d| |
+| 12.5 | Pose của bạn: chạm bút chì | Mở Chỉnh pose của đúng bản đó | d|d | |
+| 12.6 | Chạm phần còn lại của ô | Dùng pose để chụp như cũ (về Camera) |d |d | |
+| 12.7 | Giữ ô | Menu pose như cũ |d |d | |
+| 12.8 | Pose của bạn → Chọn pose (chọn nhiều) | Bút chì ẩn, chỉ còn vòng chọn |d | d|cho vòng chọn nằm ở dưới chỗ bút chì luôn cho đẹp |
 
 ## Góp ý thêm
-
+tôi có gửi thêm ảnh 1 số nguyên tắc tôi tìm được, xem thử có áp dụng được không

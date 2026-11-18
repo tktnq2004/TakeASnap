@@ -280,7 +280,7 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 | `Slider` | rãnh 10 `accentSoft`, phần đã chọn `accent`, núm 28 trắng viền 4 `accent`. Nhãn `label` trái, giá trị `num` trong nhãn tròn `accentSoft` bên phải |
 | `Switch` | 52×32, bật `accent`, tắt `#D5DDEA`, núm trắng 26 |
 | `Swatch` | 32 tròn (7 màu sẵn + ô màu tự chọn vừa một hàng 330); màu trắng có viền 2 px `#DCE6F7`; đang chọn: vòng 2 px `accent` cách 2 px |
-| `PoseTile` | nút bút chì tròn 28 ở góc dưới phải (nền `camScrim`, viền trắng 35%, chạm đổi nền `accent`): chạm = mở Chỉnh pose ngay (pose mẫu: tạo bản sao khi lưu); ẩn khi đang chọn nhiều (phiếu Phase 5 lần 7). Ảnh gốc đầy đủ màu. Thư viện: 110×146 bo 18. Lưới 4 cột: bo 16. Pose mẫu thêm viền trắng 1.5 px; pose của bạn vẽ style của chính bản đó (độ dày ≤ 2 px). Chạm = dùng để chụp; giữ = menu. Chế độ chọn: vòng 24 góc trên phải; đã chọn = viền 3 px `accent` + phủ `accent` 15% + đĩa `accent` có dấu tích |
+| `PoseTile` | nút bút chì tròn 28 ở góc dưới phải (nền `camScrim`, viền trắng 35%, chạm đổi nền `accent`): chạm = mở Chỉnh pose ngay (pose mẫu: tạo bản sao khi lưu); ẩn khi đang chọn nhiều (phiếu Phase 5 lần 7). Ảnh gốc đầy đủ màu. Thư viện: 110×146 bo 18. Lưới 4 cột: bo 16. Pose mẫu thêm viền trắng 1.5 px; pose của bạn vẽ style của chính bản đó (độ dày ≤ 2 px). Chạm = dùng để chụp; giữ = menu. Chế độ chọn: vòng 24 ở góc dưới phải, cùng tâm với nút bút chì (phiếu Phase 5 lần 8); đã chọn = viền 3 px `accent` + phủ `accent` 15% + đĩa `accent` có dấu tích |
 | `GroupCard` | nền `surface`, `xl`, đệm 16 (phải 0 để hàng ảnh tràn mép) |
 | `SettingsGroup` | nền `surface`, `lg`, hàng cao ≥ 56, hairline `line` thụt 16 |
 | `FloatingBar` | nền `surface`, `xxl` + 4, đệm 8, bóng; ghim đáy cách 30 |

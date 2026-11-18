@@ -144,10 +144,12 @@ function SelectMark({
   );
 }
 
+/** Vòng chọn nằm đúng chỗ nút bút chì (góc dưới phải, cùng tâm) — phiếu Phase 5 lần 8. */
+const markOffset = tileSelect.markInset + (tileSelect.edit - tileSelect.mark) / 2;
 const mark = {
   position: 'absolute',
-  top: tileSelect.markInset,
-  right: tileSelect.markInset,
+  bottom: markOffset,
+  right: markOffset,
   width: tileSelect.mark,
   height: tileSelect.mark,
   borderRadius: radius.full,
