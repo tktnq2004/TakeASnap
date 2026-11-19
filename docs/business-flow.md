@@ -264,7 +264,10 @@ flowchart TD
     PICK --> GUIDE[Lớp bố cục trên khung ngắm<br/>đường kẻ + chấm đích]
     GUIDE --> SENSE{Kỹ thuật cần<br/>phân tích người?}
     SENSE -- "Không (máy thẳng, selfie…)" --> HINT[Gợi ý từ cảm biến<br/>tức thì]
-    SENSE -- "Có (không qua cổng Phase 5)" --> SHOOT
+    SENSE -- "Có" --> CHECK{Chạm Kiểm tra bố cục?<br/>Phase 5a}
+    CHECK -- "Có" --> ANALYZE[Chụp lặng một ảnh<br/>→ người, mắt, khớp, đường thẳng]
+    ANALYZE --> HINT
+    CHECK -- "Không" --> SHOOT
     HINT --> OK{Đã đạt?}
     OK -- "Chưa" --> HINT
     OK -- "Rồi" --> GREEN[Đường kẻ xanh + rung nhẹ]
@@ -280,7 +283,8 @@ flowchart TD
 - **Đạt**: đường kẻ chuyển màu nhấn, rung nhẹ một lần, dòng gợi ý biến mất.
 - **Không thấy người**: chỉ còn gợi ý từ cảm biến; không báo lỗi.
 - Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread.
-- **Gợi ý cần phân tích người: không làm** (cổng Phase 5 Bước 3 không đạt: Expo Go chỉ lấy được ảnh bằng cách chụp thật; cỡ thật 1,2 lần / giây và nóng máy, cỡ nhỏ thì đổi sang cỡ thật lúc bấm chụp mất ~1 s và nháy). Phân tích người chỉ có ở nhận xét sau khi chụp (§6.5).
+- **Không theo dõi người liên tục** (cổng Phase 5 Bước 3 không đạt: Expo Go chỉ lấy được ảnh bằng cách chụp thật; cỡ thật 1,2 lần / giây và nóng máy, cỡ nhỏ thì đổi sang cỡ thật lúc bấm chụp mất ~1 s và nháy).
+- **Kiểm tra bố cục (Phase 5a):** người dùng chạm nút thì app chụp lặng một ảnh, khoảng 1 s sau hiện nhận xét trên khung ngắm vài giây (khung người, chấm mắt, đường tìm được, một dòng gợi ý theo thứ tự ưu tiên ở trên). Chỉnh xong thì chạm lại. Bấm chụp lúc đang kiểm tra thì chụp ngay. Phase 5 chỉ có nhận xét sau khi chụp (§6.5).
 
 ### 6.5 Nhận xét sau khi chụp
 
@@ -310,13 +314,13 @@ flowchart TD
 - Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
 - App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
 - Phase 5: người dùng tự chọn kỹ thuật; đường chân trời và đường dẫn chỉ có lớp kẻ, app không dò cảnh. Dò đường thẳng trong ảnh là Phase 5a (§6.9), tự đoán kỹ thuật bằng model là Phase 5b (§6.10); mỗi phần có cổng quyết định riêng, không đạt thì giữ bản Phase 5.
-- Lúc ngắm chỉ có gợi ý từ cảm biến; phân tích người chỉ ở nhận xét sau khi chụp (cổng Phase 5 Bước 3 không đạt, §6.4).
+- Lúc ngắm có gợi ý từ cảm biến; phân tích người lúc ngắm chỉ khi chạm **Kiểm tra bố cục** (Phase 5a, §6.4), không theo dõi liên tục (cổng Phase 5 Bước 3 không đạt).
 
 ### 6.9 Dò đường chân trời và đường dẫn (Phase 5a)
 
 Nâng bản đơn giản của Phase 5 (lớp kẻ cố định) thành app tự tìm đường trong ảnh. Không đạt cổng quyết định ở roadmap Phase 5a thì giữ lớp kẻ cố định.
 
-App tìm đường thẳng trên ảnh nhỏ (bỏ phần nằm trên người nhờ vùng người đã tách), rồi:
+App tìm đường thẳng trên ảnh nhỏ (bỏ phần nằm trên người nhờ vùng người đã tách): ảnh chụp lặng khi chạm **Kiểm tra bố cục** (§6.4) và ảnh vừa chụp ở nhận xét sau khi chụp (§6.5). Rồi:
 
 - **Đường chân trời:** đường dài gần nằm ngang. Gợi ý "Đặt chân trời lên đường 1/3"; chân trời đi qua cổ hoặc đầu thì "Chân trời cắt ngang cổ, hạ máy một chút". Lớp kẻ vẽ đúng chân trời tìm được.
 - **Đường dẫn:** các đường hội tụ về một điểm (đường đi, hàng rào, cầu thang). Người không ở gần điểm hội tụ thì "Bước sang trái để đường đi dẫn tới người". Lớp kẻ vẽ đúng các đường tìm được thay cho đường chéo cố định của Phase 5.
@@ -328,7 +332,8 @@ App tìm đường thẳng trên ảnh nhỏ (bỏ phần nằm trên người n
 Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán **kỹ thuật hợp** (1/3, ở giữa, góc thấp, selfie, nhóm…). Model chỉ **chọn kỹ thuật**; việc **hướng dẫn chỉnh** (dời máy, nghiêng máy, lùi ra) vẫn do quy tắc ở §6.4, vì quy tắc tính chính xác và giải thích được.
 
 - Bảng Bố cục có thêm dòng đầu **"Tự chọn"**. Đang ở Tự chọn thì dòng gợi ý ghi kỹ thuật app đang dùng, kèm nút đổi (ví dụ "Tự chọn: Quy tắc 1/3 · Đổi"); chạm Đổi là về chọn tay.
-- Model đoán lại khi khung cảnh đổi hẳn (người dùng quay máy sang chỗ khác, dừng tay khoảng 1 s), không đổi kỹ thuật liên tục. Đổi kỹ thuật thì rung nhẹ một lần.
+- Model đoán khi chọn Tự chọn và mỗi lần chạm **Kiểm tra bố cục** (cùng một ảnh chụp lặng của Phase 5a, §6.4); không tự đoán lại liên tục. Đổi kỹ thuật thì rung nhẹ một lần.
+- Ở nhận xét sau khi chụp, model chạy trên ảnh vừa chụp: kỹ thuật hợp hơn kỹ thuật đã dùng thì thêm một dòng gợi ý.
 - Độ tin cậy dưới ngưỡng thì không đoán: giữ kỹ thuật đang dùng, hoặc chỉ hiện lưới 3×3.
 - Model chạy trên máy trong WebView đang có (MediaPipe ImageClassifier), tải một lần như gói pose (BR-13), ảnh không rời máy (BR-03).
 - Không đạt cổng quyết định ở roadmap Phase 5b thì không có dòng Tự chọn; app giữ chọn tay như Phase 5.

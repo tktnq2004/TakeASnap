@@ -487,10 +487,11 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 Làm sau khi Phase 5 chạy. Nâng bản đơn giản của Phase 5 (lớp kẻ cố định, người dùng tự xếp cảnh) thành app tự tìm đường trong ảnh. Nghiệp vụ ở [business-flow §6.9](business-flow.md#69-dò-đường-chân-trời-và-đường-dẫn-phase-5a).
 
-Không cần huấn luyện model: dò cạnh và đường thẳng bằng thuật toán trên ảnh nhỏ, dùng lại đường chụp ảnh nhỏ của gợi ý lúc ngắm (§3.6) và vùng người đã tách.
+Không cần huấn luyện model: dò cạnh và đường thẳng bằng thuật toán trên ảnh nhỏ, dùng vùng người đã tách.
 
-> **Xét lại trước khi làm:** spike Phase 5 Bước 3 cho thấy chụp ảnh nhỏ liên tục không dùng được trong Expo Go (đổi cỡ chụp ~1 s, nóng máy). Dò đường chỉ chạy được trên ảnh vừa chụp (nhận xét sau khi chụp), không chạy lúc ngắm.
+**Lấy ảnh: nút Kiểm tra bố cục (cách B, chốt sau spike Phase 5 Bước 3).** Expo Go không có frame processor; chụp liên tục để theo dõi thì nóng máy (cỡ thật) hoặc làm nút chụp trễ ~1 s và nháy (cỡ nhỏ). Nên app chỉ nhìn khung ngắm **khi người dùng chạm**: chụp lặng một ảnh cỡ thật, thu nhỏ, phân tích một lần (~1 s). Không chạy nền, không nóng máy, không chặn nút chụp. Phase 5b dùng lại đúng lần chụp này để đoán kỹ thuật. Dò đường cũng chạy trên ảnh vừa chụp ở nhận xét sau khi chụp.
 
+- [ ] Nút **Kiểm tra bố cục** trên Camera (chỗ đặt chốt ở design.md): chạm → `takePictureAsync({ pictureRef: true, shutterSound: false })` → thu nhỏ 256–512 → WebView (`analyzeFrame` của spike: lưới người + khung xương; thêm dò đường) → quy tắc `review.ts` + quy tắc 5a → nhận xét hiện trên khung ngắm vài giây (khung người, chấm mắt, đường tìm được, 1 dòng gợi ý). Đang kiểm tra mà bấm chụp thì chụp ngay, bỏ lần kiểm tra. Bỏ màn spike `src/app/spike/live.tsx` khi xong
 - [ ] Dò đường thẳng trên ảnh 256–512 px trong WebView: dò cạnh + Hough hoặc LSD bằng JS thuần (OpenCV.js chỉ dùng nếu đo thấy đủ nhẹ); bỏ đường nằm trên người nhờ mask
 - [ ] Đường chân trời: đường dài gần ngang; gợi ý đặt lên đường 1/3, cắt ngang cổ / đầu thì nhắc hạ hoặc nâng máy; lớp kẻ vẽ đúng đường tìm được
 - [ ] Đường dẫn: tìm điểm hội tụ của các đường; người xa điểm hội tụ thì gợi ý bước sang; lớp kẻ vẽ đúng các đường tìm được
@@ -528,15 +529,15 @@ Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610
 **Bước 3 — Tích hợp (khoảng 1 tuần)**
 
 - [ ] Gói `composition` trên GitHub Releases, tải một lần (§3.3), chạy bằng `ImageClassifier` của MediaPipe trong WebView đang có
-- [ ] Dòng "Tự chọn" trong bảng Bố cục; đoán lại khi khung cảnh đổi hẳn (dừng tay ~1 s), dưới ngưỡng tin cậy thì không đoán; dòng gợi ý ghi kỹ thuật đang dùng + "Đổi"
-  - Xét lại trước khi làm: spike Phase 5 Bước 3 cho thấy không lấy ảnh liên tục được (mỗi lần là một lần chụp thật ~0,8 s, nóng máy nếu lặp). Chỉ đoán **một lần** khi chọn Tự chọn (và khi người dùng chạm "Đoán lại"), không tự đoán lại theo khung cảnh
+- [ ] Dòng "Tự chọn" trong bảng Bố cục: chọn thì chụp lặng một ảnh và đoán (dùng lại đường chụp của nút **Kiểm tra bố cục**, Phase 5a); mỗi lần chạm Kiểm tra bố cục thì đoán lại trên cùng ảnh đó. Không tự đoán lại theo khung cảnh (spike Phase 5 Bước 3: không lấy ảnh liên tục được). Dưới ngưỡng tin cậy thì không đoán; dòng gợi ý ghi kỹ thuật đang dùng + "Đổi"
+- [ ] Nhận xét sau khi chụp: chạy model trên ảnh vừa chụp, gợi ý kỹ thuật hợp hơn nếu khác kỹ thuật đã dùng (không cần camera)
 - [ ] Phiếu `phase5b-test.md`
 
 **Cổng quyết định cuối Bước 2:**
 
 | Kết quả trên bộ giữ riêng | Quyết định |
 |---|---|
-| Lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%, đoán một ảnh ≤ 300 ms trên máy | Làm Bước 3, có dòng Tự chọn |
+| Lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%, model đoán một ảnh ≤ 300 ms trên máy (chưa tính chụp + thu nhỏ ~0,8 s của Kiểm tra bố cục) | Làm Bước 3, có dòng Tự chọn |
 | Thấp hơn | Không đưa vào app; giữ chọn tay của Phase 5. Ghi thử nghiệm (dữ liệu, kết quả, vì sao chưa đạt) vào case study |
 
 **Xong khi:** dòng Tự chọn chạy trên iPhone và Android, đạt cổng ở trên, phiếu `phase5b-test.md` đạt; hoặc đã ghi rõ vì sao dừng ở cổng.
