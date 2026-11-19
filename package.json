@@ -22,7 +22,8 @@
     "test": "jest",
     "format": "prettier --write .",
     "check": "npm run typecheck && npm run lint && npm run test",
-    "build:samples": "node scripts/build-sample-poses.mts"
+    "build:samples": "node scripts/build-sample-poses.mts",
+    "eval:review": "node --import ./scripts/ts-resolve.mjs scripts/eval-review.mts"
   },
   "dependencies": {
     "@expo-google-fonts/nunito": "^0.4.2",

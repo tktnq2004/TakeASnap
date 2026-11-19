@@ -288,6 +288,8 @@ Cách đọc: nếu đổi sang cỡ thật ≤ ~300 ms, không nháy, và 15.4 
 
 ## 16. Độ đúng của quy tắc nhận xét (cổng Phase 5, phần cuối)
 
+> **Không bắt buộc nữa:** đã đo tự động bằng `npm run eval:review` (composition.md §8: đúng 95%, khớp nhãn nhiếp ảnh gia 85%). Mục này chỉ để soát chéo trên máy nếu muốn.
+
 Mở **Cài đặt → Nhà phát triển → Màn thử nghiệm → Phase 5 · Độ đúng quy tắc**. Cần bộ tách người (đã có).
 
 Cách làm:

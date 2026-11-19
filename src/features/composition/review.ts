@@ -46,11 +46,18 @@ export type Review = { notes: Note[]; crop: Crop | null };
 export const RULE = {
   /** Mắt cách đường 1/3 trên trong khoảng này là đạt. */
   eyeBand: 0.07,
-  /** Người (mắt hoặc tâm) cách đường dọc 1/3 trong khoảng này là đạt. */
-  verticalBand: 0.08,
+  /**
+   * Người (mắt hoặc tâm) cách đường dọc 1/3 trong khoảng này là đạt. 0,09: khớp ảnh "bố cục 1/3"
+   * của nhiếp ảnh gia hơn 0,08 mà khung cắt thử vẫn đúng (scripts/eval-review.mts).
+   */
+  verticalBand: 0.09,
   /** Coi là "đứng giữa khung". */
   middleBand: 0.1,
-  centerBand: 0.05,
+  /**
+   * Đặt ở giữa: trung bình mắt và tâm khung người cách trục giữa trong khoảng này. Chỉ xét mắt thì
+   * hụt ảnh mặt nghiêng mà thân vẫn ở giữa (ảnh "bố cục giữa" của nhiếp ảnh gia).
+   */
+  centerBand: 0.07,
   /** Lấp đầy khung: người cao từ chừng này phần khung, hoặc chiếm từ `fillArea` diện tích. */
   fillHeight: 0.7,
   fillArea: 0.3,
@@ -64,31 +71,44 @@ export const RULE = {
   headroomEye: 0.45,
   headroomTop: 0.3,
   edge: 0.012,
-  /** Mép khung cách khớp trong khoảng này là cắt ngang khớp. */
+  /** Mép trái / phải cách khớp trong khoảng này là cắt ngang khớp. */
   jointCut: 0.035,
+  /**
+   * Mép dưới cắt ngang gối / cổ chân khi khớp (model đoán) nằm trong khoảng [từ, tới] theo chiều
+   * cao ảnh. Lệch vào trong vì khớp bị cắt thì model kéo khớp vào trong ảnh: đo bằng
+   * `scripts/eval-review.mts` (khung cắt đúng ngang gối → gối đoán ở 0,87–0,95; cắt giữa đùi → gối
+   * đoán ở 0,95–1,05). Gối: đúng ~76%, cổ chân: ~89%.
+   */
+  kneeCut: [0.88, 1.0],
+  ankleCut: [0.92, 1.04],
+  /** Khớp mờ hơn mức này (model không chắc) thì không xét cắt khớp. */
+  cutVis: 0.3,
   maxNotes: 3,
 } as const;
 
 const THIRDS = [1 / 3, 2 / 3];
 const near = (v: number, list: number[], band: number) => list.some((l) => Math.abs(v - l) <= band);
 
-/** Khớp nằm sát một mép ảnh (kể cả hơi ra ngoài): mép đó cắt ngang khớp. */
-function cutAt(j: Joint | undefined): boolean {
-  if (!j || j.v < 0.3) return false;
+/** Khớp nằm sát mép dưới (trong khoảng `bottom`) hoặc sát mép trái / phải: mép đó cắt ngang khớp. */
+function cutAt(j: Joint | undefined, bottom: readonly [number, number]): boolean {
+  if (!j || j.v < RULE.cutVis) return false;
   const b = RULE.jointCut;
-  return Math.abs(j.y - 1) <= b || Math.abs(j.x) <= b || Math.abs(j.x - 1) <= b;
+  return (j.y >= bottom[0] && j.y <= bottom[1]) || Math.abs(j.x) <= b || Math.abs(j.x - 1) <= b;
 }
+
+/** Khuỷu, cổ tay: mép dưới xét như hai bên (chưa đo riêng). */
+const EDGE_BOTTOM = [1 - RULE.jointCut, 1 + RULE.jointCut] as const;
 
 function jointNotes(joints: Joint[] | null): Note[] {
   if (!joints) return [];
-  const pairs: [NoteId, number, number][] = [
-    ['cutKnee', J.kneeL, J.kneeR],
-    ['cutAnkle', J.ankleL, J.ankleR],
-    ['cutElbow', J.elbowL, J.elbowR],
-    ['cutWrist', J.wristL, J.wristR],
+  const pairs: [NoteId, number, number, readonly [number, number]][] = [
+    ['cutKnee', J.kneeL, J.kneeR, RULE.kneeCut],
+    ['cutAnkle', J.ankleL, J.ankleR, RULE.ankleCut],
+    ['cutElbow', J.elbowL, J.elbowR, EDGE_BOTTOM],
+    ['cutWrist', J.wristL, J.wristR, EDGE_BOTTOM],
   ];
-  for (const [id, a, b] of pairs) {
-    if (cutAt(joints[a]) || cutAt(joints[b])) return [{ id, ok: false }];
+  for (const [id, a, b, bottom] of pairs) {
+    if (cutAt(joints[a], bottom) || cutAt(joints[b], bottom)) return [{ id, ok: false }];
   }
   return [];
 }
@@ -135,7 +155,8 @@ function techniqueNotes(t: TechniqueId, f: PhotoFeatures): Note[] {
       return out;
     }
     case 'center': {
-      const ok = Math.abs(cx - 0.5) <= RULE.centerBand;
+      const mid = f.eye ? (f.eye.x + (p.box[0] + p.box[2]) / 2) / 2 : cx;
+      const ok = Math.abs(mid - 0.5) <= RULE.centerBand;
       return [{ id: ok ? 'centered' : 'offCenter', ok }];
     }
     case 'fill': {
@@ -155,7 +176,8 @@ function techniqueNotes(t: TechniqueId, f: PhotoFeatures): Note[] {
     case 'low': {
       const j = f.joints;
       if (!j) return [];
-      const inFrame = (q: Joint | undefined) => visible(q) && q!.y <= 1 - RULE.jointCut;
+      // Cùng mốc với "cắt ngang cổ chân": cổ chân thấp hơn mốc đó là bàn chân đã bị cắt.
+      const inFrame = (q: Joint | undefined) => visible(q) && q!.y < RULE.ankleCut[0];
       const ok = inFrame(j[J.ankleL]) && inFrame(j[J.ankleR]);
       return [{ id: ok ? 'feetIn' : 'feetCut', ok }];
     }
@@ -222,16 +244,23 @@ function fillCrop([x0, y0, x1, y1]: [number, number, number, number]): Crop | nu
  * chung. Có khung cắt gợi ý khi kỹ thuật chưa đạt và cắt lại được.
  */
 export function reviewPhoto(t: TechniqueId, f: PhotoFeatures): Review {
-  if (t === 'off' || f.main < 0) return { notes: [], crop: null };
+  const uniq = allNotes(t, f);
+  const notes = [...uniq.filter((n) => !n.ok), ...uniq.filter((n) => n.ok)].slice(0, RULE.maxNotes);
+  const techniqueFails = techniqueNotes(t, f).some((n) => !n.ok);
+  return { notes, crop: techniqueFails ? suggestCrop(t, f) : null };
+}
+
+/**
+ * Mọi dòng nhận xét (chưa cắt còn `maxNotes`, chưa xếp): kỹ thuật trước, dòng chung sau, không
+ * trùng. Script đo độ đúng (`scripts/eval-review.mts`) chấm trên danh sách đầy đủ này.
+ */
+export function allNotes(t: TechniqueId, f: PhotoFeatures): Note[] {
+  if (t === 'off' || f.main < 0) return [];
   const own = techniqueNotes(t, f);
   // "Mắt chưa ở đường 1/3" đã nói cùng ý với "thừa khoảng trên đầu".
   const general = generalNotes(f).filter(
     (n) => !(n.id === 'headroomBig' && own.some((o) => o.id === 'eyeOffThird')),
   );
-  const all = [...own, ...general];
   const seen = new Set<NoteId>();
-  const uniq = all.filter((n) => (seen.has(n.id) ? false : (seen.add(n.id), true)));
-  const notes = [...uniq.filter((n) => !n.ok), ...uniq.filter((n) => n.ok)].slice(0, RULE.maxNotes);
-  const techniqueFails = own.some((n) => !n.ok);
-  return { notes, crop: techniqueFails ? suggestCrop(t, f) : null };
+  return [...own, ...general].filter((n) => (seen.has(n.id) ? false : (seen.add(n.id), true)));
 }

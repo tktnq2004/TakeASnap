@@ -95,7 +95,7 @@ Chấm mỗi kỹ thuật theo 4 tiêu chí: hợp ảnh có người, hợp đi
 
 **Để sau (cần đo thêm hoặc model mới):** A6 Không gian âm, D1 Tách nền, E2 Khoảng cách, F1 Ngược sáng, phát hiện D2 / D3 bằng dò đường thẳng.
 
-Tổng v1: **19 kỹ thuật**, trong đó **12 có hướng dẫn** trên camera (bản đầu ghi 15 / 10 vì quên đếm E1 Đầu so le; phiếu Phase 5 lần 8 thêm A6 lấp đầy khung, cân bằng, sự lặp lại, xem §5).
+Tổng v1: **19 kỹ thuật**, trong đó **12 có hướng dẫn** trên camera (bản đầu ghi 15 / 10 vì quên đếm E1 Đầu so le; phiếu Phase 5 lần 8 thêm A6 lấp đầy khung, cân bằng, sự lặp lại, xem §7).
 
 **Đã chốt phạm vi:**
 - Giữ cả các mục không hẳn là quy tắc bố cục (góc thấp, selfie, khoảng cách – ống kính, ánh sáng) vì giúp ảnh có người đẹp hơn.
@@ -114,7 +114,7 @@ Tổng v1: **19 kỹ thuật**, trong đó **12 có hướng dẫn** trên camer
 3. Thẻ học đặt ở đâu.
 4. Có cho AI trên cloud hay không (khuyên không, giữ nguyên tắc ảnh không rời máy).
 
-## 5. Đối chiếu bảng 12 nguyên tắc người dùng gửi (phiếu Phase 5 lần 8)
+## 7. Đối chiếu bảng 12 nguyên tắc người dùng gửi (phiếu Phase 5 lần 8)
 
 Người dùng gửi một bảng hình 12 nguyên tắc bố cục (Quy tắc 1/3, Cân bằng, Đóng khung, Điểm nhìn, Đường dẫn, Hậu cảnh, Đối xứng / mẫu hình, Chiều sâu, Cắt hình, Đường chân trời, Quy tắc không gian, Sự lặp lại). Đối chiếu với các kỹ thuật ở §4:
 
@@ -132,3 +132,41 @@ Người dùng gửi một bảng hình 12 nguyên tắc bố cục (Quy tắc 1
 | Sự lặp lại | — | **Thêm thẻ học**; tự phát hiện cần dò mẫu lặp (để sau) |
 
 Nguồn cho ba thẻ mới: [Imaginated, 30 photography composition techniques](https://www.imaginated.com/photography/composition/techniques/) (mục Fill the frame, Balance in a scene, Creating patterns, Photographing from above), [Adorama, Wildlife photography when you can't fill the frame](https://www.adorama.com/alc/wildlife-photography-when-you-cant-fill-the-frame/).
+
+## 8. Đo độ đúng quy tắc nhận xét (cổng Phase 5 Bước 3)
+
+Đo trên máy tính bằng `npm run eval:review` (`scripts/eval-review.mts`), không cần người chấm từng ảnh. Script chạy **đúng trang WebView của app** trong Chrome headless (ảnh 1024, tách người lưới 512, khung xương), như nhận xét sau khi chụp.
+
+**Ảnh:** 32 ảnh pose mẫu + ảnh trong thư mục `eval/photos/` (không đưa lên git; thêm `/eval/` vào `.git/info/exclude`): ~40 ảnh Wikimedia Commons giấy phép tự do (`credits.json`), và ảnh so sánh "trước / sau khi học chụp" người dùng tìm (ảnh có bản quyền của nhiếp ảnh gia, chỉ dùng để đo, không đăng lại), tách thành hai bức; bức "sau" có chú thích kỹ thuật ("bố cục 1/3", "bố cục giữa"…).
+
+**Ba loại phép kiểm:**
+
+1. **Tờ soát ảnh gốc** (`eval/out/sources-*.jpg`): khung người, mắt, khớp vẽ lên ảnh; ảnh app nhận sai (tranh vẽ, không có người, nhóm dính nhau) ghi vào `eval/verify.json` để bỏ.
+2. **Khung cắt có đáp án:** từ ảnh gốc đã soát, cắt khung đặt mắt vào 1/3 / giữa / thấp, ôm sát hoặc rộng, mép dưới qua gối / giữa đùi / cổ chân, mép trên vào đầu, mép bên vào người, người nhìn ra mép gần. Đáp án = quy tắc trên khớp của ảnh gốc dời vào khung; chạy lại model trên ảnh cắt rồi so.
+3. **Nhãn của nhiếp ảnh gia:** bức "sau" ghi "1/3" phải ra "người trên đường dọc 1/3" (không "đứng giữa"); "giữa / trung tâm / đối xứng" phải ra "ở trục giữa".
+
+**Kết quả (20/11/2026):** 204 ảnh gốc (bỏ 65), 1.662 khung cắt.
+
+| | Đúng |
+|---|---|
+| **Chung (phép kiểm)** | **95%** (3.452/3.616) |
+| Quy tắc 1/3 | 98% |
+| Đặt ở giữa | 99% |
+| Selfie | 98% |
+| Lấp đầy khung | 99% |
+| Góc thấp (thấy / mất bàn chân) | 93% |
+| Dòng chung (mép, đầu chạm mép, cắt khớp, phía nhìn) | 86% |
+| **Khớp nhãn nhiếp ảnh gia** | **85%** (33/39) |
+
+Chỉnh sau khi đo:
+
+- **Cắt ngang khớp:** khớp bị mép cắt thì model kéo khớp vào trong ảnh (cắt đúng ngang gối → gối đoán ở 0,87–0,95; cắt giữa đùi → gối đoán ở 0,95–1,05). Vùng "cắt ngang" lệch vào trong: gối [0,88; 1,0], cổ chân [0,92; 1,04]; "thấy cả bàn chân" (Góc thấp) dùng cùng mốc cổ chân.
+- **Quy tắc 1/3:** vùng đường dọc 0,08 → 0,09 (khớp nhãn nhiếp ảnh gia hơn, khung cắt không giảm).
+- **Đặt ở giữa:** xét trung bình mắt và tâm khung người, vùng 0,05 → 0,07 (ảnh mặt nghiêng mà thân ở giữa).
+
+**Còn yếu / chưa đo được:**
+
+- **Cắt ngang gối:** báo đúng ~69% số lần báo (bắt được 48% ca cắt ngang gối). Model không thấy khớp đã bị cắt nên không tách được "ngang gối" với "giữa đùi". Cổ chân tốt hơn (báo đúng ~94%, bắt được 61%).
+- **Nhóm người:** người đứng sát nhau bị tách người gộp thành một vùng (đa số ảnh nhóm), nên quy tắc đầu so le / thẳng hàng theo vùng người **chưa đo được**. Hướng sửa: lấy đầu từ nhiều khung xương (trang WebView đã dò tới 6 người) thay vì từ vùng người.
+- **Người quá nhỏ** trong cảnh rộng (ảnh "1x" của nhiếp ảnh gia): model không thấy người, app không nhận xét (không sai, chỉ im).
+- Nhãn nhiếp ảnh gia lỏng hơn quy tắc: vài ảnh ghi "1/3" có người gần giữa khung (0,46).

@@ -157,7 +157,7 @@ describe('reviewPhoto', () => {
   it('Góc thấp: thấy cả hai cổ chân là đạt', () => {
     const ok = features(
       [[0.35, 0.1, 0.65, 0.95]],
-      standing(0.5, 0.15, { [J.ankleL]: [0.46, 0.92], [J.ankleR]: [0.54, 0.92] }),
+      standing(0.5, 0.15, { [J.ankleL]: [0.46, 0.88], [J.ankleR]: [0.54, 0.88] }),
     );
     expect(ids(reviewPhoto('low', ok))).toEqual(['+feetIn']);
     const cut = features([[0.35, 0.1, 0.65, 1]], standing(0.5, 0.15));
@@ -187,6 +187,41 @@ describe('reviewPhoto', () => {
     const big = features([[0.15, 0.05, 0.85, 1]], standing(0.5, 0.3));
     expect(ids(reviewPhoto('fill', big))).toContain('+fillOk');
     expect(reviewPhoto('fill', big).crop).toBeNull();
+  });
+
+  // Ba ca dưới rút từ scripts/eval-review.mts (khung cắt có đáp án + ảnh có nhãn của nhiếp ảnh gia).
+  it('cắt khớp: model kéo khớp bị cắt vào trong ảnh', () => {
+    const at = (knee: number, ankle: number | null) => {
+      const legs: Record<number, [number, number]> = {
+        [J.kneeL]: [0.47, knee],
+        [J.kneeR]: [0.53, knee],
+      };
+      if (ankle !== null) {
+        legs[J.ankleL] = [0.47, ankle];
+        legs[J.ankleR] = [0.53, ankle];
+      }
+      return ids(reviewPhoto('grid', features([[0.35, 0.1, 0.65, 1]], standing(0.5, 0.15, legs))));
+    };
+    // Mép dưới cắt đúng ngang gối: model đoán gối ở ~0,9.
+    expect(at(0.9, null)).toContain('-cutKnee');
+    // Cắt giữa đùi: model đoán gối hơi ra ngoài mép (~1,03).
+    expect(at(1.03, null)).not.toContain('-cutKnee');
+    // Cắt ngang cổ chân: cổ chân đoán ở ~0,95, gối ở trong.
+    expect(at(0.75, 0.95)).toEqual(['-cutAnkle']);
+  });
+
+  it('Góc thấp: cổ chân sát mép (bị cắt) thì chưa thấy cả bàn chân', () => {
+    const f = features(
+      [[0.35, 0.1, 0.65, 1]],
+      standing(0.5, 0.15, { [J.ankleL]: [0.46, 0.95], [J.ankleR]: [0.54, 0.95] }),
+    );
+    expect(ids(reviewPhoto('low', f))).toContain('-feetCut');
+  });
+
+  it('Đặt ở giữa: mặt nghiêng nhưng thân ở giữa vẫn đạt', () => {
+    // Mắt 0,43, thân 0,38–0,76 (tâm 0,57): trung bình 0,5.
+    const f = features([[0.38, 0.2, 0.76, 1]], standing(0.43, 0.35));
+    expect(ids(reviewPhoto('center', f))).toEqual(['+centered']);
   });
 
   it('không cắt được cho đạt thì không có khung cắt', () => {
