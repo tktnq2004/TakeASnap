@@ -200,19 +200,88 @@ Mặc định: **Không ghi file · Người + xương · 256 · CPU · cỡ M�
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 14.1 | Mở màn | Khung xem camera hiện; nút Bắt đầu đo bấm được | | | |
-| 14.2 | Bắt đầu đo, giữ 1 phút | Ghi lại: lần / giây, độ trễ trung bình, lâu nhất, và 6 bước (Chụp · Thu nhỏ · Giải mã · Tách người · Khung xương · Quy tắc) | | | |
-| 14.3 | Trong lúc đo | Khung xem **không nháy, không đứng hình**, **không có tiếng chụp** | | | |
-| 14.4 | Người đi chậm qua lại, rồi đứng yên | Chấm mắt và khung xanh bám theo, trễ bao lâu (ước lượng); đứng yên thì dòng gợi ý có đổi qua lại liên tục không (xem "Dòng gợi ý đổi") | | | |
-| 14.5 | Đổi Kỹ thuật: 1/3 · Ở giữa · Lấp đầy khung | Dòng gợi ý đổi theo kỹ thuật, đúng với ảnh đang ngắm | | | |
-| 14.6 | Phân tích **Khung xương**, rồi **Người** | Ghi lần / giây mỗi chế độ (Khung xương: không có khung xanh; Người: không có chấm mắt) | | | |
-| 14.7 | Cạnh ảnh gửi vào **192** và **384** | Ghi lần / giây mỗi cỡ; 192 có còn bắt được người ở xa không | | | |
+| 14.1 | Mở màn | Khung xem camera hiện; nút Bắt đầu đo bấm được |d |d | |
+| 14.2 | Bắt đầu đo, giữ 1 phút | Ghi lại: lần / giây, độ trễ trung bình, lâu nhất, và 6 bước (Chụp · Thu nhỏ · Giải mã · Tách người · Khung xương · Quy tắc) |d |d | |
+| 14.3 | Trong lúc đo | Khung xem **không nháy, không đứng hình**, **không có tiếng chụp** |d |d | |
+| 14.4 | Người đi chậm qua lại, rồi đứng yên | Chấm mắt và khung xanh bám theo, trễ bao lâu (ước lượng); đứng yên thì dòng gợi ý có đổi qua lại liên tục không (xem "Dòng gợi ý đổi") |d |d | |
+| 14.5 | Đổi Kỹ thuật: 1/3 · Ở giữa · Lấp đầy khung | Dòng gợi ý đổi theo kỹ thuật, đúng với ảnh đang ngắm |d | d| |
+| 14.6 | Phân tích **Khung xương**, rồi **Người** | Ghi lần / giây mỗi chế độ (Khung xương: không có khung xanh; Người: không có chấm mắt) |d |d | |
+| 14.7 | Cạnh ảnh gửi vào **192** và **384** | Ghi lần / giây mỗi cỡ; 192 có còn bắt được người ở xa không |d |d | |
 | 14.8 | Khung xương chạy **GPU** | Ghi lần / giây; có lỗi không | | | |
 | 14.9 | Cách chụp **Ghi file** | Ghi bước Chụp (ms) so với Không ghi file | | | |
-| 14.10 | Dừng đo → Cỡ chụp **Nhỏ nhất** → Bắt đầu đo | Ghi Cỡ ảnh chụp, lần / giây, bước Chụp; khung xem có mờ đi không | | | |
-| 14.11 | Cấu hình nhanh nhất ở trên, chạy **5 phút** | Ghi % pin trước và sau, máy mát / ấm / nóng, lần / giây phút cuối, số lỗi | | | |
-| 14.12 | Thoát màn, về Camera chính | Camera chính chạy bình thường, chụp được, không đen màn | | | |
+| 14.10 | Dừng đo → Cỡ chụp **Nhỏ nhất** → Bắt đầu đo | Ghi Cỡ ảnh chụp, lần / giây, bước Chụp; khung xem có mờ đi không |d |d | |
+| 14.11 | Cấu hình nhanh nhất ở trên, chạy **5 phút** | Ghi % pin trước và sau, máy mát / ấm / nóng, lần / giây phút cuối, số lỗi |d |d | |
+| 14.12 | Thoát màn, về Camera chính | Camera chính chạy bình thường, chụp được, không đen màn |d |d | |
+
+
+### Số đo mục 14
+
+Chép số từ bảng trên màn đo. Mỗi dòng: đo khoảng 30 giây rồi chép. Ô không đo thì để trống.
+
+**A. Từng bước, cấu hình mặc định** (Không ghi file · Người + xương · 256 · CPU · Mặc định)
+
+| Số đo | iPhone | Android |
+|---|---|---|
+| Lần / giây |1.2 | - |
+| Độ trễ trung bình (ms) |837 |- |
+| Độ trễ lâu nhất (ms) |890 | -|
+| Chụp (ms) |602 | -|
+| Thu nhỏ (ms) |158 |- |
+| Giải mã trong WebView (ms) |1 |- |
+| Tách người (ms) |47 | -|
+| Khung xương (ms) | 20|- |
+| Quy tắc (ms) |1 | -|
+| Cỡ ảnh chụp | 3024x4032| -|
+| Backend tách người | mediapipe-GPU| -|
+| Dòng gợi ý đổi (đứng yên 30 giây) |0 |- |
+
+**B. Đổi từng thứ một so với mặc định**
+
+| Cấu hình | iPhone lần / giây | iPhone độ trễ TB (ms) | Android lần / giây | Android độ trễ TB (ms) | Ghi chú |
+|---|---|---|---|---|---|
+| Phân tích: Khung xương |1.3 |795ms |- |- | |
+| Phân tích: Người |0.9 |1111 |- |- | |
+| Cạnh ảnh gửi vào: 192 |0.9 |1078 |- | -| Người ở xa còn bắt được không: cùng khoảng cách bắt người với 256 |
+| Cạnh ảnh gửi vào: 384 |0.9 |1076 |- |- | |
+| Khung xương chạy: GPU |1.2 |834 | -|- | Lỗi: |
+| Cách chụp: Ghi file (ghi thêm bước Chụp ms) |1.0 |1002 |- | -| Chụp iPhone: 749 · Android: |
+| Cỡ chụp: Nhỏ nhất (ghi thêm bước Chụp ms) |5.5 |181 |chụp: 78ms |- |- | Khung xem mờ đi không: không |
+-> từng bước đều reset về mặc định -> chỉ đổi 1 tiêu chí rồi đo
+**C. Chạy 5 phút**
+
+| Số đo | iPhone | Android |
+|---|---|---|
+| Cấu hình đã dùng |mặc định | |
+| % pin lúc bắt đầu | 43% | |
+| % pin sau 3 phút | 40% | |
+| Máy mát / ấm / nóng |rất nóng gần đạt cảnh báo nhiệt độ | |
+| Lần / giây phút cuối | quên nhìn | |
+| Số lỗi (và lỗi cuối nếu có) | không lỗi| |
+| Khung xem nháy / đứng hình, tiếng chụp | ổn| |
+| Chấm mắt trễ so với người thật (ước lượng) |1s | |
+
+**Kết quả lần 1 (iPhone; Android chưa đo):**
+
+- Cỡ chụp mặc định (3024×4032): 1,2 lần / giây, độ trễ ~840 ms. Riêng bước **chụp mất ~600 ms** và thu nhỏ ~160 ms; phân tích trong WebView chỉ ~70 ms (tách người 47 ms GPU, khung xương 20 ms). Chạy 3 phút: hết 3% pin, máy **rất nóng**, gần cảnh báo nhiệt → **không đạt cổng**.
+- Cỡ chụp **Nhỏ nhất**: **5,5 lần / giây**, độ trễ ~180 ms, chụp 78 ms, khung xem không mờ → đạt về tốc độ. Nhưng ảnh thật cũng bị chụp ở cỡ nhỏ, nên Camera thật phải **đổi sang cỡ thật lúc bấm chụp** rồi đổi lại. Chưa đo thời gian đổi cỡ và nhiệt ở cỡ nhỏ → mục 15.
+- Đổi phân tích, cạnh ảnh gửi vào, CPU / GPU, ghi file: chênh nhau ít, vì chậm nằm ở bước chụp.
+- Đứng yên 30 giây: dòng gợi ý không đổi lần nào (không nhảy qua lại).
 
 Ngưỡng cổng (roadmap Phase 5 Bước 3): **≥ 2 lần / giây, không nháy / không tiếng, máy không nóng sau 5 phút** → làm gợi ý lúc ngắm theo người cho các kỹ thuật. Chưa đạt → lúc ngắm chỉ giữ gợi ý cảm biến, phân tích người chỉ ở nhận xét sau khi chụp.
+
+## 15. Spike gợi ý lúc ngắm, lần 2: cỡ nhỏ + đổi cỡ lúc chụp
+
+Cùng màn đo. Mới: **Giới hạn lần / giây** (Không giới hạn · 3 · 2), nút **Thử chụp ảnh thật** (đổi sang cỡ thật, chụp một ảnh, đổi về cỡ nhỏ, đo thời gian), đổi Cỡ chụp không còn dựng lại camera. Để cấu hình mặc định, chỉ đổi những gì dòng đó ghi.
+
+| # | Thao tác | Kỳ vọng / ghi lại | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 15.1 | Cỡ chụp **Nhỏ nhất**, Bắt đầu đo 30 giây | Ghi **Cỡ ảnh chụp** và lần / giây | | | |
+| 15.2 | Đang đo, bấm **Thử chụp ảnh thật** 3 lần | Ghi 3 lần dòng "Đổi sang cỡ thật" (ms · lần chụp · cỡ) và "Đổi về cỡ nhỏ" (ms); cỡ thật phải là 3024×4032 hoặc cỡ lớn nhất của máy | | | |
+| 15.3 | Nhìn khung xem lúc bấm 15.2 | Khung xem có **nháy, đen, đứng hình, giật zoom** lúc đổi cỡ không | | | |
+| 15.4 | Nhỏ nhất + Giới hạn **3**, chạy **5 phút** | % pin trước / sau, máy mát / ấm / nóng, lần / giây phút cuối | | | |
+| 15.5 | Nhỏ nhất + Giới hạn **2**, chạy **5 phút** (để máy nguội trước) | Như 15.4 | | | |
+| 15.6 | Android: lặp lại bảng A mục 14 (mặc định) và 15.1–15.2 | Ghi vào cột Android của các bảng | | | |
+
+Cách đọc: nếu đổi sang cỡ thật ≤ ~300 ms, không nháy, và 15.4 hoặc 15.5 máy chỉ ấm → làm gợi ý lúc ngắm theo người (ngắm ở cỡ nhỏ, bấm chụp thì đổi cỡ). Đổi cỡ lâu hoặc nháy → độ trễ bấm chụp quá lớn, giữ gợi ý cảm biến.
 
 ## Góp ý thêm

@@ -464,7 +464,7 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 - [x] Nhận xét sau khi chụp ở Xem ảnh vừa chụp: lớp bố cục trên ảnh, đạt / chưa đạt, khung cắt gợi ý (lưu thành ảnh mới). `features.ts` (đặc trưng từ tách người + khung xương), `review.ts` (quy tắc + khung cắt, `review.test.ts`), `usePhotoReview.ts` (chạy qua WebView đang có, xếp hàng, chưa có bộ tách thì hỏi trước khi tải)
 - [ ] Spike gợi ý lúc ngắm: `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ → WebView → đặc trưng; đo lần / giây, độ trễ, nháy màn, pin, nhiệt trên iPhone và Android
-  - Đã có màn đo `src/app/spike/live.tsx` (Cài đặt → Nhà phát triển): chụp `pictureRef` không ghi file, thu nhỏ 192–384, `analyzeFrame` (bản nhẹ: lưới người đọc thẳng từ mask, một khung xương chế độ VIDEO, không nét mặt), quy tắc `review.ts`; đổi được từng bước để tìm cấu hình nhanh nhất. Chờ số đo (phiếu mục 14)
+  - Đã có màn đo `src/app/spike/live.tsx` (Cài đặt → Nhà phát triển): chụp `pictureRef` không ghi file, thu nhỏ 192–384, `analyzeFrame` (bản nhẹ: lưới người đọc thẳng từ mask, một khung xương chế độ VIDEO, không nét mặt), quy tắc `review.ts`; đổi được từng bước để tìm cấu hình nhanh nhất. Lần 1 (iPhone, phiếu mục 14): cỡ chụp mặc định 1,2 lần / giây, chụp ~600 ms, máy rất nóng sau 3 phút → không đạt; cỡ chụp nhỏ nhất 5,5 lần / giây. Lần 2 (mục 15): đo thời gian đổi sang cỡ thật lúc bấm chụp, nhiệt 5 phút ở cỡ nhỏ có giới hạn 2–3 lần / giây, Android
 - [ ] Bộ ảnh thử ~30 ảnh có người, đúng và sai từng kỹ thuật, để đo độ đúng của quy tắc
 
 **Cổng quyết định cuối tuần 2:**

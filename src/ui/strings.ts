@@ -509,5 +509,11 @@ export const t = {
     liveHintChanges: 'Dòng gợi ý đổi',
     livePictureSize: 'Cỡ ảnh chụp',
     liveBackend: 'Backend tách người',
+    liveRateCap: 'Giới hạn lần / giây',
+    liveRateMax: 'Không giới hạn',
+    liveSwitchTest: 'Thử chụp ảnh thật',
+    liveSwitching: 'Đang thử đổi cỡ chụp',
+    liveSwitchToFull: 'Đổi sang cỡ thật (ms · lần chụp · cỡ)',
+    liveSwitchBack: 'Đổi về cỡ nhỏ',
   },
 } as const;
