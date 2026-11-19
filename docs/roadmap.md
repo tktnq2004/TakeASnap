@@ -453,7 +453,7 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Bước 2 — Phần chắc chắn làm được (tuần 1)**
 
-- [ ] `src/features/composition/`: danh mục 19 kỹ thuật, đặc trưng, quy tắc, chọn gợi ý; unit test cho từng quy tắc. Đã có: danh mục 11 dòng của bảng Bố cục, hình lớp bố cục, quy tắc cảm biến, dính pose (`composition.test.ts`); còn quy tắc phân tích người (Bước 3)
+- [x] `src/features/composition/`: danh mục 19 kỹ thuật, đặc trưng, quy tắc, chọn gợi ý; unit test cho từng quy tắc. Danh mục 11 dòng của bảng Bố cục, hình lớp bố cục, quy tắc cảm biến, dính pose (`composition.test.ts`); quy tắc phân tích người làm ở Bước 3, nay trong package `composition-critic`
 - [x] Nút Bố cục thay nút Lưới, bảng Bố cục kéo lên 10 dòng (gồm Lưới 3×3 và 4×4); lớp bố cục cho từng kỹ thuật, mỗi lúc một lớp (phiếu lần 1–2)
 - [x] Gợi ý từ cảm biến: máy thẳng, góc thấp, selfie cao hơn mắt (dòng gợi ý dưới khung ngắm, giữ yên 0,5 s mới hiện, đạt thì rung và tự ẩn)
 - [x] Pose dính đường 1/3 / trục giữa khi thả (neo giữa hai mắt); chấm đích bám theo pose. Bỏ việc tự bật kỹ thuật khi chọn pose (phiếu lần 1)
@@ -481,7 +481,7 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Bước 4 — Hoàn thiện (tuần 3)**
 
-- [ ] Chữ gợi ý ngắn theo quy tắc chữ của app; chuyển động khi đạt; trường hợp không thấy người, chưa tải bộ tách
+- [x] Chữ gợi ý ngắn theo quy tắc chữ của app (dòng chưa đạt nói luôn việc cần làm; không thấy người thì gợi ý tiến lại gần); chuyển động khi đạt (dòng nhận xét hiện dần lần lượt, rung nhẹ khi mọi dòng đạt); trường hợp không thấy người, chưa tải bộ tách, lỗi (đã có từ Bước 3, rà lại chữ)
 - [ ] Phiếu `phase5-test.md`, thử trên iPhone và Android, sửa theo góp ý từng vòng
 
 **Xong khi:** chọn được kỹ thuật và thấy lớp bố cục trên camera; gợi ý cảm biến chạy tức thì; có nhận xét sau khi chụp (hoặc đã ghi rõ vì sao bỏ theo cổng); 19 thẻ học; phiếu `phase5-test.md` đạt trên iPhone và Android.

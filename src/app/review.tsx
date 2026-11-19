@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import * as Sharing from 'expo-sharing';
 import { Check, Crop, Share, Trash2, X } from 'lucide-react-native';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -23,7 +23,7 @@ import {
   useTapGesture,
 } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSharedValue } from 'react-native-reanimated';
+import Animated, { FadeIn, useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { POSE_PACK, packBytes } from '@/engine/models/packs';
@@ -40,7 +40,8 @@ import { haptic } from '@/lib/haptics';
 import { useGoBack } from '@/lib/useGoBack';
 import { Button, CloseButton, OverlayHeader } from '@/ui/components';
 import { t } from '@/ui/strings';
-import { color, elevation, radius, size, space, type } from '@/ui/tokens';
+import { ease } from '@/ui/easing';
+import { color, compositionUi, elevation, motion, radius, size, space, type } from '@/ui/tokens';
 
 /** Hàng chấm trang: mỗi ảnh một ô, cả hàng rộng tối đa chừng này (nhiều ảnh thì ô hẹp lại). */
 const SCRUB_MAX_W = 300;
@@ -80,6 +81,24 @@ export default function ReviewScreen() {
   const top = Platform.OS === 'ios' ? space[5] : insets.top + space[3];
   const { entry, wanted, packReady } = usePhotoReview(current, allowDownload);
   const cropping = !!current && cropFor === current.assetId;
+
+  // Rung nhẹ một lần khi nhận xét vừa xong mà mọi dòng đều đạt. Chỉ khi thấy đúng lúc chuyển từ
+  // đang phân tích sang xong trên ảnh đang xem: vuốt lại ảnh đã nhận xét thì không rung.
+  const lastReview = useRef<{ id?: string; status?: string }>({});
+  useEffect(() => {
+    const id = current?.assetId;
+    const prev = lastReview.current;
+    if (
+      id &&
+      prev.id === id &&
+      prev.status === 'running' &&
+      entry?.status === 'done' &&
+      entry.review.notes.every((n) => n.ok)
+    ) {
+      haptic.levelReached();
+    }
+    lastReview.current = { id, status: entry?.status };
+  }, [current?.assetId, entry]);
   const crop = cropping && entry?.status === 'done' ? entry.review.crop : null;
 
   // Chấm trang chạy cùng lúc với ảnh khi vuốt, không đợi ảnh dừng (góp ý Phase 4, mục 5.2).
@@ -434,7 +453,9 @@ function ReviewCard({
         {notes.length === 0 ? (
           <NoteRow ok text={t.review.allGood} />
         ) : (
-          notes.map((n) => <NoteRow key={n.id} ok={n.ok} text={t.review.notes[n.id]} />)
+          notes.map((n, i) => (
+            <NoteRow key={n.id} ok={n.ok} text={t.review.notes[n.id]} order={i} />
+          ))
         )}
         {crop && <Button label={t.review.showCrop} variant="soft" small onPress={onShowCrop} />}
       </>
@@ -447,15 +468,20 @@ function ReviewCard({
   );
 }
 
-function NoteRow({ ok, text }: { ok: boolean; text: string }) {
+function NoteRow({ ok, text, order = 0 }: { ok: boolean; text: string; order?: number }) {
   const Icon = ok ? Check : X;
   return (
-    <View style={styles.row}>
+    <Animated.View
+      entering={FadeIn.duration(motion.in)
+        .delay(order * compositionUi.noteStagger)
+        .easing(ease)}
+      style={styles.row}
+    >
       <View style={[styles.mark, ok ? styles.markOk : styles.markBad]}>
         <Icon size={16} strokeWidth={3} color={ok ? color.accent : color.danger} />
       </View>
       <Text style={[type.label, styles.ink, styles.flex]}>{text}</Text>
-    </View>
+    </Animated.View>
   );
 }
 

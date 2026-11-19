@@ -311,6 +311,8 @@ export const cameraUi = {
 
 /** Trợ lý bố cục trên Camera (design.md §6.15). */
 export const compositionUi = {
+  /** Các dòng nhận xét hiện lần lượt, mỗi dòng sau dòng trước chừng này (ms). */
+  noteStagger: 60,
   /** Vòng chấm đích và chấm giữa. */
   target: 34,
   targetDot: 8,

@@ -322,4 +322,18 @@ Gợi ý số ảnh (~30): 1/3 ×8, Ở giữa ×5, Lấp đầy khung ×5, Nhó
 | Dòng sai nhiều nhất (tên dòng, số sai) | |
 | Lỗi app hay bỏ sót | |
 
+## 17. Sau khi tách package, nhóm người, chữ mới (phiếu lần 9)
+
+Từ lần thử trước: quy tắc chuyển sang package `composition-critic` (cài từ GitHub), "Nhóm người" so đầu theo khung xương, chỉnh ngưỡng 1/3 / Ở giữa / cắt khớp theo số đo, chữ nhận xét mới (dòng chưa đạt nói việc cần làm), dòng nhận xét hiện dần + rung khi đạt hết. Chạy lại dev server có xóa cache: `npx expo start -c`.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 17.1 | Mở app, tạo một pose từ ảnh trong máy | Như trước: tách người, chọn người (ảnh nhiều người), pose mới trong Pose của bạn | | | |
+| 17.2 | Bật Quy tắc 1/3, chụp người đứng giữa khung, mở Xem ảnh | Dòng "Người đứng giữa khung, dời máy để người sang đường 1/3" (chữ mới); các dòng hiện dần lần lượt; có khung cắt gợi ý | | | |
+| 17.3 | Quy tắc 1/3, chụp mắt trên đường 1/3 và người trên đường dọc | Hai dòng dấu tích; **rung nhẹ một lần** lúc nhận xét hiện; vuốt sang ảnh khác rồi vuốt lại thì không rung | | | |
+| 17.4 | Đặt ở giữa: người ở giữa nhưng nghiêng mặt sang một bên | "Người ở đúng trục giữa" (trước đây hay báo lệch) | | | |
+| 17.5 | Nhóm người: 2–3 người **đứng sát nhau** ngang hàng, rồi một người ngồi xuống | Ngang hàng: "Các đầu cùng một độ cao, cho một người ngồi hoặc đứng lên bậc"; một người ngồi: "Các đầu cao thấp so le" | | | |
+| 17.6 | Lưới 3×3: chụp mép dưới ngang gối, rồi ngang cổ chân | "Mép dưới gần ngang gối, …" / "Mép dưới cắt ngang cổ chân, …" (có thể không hiện mọi lần: đo được báo đúng ~69% / ~94%) | | | |
+| 17.7 | Chụp cảnh rộng, người rất nhỏ ở xa | "Không thấy người trong ảnh. Người ở xa quá thì tiến lại gần hoặc zoom vào." | | | |
+
 ## Góp ý thêm
