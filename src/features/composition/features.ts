@@ -44,7 +44,14 @@ export type PhotoFeatures = {
   joints: Joint[] | null;
   /** Người chính nhìn về phía nào của ảnh, null khi nhìn thẳng / không rõ. */
   facing: 'left' | 'right' | null;
+  /**
+   * Đầu từng người theo khung xương (nhóm người): giữa hai mắt, và cỡ người `scale` theo chiều cao
+   * ảnh (thân vai → hông, không thấy hông thì 1,2 × bề ngang vai). Không thấy mắt / vai thì bỏ.
+   */
+  heads: Head[];
 };
+
+export type Head = { x: number; y: number; scale: number };
 
 const MIN_VIS = 0.5;
 
@@ -86,6 +93,8 @@ export function photoFeatures(input: {
   gridH: number;
   people: { bbox: [number, number, number, number]; areaRatio: number }[];
   body: number[] | null | undefined;
+  /** Khung xương mọi người (người đầu tiên trùng `body`); không có thì chỉ dùng `body`. */
+  bodies?: number[][] | null;
 }): PhotoFeatures {
   const people: PersonBox[] = input.people.map((p) => ({
     box: [
@@ -117,12 +126,40 @@ export function photoFeatures(input: {
     main = people.reduce((best, p, i) => (p.area > people[best]!.area ? i : best), 0);
   }
 
+  const aspect = input.width / input.height;
+  const all = input.bodies?.length ? input.bodies : input.body ? [input.body] : [];
+  const heads = all.flatMap((b) => {
+    const h = headOf(jointsFrom(b), aspect);
+    return h ? [h] : [];
+  });
+
   return {
-    aspect: input.width / input.height,
+    aspect,
     people,
     main,
     eye,
     joints,
     facing: facingOf(joints),
+    heads,
   };
+}
+
+/** Đầu của một khung xương; khoảng cách đo theo chiều cao ảnh (x nhân `aspect`). */
+function headOf(j: Joint[] | null, aspect: number): Head | null {
+  if (!j) return null;
+  const eL = j[J.eyeL];
+  const eR = j[J.eyeR];
+  const sL = j[J.shoulderL];
+  const sR = j[J.shoulderR];
+  if (!visible(eL) || !visible(eR) || !visible(sL) || !visible(sR)) return null;
+  const dist = (a: Joint, b: Joint) => Math.hypot((a.x - b.x) * aspect, a.y - b.y);
+  const hL = j[J.hipL];
+  const hR = j[J.hipR];
+  let scale = 1.2 * dist(sL!, sR!);
+  if (visible(hL) && visible(hR)) {
+    const mid = (a: Joint, b: Joint) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, v: 1 });
+    scale = dist(mid(sL!, sR!), mid(hL!, hR!));
+  }
+  if (!(scale > 0)) return null;
+  return { x: (eL!.x + eR!.x) / 2, y: (eL!.y + eR!.y) / 2, scale };
 }

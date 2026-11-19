@@ -66,6 +66,12 @@ export const RULE = {
    * (đầu cao khoảng 1/7 người: chênh dưới chừng một nửa chiều cao đầu).
    */
   headsLevel: 0.07,
+  /**
+   * Nhóm người theo khung xương: mắt các người chênh dưới chừng này nhân cỡ người (thân vai → hông,
+   * trung vị) là thẳng hàng. Đo bằng scripts/eval-review.mts (ảnh nhóm có nhãn tay): đứng ngang
+   * nhau chênh ~0,04–0,24, có người ngồi / đứng bậc chênh từ ~0,43.
+   */
+  headsLevelBody: 0.35,
   headTouch: 0.015,
   /** Thừa khoảng trên đầu: mắt thấp hơn chừng này (không thấy mắt: đỉnh đầu thấp hơn `headroomTop`). */
   headroomEye: 0.45,
@@ -166,6 +172,14 @@ function techniqueNotes(t: TechniqueId, f: PhotoFeatures): Note[] {
     case 'lead':
       return near(cx, THIRDS, RULE.verticalBand) ? [{ id: 'onVertical', ok: true }] : [];
     case 'group': {
+      // Khung xương tách được người đứng sát nhau (vùng người thì dính làm một).
+      if (f.heads.length >= 2) {
+        const ys = f.heads.map((h) => h.y);
+        const scales = f.heads.map((h) => h.scale).sort((a, b) => a - b);
+        const scale = scales[Math.floor(scales.length / 2)]!;
+        const level = Math.max(...ys) - Math.min(...ys) <= RULE.headsLevelBody * scale;
+        return [{ id: level ? 'headsLevel' : 'headsStaggered', ok: !level }];
+      }
       if (f.people.length < 2) return [];
       const tops = f.people.map((q) => q.box[1]);
       const minH = Math.min(...f.people.map((q) => q.box[3] - q.box[1]));

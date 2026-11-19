@@ -416,7 +416,7 @@ export const t = {
       headroomBig: 'Thừa khoảng trên đầu',
       edgeLeft: 'Người sát mép trái',
       edgeRight: 'Người sát mép phải',
-      cutKnee: 'Mép ảnh cắt ngang gối',
+      cutKnee: 'Mép dưới gần ngang gối',
       cutAnkle: 'Mép ảnh cắt ngang cổ chân',
       cutElbow: 'Mép ảnh cắt ngang khuỷu tay',
       cutWrist: 'Mép ảnh cắt ngang cổ tay',

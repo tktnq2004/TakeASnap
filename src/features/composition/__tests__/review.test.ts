@@ -210,6 +210,36 @@ describe('reviewPhoto', () => {
     expect(at(0.75, 0.95)).toEqual(['-cutAnkle']);
   });
 
+  it('Nhóm người theo khung xương: người đứng sát nhau (một vùng người) vẫn so được đầu', () => {
+    // Mắt ở y, vai dưới mắt 0,1, hông dưới vai 0,3 (cỡ người 0,3).
+    const person = (x: number, y: number) =>
+      body({
+        [J.eyeL]: [x - 0.02, y],
+        [J.eyeR]: [x + 0.02, y],
+        [J.shoulderL]: [x - 0.06, y + 0.1],
+        [J.shoulderR]: [x + 0.06, y + 0.1],
+        [J.hipL]: [x - 0.05, y + 0.4],
+        [J.hipR]: [x + 0.05, y + 0.4],
+      });
+    const group = (ys: number[]) => {
+      const bodies = ys.map((y, i) => person(0.25 + i * 0.25, y));
+      return photoFeatures({
+        width: 400,
+        height: 300,
+        gridW: 100,
+        gridH: 100,
+        // Một vùng người cho cả nhóm (dính nhau).
+        people: [{ bbox: [10, 20, 90, 100], areaRatio: 0.5 }],
+        body: bodies[0]!,
+        bodies,
+      });
+    };
+    // Chênh 0,05 / cỡ 0,3 ≈ 0,17: thẳng hàng.
+    expect(ids(reviewPhoto('group', group([0.3, 0.33, 0.35])))).toContain('-headsLevel');
+    // Một người ngồi: chênh 0,2 / 0,3 ≈ 0,67: so le.
+    expect(ids(reviewPhoto('group', group([0.3, 0.5, 0.32])))).toContain('+headsStaggered');
+  });
+
   it('Góc thấp: cổ chân sát mép (bị cắt) thì chưa thấy cả bàn chân', () => {
     const f = features(
       [[0.35, 0.1, 0.65, 1]],

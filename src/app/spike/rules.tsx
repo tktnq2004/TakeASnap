@@ -109,6 +109,7 @@ export default function RulesSpike() {
           gridH: a.grid.height,
           people: a.people,
           body: a.seg.landmarks.bodyPoints,
+          bodies: a.seg.bodies,
         });
         update(next.id, { status: 'done', features });
       } catch (e) {

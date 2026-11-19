@@ -57,6 +57,8 @@ type Raw = {
   gridH: number;
   people: { bbox: Box; areaRatio: number }[];
   body: number[] | null;
+  /** Mọi khung xương (thêm sau: bản lưu cũ không có thì chạy lại khi cần, ví dụ ảnh nhóm). */
+  bodies?: number[][];
 };
 type Source = { id: string; file: string; group: string };
 type Case = {
@@ -172,6 +174,7 @@ async function analyze(
     gridH: g.height,
     people: people.map((p) => ({ bbox: p.bbox, areaRatio: p.areaRatio })),
     body: (lm.bodyPoints as number[] | null) ?? null,
+    bodies: (lm.bodies as number[][] | undefined) ?? [],
   };
 }
 
@@ -183,6 +186,7 @@ const featuresOf = (r: Raw): PhotoFeatures =>
     gridH: r.gridH,
     people: r.people,
     body: r.body,
+    bodies: r.bodies,
   });
 
 // ---------------------------------------------------------------------------------------------
@@ -249,6 +253,7 @@ function truthIn(f: PhotoFeatures, c: Crop): PhotoFeatures {
     eye: f.eye ? { x: tx(f.eye.x), y: ty(f.eye.y) } : null,
     joints: f.joints ? f.joints.map((j) => ({ x: tx(j.x), y: ty(j.y), v: j.v })) : null,
     facing: f.facing,
+    heads: f.heads.map((h) => ({ x: tx(h.x), y: ty(h.y), scale: h.scale / c.h })),
   };
 }
 
@@ -469,9 +474,9 @@ async function main() {
   const sources = listSources();
   const { browser, page, request } = await openPage();
   let computed = 0;
-  const run = async (key: string, crop: Crop) => {
+  const run = async (key: string, crop: Crop, needBodies = false) => {
     const img = await cropJpeg(page, crop);
-    if (!cache[key]) {
+    if (!cache[key] || (needBodies && !cache[key]!.bodies)) {
       cache[key] = await analyze(page, request, img.b64);
       if (++computed % 10 === 0) fs.writeFileSync(CACHE_FILE, JSON.stringify(cache));
     }
@@ -495,6 +500,7 @@ async function main() {
     /** Mắt và khung người chính model thấy trên ảnh cắt. */
     eye: Pt | null;
     box: Box | null;
+    heads: PhotoFeatures['heads'];
   }[] = [];
   const failTiles: Tile[] = [];
   let invalid = 0;
@@ -502,16 +508,17 @@ async function main() {
   for (const src of sources) {
     const t0 = Date.now();
     const { w: iw, h: ih } = await loadSource(page, src.file);
-    const { raw, b64 } = await run(keyOf(src, FULL), FULL);
+    const label = verify.group?.[src.id];
+    const { raw, b64 } = await run(keyOf(src, FULL), FULL, !!label);
     const f = featuresOf(raw);
     const isBad = bad.has(src.id);
     sheetTiles.push(
       tileOf(b64, f, `${src.id}${isBad ? ' (bỏ)' : ''} · ${f.people.length} người${f.facing ? ` · nhìn ${f.facing === 'right' ? '→' : '←'}` : ''}`),
     );
-    if (isBad) continue;
+    // Ảnh bị loại (vùng người dính nhau…) không cắt khung, nhưng vẫn chấm nhãn nhóm người.
+    if (isBad && !label) continue;
 
-    const cases = casesFor(src.id, f, iw, ih);
-    const label = verify.group?.[src.id];
+    const cases = isBad ? [] : casesFor(src.id, f, iw, ih);
     if (label) {
       cases.push({
         id: `${src.id}:group-${label}`,
@@ -557,7 +564,7 @@ async function main() {
         return j ? [Math.round(j.y * 1000) / 1000, Math.round(j.v * 100) / 100] : [NaN, 0];
       });
       const box = mf.main >= 0 ? mf.people[mf.main]!.box : null;
-      results.push({ c, ok, checks, got, legs, eye: mf.eye, box });
+      results.push({ c, ok, checks, got, legs, eye: mf.eye, box, heads: mf.heads });
       if (!ok && failTiles.length < 120) {
         failTiles.push(
           tileOf(r.b64, mf, c.id, [`cần: ${c.expect.join(', ') || '–'}  không: ${c.reject.join(', ') || '–'}`, `ra: ${got.join(', ') || '(không có)'}`], true),
@@ -643,7 +650,7 @@ async function main() {
   fs.writeFileSync(
     path.join(OUT_DIR, 'report.json'),
     JSON.stringify(
-      results.map((r) => ({ id: r.c.id, ok: r.ok, expect: r.c.expect, reject: r.c.reject, got: r.got, legs: r.legs, eye: r.eye, box: r.box })),
+      results.map((r) => ({ id: r.c.id, ok: r.ok, expect: r.c.expect, reject: r.c.reject, got: r.got, legs: r.legs, eye: r.eye, box: r.box, heads: r.c.technique === 'group' ? r.heads : undefined })),
       null,
       1,
     ),

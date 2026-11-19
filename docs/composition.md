@@ -166,7 +166,7 @@ Chỉnh sau khi đo:
 
 **Còn yếu / chưa đo được:**
 
-- **Cắt ngang gối:** báo đúng ~69% số lần báo (bắt được 48% ca cắt ngang gối). Model không thấy khớp đã bị cắt nên không tách được "ngang gối" với "giữa đùi". Cổ chân tốt hơn (báo đúng ~94%, bắt được 61%).
-- **Nhóm người:** người đứng sát nhau bị tách người gộp thành một vùng (đa số ảnh nhóm), nên quy tắc đầu so le / thẳng hàng theo vùng người **chưa đo được**. Hướng sửa: lấy đầu từ nhiều khung xương (trang WebView đã dò tới 6 người) thay vì từ vùng người.
+- **Cắt ngang gối:** báo đúng ~69% số lần báo (bắt được 48% ca cắt ngang gối). Model không thấy khớp đã bị cắt nên không tách được "ngang gối" với "giữa đùi". Chữ đổi thành "Mép dưới gần ngang gối" (nói gần, không khẳng định cắt). Cổ chân tốt hơn (báo đúng ~94%, bắt được 61%).
+- **Nhóm người:** người đứng sát nhau bị tách người gộp thành một vùng, nên quy tắc theo vùng người không dùng được. Đổi sang **đầu từ khung xương** (trang WebView trả mọi khung xương, tới 6 người): mắt các người chênh ≤ 0,35 × cỡ người (thân vai → hông) là thẳng hàng; không đủ 2 khung xương thì quay về vùng người. Khớp **6/8** ảnh nhóm có nhãn tay (sai: ảnh gia đình chỉ dò được 2/4 người; bưu thiếp cũ mặt quá nhỏ, không nhận xét).
 - **Người quá nhỏ** trong cảnh rộng (ảnh "1x" của nhiếp ảnh gia): model không thấy người, app không nhận xét (không sai, chỉ im).
 - Nhãn nhiếp ảnh gia lỏng hơn quy tắc: vài ảnh ghi "1/3" có người gần giữa khung (0,46).

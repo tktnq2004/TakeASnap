@@ -18,6 +18,8 @@ export type PoseSegmentation = {
   /** Lưới alpha 0..255 cạnh dài ≤ 512, để dò viền. */
   grid: { width: number; height: number; data: Uint8Array };
   landmarks: Landmarks;
+  /** Khung xương mọi người trong ảnh (tới 6, mỗi cái 33 khớp phẳng); không lưu vào pose. */
+  bodies: number[][];
 };
 
 type Ctx = {
@@ -95,6 +97,7 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
           maskBase64: r.maskBase64,
           grid: { width: r.grid.width, height: r.grid.height, data: base64ToBytes(r.grid.base64) },
           landmarks: { face: lm.face ?? null, bodyPoints: lm.bodyPoints ?? null },
+          bodies: lm.bodies ?? (lm.bodyPoints ? [lm.bodyPoints] : []),
         };
       },
       analyzeFrame: async (base64, opts, onProgress) => {

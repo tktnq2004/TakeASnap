@@ -74,6 +74,7 @@ export function usePhotoReview(photo: SessionPhoto | undefined, allowDownload: b
           gridH: a.grid.height,
           people: a.people,
           body: a.seg.landmarks.bodyPoints,
+          bodies: a.seg.bodies,
         });
         set(id, { status: 'done', features, review: reviewPhoto(photo.technique, features) });
       } catch (e) {

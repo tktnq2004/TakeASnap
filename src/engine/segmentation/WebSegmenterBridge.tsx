@@ -128,6 +128,8 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
   /** Nét mặt + khung xương (lớp Nét của pose). */
   const landmarks = async (base64: string) =>
     (await request({ type: 'landmarks', base64 })) as unknown as Landmarks & {
+      /** Khung xương mọi người (tới 6), người đầu tiên trùng `bodyPoints`. */
+      bodies?: number[][];
       timings: SegmentTimings;
     };
 

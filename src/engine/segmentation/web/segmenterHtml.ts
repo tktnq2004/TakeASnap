@@ -13,7 +13,8 @@
  *   RN → WV  { id, type: 'segment', model, base64, gridSide? }        ảnh JPEG base64
  *   WV → RN  { id, ok: true, maskBase64, grid?: { width, height, base64 }, … }  grid = alpha Uint8
  *   RN → WV  { id, type: 'landmarks', base64 }             nét mặt + khung xương
- *   WV → RN  { id, ok: true, face, bodyPoints, timings }   nét mặt (đoạn thẳng) + 33 khớp [x,y,vis]
+ *   WV → RN  { id, ok: true, face, bodyPoints, bodies, timings }   nét mặt (đoạn thẳng) + 33 khớp
+ *            [x,y,vis] của người đầu tiên; bodies: khung xương mọi người (tới 6, cùng dạng)
  *   RN → WV  { id, type: 'frame', base64, seg, body, gridSide, bodyGpu }   khung hình nhỏ lúc ngắm
  *   WV → RN  { id, ok: true, grid, bodyPoints, backend, timings }  bản nhẹ: không mask PNG, không mặt
  *   WV → RN  { type: 'ready', info }                       trang đã nạp xong thư viện
@@ -346,6 +347,9 @@ async function runLandmarks(img) {
     bodyPoints: body
       ? body.flatMap((p) => [r4(p.x), r4(p.y), r4(p.visibility ?? 1)])
       : null,
+    // Mọi khung xương (người đầu tiên = bodyPoints): nhóm người so đầu từng người (người đứng sát
+    // nhau thì vùng người dính làm một, khung xương vẫn tách).
+    bodies: bodies.map((b) => b.flatMap((p) => [r4(p.x), r4(p.y), r4(p.visibility ?? 1)])),
     timings: { loadMs: loadMs, prepMs: 0, inferMs: now() - t0, postMs: 0 },
   };
 }
@@ -456,7 +460,8 @@ async function handle(msg) {
     try {
       const img = await loadImage(msg.base64);
       const r = await runLandmarks(img);
-      post({ id: msg.id, ok: true, face: r.face, bodyPoints: r.bodyPoints, timings: r.timings });
+      post({ id: msg.id, ok: true, face: r.face, bodyPoints: r.bodyPoints, bodies: r.bodies,
+        timings: r.timings });
     } catch (e) {
       const error = (e && e.message) || String(e);
       log('landmarks lỗi: ' + error);
