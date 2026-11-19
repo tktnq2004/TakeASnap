@@ -14,6 +14,7 @@ const spikes: { href: Href; title: string }[] = [
   { href: '/spike/segment', title: t.spike.segmentTitle },
   // Kiểu route mới sinh lại khi chạy dev server.
   { href: '/spike/live' as Href, title: t.spike.liveTitle },
+  { href: '/spike/rules' as Href, title: t.spike.rulesTitle },
 ];
 
 export default function SpikeMenu() {

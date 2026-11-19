@@ -286,4 +286,38 @@ Cách đọc: nếu đổi sang cỡ thật ≤ ~300 ms, không nháy, và 15.4 
 
 **Kết quả spike (iPhone; Android chỉ có simulator, không có camera):** cỡ chụp mặc định 1,2 lần / giây (chụp 12 MP ~600 ms mỗi khung), rất nóng sau 3 phút. Cỡ chụp nhỏ nhất 5,5–6,3 lần / giây nhưng ảnh thật cũng nhỏ; đổi sang cỡ thật lúc bấm chụp mất ~1,07 s (về lại ~0,98 s), khung xem nháy, nút chụp ~1,5 s mới dùng lại được; cỡ nhỏ giới hạn 3 lần / giây vẫn nóng, 2 lần / giây ấm gần nóng sau 4 phút. → **Không đạt cổng: gợi ý lúc ngắm chỉ từ cảm biến, phân tích người chỉ ở nhận xét sau khi chụp.** Gốc vấn đề: Expo Go không có frame processor, mỗi lần lấy ảnh là một lần chụp thật.
 
+## 16. Độ đúng của quy tắc nhận xét (cổng Phase 5, phần cuối)
+
+Mở **Cài đặt → Nhà phát triển → Màn thử nghiệm → Phase 5 · Độ đúng quy tắc**. Cần bộ tách người (đã có).
+
+Cách làm:
+
+1. Chọn kỹ thuật ở hàng "Kỹ thuật cho ảnh sắp chọn", bấm **Chọn ảnh thử**, chọn nhiều ảnh một lần. Mỗi kỹ thuật nên có cả ảnh **đúng** và ảnh **sai** (ví dụ 1/3: vài ảnh mắt trên đường 1/3, vài ảnh người đứng giữa). Gán sai kỹ thuật thì đổi ngay trên thẻ ảnh.
+2. App phân tích từng ảnh (1–2 s mỗi ảnh). Trên ảnh nhỏ: đường 1/3, khung xanh = người app thấy, chấm = mắt, nét đứt trắng = khung cắt gợi ý.
+3. Chấm **Đúng / Sai** cho từng dòng nhận xét, theo mắt của bạn (dòng có dấu tích mà ảnh thật ra chưa đạt → Sai). Có khung cắt thì chấm cả khung cắt.
+4. App không nói một lỗi rõ (cắt ngang gối, đầu chạm mép…) hoặc không thấy người trong ảnh có người → tích **App bỏ sót một lỗi rõ**.
+
+Gợi ý số ảnh (~30): 1/3 ×8, Ở giữa ×5, Lấp đầy khung ×5, Nhóm người ×4, Góc thấp ×4, Selfie ×4. Ảnh và kết quả chấm lưu trong máy; thoát ra vào lại vẫn còn.
+
+| # | Thao tác | Kỳ vọng / ghi lại | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 16.1 | Chọn nhiều ảnh một lần | Thẻ ảnh hiện ngay, lần lượt chuyển Đang chờ → Đang phân tích → nhận xét | | | |
+| 16.2 | Thoát màn khi đang phân tích, vào lại | Ảnh và điểm đã chấm còn nguyên; ảnh dở được phân tích tiếp | | | |
+| 16.3 | Chấm xong ~30 ảnh | Chép bảng tổng trên màn vào bảng dưới | | | |
+
+**Kết quả chấm** (chép từ bảng tổng trên màn):
+
+| Số đo | Giá trị |
+|---|---|
+| Độ đúng chung | |
+| Khung cắt hợp lý | |
+| Quy tắc 1/3 | |
+| Đặt ở giữa | |
+| Lấp đầy khung | |
+| Nhóm người | |
+| Góc thấp | |
+| Selfie | |
+| Dòng sai nhiều nhất (tên dòng, số sai) | |
+| Lỗi app hay bỏ sót | |
+
 ## Góp ý thêm
