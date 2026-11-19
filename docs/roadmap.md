@@ -463,8 +463,9 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 **Bước 3 — Phân tích người (tuần 2, có cổng quyết định)**
 
 - [x] Nhận xét sau khi chụp ở Xem ảnh vừa chụp: lớp bố cục trên ảnh, đạt / chưa đạt, khung cắt gợi ý (lưu thành ảnh mới). `features.ts` (đặc trưng từ tách người + khung xương), `review.ts` (quy tắc + khung cắt, `review.test.ts`), `usePhotoReview.ts` (chạy qua WebView đang có, xếp hàng, chưa có bộ tách thì hỏi trước khi tải)
-- [ ] Spike gợi ý lúc ngắm: `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ → WebView → đặc trưng; đo lần / giây, độ trễ, nháy màn, pin, nhiệt trên iPhone và Android
-  - Đã có màn đo `src/app/spike/live.tsx` (Cài đặt → Nhà phát triển): chụp `pictureRef` không ghi file, thu nhỏ 192–384, `analyzeFrame` (bản nhẹ: lưới người đọc thẳng từ mask, một khung xương chế độ VIDEO, không nét mặt), quy tắc `review.ts`; đổi được từng bước để tìm cấu hình nhanh nhất. Lần 1 (iPhone, phiếu mục 14): cỡ chụp mặc định 1,2 lần / giây, chụp ~600 ms, máy rất nóng sau 3 phút → không đạt; cỡ chụp nhỏ nhất 5,5 lần / giây. Lần 2 (mục 15): đo thời gian đổi sang cỡ thật lúc bấm chụp, nhiệt 5 phút ở cỡ nhỏ có giới hạn 2–3 lần / giây, Android
+- [x] Spike gợi ý lúc ngắm: `takePictureAsync({ shutterSound: false })` cỡ nhỏ theo chu kỳ → WebView → đặc trưng; đo lần / giây, độ trễ, nháy màn, pin, nhiệt trên iPhone và Android
+  - Đã có màn đo `src/app/spike/live.tsx` (Cài đặt → Nhà phát triển): chụp `pictureRef` không ghi file, thu nhỏ 192–384, `analyzeFrame` (bản nhẹ: lưới người đọc thẳng từ mask, một khung xương chế độ VIDEO, không nét mặt), quy tắc `review.ts`; đổi được từng bước để tìm cấu hình nhanh nhất. Lần 1 (iPhone, phiếu mục 14): cỡ chụp mặc định 1,2 lần / giây, chụp ~600 ms, máy rất nóng sau 3 phút → không đạt; cỡ chụp nhỏ nhất 5,5 lần / giây. Lần 2 (mục 15): đổi sang cỡ thật lúc bấm chụp ~1,07 s và nháy khung xem; cỡ nhỏ 2–3 lần / giây vẫn ấm / nóng sau 4 phút. Android chưa đo được (chỉ có simulator)
+  - **Kết luận spike (iPhone; Android chỉ có simulator, không có camera):** cỡ chụp mặc định 1,2 lần / giây (chụp 12 MP ~600 ms mỗi khung), rất nóng sau 3 phút. Cỡ chụp nhỏ nhất 5,5–6,3 lần / giây nhưng ảnh thật cũng nhỏ; đổi sang cỡ thật lúc bấm chụp mất ~1,07 s (về lại ~0,98 s), khung xem nháy, nút chụp ~1,5 s mới dùng lại được; cỡ nhỏ giới hạn 3 lần / giây vẫn nóng, 2 lần / giây ấm gần nóng sau 4 phút. → **Không đạt cổng: gợi ý lúc ngắm chỉ từ cảm biến, phân tích người chỉ ở nhận xét sau khi chụp.** Gốc vấn đề: Expo Go không có frame processor, mỗi lần lấy ảnh là một lần chụp thật.
 - [ ] Bộ ảnh thử ~30 ảnh có người, đúng và sai từng kỹ thuật, để đo độ đúng của quy tắc
 
 **Cổng quyết định cuối tuần 2:**
@@ -487,6 +488,8 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 Làm sau khi Phase 5 chạy. Nâng bản đơn giản của Phase 5 (lớp kẻ cố định, người dùng tự xếp cảnh) thành app tự tìm đường trong ảnh. Nghiệp vụ ở [business-flow §6.9](business-flow.md#69-dò-đường-chân-trời-và-đường-dẫn-phase-5a).
 
 Không cần huấn luyện model: dò cạnh và đường thẳng bằng thuật toán trên ảnh nhỏ, dùng lại đường chụp ảnh nhỏ của gợi ý lúc ngắm (§3.6) và vùng người đã tách.
+
+> **Xét lại trước khi làm:** spike Phase 5 Bước 3 cho thấy chụp ảnh nhỏ liên tục không dùng được trong Expo Go (đổi cỡ chụp ~1 s, nóng máy). Dò đường chỉ chạy được trên ảnh vừa chụp (nhận xét sau khi chụp), không chạy lúc ngắm.
 
 - [ ] Dò đường thẳng trên ảnh 256–512 px trong WebView: dò cạnh + Hough hoặc LSD bằng JS thuần (OpenCV.js chỉ dùng nếu đo thấy đủ nhẹ); bỏ đường nằm trên người nhờ mask
 - [ ] Đường chân trời: đường dài gần ngang; gợi ý đặt lên đường 1/3, cắt ngang cổ / đầu thì nhắc hạ hoặc nâng máy; lớp kẻ vẽ đúng đường tìm được
@@ -526,6 +529,7 @@ Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610
 
 - [ ] Gói `composition` trên GitHub Releases, tải một lần (§3.3), chạy bằng `ImageClassifier` của MediaPipe trong WebView đang có
 - [ ] Dòng "Tự chọn" trong bảng Bố cục; đoán lại khi khung cảnh đổi hẳn (dừng tay ~1 s), dưới ngưỡng tin cậy thì không đoán; dòng gợi ý ghi kỹ thuật đang dùng + "Đổi"
+  - Xét lại trước khi làm: spike Phase 5 Bước 3 cho thấy không lấy ảnh liên tục được (mỗi lần là một lần chụp thật ~0,8 s, nóng máy nếu lặp). Chỉ đoán **một lần** khi chọn Tự chọn (và khi người dùng chạm "Đoán lại"), không tự đoán lại theo khung cảnh
 - [ ] Phiếu `phase5b-test.md`
 
 **Cổng quyết định cuối Bước 2:**
@@ -571,7 +575,7 @@ Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610
 | Expo Go chỉ chạy SDK mới nhất | Chắc chắn | Khi App Store cập nhật Expo Go thì nâng SDK; không dùng thư viện ngoài danh sách của Expo Go |
 | Expo Go trên Android giới hạn quyền thư viện ảnh | Trung bình | Spike D; dự phòng: lưu bằng `saveToLibraryAsync` không cần album riêng |
 | Zoom camera qua state làm giật overlay | Thấp–trung bình | `CameraLayer` cô lập (§3.5); spike A |
-| Gợi ý bố cục lúc ngắm chậm, nháy màn hoặc nóng máy (Expo Go không có frame processor) | **Cao** | Cổng quyết định ở Phase 5; lùi về gợi ý cảm biến + nhận xét sau khi chụp |
+| Gợi ý bố cục lúc ngắm chậm, nháy màn hoặc nóng máy (Expo Go không có frame processor) | **Đã xảy ra** (spike Phase 5 Bước 3) | Cổng quyết định ở Phase 5; lùi về gợi ý cảm biến + nhận xét sau khi chụp |
 | Model tự chọn kỹ thuật đoán sai (nhãn chủ quan, một ảnh hợp nhiều kỹ thuật, người gán nhãn không phải người trong nghề) | **Cao** | Phase 5b có cổng riêng, đo trên bộ ảnh giữ riêng; cho phép 2 nhãn; ngưỡng tin cậy; luôn đổi tay được; không đạt thì giữ chọn tay |
 | Dò đường thẳng sai ở cảnh nhiều cạnh (nhà cửa, cây, đám đông) | Trung bình | Cổng quyết định ở Phase 5a đo trên bộ ảnh thử; bỏ đường nằm trên người; không đạt thì giữ lớp kẻ cố định |
 | Dữ liệu huấn luyện vướng giấy phép | Trung bình | Chỉ ảnh tự chụp / giấy phép cho phép huấn luyện, ghi nguồn từng ảnh (BR-16) |

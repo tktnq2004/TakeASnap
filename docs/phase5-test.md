@@ -275,13 +275,15 @@ Cùng màn đo. Mới: **Giới hạn lần / giây** (Không giới hạn · 3 
 
 | # | Thao tác | Kỳ vọng / ghi lại | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 15.1 | Cỡ chụp **Nhỏ nhất**, Bắt đầu đo 30 giây | Ghi **Cỡ ảnh chụp** và lần / giây | | | |
-| 15.2 | Đang đo, bấm **Thử chụp ảnh thật** 3 lần | Ghi 3 lần dòng "Đổi sang cỡ thật" (ms · lần chụp · cỡ) và "Đổi về cỡ nhỏ" (ms); cỡ thật phải là 3024×4032 hoặc cỡ lớn nhất của máy | | | |
-| 15.3 | Nhìn khung xem lúc bấm 15.2 | Khung xem có **nháy, đen, đứng hình, giật zoom** lúc đổi cỡ không | | | |
-| 15.4 | Nhỏ nhất + Giới hạn **3**, chạy **5 phút** | % pin trước / sau, máy mát / ấm / nóng, lần / giây phút cuối | | | |
-| 15.5 | Nhỏ nhất + Giới hạn **2**, chạy **5 phút** (để máy nguội trước) | Như 15.4 | | | |
-| 15.6 | Android: lặp lại bảng A mục 14 (mặc định) và 15.1–15.2 | Ghi vào cột Android của các bảng | | | |
+| 15.1 | Cỡ chụp **Nhỏ nhất**, Bắt đầu đo 30 giây | Ghi **Cỡ ảnh chụp** và lần / giây |cỡ chụp nhỏ nhất - 6.3 | | |
+| 15.2 | Đang đo, bấm **Thử chụp ảnh thật** 3 lần | Ghi 3 lần dòng "Đổi sang cỡ thật" (ms · lần chụp · cỡ) và "Đổi về cỡ nhỏ" (ms); cỡ thật phải là 3024×4032 hoặc cỡ lớn nhất của máy |1071ms - 2 - 3024x4032 - đổi về cỡ nhỏ 975ms | | |
+| 15.3 | Nhìn khung xem lúc bấm 15.2 | Khung xem có **nháy, đen, đứng hình, giật zoom** lúc đổi cỡ không | có nháy chụp và tầm 1,5s trả về nút chụp | | |
+| 15.4 | Nhỏ nhất + Giới hạn **3**, chạy **5 phút** | % pin trước / sau, máy mát / ấm / nóng, lần / giây phút cuối |47/45 | nóng nhưng vẫn ổn |đo 4p |
+| 15.5 | Nhỏ nhất + Giới hạn **2**, chạy **5 phút** (để máy nguội trước) | Như 15.4 |45/43 |ấm gần nóng  |đo 4p |
+| 15.6 | Android: lặp lại bảng A mục 14 (mặc định) và 15.1–15.2 | Ghi vào cột Android của các bảng |với simulator không thể sử dụng cam nên không test được | | |
 
 Cách đọc: nếu đổi sang cỡ thật ≤ ~300 ms, không nháy, và 15.4 hoặc 15.5 máy chỉ ấm → làm gợi ý lúc ngắm theo người (ngắm ở cỡ nhỏ, bấm chụp thì đổi cỡ). Đổi cỡ lâu hoặc nháy → độ trễ bấm chụp quá lớn, giữ gợi ý cảm biến.
+
+**Kết quả spike (iPhone; Android chỉ có simulator, không có camera):** cỡ chụp mặc định 1,2 lần / giây (chụp 12 MP ~600 ms mỗi khung), rất nóng sau 3 phút. Cỡ chụp nhỏ nhất 5,5–6,3 lần / giây nhưng ảnh thật cũng nhỏ; đổi sang cỡ thật lúc bấm chụp mất ~1,07 s (về lại ~0,98 s), khung xem nháy, nút chụp ~1,5 s mới dùng lại được; cỡ nhỏ giới hạn 3 lần / giây vẫn nóng, 2 lần / giây ấm gần nóng sau 4 phút. → **Không đạt cổng: gợi ý lúc ngắm chỉ từ cảm biến, phân tích người chỉ ở nhận xét sau khi chụp.** Gốc vấn đề: Expo Go không có frame processor, mỗi lần lấy ảnh là một lần chụp thật.
 
 ## Góp ý thêm

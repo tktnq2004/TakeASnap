@@ -264,10 +264,7 @@ flowchart TD
     PICK --> GUIDE[Lớp bố cục trên khung ngắm<br/>đường kẻ + chấm đích]
     GUIDE --> SENSE{Kỹ thuật cần<br/>phân tích người?}
     SENSE -- "Không (máy thẳng, selfie…)" --> HINT[Gợi ý từ cảm biến<br/>tức thì]
-    SENSE -- "Có" --> LIVE{Gợi ý lúc ngắm<br/>qua cổng Phase 5?}
-    LIVE -- "Có" --> ANALYZE[Chụp ảnh nhỏ không tiếng định kỳ<br/>→ tìm người, mắt, khớp]
-    ANALYZE --> HINT
-    LIVE -- "Không" --> SHOOT
+    SENSE -- "Có (không qua cổng Phase 5)" --> SHOOT
     HINT --> OK{Đã đạt?}
     OK -- "Chưa" --> HINT
     OK -- "Rồi" --> GREEN[Đường kẻ xanh + rung nhẹ]
@@ -282,7 +279,8 @@ flowchart TD
 - **Không nhảy**: gợi ý chỉ hiện khi tình trạng giữ ổn định khoảng 0,5 s, và chỉ đổi sang gợi ý khác khi gợi ý cũ đã hết.
 - **Đạt**: đường kẻ chuyển màu nhấn, rung nhẹ một lần, dòng gợi ý biến mất.
 - **Không thấy người**: chỉ còn gợi ý từ cảm biến; không báo lỗi.
-- Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread. Gợi ý cần phân tích người phụ thuộc kết quả đo ở cổng quyết định Phase 5; không đạt thì chỉ có nhận xét sau khi chụp.
+- Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread.
+- **Gợi ý cần phân tích người: không làm** (cổng Phase 5 Bước 3 không đạt: Expo Go chỉ lấy được ảnh bằng cách chụp thật; cỡ thật 1,2 lần / giây và nóng máy, cỡ nhỏ thì đổi sang cỡ thật lúc bấm chụp mất ~1 s và nháy). Phân tích người chỉ có ở nhận xét sau khi chụp (§6.5).
 
 ### 6.5 Nhận xét sau khi chụp
 
@@ -312,7 +310,7 @@ flowchart TD
 - Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
 - App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
 - Phase 5: người dùng tự chọn kỹ thuật; đường chân trời và đường dẫn chỉ có lớp kẻ, app không dò cảnh. Dò đường thẳng trong ảnh là Phase 5a (§6.9), tự đoán kỹ thuật bằng model là Phase 5b (§6.10); mỗi phần có cổng quyết định riêng, không đạt thì giữ bản Phase 5.
-- Gợi ý lúc ngắm cần phân tích người có **cổng quyết định** ở roadmap Phase 5; có thể chỉ còn nhận xét sau khi chụp.
+- Lúc ngắm chỉ có gợi ý từ cảm biến; phân tích người chỉ ở nhận xét sau khi chụp (cổng Phase 5 Bước 3 không đạt, §6.4).
 
 ### 6.9 Dò đường chân trời và đường dẫn (Phase 5a)
 
