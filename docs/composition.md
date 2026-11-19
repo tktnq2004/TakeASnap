@@ -135,7 +135,7 @@ Nguồn cho ba thẻ mới: [Imaginated, 30 photography composition techniques](
 
 ## 8. Đo độ đúng quy tắc nhận xét (cổng Phase 5 Bước 3)
 
-Đo trên máy tính bằng `npm run eval:review` (`scripts/eval-review.mts`), không cần người chấm từng ảnh. Script chạy **đúng trang WebView của app** trong Chrome headless (ảnh 1024, tách người lưới 512, khung xương), như nhận xét sau khi chụp.
+Đo trên máy tính bằng `npm run eval:review` (script `scripts/eval.ts` của package **composition-critic**, cần bản clone `../composition-critic` cạnh app), không cần người chấm từng ảnh. Quy tắc, đặc trưng, tách vùng người và trang MediaPipe nằm trong package đó (repo riêng `composition-critic`, app cài như dependency; có thêm MCP server cho agent). Script chạy **đúng trang WebView của app** trong Chrome headless (ảnh 1024, tách người lưới 512, khung xương), như nhận xét sau khi chụp.
 
 **Ảnh:** 32 ảnh pose mẫu + ảnh trong thư mục `eval/photos/` (không đưa lên git; thêm `/eval/` vào `.git/info/exclude`): ~40 ảnh Wikimedia Commons giấy phép tự do (`credits.json`), và ảnh so sánh "trước / sau khi học chụp" người dùng tìm (ảnh có bản quyền của nhiếp ảnh gia, chỉ dùng để đo, không đăng lại), tách thành hai bức; bức "sau" có chú thích kỹ thuật ("bố cục 1/3", "bố cục giữa"…).
 

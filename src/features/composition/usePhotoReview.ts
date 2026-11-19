@@ -8,6 +8,7 @@
  *   bấm mới tải (`allowDownload`).
  * - Mỗi lúc một ảnh qua WebView (chung với tạo pose), các yêu cầu xếp hàng.
  */
+import { photoFeatures, type PhotoFeatures, type Review, reviewPhoto } from 'composition-critic';
 import { useEffect } from 'react';
 import { create } from 'zustand';
 
@@ -17,8 +18,6 @@ import { type PoseProgress, useSegmenter } from '@/engine/segmentation/Segmenter
 import type { SessionPhoto } from '@/features/camera/sessionPhotos';
 import { analyzeImage, PoseCreateError } from '@/features/pose/createFromImage';
 
-import { photoFeatures, type PhotoFeatures } from './features';
-import { type Review, reviewPhoto } from './review';
 
 export type ReviewEntry =
   | { status: 'running'; stage: PoseProgress['stage'] | 'queued' }

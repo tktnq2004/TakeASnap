@@ -10,7 +10,7 @@ import type {
   SegmentTimings,
   WebSegmentResult,
 } from './types';
-import { buildSegmenterHtml } from './web/segmenterHtml';
+import { buildSegmenterHtml } from 'composition-critic/page';
 
 type ReadyInfo = {
   ua: string;

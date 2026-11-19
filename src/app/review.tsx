@@ -30,7 +30,7 @@ import { POSE_PACK, packBytes } from '@/engine/models/packs';
 import { cropNormalized, deleteFromLibrary, saveToAlbum } from '@/features/camera/capture';
 import { type SessionPhoto, useSessionPhotos } from '@/features/camera/sessionPhotos';
 import { CompositionGuide } from '@/features/composition/CompositionGuide';
-import type { Crop as CropRect } from '@/features/composition/review';
+import type { Crop as CropRect } from 'composition-critic';
 import {
   type ReviewEntry,
   usePhotoReview,

@@ -6,7 +6,7 @@
  * TypeScript thuần, chạy trên JS thread, có unit test.
  */
 import type { Contour, Grid } from './contour';
-import { groupPeople, labelRegions } from './regions';
+import { groupPeople, labelRegions } from 'composition-critic';
 
 export type BrushMode = 'add' | 'erase';
 

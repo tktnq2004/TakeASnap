@@ -1,3 +1,4 @@
+import { groupPeople, labelRegions, photoFeatures, reviewPhoto } from 'composition-critic';
 import { CameraView, type CameraType, type PictureRef, useCameraPermissions } from 'expo-camera';
 import { File } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
@@ -8,11 +9,8 @@ import { ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-n
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { base64ToBytes } from '@/engine/base64';
-import { groupPeople, labelRegions } from '@/engine/regions';
 import { type PoseProgress, useSegmenter } from '@/engine/segmentation/SegmenterProvider';
 import type { FrameOptions } from '@/engine/segmentation/types';
-import { photoFeatures } from '@/features/composition/features';
-import { reviewPhoto } from '@/features/composition/review';
 import type { TechniqueId } from '@/features/composition/techniques';
 import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
 import { useLiveSpikeCamera } from '@/features/spike/liveCameraLock';

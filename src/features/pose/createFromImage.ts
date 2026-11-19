@@ -17,7 +17,7 @@ import {
   labelRegions,
   maskForPeople,
   type Person,
-} from '@/engine/regions';
+} from 'composition-critic';
 import type { PoseProgress, PoseSegmentation } from '@/engine/segmentation/SegmenterProvider';
 
 import { newId, photoDir, savePhotoAndVariant } from './repository';

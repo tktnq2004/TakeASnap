@@ -3,7 +3,7 @@
  * roadmap §3.3, BR-13). URL cố định phiên bản; kích thước dùng để báo tiến độ và kiểm tra file đủ.
  * Đổi phiên bản thì đổi `version` để máy cũ tải lại.
  */
-import { MEDIAPIPE_VERSION, MODEL_FILES } from '@/engine/segmentation/web/segmenterHtml';
+import { MEDIAPIPE_VERSION, MODEL_FILES } from 'composition-critic/page';
 
 export type PackFile = { name: string; url: string; bytes: number; mime: string };
 export type ModelPack = { id: string; version: string; files: PackFile[] };

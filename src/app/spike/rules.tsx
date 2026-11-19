@@ -1,3 +1,4 @@
+import { type NoteId, photoFeatures, type PhotoFeatures, reviewPhoto } from 'composition-critic';
 import { Directory, File, Paths } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -8,8 +9,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { prepareImage } from '@/engine/image';
 import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
-import { photoFeatures, type PhotoFeatures } from '@/features/composition/features';
-import { type NoteId, reviewPhoto } from '@/features/composition/review';
 import type { TechniqueId } from '@/features/composition/techniques';
 import { analyzeImage, PoseCreateError } from '@/features/pose/createFromImage';
 import { Button, IconButton } from '@/ui/components';

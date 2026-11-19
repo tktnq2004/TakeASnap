@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { type GestureResponderEvent, Pressable, StyleSheet } from 'react-native';
 
 import type { Contour } from '@/engine/contour';
-import { personAt } from '@/engine/regions';
+import { personAt } from 'composition-critic';
 import { t } from '@/ui/strings';
 import { color, personPick, radius } from '@/ui/tokens';
 
