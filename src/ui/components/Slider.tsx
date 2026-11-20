@@ -8,6 +8,7 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   type SharedValue,
+  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
 } from 'react-native-reanimated';
@@ -27,16 +28,20 @@ type Props = {
   format: (v: number) => string;
   /** Gọi một lần khi thả tay (lưu, haptics). Không gọi trong lúc kéo. */
   onChangeEnd?: (v: number) => void;
+  /** Chỉ vẽ rãnh, không có dòng nhãn + giá trị (nhãn vẫn đọc cho VoiceOver/TalkBack). */
+  compact?: boolean;
 };
 
-const THUMB = 24;
-const TRACK = 4;
+/** design.md §4 Slider: rãnh 10, núm 28 trắng viền 4 màu nhấn. */
+const THUMB = 28;
+const TRACK = 10;
+const THUMB_RING = 4;
 
 /**
  * Slider chạy hoàn toàn trên UI thread: kéo không gây re-render (roadmap §3.4).
  * Chạm vào rãnh để nhảy tới vị trí đó.
  */
-export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }: Props) {
+export function Slider({ label, value, min, max, step = 0, format, onChangeEnd, compact }: Props) {
   const [width, setWidth] = useState(0);
   const usable = Math.max(1, width - THUMB);
 
@@ -48,14 +53,22 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }
     value.set(Math.min(max, Math.max(min, v)));
   };
 
-  const [a11yValue, setA11yValue] = useState(() => format(value.value));
+  const [a11yValue, setA11yValue] = useState('');
+  // Giá trị đọc cho VoiceOver/TalkBack lấy một lần lúc gắn (trên UI thread, không đọc lúc render);
+  // sau đó cập nhật khi thả tay.
+  useAnimatedReaction(
+    () => value.get(),
+    (v, prev) => {
+      if (prev === null) scheduleOnRN(setA11yValue, format(v));
+    },
+  );
   const handleEnd = (v: number) => {
     setA11yValue(format(v));
     onChangeEnd?.(v);
   };
   const commit = () => {
     'worklet';
-    scheduleOnRN(handleEnd, value.value);
+    scheduleOnRN(handleEnd, value.get());
   };
 
   const pan = usePanGesture({
@@ -80,13 +93,17 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }
 
   const gesture = useSimultaneousGestures(pan, tap);
 
+  // Reanimated chỉ theo dõi shared value đọc TRỰC TIẾP trong style; đọc qua hàm phụ thì thanh chỉ
+  // vẽ lại khi re-render (lỗi góp ý Phase 2: thanh zoom đứng yên tới lúc thả tay).
+  const ratio = (v: number) => {
+    'worklet';
+    return Math.min(1, Math.max(0, (v - min) / (max - min)));
+  };
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: ((value.value - min) / (max - min)) * usable }],
+    transform: [{ translateX: ratio(value.get()) * usable }],
   }));
-  const fillStyle = useAnimatedStyle(() => ({
-    width: ((value.value - min) / (max - min)) * usable,
-  }));
-  const text = useDerivedValue(() => format(value.value));
+  const fillStyle = useAnimatedStyle(() => ({ width: ratio(value.get()) * usable }));
+  const text = useDerivedValue(() => format(value.get()));
 
   // VoiceOver/TalkBack: vuốt lên/xuống để tăng/giảm một nấc (design.md §7).
   const nudge = (dir: 1 | -1) => {
@@ -97,13 +114,17 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }
   };
 
   return (
-    <View style={styles.root}>
-      <View style={styles.header}>
-        <Text style={[type.body, styles.label]} maxFontSizeMultiplier={1.3}>
-          {label}
-        </Text>
-        <AnimatedText text={text} style={[type.num, styles.value]} />
-      </View>
+    <View style={compact ? styles.compact : styles.root}>
+      {!compact && (
+        <View style={styles.header}>
+          <Text style={[type.label, styles.label]} maxFontSizeMultiplier={1.3}>
+            {label}
+          </Text>
+          <View style={styles.pill}>
+            <AnimatedText text={text} style={[type.num, styles.value]} />
+          </View>
+        </View>
+      )}
       <GestureDetector gesture={gesture}>
         <View
           accessible
@@ -125,10 +146,18 @@ export function Slider({ label, value, min, max, step = 0, format, onChangeEnd }
 }
 
 const styles = StyleSheet.create({
-  root: { gap: space[2] },
+  root: { gap: space[1] },
+  compact: { flex: 1 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { color: color.ink },
-  value: { color: color.muted, minWidth: 56, textAlign: 'right' },
+  pill: {
+    minHeight: 26,
+    paddingHorizontal: space[3] - 2,
+    borderRadius: radius.full,
+    backgroundColor: color.accentSoft,
+    justifyContent: 'center',
+  },
+  value: { color: color.accent, minWidth: 44, textAlign: 'center' },
   hit: { height: size.tap, justifyContent: 'center' },
   track: {
     position: 'absolute',
@@ -136,7 +165,7 @@ const styles = StyleSheet.create({
     right: THUMB / 2,
     height: TRACK,
     borderRadius: radius.full,
-    backgroundColor: color.line,
+    backgroundColor: color.accentSoft,
   },
   fill: {
     position: 'absolute',
@@ -151,6 +180,8 @@ const styles = StyleSheet.create({
     width: THUMB,
     height: THUMB,
     borderRadius: radius.full,
-    backgroundColor: color.ink,
+    borderWidth: THUMB_RING,
+    borderColor: color.accent,
+    backgroundColor: color.knob,
   },
 });

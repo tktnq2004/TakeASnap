@@ -19,6 +19,8 @@ import { color } from '@/ui/tokens';
 import type { ImageSource } from './types';
 
 type Num = number | SharedValue<number>;
+/** Màu nhận shared value để Bảng màu đổi màu theo ngón tay mà không re-render (design.md §6.10). */
+type Col = string | SharedValue<string>;
 
 export type PoseCanvasProps = {
   source: ImageSource;
@@ -36,17 +38,17 @@ export type PoseCanvasProps = {
    */
   fit?: 'cover' | 'contain';
   outlineEnabled: boolean;
-  outlineColor: string;
+  outlineColor: Col;
   /** px màn hình. */
   outlineWidth: Num;
   fillEnabled: boolean;
-  fillColor: string;
+  fillColor: Col;
   fillOpacity: Num;
   subjectOpacity: Num;
   backgroundOpacity: Num;
   /** Nét mặt: màu và độ dày riêng (góp ý lần 3). */
   faceEnabled: boolean;
-  faceColor: string;
+  faceColor: Col;
   /** px màn hình. */
   faceWidth: Num;
   /**

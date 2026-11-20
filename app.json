@@ -1,33 +1,49 @@
 {
   "expo": {
-    "name": "TakeASnap",
-    "slug": "takeasnap",
-    "scheme": "takeasnap",
+    "name": "SnapShot",
+    "slug": "snapshot",
+    "scheme": "snapshot",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
-    "backgroundColor": "#18191b",
+    "backgroundColor": "#05070D",
     "ios": {
       "supportsTablet": false,
       "infoPlist": {
-        "NSCameraUsageDescription": "TakeASnap cần camera để chụp theo pose.",
-        "NSPhotoLibraryUsageDescription": "TakeASnap cần đọc ảnh để lấy dáng từ ảnh của bạn.",
-        "NSPhotoLibraryAddUsageDescription": "TakeASnap cần quyền lưu ảnh vào album TakeASnap."
+        "NSCameraUsageDescription": "SnapShot cần camera để chụp theo pose.",
+        "NSPhotoLibraryUsageDescription": "SnapShot cần đọc ảnh để lấy dáng từ ảnh của bạn.",
+        "NSPhotoLibraryAddUsageDescription": "SnapShot cần quyền lưu ảnh vào album SnapShot."
       }
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#18191b",
+        "backgroundColor": "#05070D",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
-    "plugins": ["expo-router", "expo-sqlite", "expo-font", "expo-asset"],
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-font",
+      "expo-asset",
+      "expo-sharing",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 220,
+          "backgroundColor": "#05070D"
+        }
+      ]
+    ],
     "experiments": {
       "typedRoutes": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
     }
   }
 }

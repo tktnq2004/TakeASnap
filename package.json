@@ -1,5 +1,5 @@
 {
-  "name": "takeasnap",
+  "name": "snapshot",
   "version": "1.0.0",
   "main": "expo-router/entry",
   "private": true,
@@ -11,7 +11,12 @@
     ],
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/src/$1"
-    }
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|standard-navigation|composition-critic))",
+      "/node_modules/react-native-reanimated/plugin/",
+      "/node_modules/@react-native/babel-preset/"
+    ]
   },
   "scripts": {
     "start": "expo start",
@@ -22,14 +27,16 @@
     "test": "jest",
     "format": "prettier --write .",
     "check": "npm run typecheck && npm run lint && npm run test",
-    "build:samples": "node scripts/build-sample-poses.mts"
+    "build:samples": "node scripts/build-sample-poses.mts",
+    "eval:review": "node ../composition-critic/scripts/eval.ts eval assets/poses/source"
   },
   "dependencies": {
-    "@expo-google-fonts/dm-mono": "^0.4.2",
-    "@expo-google-fonts/urbanist": "^0.4.2",
+    "@expo-google-fonts/nunito": "^0.4.2",
     "@shopify/react-native-skia": "2.14.0",
+    "composition-critic": "github:tktnq2004/composition-critic#v0.3.0",
     "expo": "~58.0.23",
     "expo-asset": "~58.0.20",
+    "expo-blur": "~58.0.6",
     "expo-camera": "~58.0.14",
     "expo-constants": "~58.0.15",
     "expo-file-system": "~58.0.13",
@@ -41,6 +48,8 @@
     "expo-media-library": "~58.0.13",
     "expo-router": "~58.0.30",
     "expo-sensors": "~58.0.4",
+    "expo-sharing": "~58.0.23",
+    "expo-splash-screen": "~58.0.14",
     "expo-sqlite": "~58.0.15",
     "expo-status-bar": "~58.0.4",
     "lucide-react-native": "^1.70.0",

@@ -1,46 +1,38 @@
-# TakeASnap — Design system
+# SnapShot — Design system
 
-> Hệ thiết kế cho bản rebuild, dựng theo **tasteskill 2.5** (`.claude/skills/design-taste-frontend`).
-> Skill viết cho website, nên tài liệu này giữ phần áp được cho app (hệ thống, màu, chữ, copy, motion) và ghi rõ phần không áp.
+> Bản Phase 4: giao diện tối than chì + xanh trời (bản B2, đổi từ xanh dương – trắng), chốt qua 3 vòng chọn trên canvas thiết kế (5 phong cách → 5 bố cục mỗi màn → bản ghép).
+> Hệ thống, copy và motion vẫn theo **tasteskill 2.5** (`.claude/skills/design-taste-frontend`); quy tắc màn hình di động lấy từ skill `imagegen-frontend-mobile` (vùng an toàn, chữ đủ to, ít khung lồng khung).
 > Nghiệp vụ ở [business-flow.md](business-flow.md), kỹ thuật ở [roadmap.md](roadmap.md).
 
 ---
 
-## 1. Kind và deal
-
-Theo skill: **xác định kind trước, rồi deal, không chọn theo cảm tính.**
+## 1. Hướng đã chốt
 
 | Mục | Giá trị | Nguồn |
 |---|---|---|
-| Nền tảng | iOS và Android (Expo Go), chỉ tiếng Việt | đã chốt ở [roadmap §0](roadmap.md#0-phạm-vi-đã-chốt) |
-| Kind | `software` (app tiêu dùng) | skill §1: "App, SaaS, AI…" |
-| Palette | **`graphite-safety-orange`**: nền graphite, nhấn cam | `start.mjs deal --page software` |
-| Font | **`urbanist`**: Urbanist + DM Mono | cùng lượt deal, skill gợi ý cho "apps, consumer software" |
-| Radius | **`round`**: 10 / 16 / 24 | skill: "`round` for consumer apps" |
+| Nền tảng | iOS và Android (Expo Go), chỉ tiếng Việt | [roadmap §0](roadmap.md#0-phạm-vi-đã-chốt) |
+| Màu | **Xanh dương – trắng.** Camera nền tối; mọi màn khác nền trắng xanh | người dùng chọn, vòng 1 |
+| Phong cách | **Bo tròn thân thiện**: khối to, bo lớn, dễ bấm (phong cách 2) | vòng 1 |
+| Chữ | **Nunito** 600 / 700 / 800 | phong cách 2 |
+| Bố cục | Camera C + cột công cụ dọc của D · Thư viện A · Pose của bạn D + thanh nổi của A · Menu B · Chỉnh pose A · Bảng màu B | vòng 2 |
+| Camera | Zoom nút nhanh (kéo ra thước) · giữ nút độ hiện để kéo · cột công cụ kéo được | vòng 3 |
 
-Lượt deal trả về 3 palette: `white-navy-tab`, `graphite-safety-orange`, `card-pastels`. Chọn graphite vì **camera cần nền tối**: nền sáng quanh khung ngắm làm mắt đánh giá sai độ sáng và màu của cảnh. Cam là màu nhấn quen thuộc của máy ảnh, và nổi được trên đa số cảnh chụp.
+Vì sao camera vẫn tối: nền sáng quanh khung ngắm làm mắt đánh giá sai độ sáng và màu của cảnh. Các màn khác là màn đọc và chọn, nền sáng dễ nhìn hơn ngoài trời.
 
-### Phần áp được và phần không áp
-
-| Áp | Không áp (luật của website) |
-|---|---|
-| Một hệ thống: một kiểu nút, một họ radius, một kiểu card, một đường kẻ | Một section mỗi màn hình, hero, tỉ lệ 1440/1024/768/390 |
-| UI 90–95% trung tính, một màu nhấn, **cấm tím** | Nav, footer, credits, hình nền shader, moment, scene |
-| Copy thẳng: tiêu đề có danh từ, nút = động từ + đối tượng, không câu quảng cáo | Các script kiểm tra (`consistency.mjs`, `check.mjs`) chỉ chạy trên HTML |
-| Motion token, không nảy, mọi chuyển động đều do người dùng gây ra | Hover (app không có hover; thay bằng trạng thái nhấn) |
-| Chữ nhỏ nhất 13 px, chữ đọc 16 px, tương phản ≥ 4.5:1 | Ảnh thật của khách hàng, icon thương hiệu đủ màu |
-| Không caption trên ảnh, không placeholder, không số liệu bịa | |
+**So với các app lấy camera làm màn chính** (vòng 3): hàng ảnh vừa chụp · nút chụp · đổi camera giống Camera iPhone, Pixel, Samsung. Thanh trên ít nút rồi mở thêm cùng hướng với Camera iOS 26. Cột công cụ dọc giống Snapchat, Instagram. Zoom nút nhanh giống Camera iPhone, Pixel.
 
 ---
 
 ## 2. Nguyên tắc
 
-1. **Ảnh là nhân vật chính.** Khung ngắm, pose và ảnh ghép chiếm phần lớn màn hình. UI lùi về sau: trung tính, ít, gọn ở mép.
-2. **Một màu nhấn, dùng có lý do.** Cam chỉ dùng cho: nút chính, trạng thái đang bật, thước cân bằng khi đã thẳng, vòng focus. Dưới 3% diện tích ở những chỗ khác.
-3. **Một hệ thống.** Một kiểu nút chính, một kiểu nút phụ, một kiểu nút icon, một họ radius, một thang khoảng cách. Không có màn nào tự đặt kiểu riêng.
-4. **Đi theo ngón tay.** Trong lúc kéo, vật đi đúng 1:1 với ngón tay, không trễ, không easing. Chuyển động chỉ có ở lúc thả.
-5. **Nói thẳng.** Mỗi nhãn đọc lên cho người lạ cũng hiểu ngay. Không ẩn dụ, không khen sản phẩm, không dấu chấm than.
-6. **Không tím.** Bản cũ dùng `#C259FF`. Mọi màu có hue OKLCH trong khoảng 270–330° đều bị loại khỏi UI, kể cả trong bảng màu pose có sẵn.
+1. **Ảnh là nhân vật chính.** Khung ngắm, pose và ảnh chiếm phần lớn màn hình. Điều khiển gọn ở mép, nền kính mờ trên camera.
+2. **Một tay, một ngón.** Mọi thao tác hay dùng trên Camera nằm trong tầm ngón cái: nút chụp, zoom, cột công cụ. Thao tác có giá trị liên tục (zoom, độ hiện) làm bằng **giữ rồi kéo** ngay tại nút, thả tay là xong.
+3. **Một màu nhấn, dùng có lý do.** Xanh `accent` chỉ cho: nút chính, trạng thái đang chọn/bật, thanh trượt, vòng chọn. Trên camera dùng xanh nhạt `camAccent` cho cùng các việc.
+4. **Một hệ thống.** Một kiểu nút chính, một kiểu nút phụ, một kiểu nút icon, một họ radius, một thang khoảng cách. Không có màn nào tự đặt kiểu riêng.
+5. **Đi theo ngón tay.** Trong lúc kéo, vật đi đúng 1:1 với ngón tay, không trễ, không easing. Chuyển động chỉ có ở lúc thả.
+6. **Nói thẳng.** Mỗi nhãn đọc lên cho người lạ cũng hiểu ngay. Không ẩn dụ, không khen sản phẩm, không dấu chấm than.
+7. **Không tím.** Mọi màu có hue OKLCH trong khoảng 270–330° đều bị loại khỏi UI, kể cả bảng màu pose có sẵn.
+8. **Bóng chỉ cho lớp nổi.** Nút nổi, thanh nổi, menu, bảng màu, ô đang được nhấc lên có bóng mềm. Card và panel nằm yên thì không có bóng.
 
 ---
 
@@ -50,139 +42,177 @@ Tất cả nằm trong `src/ui/tokens.ts`. Component chỉ đọc token, không 
 
 ### 3.1 Màu
 
-Giá trị lấy từ `start.mjs css --palette graphite-safety-orange`.
+**Tối cả app — than chì + xanh trời (bản B2, chốt 2026-11-17 trên canvas, trang "B — cặp xanh và đen dịu mắt").** Thay cho xanh dương – trắng của vòng 3. Lý do (góp ý sau phiếu Phase 4): nền trắng ở Chỉnh sửa làm mỏi mắt khi nhìn lâu và khó thấy màu sáng (viền trắng mặc định của pose); Camera, icon và màn mở app vốn đã tối nên cả app giờ một tông, không chói khi chuyển màn.
+
+- Nền xám than **trung tính** (không ngả xanh): màu ảnh, màu pose và màu lấy từ ảnh hiện đúng như thật.
+- Không đen tuyền, chữ trắng ngà: đỡ nhòe chữ, các lớp thẻ còn tách nhau bằng độ sáng.
+- Một màu nhấn duy nhất là xanh trời dịu `#8AB4F8`, dùng chung cho Camera; nút chính nền nhấn, chữ tối.
 
 ```ts
 export const color = {
-  bg:         '#18191b', // nền màn hình, nền quanh khung ngắm
-  surface:    '#222427', // sheet, panel, thẻ
-  ink:        '#eff0f1', // chữ chính, icon, đường kẻ (ở 14%)
-  muted:      '#9c9ea3', // nhãn, meta, chữ phụ
-  line:       'rgba(239,240,241,0.14)', // hairline duy nhất
-  accent:     '#ff4a1f', // nút chính, trạng thái bật, focus
-  accentInk:  '#18191b', // chữ trên nền accent
-  inverseBg:  '#eff0f1', // nút phụ dạng đặc (hiếm)
-  inverseInk: '#18191b',
-  scrim:      'rgba(24,25,27,0.56)', // đĩa sau nút icon khi nằm trên khung ngắm
-  danger:     '#ff6b6b', // chỉ cho vùng xóa và thao tác xóa, luôn đi kèm icon + chữ
+  // các màn ngoài Camera (Thư viện, Chỉnh sửa, Cài đặt, Xem ảnh vừa chụp)
+  bg:          '#131416', // nền màn
+  surface:     '#1D1F23', // card, panel, menu, nút phụ
+  surfaceAlt:  '#27292E', // ô nhập, rãnh segmented trong card
+  accentSoft:  '#242C3A', // nút nhẹ, rãnh slider, nhãn giá trị
+  ink:         '#E8EAED', // chữ chính, icon (trắng ngà)
+  muted:       '#9AA0A6', // nhãn, chữ phụ, gợi ý
+  faint:       '#5F6368', // icon tắt, mũi tên phải (chỉ trang trí, không cho chữ)
+  line:        '#2C2F34', // hairline trong nhóm
+  accent:      '#8AB4F8', // nút chính, đang chọn
+  accentInk:   '#121417', // chữ trên accent (tối)
+  danger:      '#F28B82', // xóa: nền nút đặc, hoặc chữ trên thẻ
+  dangerInk:   '#121417',
+  switchOff:   '#3C4043', // rãnh công tắc lúc tắt
+  swatchEdge:  '#5F6368', // viền ô màu gần trùng nền (màu Đen của pose)
+  knob:        '#F1F3F4', // núm thanh kéo, công tắc
+  onImage:     '#FFFFFF', // nét vẽ đè lên ảnh, luôn trắng
+  shadow:      '#000000',
+  menuScrim:   'rgba(19,20,22,0.62)', // sau menu pose (iOS có làm mờ tông tối)
+  popoverScrim:'rgba(0,0,0,0.35)',    // sau bảng màu nổi
+
+  // camera (nền tối)
+  camBg:       '#05070D', // nền quanh khung ngắm
+  camInk:      '#FFFFFF',
+  camMuted:    'rgba(255,255,255,0.7)',
+  camGlass:    'rgba(255,255,255,0.12)', // cụm nút trên thanh trên, cụm zoom, nút đổi camera
+  camScrim:    'rgba(5,7,13,0.55)',      // cột công cụ, nút zoom
+  camPanel:    'rgba(16,22,36,0.94)',    // bảng mở thêm công cụ
+  camAccent:   '#8AB4F8', // = accent: viền nút pose, zoom đang dùng, thanh độ hiện, thước đã thẳng
+  camWarn:     '#FACC15', // vạch thước cân bằng khi máy còn lệch
+  grid:        'rgba(255,255,255,0.35)',
+  checkerA:    '#17181B', // nền ô caro sau preview pose (tối)
+  checkerB:    '#1D1F23',
 } as const;
 ```
 
-Tương phản (đã tính theo WCAG):
+Tương phản (WCAG, đã tính; `tokens.test.ts` kiểm):
 
 | Cặp | Tỉ lệ | Dùng cho |
 |---|---|---|
-| `ink` trên `bg` | ≈ 15:1 | mọi chữ đọc |
-| `muted` trên `bg` | ≈ 6.5:1 | nhãn, meta |
-| `accentInk` trên `accent` | ≈ 5.2:1 | chữ trên nút chính |
-| `accent` trên `bg` | ≈ 5.2:1 | icon/viền trạng thái bật |
+| `ink` trên `bg` | 15.3:1 | mọi chữ đọc |
+| `muted` trên `bg` / `surface` | 7.0 / 6.3:1 | nhãn, gợi ý |
+| `accentInk` trên `accent` | 8.8:1 | chữ trên nút chính |
+| `accent` trên `bg` / `accentSoft` | 8.8 / 6.7:1 | chữ nút phụ, giá trị slider |
+| `dangerInk` trên `danger` / `danger` trên `surface` | 7.7 / 6.9:1 | nút xóa đặc / chữ xóa |
+| `camAccent` trên `camBg` | 9.6:1 | trạng thái trên camera |
 
-Quy tắc:
-- Không dùng `#000` thuần cho UI. Đen thuần chỉ xuất hiện trong ảnh và trong bảng màu pose.
-- Không gradient, không đổ bóng (shadow). Phân tầng bằng `surface` + `line`.
-- `danger` gần tông với `accent`, nên **không bao giờ dùng màu một mình** để báo xóa: luôn có icon thùng rác và chữ "Xóa".
+- Ô màu gần trùng nền thẻ (tương phản dưới 1.6:1, ví dụ màu Đen của pose) có viền `swatchEdge` (`needsEdge` trong `src/ui/contrast.ts`).
+- Thanh trạng thái máy: chữ sáng ở mọi màn; `app.json` `userInterfaceStyle: "dark"` để hộp thoại và bàn phím của máy cũng tối.
+- Màu không bao giờ đứng một mình để báo trạng thái: xóa luôn có icon thùng rác và chữ "Xóa", flash tự động có chữ "A".
+- Không gradient trong UI. Ngoại lệ là ô chọn màu và thanh hue trong Bảng màu (nội dung, không phải trang trí).
+- Bản vẽ trên canvas của các màn (vòng 1–3) vẫn là bản xanh – trắng; bố cục giữ nguyên, chỉ đổi màu theo bảng trên.
 
 ### 3.2 Màu cho pose (màu chức năng)
 
-Đây là màu người dùng chọn cho viền và lớp phủ, phải nổi trên mọi cảnh chụp. Không thuộc màu UI, nhưng vẫn không có tím.
+Màu người dùng chọn cho viền, nét mặt và lớp phủ, phải nổi trên mọi cảnh chụp. Không thuộc màu UI, nhưng vẫn không có tím.
 
 | Tên | Mã | Mặc định cho |
 |---|---|---|
-| Trắng | `#ffffff` | viền |
-| Cam | `#ff4a1f` | phủ |
-| Vàng | `#ffd60a` | |
-| Xanh lá | `#30d158` | |
-| Xanh ngọc | `#00c7be` | |
-| Xanh dương | `#0a84ff` | |
-| Hồng | `#ff375f` | |
-| Đen | `#000000` | |
+| Trắng | `#FFFFFF` | viền, nét mặt |
+| Cam | `#FF8A3D` | phủ |
+| Vàng | `#FACC15` | |
+| Xanh lá | `#22C55E` | |
+| Đỏ | `#F87171` | |
+| Xanh dương | `#2563EB` | |
+| Đen | `#10213F` | |
 
-Ô thứ 9 mở bảng chọn màu tự do. Màu người dùng tự chọn là nội dung của họ, không bị luật cấm tím.
+Ô dấu cộng cuối hàng mở **Bảng màu** (§6.11). Màu người dùng tự chọn là nội dung của họ, không bị luật cấm tím. Bảng màu nhớ 6 màu dùng gần đây.
 
 ### 3.3 Chữ
 
+Nunito qua `@expo-google-fonts/nunito` (JS thuần + `expo-font`, chạy trong Expo Go). Phase 4 bỏ Urbanist và DM Mono.
+
 ```ts
 export const font = {
-  display: 'Urbanist_500Medium',
-  text:    'Urbanist_400Regular',
-  textMed: 'Urbanist_500Medium',
-  mono:    'DMMono_500Medium', // số: zoom, %, px, đồng hồ hẹn giờ
+  semibold: 'Nunito_600SemiBold',
+  bold:     'Nunito_700Bold',
+  heavy:    'Nunito_800ExtraBold',
 };
 
 export const type = {
-  title:  { fontFamily: font.display, fontSize: 28, lineHeight: 34, letterSpacing: -0.84 }, // -0.03em
-  head:   { fontFamily: font.display, fontSize: 20, lineHeight: 26, letterSpacing: -0.4 },
-  body:   { fontFamily: font.text,    fontSize: 16, lineHeight: 24 },
-  button: { fontFamily: font.textMed, fontSize: 16, lineHeight: 20 },
-  label:  { fontFamily: font.textMed, fontSize: 13, lineHeight: 18 },
-  num:    { fontFamily: font.mono,    fontSize: 13, lineHeight: 16 },
+  title:   { fontFamily: font.heavy,    fontSize: 30, lineHeight: 35 }, // tiêu đề màn mở đè lên Camera
+  titleSm: { fontFamily: font.heavy,    fontSize: 18, lineHeight: 22 }, // tiêu đề giữa đầu màn trong luồng
+  head:    { fontFamily: font.heavy,    fontSize: 18, lineHeight: 22 }, // tên nhóm pose
+  body:    { fontFamily: font.semibold, fontSize: 16, lineHeight: 23 },
+  button:  { fontFamily: font.heavy,    fontSize: 16, lineHeight: 20 },
+  label:   { fontFamily: font.heavy,    fontSize: 15, lineHeight: 19 }, // nhãn slider, công tắc, chip
+  hint:    { fontFamily: font.semibold, fontSize: 14, lineHeight: 20 }, // gợi ý, chữ phụ
+  caption: { fontFamily: font.heavy,    fontSize: 13, lineHeight: 16 }, // tên nhóm trong Cài đặt, giá trị trong nhãn
+  num:     { fontFamily: font.bold,     fontSize: 13, lineHeight: 16, fontVariant: ['tabular-nums'] },
+  badge:   { fontFamily: font.heavy,    fontSize: 11, lineHeight: 18 }, // huy hiệu trên nút, 1–3 ký tự
 };
 ```
 
-- Viết hoa chữ đầu câu ở mọi nơi. **Không viết hoa toàn bộ** (bản cũ: tiêu đề nhóm "COFFEE", "SCHOOL").
-- Không chữ nào dưới 13 px. Chữ người dùng phải đọc (mô tả, thông báo) từ 16 px.
-- Số luôn dùng `mono`, để giá trị không nhảy độ rộng khi kéo slider: `1.0×`, `40%`, `3 px`.
-- Số không tách khỏi đơn vị khi xuống dòng.
-- Theo cỡ chữ hệ thống (Dynamic Type trên iOS, Font size trên Android) qua `allowFontScaling`, tối đa 1.3× cho thanh điều khiển camera (`maxFontSizeMultiplier`).
+- Viết hoa chữ đầu câu. Không viết hoa toàn bộ, trừ tên nhóm trong Cài đặt (`caption`, giãn chữ 0.02em).
+- Không chữ nào dưới 13 px, trừ huy hiệu 11 px trên nút (A, 60) và số 12 px trên thước zoom.
+- Số dùng `tabular-nums` để không nhảy độ rộng khi kéo: `1,0×`, `40%`, `4,0 px`. Dấu thập phân là dấu phẩy.
+- Theo cỡ chữ hệ thống qua `allowFontScaling`, tối đa 1.3× cho điều khiển camera (`maxFontSizeMultiplier`).
 
 ### 3.4 Khoảng cách, kích thước, radius
 
 ```ts
-export const space  = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32, 7: 48, 8: 64 } as const;
-export const radius = { sm: 10, md: 16, lg: 24, full: 999 } as const; // data-radius="round"
+export const space  = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 20, 6: 24, 7: 32, 8: 48 } as const;
+export const radius = { sm: 12, md: 16, lg: 20, xl: 24, xxl: 28, full: 999 } as const;
 export const size = {
   tap:        44, // vùng chạm nhỏ nhất
-  button:     48, // nút chữ
-  iconButton: 44, // nút icon, glyph 24
-  shutter:    76, // nút chụp, vòng ngoài 4 px
-  thumb:      44, // ảnh vừa chụp, nút pose
+  button:     54, // nút chữ ở đáy màn
+  buttonSm:   36, // nút chữ trong card (Hủy, Xong)
+  chip:       42, // chip tab Chỉnh pose
+  iconButton: 44,
+  shutter:    82, // vòng ngoài 5 px trắng, đĩa trong accent
+  thumb:      54, // ảnh vừa chụp, đổi camera
   swatch:     36,
-  gutter:     24, // lề trái/phải của màn nội dung
-  edge:       16, // khoảng từ mép màn tới điều khiển trên camera
+  edge:       12, // lề màn: mép tới khối và mép tới điều khiển camera
+  railW:      52,
 };
 ```
 
 | Radius | Dùng cho |
 |---|---|
-| `sm` 10 | chip, ô màu, ô trong thanh segmented |
-| `md` 16 | panel, ảnh thumbnail trong lưới |
-| `lg` 24 | góc trên của sheet, khung ảnh ghép |
-| `full` | nút chữ, nút icon, nút chụp |
+| `sm` 12 | ô nhập, ô chọn màu trong Bảng màu, nút icon vuông trong card |
+| `md` 16 | ô pose trong lưới 4 cột, ảnh vừa chụp |
+| `lg` 20 | nhóm Cài đặt, Bảng màu, menu |
+| `xl` 24 | card nhóm Thư viện, ảnh trong Xem ảnh vừa chụp, bảng mở thêm trên camera |
+| `xxl` 28 | khung ngắm, preview Chỉnh pose, panel điều khiển, thanh nổi |
+| `full` | nút chữ, nút icon, chip, segmented, nút chụp, cột công cụ |
 
-Khung ngắm **không bo góc** và không có 4 góc vẽ thêm (bản cũ có `cornerTL…`). Ảnh lưu là hình chữ nhật, nên khung ngắm cũng là hình chữ nhật.
+Khung ngắm bo `xxl` (đổi so với Phase 2): khung đặt trên nền tối nên góc bo không làm hiểu sai vùng ảnh, ảnh lưu vẫn là hình chữ nhật đủ góc.
 
 ### 3.5 Motion
 
-Số liệu lấy từ `references/motion.md` của skill.
-
 ```ts
 export const motion = {
-  in: 140, out: 200, press: 90, panel: 200, slide: 240, image: 600,
+  in: 140, out: 200, press: 90, panel: 200, slide: 240, image: 600, holdDelay: 300,
   ease:   Easing.bezier(0.2, 0.8, 0.2, 1),    // mọi bước UI
-  easeIO: Easing.bezier(0.65, 0, 0.35, 1),    // chỉ khi vật di chuyển một quãng
+  easeIO: Easing.bezier(0.65, 0, 0.35, 1),    // khi vật di chuyển một quãng
 };
 ```
 
 | Thành phần | Chuyển động | Thời gian |
 |---|---|---|
-| Nút (mọi loại) | nhấn: scale .985, nền đậm thêm 14% về phía `ink`/`bg`; thả: về lại | 90 ms vào, 200 ms ra |
+| Nút (mọi loại) | nhấn: scale .97, thả: về lại | 90 ms vào, 200 ms ra |
 | Nút chụp | nhấn: đĩa trong thu 4 px; chụp xong: khung ngắm tối 40% rồi sáng lại | 90 ms; 140 ms |
-| Sheet | trượt lên từ đáy, không nảy | 240 ms `easeIO` |
-| Tab / segmented | vạch chỉ báo trượt sang tab được chọn; nội dung đổi ngay | 240 ms |
+| Zoom nút ↔ thước | cross-fade tại chỗ, thước hiện ngay khi ngón bắt đầu kéo ngang | 140 ms |
+| Cột công cụ ↔ thanh độ hiện | cột co lại, thanh giãn ra quanh ngón tay; thả tay thì ngược lại | 140 ms `ease` |
+| Cột công cụ khi quăng | trôi theo vận tốc rồi dính mép trái/phải, không nảy | 240 ms `easeIO` |
+| Bảng mở thêm trên camera | mờ + trượt 8 px từ thanh trên | 200 ms |
+| Sheet / màn mở đè | trượt lên từ đáy, không nảy | 240 ms `easeIO` |
+| Menu pose | ô pose phóng lên, nền mờ, menu hiện dưới ô | 140 ms `ease` |
+| Bảng màu | phóng từ ô màu tự chọn (gốc là mũi tên) | 140 ms `ease` |
 | Overlay khi kéo | đi đúng 1:1 theo ngón tay | 0 |
-| Overlay khi thả vào điểm hít | về đúng góc 0°/90° | 140 ms `ease` |
-| Overlay khi chạm đúp đặt lại | về vị trí gốc | 240 ms `easeIO` |
-| Thumbnail ảnh vừa chụp | ảnh mới thay ảnh cũ bằng cross-fade | 200 ms |
+| Overlay thả vào điểm hít / chạm đúp | về 0°/90° · về vị trí gốc | 140 ms `ease` · 240 ms `easeIO` |
+| Ảnh vừa chụp | ảnh mới thay ảnh cũ bằng cross-fade | 200 ms |
 
 Cấm:
-- `spring` có nảy hoặc vượt đích (bản cũ: `SlideUp.tsx` dùng `bounciness: 10`).
-- Hiệu ứng tự chạy: nhấp nháy, xoay vòng, chạy chữ, thứ gì đó chuyển động khi người dùng không chạm vào. Ngoại lệ duy nhất là gợi ý nút pose **một lần** khi mở app lần đầu.
-- Loader che màn hình. Khi đang xử lý: giữ nguyên màn, hiện dòng trạng thái có bước cụ thể (xem §6).
-- Khi bật Reduce Motion: sheet và tab đổi ngay, mọi chuyển động thả về đích thành tức thì. Cử chỉ vẫn đi theo ngón tay.
+- `spring` có nảy hoặc vượt đích.
+- Chuyển động tự chạy khi người dùng không chạm.
+- Loader che màn hình. Khi đang xử lý: giữ nguyên màn, hiện các bước cụ thể (§6.8).
+- Khi bật Reduce Motion: sheet, bảng, menu đổi ngay; mọi chuyển động thả về đích thành tức thì. Cử chỉ vẫn đi theo ngón tay.
 
 ### 3.6 Haptics
 
-> **Spike D (iPhone 15 Pro Max, Expo Go 58):** `expo-haptics` có trong Expo Go và rung được. Mọi lệnh rung vẫn đi qua `src/lib/haptics.ts`, file này tự bỏ qua nếu máy thiếu module. Người dùng có thể tắt rung hệ thống, nên mọi phản hồi quan trọng vẫn phải có tín hiệu nhìn thấy được: góc hít có vạch chỉ báo, vùng xóa đổi viền `danger`, thước cân bằng đổi màu.
+> `expo-haptics` có trong Expo Go. Mọi lệnh rung đi qua `src/lib/haptics.ts`, file này tự bỏ qua nếu máy thiếu module. Mọi phản hồi quan trọng vẫn có tín hiệu nhìn thấy được.
 
 | Sự kiện | Kiểu |
 |---|---|
@@ -190,29 +220,38 @@ Cấm:
 | Overlay hít vào 0°/90° | `selection` |
 | Overlay vào vùng xóa | `notificationWarning` (một lần mỗi lần vào) |
 | Thước cân bằng chuyển sang thẳng | `selection` |
+| Zoom đi qua mốc 0,5 · 1 · 2 · 3 khi kéo thước | `selection` |
+| Thanh độ hiện chạm 0% hoặc 100% | `selection` |
+| Cột công cụ dính vào mép | `selection` |
+| Mở menu pose (giữ ô) | `impactMedium` |
+| Chọn / bỏ chọn người, chọn ô khi vuốt chọn nhiều | `selection` |
 | Lưu pose / lưu ảnh xong | `notificationSuccess` |
 
 ### 3.7 Icon
 
-- **Một bộ duy nhất: Lucide** (`lucide-react-native`, vẽ bằng `react-native-svg`, có sẵn trong Expo Go). Một bộ cho cả iOS và Android, nên hai nền tảng trông giống nhau.
-- Nét 1.75, cỡ 24 (trong nút 44) hoặc 20 (trong chip). Màu theo token.
-- Không emoji làm icon. Không trộn Ionicons hay bộ icon khác.
-- Mọi nút chỉ có icon phải có `accessibilityLabel` bằng tiếng Việt, cùng chữ với nhãn tương ứng ở §5.
+- **Một bộ: Lucide** (`lucide-react-native`). Nét 2 (2.25 cho mũi tên và X), cỡ 20 trong nút 44, 18 trong chip và nút nhỏ.
+- Không emoji làm icon. Mọi nút chỉ có icon phải có `accessibilityLabel` tiếng Việt, cùng chữ với nhãn ở §5.
 
 | Việc | Icon Lucide |
 |---|---|
 | Đổi camera | `switch-camera` |
-| Flash tắt / bật / tự động | `zap-off` / `zap` / `zap` + chữ "A" |
-| Lưới | `grid-3x3` |
-| Thước cân bằng | `ruler` |
-| Hẹn giờ | `timer` |
-| Pose | thumbnail pose hiện tại, chưa có thì `person-standing` |
-| Lật ngang | `flip-horizontal-2` |
-| Ẩn tạm | `eye-off` |
-| Xóa | `trash-2` |
-| Hoàn tác / làm lại | `undo-2` / `redo-2` |
-| Đóng / quay lại | `x` / `chevron-left` |
+| Flash tắt / bật / tự động | `zap-off` / `zap` / `zap` + huy hiệu "A" |
+| Hẹn giờ | `timer` (+ huy hiệu số giây khi bật) |
+| Mở thêm công cụ | `chevron-down` (xoay 180° khi đang mở) |
+| Bố cục · Thước cân bằng | `grid-3x3` (tắt / lưới; kỹ thuật khác: hình nhỏ của kỹ thuật, §6.15) · `ruler` |
 | Cài đặt | `settings` |
+| Nút pose | thumbnail pose đang dùng; chưa có pose thì `plus` |
+| Chỉnh pose · Độ hiện · Lật ngang · Ẩn / hiện pose | `pencil` · `contrast` · `flip-horizontal-2` · `eye-off` (đang ẩn: `eye`, nền `accent`) |
+| Gỡ pose, xóa | `trash-2` |
+| Tab Viền · Phủ · Nền · Cọ | `pen-tool` · `droplet` · `image` · `brush` |
+| Cọ Thêm · Xóa | `plus` · `eraser` |
+| Hoàn tác / làm lại | `undo-2` / `redo-2` |
+| Mở Bảng màu · Lấy màu từ ảnh | `plus` · `pipette` |
+| Thêm ảnh từ máy | `image-plus` |
+| Dùng để chụp (menu) | `camera` |
+| Chia sẻ ảnh | `share` |
+| Chọn (dấu tích) | `check` |
+| Đóng · Quay lại · Mở mục | `x` · `corner-up-left` + chữ "Quay lại" · `chevron-right` |
 
 ---
 
@@ -222,20 +261,35 @@ Mỗi loại chỉ có một kiểu. Không màn nào được tự tạo nút r
 
 | Component | Mô tả |
 |---|---|
-| `Button` `variant="primary"` | cao 48, `radius.full`, nền `accent`, chữ `accentInk`. **Mỗi màn chỉ một nút primary** |
-| `Button` `variant="secondary"` | cao 48, `radius.full`, nền trong suốt, viền 1 px `line`, chữ `ink` |
-| `Button` `variant="text"` | chữ `ink`, gạch chân 1 px, cho thao tác phụ ("Chọn ảnh khác") |
-| `IconButton` | 44×44, `radius.full`; trên camera có đĩa `scrim`; trạng thái bật: glyph `accent` |
-| `Chip` | cao 32, `radius.sm`, chữ `num`; dùng cho zoom (`0.5×` `1×` `2×`) và độ hiện overlay |
-| `Segmented` | thanh 40, ô `radius.sm`, vạch chỉ báo trượt; dùng cho tab Viền / Phủ / Người / Sửa nét |
-| `Slider` | rãnh 4 px, núm 24, phần đã chọn `accent`; nhãn trái, giá trị `num` phải |
-| `Switch` | switch hệ thống, màu bật = `accent` |
-| `Swatch` | ô màu 36, `radius.sm`; đang chọn: vòng 2 px `ink` cách 2 px |
-| `Sheet` | `expo-router` `presentation: 'formSheet'` (detent 0.88), dự phòng `@gorhom/bottom-sheet` nếu Android không ổn; nền `surface`, có tay kéo, không nảy; không tự làm sheet bằng Animated |
-| `PoseTile` | ô `radius.md`, **ảnh gốc đầy đủ màu** (người + nền). Pose mẫu: thêm viền trắng 1.5 px. Pose của bạn: thêm style của chính bản đó (độ dày thu về ≤ 2 px). Chạm = sửa (Phase 2: dùng để chụp); nhấn giữ = xóa |
-| `StatusLine` | một dòng `label` `muted` + spinner 16 px khi đang chạy; không bao giờ che nội dung |
+| `Button` `primary` | cao 54, `full`, nền `accent`, chữ `accentInk` `button`, bóng `accent` 35%. **Mỗi màn một nút primary** |
+| `Button` `secondary` | cao 54, `full`, nền `surface`, chữ `accent` (trên nền `bg`) |
+| `Button` `soft` | cao 52, `full`, nền `accentSoft`, chữ `accent` ("Chọn tất cả") |
+| `Button` `danger` | cao 52, `full`, nền `danger`, chữ `dangerInk` + icon `trash-2`; chỉ cho xóa hàng loạt không hoàn tác được |
+| `Button` `dangerText` | nền trong suốt hoặc `surface`, chữ `danger` + icon ("Xóa ảnh", "Xóa bộ tách") |
+| `Button` `text` | chữ `accent`, không nền |
+| `BackButton` | cao 44, `full`, nền `surface`, icon `corner-up-left` `accent` + chữ "Quay lại" |
+| `CloseButton` | 44×44, `full`, nền `surface`, icon `x` `ink` |
+| `IconButton` | 44×44, `full`. Trên camera: nền trong suốt bên trong cụm kính; đang bật: nền `accent`. Có thể mang `Badge` |
+| `Badge` | 18 cao, nền trắng, chữ `accent` `badge`, góc trên phải nút |
+| `GlassGroup` | cụm nút camera: nền `camGlass`, `full`, đệm 4, khe 2 |
+| `ToolRail` | cột công cụ pose: rộng 52, nền `camScrim`, `full`, đệm 4, khe 4, nút thu gọn / mở cao 28 ở đầu cột (khi có pose). Kéo ở bất kỳ đâu trên cột để dời, quăng ngang dính mép trái/phải, luôn kẹp trong khung ngắm, nhớ vị trí và trạng thái thu gọn (§6.1) |
+| `ZoomControl` | 4 nút 0,5 · 1× · 2 · 3 trong `GlassGroup`; kéo ngang thì thành **thước cuộn kim giữa** 330×56 (§6.1) |
+| `Shutter` | 82, vòng 5 px trắng, đĩa `accent` |
+| `Chip` | cao 42, `full`, nền `surface`, icon 18 `accent` + chữ `label`; đang chọn: nền `accent`, chữ và icon trắng. Tab của Chỉnh pose |
+| `Segmented` | rãnh `surface` (trên `bg`) hoặc `surfaceAlt` (trong card), đệm 3–4, ô `full`; đang chọn: nền `accent` chữ trắng. Pose mẫu / Pose của bạn, Viền / Mặt, Thêm / Xóa, Lưới |
+| `Slider` | rãnh 10 `accentSoft`, phần đã chọn `accent`, núm 28 trắng viền 4 `accent`. Nhãn `label` trái, giá trị `num` trong nhãn tròn `accentSoft` bên phải |
+| `Switch` | 52×32, bật `accent`, tắt `#D5DDEA`, núm trắng 26 |
+| `Swatch` | 32 tròn (7 màu sẵn + ô màu tự chọn vừa một hàng 330); màu trắng có viền 2 px `#DCE6F7`; đang chọn: vòng 2 px `accent` cách 2 px |
+| `PoseTile` | nút bút chì tròn 28 ở góc dưới phải (nền `camScrim`, viền trắng 35%, chạm đổi nền `accent`): chạm = mở Chỉnh pose ngay (pose mẫu: tạo bản sao khi lưu); ẩn khi đang chọn nhiều (phiếu Phase 5 lần 7). Ảnh gốc đầy đủ màu. Thư viện: 110×146 bo 18. Lưới 4 cột: bo 16. Pose mẫu thêm viền trắng 1.5 px; pose của bạn vẽ style của chính bản đó (độ dày ≤ 2 px). Chạm = dùng để chụp; giữ = menu. Chế độ chọn: vòng 24 ở góc dưới phải, cùng tâm với nút bút chì (phiếu Phase 5 lần 8); đã chọn = viền 3 px `accent` + phủ `accent` 15% + đĩa `accent` có dấu tích |
+| `GroupCard` | nền `surface`, `xl`, đệm 16 (phải 0 để hàng ảnh tràn mép) |
+| `SettingsGroup` | nền `surface`, `lg`, hàng cao ≥ 56, hairline `line` thụt 16 |
+| `FloatingBar` | nền `surface`, `xxl` + 4, đệm 8, bóng; ghim đáy cách 30 |
+| `ContextMenu` | menu pose: nền mờ (blur 12 + `bg` 62%), ô phóng to 150×200, menu 250 rộng nền `surface` `lg` + 2, hàng 52, mục nguy hiểm tách bằng dải 8 px `bg` |
+| `ColorPopover` | Bảng màu: 306 rộng, `lg`, bóng, mũi tên chỉ vào ô màu tự chọn (§6.11) |
+| `StatusSteps` | danh sách bước đang xử lý: xong = đĩa `accent` có dấu tích, đang chạy = vòng quay, chưa tới = vòng xám; chữ `label` |
+| `EmptyState` | một câu `body` nói chuyện gì đã xảy ra + một nút làm tiếp; dùng chung cho trống, lỗi, thiếu quyền. Không icon minh họa, không câu hướng dẫn thêm |
 
-Một panel điều khiển có **chiều cao cố định**: đổi tab trong Chỉnh pose không làm khung preview co giãn.
+Panel điều khiển của Chỉnh pose có **chiều cao cố định** (222): đổi tab không làm preview co giãn.
 
 ---
 
@@ -245,212 +299,303 @@ Theo `references/copy.md`, viết bằng tiếng Việt.
 
 ### 5.1 Luật
 
-1. **Tiêu đề có danh từ chỉ đồ vật:** "Thư viện pose", "Chỉnh pose", "Ảnh nền". Không câu hỏi, không câu cảm thán.
-2. **Nút = động từ + đối tượng,** 1–4 từ: "Chụp ảnh", "Lưu pose", "Chọn ảnh nền", "Tạo ảnh". Không dùng "OK", "Xác nhận", "Tiếp tục" chung chung, "Xem thêm".
-3. **Một việc, một cách gọi.** "Lưu pose" ở mọi nơi, không chỗ này "Lưu" chỗ kia "Hoàn tất".
-4. **Không quảng cáo, không cảm thán:** bỏ "Ảnh đẹp lung linh", "Tách nền thành công! Chọn nền nào", "Done", "ĐẸP NHẤT, CHUẨN NHẤT".
-5. **Lỗi = chuyện gì xảy ra + làm gì tiếp** (bảng ở [business-flow §10.3](business-flow.md#103-thông-báo-lỗi)).
+1. **Tiêu đề có danh từ:** "Thư viện pose", "Chỉnh pose", "Cài đặt". Không câu hỏi, không câu cảm thán.
+2. **Nút = động từ + đối tượng,** 1–4 từ: "Chụp ảnh", "Lưu pose", "Xóa 5 pose", "Chia sẻ ảnh". Không dùng "OK", "Xác nhận", "Tiếp tục".
+3. **Một việc, một cách gọi.** "Lưu pose" ở mọi nơi.
+4. **Không quảng cáo, không cảm thán.**
+5. **Lỗi = chuyện gì xảy ra + làm gì tiếp** ([business-flow §10.3](business-flow.md#103-thông-báo-lỗi)).
 6. **Không placeholder, không chữ mẫu** trong bản build.
 7. **Không chữ trên ảnh** ngoài nhãn điều khiển cần thiết. Thumbnail pose không có caption.
 
-### 5.2 Đổi từ bản cũ
-
-| Bản cũ | Bản mới |
-|---|---|
-| Danh sách Form | Thư viện pose |
-| Mẫu / Đã lưu | Pose mẫu / Pose của bạn |
-| COFFEE, SCHOOL, STREET, TRAVEL | Quán cà phê, Trường học, Đường phố, Du lịch |
-| Đóng | (nút `x` có nhãn "Đóng thư viện") |
-| Done | Lưu pose |
-| Foreground / Background / Fill / Outline | Người / — (bỏ) / Phủ / Viền |
-| Enable Fill | Bật lớp phủ |
-| Change Background | Thay nền |
-| 1. Chọn ảnh người / 2. Chọn ảnh nền | Chọn ảnh người / Chọn ảnh nền (số bước nằm ở stepper) |
-| Xác nhận | Tạo ảnh |
-| Đang tạo bóng đổ & ánh sáng... | Đang khớp ánh sáng, bước 2 trên 3 |
-| Hoàn thành! Ảnh đẹp lung linh | (không có câu nào, ảnh kết quả tự hiện) |
-| Lưu vào máy | Lưu vào Ảnh |
-| Thành công — Đã lưu vào Thư viện ảnh! | Đã lưu vào album TakeASnap |
-| Ứng dụng cần quyền Camera / Cấp quyền | TakeASnap cần camera để chụp theo pose. / Cho phép dùng camera |
-
-### 5.3 Bảng nhãn chuẩn
+### 5.2 Bảng nhãn chuẩn
 
 | Chỗ | Nhãn |
 |---|---|
 | Nút chụp (a11y) | Chụp ảnh |
 | Nút pose (a11y) | Mở thư viện pose |
-| Chế độ dưới nút chụp | Chụp theo pose · Thay nền |
-| Thoát chế độ chỉnh overlay | Xong |
+| Mở / đóng bảng công cụ (a11y) | Mở thêm công cụ / Thu gọn công cụ |
+| Cột công cụ (a11y) | Cột công cụ pose, kéo để dời chỗ |
 | Vùng xóa | Thả để gỡ pose |
 | Thêm pose | Thêm ảnh từ máy |
-| Thao tác trên pose | Dùng để chụp · Sửa · Xóa |
-| Pose mẫu | Tạo bản sao để sửa |
-| Chỉnh pose, nút chính | Lưu pose |
-| Thay nền, bước 1–4 | Ảnh người · Ảnh nền · Vị trí · Kết quả |
-| Thay nền, nút chính bước 3 | Tạo ảnh |
-| Thay nền, kết quả | Lưu vào Ảnh · Chỉnh lại |
-| Giữ để so sánh | Giữ để xem ảnh gốc |
+| Menu pose của bạn | Chụp · Sửa · Xóa |
+| Menu pose mẫu | Chụp · Tạo bản sao |
+| Menu, cách hủy | Chạm ra ngoài để hủy |
+| Chọn nhiều | Đã chọn n · Hủy · Chọn tất cả · Xóa n pose |
+| Màn Chỉnh pose (tiêu đề) | Chỉnh sửa |
+| Chọn người (bước trên màn đang xử lý) | Chọn người · n/m · Hủy · Dùng n người |
+| Chỉnh pose, tab | Viền · Phủ · Nền · Cọ |
+| Chỉnh pose, nút | Lưu thành bản mới · Lưu pose |
+| Bảng màu | Mã màu · Lấy màu từ ảnh · Gần đây |
+| Xem ảnh vừa chụp | Ảnh n trên m · Xóa ảnh · Chia sẻ ảnh |
+| Cài đặt | Chụp · Dung lượng · Giới thiệu; Lưu như thật / Lưu soi gương; Rung phản hồi; Xóa bộ tách |
+| Thiếu quyền camera (trong khung ngắm) | SnapShot cần camera để chụp theo pose. · Mở Cài đặt |
 
 ---
 
 ## 6. Màn hình
 
-Khung vẽ cho máy 390×844. `·` là vùng ảnh / khung ngắm. Ký hiệu trong khung chỉ để phác thảo; icon thật dùng bảng ở §3.7.
+Khung vẽ cho máy 390×844. Bản vẽ đầy đủ trên canvas thiết kế (trang "Bản ghép — vòng 3"). Số đo dưới đây là cho 390×844; máy khác giữ lề và cỡ nút, khung ngắm và preview co theo chiều rộng.
 
-### 6.1 Camera — chế độ chụp
+**Hai kiểu đầu màn** (business-flow §7.3):
+- **Màn mở đè lên Camera** (Thư viện pose, Cài đặt, Xem ảnh vừa chụp): tiêu đề `title` bên trái, `CloseButton` bên phải. Đóng là về Camera.
+- **Màn là một bước trong luồng** (Chỉnh pose): `BackButton` bên trái, tên màn `titleSm` căn giữa.
 
-```
-┌──────────────────────────────────┐
-│ [⚡] [#] [📏] [⏱] [3:4]     [⚙] │  thanh trên: IconButton, cách mép 16
-├──────────────────────────────────┤
-│··································│
-│··········   ╭──╮   ·············│
-│··········   │  │  pose overlay  │  khung ngắm 3:4, không bo góc
-│··········  ╭┴──┴╮ ··············│  lưới / thước cân bằng nằm trong khung
-│··········  │    │ ··············│
-│··········  ╰┬──┬╯ ··············│
-│··········   │  │   ·············│
-│······────────────────────·······│  thước cân bằng: ink → accent khi thẳng
-│··································│
-│                         [◐][⇋][👁]│  rail overlay (chỉ khi có pose):
-├──────────────────────────────────┤  độ hiện · lật ngang · giữ để ẩn
-│        (0.5×) ( 1× ) (2×)        │  Chip zoom
-│                                  │
-│  [ảnh]        ( ◯ )       [pose] │  thumbnail 44 · nút chụp 76 · nút pose 44
-│                                  │
-│    Chụp theo pose  ·  Thay nền   │  chọn chế độ, chữ label; đang chọn = ink, còn lại = muted
-└──────────────────────────────────┘
-```
-
-- Thanh trên và vùng dưới nằm trên nền `bg` đặc (ngoài vùng ảnh sẽ lưu). Ở tỉ lệ 9:16, khi khung ngắm tràn ra sau thanh điều khiển, nút icon có đĩa `scrim`.
-- Nút pose hiện **thumbnail của pose đang dùng**, viền 2 px `accent` khi pose đang bật.
-
-### 6.2 Camera — chế độ chỉnh overlay
+### 6.1 Camera
 
 ```
 ┌──────────────────────────────────┐
-│                          ( Xong )│  chỉ còn nút Xong (secondary)
-├──────────────────────────────────┤
-│··································│
-│········  ╭──╮   ·················│  overlay có khung bao 1 px ink 40%
-│········  │  │   ·················│  cử chỉ nhận trên TOÀN khung ngắm
-│········ ╭┴──┴╮  ·················│
-│········ ╰┬──┬╯  ·················│
-│··································│
-├──────────────────────────────────┤
+│ ( 📏  3:4  ⌄• )          ( ⚙ ) │  top 52: GlassGroup trái · Cài đặt 52 phải
+│╭────────────────────────────────╮│  khung ngắm: top 112, rộng hết màn, bo 28
+││··························· ╭──╮ ││
+││·········╭──╮·············│ ═ │││  cột công cụ (ToolRail), mặc định mép phải,
+││·········│  │  pose ·······│[▣]│││  giữa khung ngắm:
+││········╭┴──┴╮············│ ✎ │││    nút thu gọn · nút pose · Chỉnh pose
+││──── ╱╱╱╱╱╱ ────··········│ ◐ │││    · Độ hiện (huy hiệu %) · Lật ngang
+││·········│  │·············│ ⇋ │││    · Ẩn / hiện pose
+││·········╰──╯·············│ ⊘ │││
+││··························· ╰──╯ ││  thước cân bằng: 2 vạch trắng cố định,
+│╰────────────────────────────────╯│  vạch giữa vàng nghiêng theo máy
+│       ( 0,5  [1×]  2   3 )       │  ZoomControl, top 660
 │                                  │
-│             ( 🗑 )               │  vùng xóa 64, đĩa line;
-│         Thả để gỡ pose           │  khi overlay vào: viền danger + rung
+│   [ảnh]      (( ● ))      ( ⟲ )  │  top 720: ảnh vừa chụp 54 · nút chụp 82 · đổi camera 54
 └──────────────────────────────────┘
 ```
 
-### 6.3 Thư viện pose (sheet, cao 88%)
+- **Không còn hàng chọn chế độ** dưới nút chụp (vòng 3).
+- **Thanh trên** (góp ý Phase 4): Đèn flash (huy hiệu "A" khi tự động), Hẹn giờ (huy hiệu số giây), Bố cục (thay nút Lưới; lưới có huy hiệu 3 / 4, §6.15), Thước cân bằng (mặc định bật), Tỉ lệ (chữ `3:4`), nút Mở thêm. Chạm nút trên thanh để đổi nhanh. Cài đặt tách riêng bên phải.
+- **Bảng mở thêm** (chạm nút ⌄): bảng `camPanel` rộng hết màn trừ lề (tối đa 360), bo 24, ngay dưới thanh trên. Hai hàng cao 48 để chọn thẳng giá trị: Đèn flash `[Tắt | Tự động | Bật]`, Hẹn giờ `[Tắt | 3 s | 10 s]` (lưới chọn trong bảng Bố cục). **Thả xuống** cao dần từ 0 trong 200 ms `easeIO`, các hàng trượt xuống 12 px và hiện dần; **kéo lên** ngược lại; mũi tên xoay 180° theo. Chạm ra ngoài hoặc nút ⌃ thì thu lên.
+- **Thước cân bằng:** vạch giữa 80×2 màu `camWarn` xoay theo độ nghiêng; lệch dưới 1° thì ba vạch nối thẳng, đổi `camAccent`, rung `selection`.
+- **Cột công cụ (`ToolRail`):**
+  - Chạm nhanh một nút = bấm nút. Kéo ở **bất kỳ đâu trên cột** (ngón đi quá 10 px) = dời cột; khi đó lượt chạm của nút bị hủy nên thả tay không bấm nhầm.
+  - **Thu gọn** (góp ý Phase 4): nút ⌃ ở đầu cột thu cột lại, chỉ còn nút chọn pose; nút ⌄ mở lại. **Mép trên cột đứng yên**: thu gọn thì cột cuộn lên, mở thì xổ xuống (200 ms `easeIO`, các nút phụ mờ dần và trượt 12 px; mũi tên xoay theo). Vị trí lưu là mép trên cột; mở ra mà chạm mép dưới khung thì cột dịch lên vừa đủ. Trạng thái thu gọn được nhớ.
+  - Kéo dọc tự do; thả với vận tốc ngang thì cột trôi rồi dính mép trái hoặc phải; thả chậm thì dính mép gần hơn.
+  - Luôn kẹp trong khung ngắm (cách mép khung 6). Đổi tỉ lệ khung thì kẹp lại.
+  - Vị trí lưu vào cài đặt máy, lần mở sau giữ nguyên.
+  - Cột sang trái thì nhãn và thanh độ hiện mở về phía phải.
+- **Độ hiện:** chạm = đổi nhanh 100% → 60% → 30%. **Giữ 300 ms** = các nút trong cột nhường chỗ cho thanh kéo dọc **gọn trong khung cột** (không lấn ra ngoài); số % ở đầu cột. Kéo lên tăng, kéo xuống giảm (0–100%, bước 5), tính theo quãng ngón tay đi, không cần ngón tay nằm đúng chỗ núm (góp ý Phase 4). Thả tay: giữ giá trị, cột trở lại. Cả thao tác một ngón.
+- **Zoom (`ZoomControl`)** — thước cuộn kim giữa (chọn ở vòng 4, kiểu B):
+  - Lúc nghỉ: 4 nút `0,5 · 1× · 2 · 3` trong cụm kính; nút đang dùng to 44, chữ `camAccent`, mang giá trị thật (vd `1,4×`).
+  - Chạm nút = nhảy tới mức đó.
+  - Đặt ngón lên cụm rồi kéo ngang = 4 nút đổi thành **thước cuộn** 330×56 tại chỗ (nền `camScrim`, bo `full`). **Kim đứng yên ở giữa** (3×30, `camAccent`); thước chạy dưới kim theo ngón tay, kéo sang trái là tăng zoom. Thước theo thang log (mỗi lần gấp đôi cách nhau 70 px), vạch nhỏ mỗi 0,1, vạch lớn kèm số ở 0,5 · 1 · 2 · 3 · 5; vạch và số mờ dần về hai mép.
+  - Giá trị hiện trong nhãn `accent` ngay trên kim (`1,4×`), luôn ở giữa nên mắt không phải đuổi theo.
+  - 0,5×–5×, bước 0,1; đi qua mốc 0,5 · 1 · 2 · 3 thì rung `selection`. Thả tay: giữ mức zoom, thước thu về 4 nút.
+  - Camera trước và Android không có ống góc rộng: bỏ nút `0,5`.
+  - iPhone có camera ảo (Triple / Dual Wide): app luôn dùng camera ảo, máy tự chuyển ống khi zoom nên không chớp khi qua 1×. Máy chỉ có ống rời vẫn phải đổi ống, còn chớp.
+  - Pinch ngoài pose vẫn zoom như cũ.
+- **Hàng chụp:** Ảnh vừa chụp 54 bo 17 viền 2 trắng 80% · nút chụp 82 · Đổi camera 54 nền `camGlass`. Lề hai bên 40.
+- **Ở tỉ lệ 9:16** khung ngắm tràn ra sau thanh trên và cụm zoom: mọi nút đã có nền kính nên vẫn đọc được.
+
+### 6.2 Camera — chưa có pose
+
+- Lần đầu mở app, hoặc khi đã gỡ pose: cột chỉ còn nút pose là **ô tròn 44 có dấu cộng** (icon `plus` trắng, viền 2 px `camAccent`, nền trong). Chạm mở Thư viện pose.
+- Không có gợi ý, bóng chữ hay hiệu ứng chỉ chỗ.
+- Chưa chụp ảnh nào: ô ảnh vừa chụp chỉ có viền trắng 25%, không bấm được.
+
+### 6.3 Camera — đang kéo pose
+
+- Chạm vào pose là kéo được ngay; overlay mờ 60% và có khung bao 1 px trắng 40% trong lúc kéo.
+- Cột công cụ và hàng chụp mờ còn 25%; cụm zoom được thay bằng **vùng xóa** 74 (vòng `danger` 3 px, nền `danger` 25%, icon `trash-2` 28) + chữ "Thả để gỡ pose".
+- Ngón tay vào vùng xóa: overlay nhuộm đỏ, thu nhỏ về phía thùng rác, rung cảnh báo. Thả lúc đó thì gỡ pose; kéo ra thì trở lại như cũ.
+
+### 6.4 Quyền camera
+
+Không có màn riêng: mở app lần đầu thì gọi thẳng hộp thoại xin quyền của máy (`useCameraPermissions` của `expo-camera`). Camera vẫn vẽ đủ thanh trên, cột công cụ và hàng chụp trong lúc chờ.
+
+Đã bị từ chối (hộp thoại không hiện lại được): trong khung ngắm tối chỉ có `EmptyState`: "SnapShot cần camera để chụp theo pose." và nút "Mở Cài đặt" (`Linking.openSettings()`). Thư viện pose vẫn mở được bằng nút pose.
+
+### 6.5 Thư viện pose (mở đè lên Camera)
 
 ```
 ┌──────────────────────────────────┐
-│ ───                              │  tay kéo
-│ Thư viện pose                [x] │  title 28
-│ [ Pose mẫu | Pose của bạn ]      │  Segmented
-│                                  │
-│ Quán cà phê                      │  head 20
-│ ┌────┐ ┌────┐ ┌────┐ ┌──         │  PoseTile cuộn ngang, ô 104
-│ └────┘ └────┘ └────┘ └──         │
-│ Trường học                       │
-│ ┌────┐ ┌────┐ ┌────┐ ┌──         │
-│ └────┘ └────┘ └────┘ └──         │
-│                                  │
-│ ┌──────────────────────────────┐ │
-│ │      Thêm ảnh từ máy         │ │  primary, ghim ở đáy
-│ └──────────────────────────────┘ │
+│ Thư viện pose                (x) │  title 30, CloseButton
+│ ( [ Pose mẫu ] Pose của bạn  )   │  Segmented trên rãnh trắng, ô 46
+│ ╭──────────────────────────────╮ │
+│ │ Quán cà phê                  │ │  GroupCard: tên nhóm head, không đếm số pose
+│ │ ┌───┐ ┌───┐ ┌───┐ ┌──        │ │  PoseTile 110×146 cuộn ngang, tràn mép phải card
+│ │ └───┘ └───┘ └───┘ └──        │ │
+│ ╰──────────────────────────────╯ │
+│ ╭ Đường phố  7 pose ───────────╮ │
+│ ╰──────────────────────────────╯ │
+│        ( ▣  Thêm ảnh từ máy )    │  nút primary nổi, giữa, cách đáy 34
 └──────────────────────────────────┘
 ```
 
-Mọi ô hiện **ảnh gốc đầy đủ màu**: người dùng chọn pose nhờ nhìn cả người mẫu lẫn bối cảnh (góp ý sau Phase 1). Pose mẫu chỉ thêm viền trắng mảnh.
+- Mọi ô hiện ảnh gốc đầy đủ màu. Pose mẫu thêm viền trắng 1.5 px.
+- Danh sách cuộn dưới nút nổi; chừa đáy 110 để ô cuối không bị che.
 
-Tab "Pose của bạn" là lưới phẳng **4 cột**, gap 8, **mỗi bản pose một ô**; ô vẽ style của chính bản đó lên ảnh gốc để các bản từ cùng một ảnh phân biệt được. Khi trống: một dòng `body` "Chưa có pose nào. Thêm một ảnh có người để lấy dáng." và nút primary "Thêm ảnh từ máy".
+### 6.6 Pose của bạn (tab trong Thư viện)
 
-### 6.4 Chỉnh pose
+- Lưới phẳng **4 cột**, khe 6, mỗi bản pose một ô (vẽ style của chính bản đó).
+- Trống: một dòng `body` "Chưa có pose nào. Thêm một ảnh có người để lấy dáng." và nút primary "Thêm ảnh từ máy".
+- **Chọn nhiều:** vào bằng "Chọn pose" (hoặc vuốt ngang qua các ô, như Ảnh của iPhone). Tiêu đề đổi thành "Đã chọn n pose" + nút "Hủy" (`secondary` nhỏ, chữ `accent`); không có dòng hướng dẫn. `FloatingBar` ở đáy: "Chọn tất cả" (`soft`) và "Xóa n pose" (`danger`, rộng 1.3 phần). Xóa có hộp thoại xác nhận.
 
-```
-┌──────────────────────────────────┐
-│ [‹]     Chỉnh pose               │
-├──────────────────────────────────┤
-│▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░▒░│
-│░▒░▒░▒░▒░▒░▒  ╭──╮  ▒░▒░▒░▒░▒░▒░▒│  preview Skia trên nền ô caro
-│▒░▒░▒░▒░▒░▒░ ╭┴⊙⊙┴╮ ░▒░▒░▒░▒░▒░▒░│  viền + nét mặt, màu và độ
-│░▒░▒░▒░▒░▒░▒ │    │ ▒░▒░▒░▒░▒░▒░▒│  dày riêng
-│▒░▒░▒░▒░▒░▒░ ╰┬──┬╯ ░▒░▒░▒░▒░▒░▒░│
-├──────────────────────────────────┤  panel cao cố định 410 (height, không phải minHeight)
-│ [ Viền | Phủ | Ảnh ]             │
-│                                  │
-│ [ Viền | Mặt ]            [on]   │  đang chỉnh cái nào + công tắc của nó
-│ Độ dày ─────●──────────── 3 px  │
-│ Màu  ○ ○ ○ ○ ○ ○ ○ ○            │
-│                                  │
-│ ( Lưu thành bản mới ) (Lưu pose) │  pose mẫu: chỉ có Lưu pose
-└──────────────────────────────────┘
-```
+### 6.7 Menu pose (giữ một ô)
 
-| Tab | Nội dung |
+- Nền mờ toàn màn, ô pose được nhấc lên và phóng to 150×200 (bo 22, bóng), menu ngay dưới ô.
+- Pose của bạn: **Dùng để chụp** (chữ `accent`, icon `camera`) · Sửa pose (`pencil`) · dải 8 px · **Xóa pose** (chữ `danger`, `trash-2`).
+- Pose mẫu: Dùng để chụp · Tạo bản sao để sửa. Không có Xóa.
+- Dòng `hint` "Chạm ra ngoài để hủy" ở đáy. Ô gần đáy màn thì menu mở lên phía trên ô.
+- Lớp phủ ngay trong màn Thư viện (không mở màn mới). iOS làm mờ bằng `BlurView` của `expo-blur` (có trong Expo Go) cộng lớp `menuScrim`; Android dùng lớp `menuScrimSolid` sáng 90%, vì làm mờ thật trên Android phải bọc cả nội dung trong `BlurTargetView`. Không dùng menu ngữ cảnh native.
+- Ô nổi phóng từ đúng chỗ ô trong lưới (140 ms), menu hiện mờ dần ngay dưới; chọn một mục hoặc chạm ra ngoài thì thu về rồi mới làm việc đó. Rung `impactMedium` khi mở.
+
+### 6.8 Đang xử lý (trong luồng Thêm ảnh từ máy)
+
+- **Chọn người:** không có màn riêng; là một bước trên màn Đang xử lý (§6.13b, vòng 6).
+- **Đang xử lý:** giữ đầu màn Thư viện; ảnh vừa chọn 288×384 mờ 60% với một vạch quét `accent`; dưới là `StatusSteps` trong card trắng:
+
+| Bước | Chữ |
 |---|---|
-| Viền | Bộ chọn **[Viền | Mặt]** + công tắc cùng hàng · Độ dày (viền 1–12 px, mặt 0.5–5 px) · Màu, **riêng cho từng cái**. Đang chỉnh Mặt mà ảnh không có mặt → dòng `label` muted "Không thấy mặt…" |
-| Phủ | Hiện lớp phủ · Độ đậm 0–100% · Màu |
-| Ảnh | Độ hiện người 0–100% · Độ hiện nền 0–100% |
-| Sửa nét (Phase 3) | Thêm / Xóa (segmented) · Cỡ cọ 8–64 px · vẽ trực tiếp lên preview |
+| Tải bộ tách người (chỉ lần đầu) | Tải bộ tách người, 12 trên 42 MB |
+| Tách người | Tách người khỏi nền |
+| Nét mặt | Tìm nét mặt |
+| Contour | Vẽ dáng |
 
-**Viền và Mặt chung tab, chỉnh riêng** (góp ý lần 3): một thanh kéo chỉ đổi một thứ. Ống tay chân (góp ý lần 2) đã bỏ vì nét ước lượng chưa đủ tốt.
+  Không có dòng chú thích nào khác. Lỗi: hộp thoại theo business-flow §10.3 ("Chọn ảnh khác", "Thử tải lại", "Thử lại").
 
-**Ảnh đầy đủ trên một màn hình** (góp ý lần 5): ảnh đặt kiểu contain, không kéo/pinch. Caro chỉ vẽ trong khung ảnh; phần ngoài mép ảnh là nền `bg` trơn. (Lần 4 đã thử cover + kéo/pinch: phải kéo lên xuống mới xem hết, trải nghiệm kém, đã bỏ.) Ô thư viện đặt kiểu cover (ảnh nhỏ, cắt bớt mép không sao).
-
-**Nền ô caro** cho vùng trống (góp ý sau Phase 1, thay cho nền đen): ô 12 px, hai màu `checkerA` `#2c2e32` / `checkerB` `#3a3d42`. Chọn caro xám đậm thay cho caro trắng–xám kinh điển để không chói trên giao diện tối, và để viền trắng vẫn nổi. Chip "Xem trên ảnh gốc" của bản đầu được thay bằng tab **Ảnh** (độ hiện người và nền riêng).
-
-### 6.5 Thay nền
+### 6.9 Chỉnh pose
 
 ```
-Stepper:  ● Ảnh người ── ● Ảnh nền ── ◉ Vị trí ── ○ Kết quả
-
 ┌──────────────────────────────────┐
-│ [‹]          Vị trí              │
-│ ●───●───◉───○                    │
-├──────────────────────────────────┤
-│··································│
-│·········· ╭──╮ ··················│  ảnh nền + người, preview tức thì
-│·········· │  │ ··················│  kéo / pinch / xoay như overlay camera
-│·········· ╰──╯ ··················│
-│··········▒▒▒▒▒···················│  bóng
-├──────────────────────────────────┤
-│ Hướng sáng            ( ◴ )  auto│  vòng xoay, chạm "auto" để về giá trị ước lượng
-│ Bóng      ─────●──────── 60%    │
-│ Khớp màu  ───────●────── 70%    │
-│ ┌──────────────────────────────┐ │
-│ │          Tạo ảnh             │ │
-│ └──────────────────────────────┘ │
+│ ( ↶ Quay lại )   Chỉnh pose      │  BackButton · titleSm giữa
+│╭────────────────────────────────╮│  preview trên ô caro (checkerA/B, ô 10),
+││▒░▒░▒░▒░▒░▒░ ╭──╮ ▒░▒░▒░▒░▒░▒░▒░││  top 106, cao 340, bo 28; ảnh contain,
+││░▒░▒░▒░▒░▒░▒╭┴⊙⊙┴╮░▒░▒░▒░▒░▒░▒░▒││  không kéo / pinch
+││▒░▒░▒░▒░▒░▒░╰┬──┬╯▒░▒░▒░▒░▒░▒░▒░││
+│╰────────────────────────────────╯│
+│ [Viền] (Phủ) (Nền) (Cọ)          │  Chip, top 458
+│╭────────────────────────────────╮│  panel trắng, cao cố định 222, bo 28
+││ [Viền|Mặt]        Hiện viền [●]││
+││ ● ○ ● ● ● ● (+)                ││  Swatch; (+) mở Bảng màu
+││ Độ dày                  (4,0 px)││
+││ ━━━━━●────────────────────     ││
+│╰────────────────────────────────╯│
+│ ( Lưu thành bản mới ) ( Lưu pose )│  secondary 1 phần · primary 1.4 phần
 └──────────────────────────────────┘
 ```
 
-Kết quả: ảnh ghép chiếm hết vùng trên; giữ ngón tay lên ảnh để xem ảnh trước khi xử lý; dưới là nút primary "Lưu vào Ảnh" và nút secondary "Chỉnh lại" (quay về bước Vị trí, giữ nguyên mọi giá trị).
-
-### 6.6 Trạng thái đang xử lý
-
-Không có spinner che màn hình. Màn vẫn hiện ảnh đang xử lý (mờ 60%), dưới ảnh là `StatusLine`:
-
-| Việc | Dòng trạng thái |
+| Tab | Nội dung panel |
 |---|---|
-| Tải bộ tách người (lần đầu) | Đang tải bộ tách người, 12 trên 42 MB |
-| Tách người | Đang tách người khỏi nền |
-| Tạo contour | Đang vẽ dáng |
-| Phân tích nền | Đang đo ánh sáng của nền |
-| Ghép ảnh | Đang ghép ảnh, bước 2 trên 3 |
+| Viền | `[Viền \| Mặt]` + công tắc cùng hàng · màu · Độ dày (viền 1–12 px, mặt 0.5–5 px), riêng cho từng cái. Ảnh không có mặt: ô "Mặt" tắt (chữ `faint`, không bấm được), không có dòng chú thích |
+| Phủ | Hiện lớp phủ (công tắc) · màu (mặc định cam) · Độ đậm 0–100% |
+| Nền | Độ hiện người · Độ hiện nền (0–100%) |
+| Cọ | `[+ Thêm \| ⌫ Xóa]` + Hoàn tác, Làm lại (nút tròn 40 nền `surfaceAlt`, tắt = icon `faint`) · Cỡ cọ 8–64 px. Nét đang vẽ `accent` (thêm) hoặc `danger` (xóa) mờ 50%, con trỏ cọ là vòng trắng viền tối |
 
----
+- **Không có chú thích hay hướng dẫn** nào trong màn Chỉnh pose.
+- **Hoàn tác / Làm lại chỉ có ở tab Cọ**, vì chỉ nét cọ mới có lịch sử. Đầu màn không có nút hoàn tác.
+- Pose mẫu: chỉ một nút "Lưu pose" rộng hết hàng.
+- Nhãn nút phụ trên máy hẹp có thể rút còn "Lưu bản mới" (chuỗi riêng trong `strings.ts`).
+
+### 6.10 Bảng màu
+
+- Mở khi chạm ô dấu cộng hoặc ô màu tự chọn trong hàng màu. Bảng `ColorPopover` 306 rộng nổi trên panel, mũi tên chỉ đúng ô màu; nền sau phủ `ink` 12%.
+- Nội dung: ô chọn độ sáng / độ đậm 112 cao · thanh hue 12 · hàng "Mã màu" (ô nhập HEX) + nút `pipette` "Lấy màu từ ảnh" · "Gần đây" 6 ô 30.
+- Kéo trên ô sáng / đậm hoặc thanh màu thì preview đổi màu ngay (màu đi qua shared value, không re-render); thả tay mới ghi vào pose. Bảng không che hết pose. Chạm ra ngoài là xong, không có nút "Áp dụng". Màu khác lúc mở thì được đưa vào "Gần đây" (nhớ qua các lần mở app).
+- Ô cuối hàng màu: dấu cộng; màu đang dùng không thuộc 7 màu sẵn thì ô cuối hiện chính màu đó (đang chọn), chạm vào mở lại Bảng màu.
+- **Lấy màu từ ảnh:** chạm nút `pipette` thì bảng tạm ẩn, preview có viền `accent` 2 px; chạm vào ảnh để lấy màu đúng điểm ảnh gốc đó, rồi bảng mở lại với màu mới.
+
+### 6.11 Cài đặt (mở đè lên Camera)
+
+Tiêu đề "Cài đặt" + `CloseButton`. Ba `SettingsGroup`, mỗi nhóm có tên `caption` viết hoa phía trên:
+
+| Nhóm | Hàng |
+|---|---|
+| CHỤP | Ảnh camera trước: `Segmented` [Lưu như thật \| Lưu soi gương] · Rung phản hồi: `Switch` |
+| DUNG LƯỢNG | Bộ tách người, dung lượng `hint` + nút `dangerText` "Xóa bộ tách" |
+| GIỚI THIỆU | Phiên bản · Nguồn ảnh mẫu › · Giấy phép model › |
+
+Nhóm "Nhà phát triển" (Màn thử nghiệm) chỉ hiện trong bản dev (`__DEV__`).
+
+- "Ảnh camera trước" đổi prop `mirror` của camera; "Rung phản hồi" tắt mọi lệnh rung trong `src/lib/haptics.ts`. Cả hai nhớ qua các lần mở app (`settingsStore`).
+- "Xóa bộ tách" xóa thư mục `Paths.document/models/pose`, có xác nhận; dung lượng đọc từ file thật trong máy.
+- "Nguồn ảnh mẫu", "Giấy phép model" mở hộp thoại ngắn; trang ghi nguồn đầy đủ làm ở Phase 6.
+
+### 6.12 Xem ảnh vừa chụp (mở đè lên Camera)
+
+- Đầu màn: "Ảnh vừa chụp" + dòng `hint` "Ảnh 3 trên 5 · 14:32", `CloseButton`.
+- Ảnh 366 rộng đúng tỉ lệ chụp, bo 24, bóng nhẹ; vuốt ngang để xem ảnh trước. Chấm trang dưới ảnh (đang xem = vạch 18 `accent`).
+- Đáy: "Xóa ảnh" (`dangerText` trên nền `surface`, có xác nhận, xóa khỏi album; iOS hỏi thêm một lần bằng hộp thoại của máy) và "Chia sẻ ảnh" (primary, bảng chia sẻ của máy qua `expo-sharing`).
+- Danh sách ảnh chỉ giữ trong lần mở app (`sessionPhotos`); ô ảnh vừa chụp trên Camera tắt khi chưa có ảnh. Xóa hết ảnh thì màn tự đóng.
+
+### 6.13b Sửa theo phiếu Phase 4 lần 1
+
+- **Màn xem trước của camera** đặt theo `previewRect` (frame.ts): hình 3:4 đúng tỉ lệ cảm biến, nhỏ nhất phủ kín khung ngắm, cùng tâm. Trước đây nó phủ cả màn hình dài nên ảnh bị phóng thêm ~1,6 lần và 1× của app hẹp như 1,6× của app Camera gốc. Ảnh chụp cắt theo khung trong hệ của màn xem trước.
+- **Vuốt từ mép trái để quay lại** (`useEdgeSwipeBack`): màn thẻ học (dải 28 px) và Chỉnh pose (dải 16 px, vùng ảnh bắt đầu ở 12 px nên vuốt mép không cướp nét cọ). Màn trượt theo tay; thả quá 90 px hoặc vuốt nhanh thì quay lại.
+- **Khung 9:16 (phiếu Phase 5 lần 4):** không vừa giữa hai thanh thì tràn ra sau các nút; mép trên đi qua giữa thanh trên, mép dưới đi qua giữa hàng nút chụp (`viewfinderRect` với `cut`). Khoảng giữa hai đường đó thấp hơn khung thì khung thấp lại, hai bên hở vài px.
+- **Zoom:** giữ yên 250 ms trên cụm nút cũng hiện thước cuộn (giữ rồi kéo thì kéo luôn); chạm nhanh vẫn nhảy mức.
+- **Cột công cụ:** chọn pose thì cột tự mở ra; nút Độ hiện luôn có số, kể cả 100.
+- **Chụp:** chớp màn, rồi ảnh vừa cắt hiện đúng chỗ khung ngắm, thu nhỏ và trượt vào ô ảnh vừa chụp (`cameraUi.flyMs` 420 ms, `easeIO`). Ô ảnh hiện ảnh mới ngay, không đợi lưu vào album xong.
+- **Xem ảnh vừa chụp:** chấm trang đổi ngay trong lúc vuốt; hàng chấm mỗi ảnh một ô (rộng tối đa 300), chạm hoặc kéo trên hàng để tua nhanh. Nhiều ảnh thì chấm nhỏ lại.
+- **Menu pose** rộng 200, chữ ngắn: Chụp · Sửa · Xóa; pose mẫu: Chụp · Tạo bản sao.
+- **Chọn người:** ảnh nằm trong thẻ trắng nền `surfaceAlt`; người chưa chọn viền trắng nét đứt (dáng mẫu), đã chọn phủ `accent` 35% + viền trắng 3 px; mỗi người có huy hiệu số trên đầu (đã chọn thành dấu tích); dưới ảnh là hàng chip "Người 1, Người 2…" để chọn bằng tên.
+- **Chọn người (vòng 6) — bước trên màn Đang xử lý:** vòng 3–5 thử đưa chọn người vào Chỉnh sửa (tab Người, rồi Cọ → Người) nhưng mỗi lần chạm phải dò lại dáng, chậm 0,5–1 giây, nên bỏ. Giờ tách xong thì ảnh trên màn Đang xử lý (không còn mờ) thành chỗ chạm: người được chọn phủ `accent` 35% + viền trắng 3 px, chưa chọn viền trắng nét đứt 2 px (`personPick.dash` 8/6); mặc định chọn hết. Card các bước có thêm bước **Chọn người** giữa "Tìm nét mặt" và "Vẽ dáng": đang ở bước này thì chấm vòng `accent` thay vòng quay, số `n/m` màu `accent` bên phải; dưới các bước là hai nút **Hủy** (`secondary`) · **Dùng n người** (primary, rộng 1.4 phần, tắt khi n = 0). Không có huy hiệu, không có dòng hướng dẫn.
+- **Lấy màu từ ảnh:** viền xanh vẽ chồng lên preview (không đổi kích thước, hết giật); nút X ở góc preview để hủy và quay lại Bảng màu.
+
+- **Số trên thanh kéo và cụm zoom** (`AnimatedText`): giá trị đầu lấy trên UI thread, gửi về JS một lần làm `defaultValue`, nên hiện ngay khi mở màn mà không đọc shared value lúc render.
+- **Pose mẫu nhóm Selfie:** 7 ảnh chụp bằng camera trước, nhóm cuối của Pose mẫu (`assets/poses/source/selfie/selfie1–7.jpg`).
+
+- **Chụp liên tục:** mỗi lần bấm một lần chớp màn (`shutterFlashMs`) và rung `capture`; ô ảnh vừa chụp không quay vòng chờ nữa, giữ ảnh cũ trong lúc bấm; ngừng bấm `cameraUi.burstSettleMs` (350 ms) và lưu xong thì ảnh mới nhất bay vào ô (`flyMs`) kèm rung `saved`. Tối đa `cameraUi.burstMaxPending` (8) ảnh chờ lưu. Bấm lúc camera đang chụp: nhớ một lần bấm, hết hạn sau `cameraUi.burstTapTtlMs` (250 ms). Đổi camera: chờ ảnh đang chụp xong, rồi khóa nút chụp tới khi camera báo sẵn sàng (tối đa `cameraUi.switchReadyMs`).
+
+### 6.14 Logo, icon app và màn mở app
+
+Chốt qua `logo-design-skill` (canvas thiết kế, trang "Icon chốt + màn mở app").
+
+- **Dấu:** chữ S tròn nét (người đang tạo dáng, chấm là đầu) đứng trong hai góc khung ngắm; phía sau là **bóng chữ S** lệch lên trái — dáng mẫu mà người thật đang khớp vào. Nói đúng việc app làm: camera + chụp theo dáng mẫu, và là chữ S của SnapShot.
+- **Màu:** nền `camBg` `#05070D`, chữ S và khung trắng, bóng xanh nhạt `#60A5FA` (`camAccent`). Icon và màn mở app cùng một kiểu nên mở app vào Camera tối không bị chớp.
+- **Bản gốc:** `assets/brand/` (`mark-on-dark.svg`, `mark-on-light.svg` — chữ S đen cho nền sáng, `icon.svg`). Dấu dựng trên lưới 256, nét đều, góc tay và chân không lệch góc chuẩn.
+- **File trong app:** `assets/icon.png` (1024, kín nền, không bo góc); Android `android-icon-foreground.png` (dấu chiếm 62% để nằm trong vùng an toàn), nền là màu `#05070D`, `android-icon-monochrome.png` (một màu, bỏ bóng để không dính khối); `splash-icon.png` (dấu + chữ SnapShot Nunito ExtraBold, nền trong suốt); `favicon.png`.
+- **Màn mở app:** plugin `expo-splash-screen` trong `app.json`, ảnh rộng 220, nền `#05070D`. Expo Go không hiện màn này (hiện icon thay); xem đúng khi build bản preview / production.
+- Chữ S và bóng là nét tròn (stroke); khi cần bản cắt in, chuyển nét thành hình.
+
+### 6.15 Trợ lý bố cục (Phase 5)
+
+Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố cục", hàng "Bản chốt": **Kỹ thuật A · Gợi ý A · Nhận xét A · Thẻ học A**. Nghiệp vụ ở business-flow §6.
+
+**Nút Bố cục** thay nút Lưới trên thanh trên của Camera, cùng chỗ, cùng cỡ 44. Lưới 3×3 và 4×4 là hai dòng của bảng Bố cục, nên mỗi lúc chỉ có một lớp kẻ (phiếu Phase 5 lần 2: tách lưới thành nút riêng thì lưới chồng lớp bố cục, rối mắt; thử đặt nút Bố cục cạnh cụm zoom ở lần 1 rồi bỏ). Đang tắt: icon `grid` trắng. Đang bật: nền `accent` như các nút đang bật khác; lưới: icon `grid` + huy hiệu 3 / 4 như nút Lưới cũ; kỹ thuật khác: hình nhỏ của kỹ thuật màu trắng. **Chạm nút khi đang bật: tắt ngay** (rung `snap`, viên "Đã tắt bố cục" 1,5 s ở chỗ dòng gợi ý); chạm khi đang tắt: mở bảng Bố cục (phiếu Phase 5 lần 7: cần tắt nhanh như kéo pose vào thùng rác). Đổi từ kỹ thuật này sang kỹ thuật khác: chạm hai lần (tắt rồi mở bảng). `accessibilityLabel` "Tắt bố cục <tên kỹ thuật>" / "Bố cục tắt".
+
+**Bảng Bố cục (A — bảng kéo lên).** Chạm nút Bố cục thì bảng trượt lên từ đáy, nền `surface` 97%, bo trên 28, có vạch kéo; vuốt xuống, chạm nút đóng hoặc chạm ra ngoài thì đóng. Đầu bảng "Bố cục" (`head` cỡ 20) + `CloseButton` nhỏ. Mỗi dòng cao 52: ô 40 nền `surfaceAlt` vẽ hình nhỏ của kỹ thuật, tên (`label` 15) + mô tả một dòng (`caption` cỡ 13 nét `semibold`, `muted`); dòng đang chọn nền `accentSoft` + dấu tích `accent`. Chạm một dòng là chọn và đóng bảng. Đáy bảng là nút phụ "Học các kỹ thuật" mở tab Bố cục của Thư viện.
+
+| Dòng | Mô tả | Phase |
+|---|---|---|
+| Tự chọn | App nhìn khung cảnh, chọn giúp | 5b, chỉ khi qua cổng |
+| Tắt | Không có đường kẻ | 5 |
+| Lưới 3×3 | Chỉ đường kẻ, không gợi ý | 5 |
+| Lưới 4×4 | Lưới dày hơn, để căn thẳng | 5 |
+| Quy tắc 1/3 | Mắt trên đường 1/3 | 5 |
+| Đặt ở giữa | Người ở trục giữa | 5 |
+| Lấp đầy khung | Người chiếm gần hết khung | 5 (phiếu lần 8) |
+| Đường chân trời | Chân trời trên một đường 1/3 | 5 (lớp kẻ), 5a (tự dò) |
+| Đường dẫn | Đường đi dẫn tới người | 5 (lớp kẻ), 5a (tự dò) |
+| Góc thấp | Kéo dài chân | 5 |
+| Selfie | Máy cao hơn mắt | 5 |
+| Nhóm người | Đầu so le, xếp tam giác | 5 |
+
+**Lớp bố cục trên khung ngắm.** Đường kẻ `grid` (trắng 35%) 1 px như lưới cũ.
+- 1/3: lưới 3×3 + **chấm đích** ở giao điểm **trên** gần mắt người nhất (nhận xét chấm mắt theo đường 1/3 trên, nên chỉ hai giao điểm trên; phiếu phase5a 1.5): vòng 34 viền `camAccent` 2 px, chấm giữa 8. Phase 5 lấy mắt người mẫu của pose (cập nhật khi thả pose); chưa có pose thì hai giao điểm trên là vòng nhỏ 14. Thả pose: mắt cách một giao điểm trên dưới `compositionUi.snapPointRadius` (28) thì dính vào điểm đó; chỉ gần một đường thì không dính. Mắt đã nằm trong vòng đích thì vòng ẩn (với 1/3, đường dẫn, đặt ở giữa), lệch ra thì hiện lại.
+- Giữa: trục dọc giữa + chấm đích trên trục ở 1/3 trên.
+- Chân trời: cả hai đường 1/3 tô `camAccent` 2 px (đặt chân trời lên đường nào cũng đạt; phiếu phase5a 2.1); thước cân bằng hiện cùng.
+- Đường dẫn (Phase 5): hai đường chéo nét đứt `camAccent` 85% (8/6) từ hai góc dưới hội tụ ở giao điểm 1/3 trên gần mắt người mẫu nhất (chưa có pose: bên trái); chấm đích ở điểm hội tụ.
+- Góc thấp, selfie, nhóm: lưới 3×3, gợi ý qua dòng gợi ý.
+
+**Gợi ý (A — đích + một dòng).** Dòng gợi ý là viên 38 bo 19 ở đáy khung ngắm, nhưng không bao giờ thấp hơn mép trên cụm zoom (khung 9:16 tràn ra sau hàng nút chụp, đặt ở đáy khung thì bị nút che), nền `camBg` 72%, chữ trắng `label` cỡ 14, mũi tên `camAccent` chỉ hướng dời máy khi có. Chấm trắng 12 (viền tối) là mắt người khi đã có phân tích người, nét đứt trắng nối tới chấm đích. Mỗi lúc một dòng, giữ ổn định 0,5 s mới hiện (business-flow §6.4). **Đạt:** lưới đổi sang `camAccent`, chấm đích thành vòng đặc `camAccent` có dấu tích, viên gợi ý nền `camAccent` chữ `accentInk` "Đạt <kỹ thuật>", rung `haptic.levelReached` một lần; 1,5 s sau viên tự ẩn.
+
+**Tự chọn (Phase 5b).** Viên gợi ý ghi "Tự chọn: <kỹ thuật>" kèm nút nhỏ "Đổi" (nền `camAccent`), chạm Đổi mở bảng Bố cục.
+
+**Nhận xét sau khi chụp (A — thẻ dưới ảnh)** ở Xem ảnh vừa chụp (§6.12). Ảnh thu còn 300×400 để chừa chỗ; lớp bố cục của kỹ thuật đã dùng vẽ lên ảnh. Đường chân trời / Đường dẫn: vẽ thêm đường app tìm được trên ảnh, màu trắng như ở Kiểm tra bố cục (Phase 5a), bật / tắt cùng lớp bố cục. Dưới đầu màn, dòng `hint` thêm tên kỹ thuật ("Ảnh 3 trên 5 · Quy tắc 1/3"). Thẻ `surface` bo 24 dưới ảnh (cao tối thiểu 96 để ảnh không nhảy cỡ khi vuốt): 1–3 dòng, chưa đạt đứng trước (dòng chưa đạt nói luôn việc cần làm: "Người lệch khỏi trục giữa, dời máy để người vào giữa"), các dòng hiện dần lần lượt (`motion.in`, cách nhau `compositionUi.noteStagger` 60 ms), vừa phân tích xong mà mọi dòng đều đạt thì rung nhẹ một lần (vuốt lại ảnh cũ không rung); mỗi dòng một vòng 28 (đạt: dấu tích `accent` trên nền `accentSoft`; chưa đạt: X `danger` trên nền `danger` 16%) + câu ngắn (`label`). Không có dòng nào: "Ảnh theo đúng kỹ thuật đã chọn." Đang phân tích: vòng quay + "Đang xem bố cục". Chưa có bộ tách người: một câu + nút `soft` "Tải bộ tách người (x MB)", bấm mới tải (không tự tải). Không thấy người / lỗi: một câu (lỗi có nút Thử lại). Có khung cắt gợi ý thì cuối thẻ có nút `soft` "Xem khung cắt gợi ý": chế độ cắt — khung nét đứt `accent` trên ảnh, phần bị cắt bỏ phủ `popoverScrim`, thẻ ghi "Cắt theo khung xanh để đạt kỹ thuật", không vuốt sang ảnh khác; hai nút đáy "Ảnh gốc" (thoát) · "Lưu bản cắt" (lưu thành ảnh mới trong album, ảnh gốc giữ nguyên, BR-15; xong thì chuyển tới ảnh mới). Chạm ảnh để bật / tắt lớp bố cục. Ảnh chụp khi tắt bố cục hoặc chỉ bật Lưới 3×3 / 4×4: không có thẻ, màn như cũ.
+
+**Thẻ học (A — tab Bố cục trong Thư viện).** Thư viện có tab thứ ba "Bố cục" sau "Pose mẫu", "Pose của bạn". Lưới 2 cột, 16 ô cao tối thiểu 128, nền `surface` bo 20: hình vẽ nhỏ (bản "đúng"), tên, nhãn "Có trên Camera" (`accent`) hoặc "Chỉ đọc" (`muted`); nút Thêm ảnh từ máy ẩn ở tab này. Chạm ô mở màn thẻ (`fullScreenModal`, `FlowHeader` "Bố cục", tên kỹ thuật cỡ `title` ở đầu nội dung để tên dài không đè nút Quay lại): hai hình sai / đúng cạnh nhau (hình vẽ SVG 3:4 nền `surfaceAlt`: người đơn giản, lưới, phần đạt màu `accent`, phần chưa đạt màu `danger`; ảnh thật thay sau), nhãn có icon X / dấu tích dưới mỗi hình (người vẽ theo biểu tượng người dùng chọn ở phiếu Phase 5 lần 5: viền một nét `ink`, đầu tròn tách khỏi thân, vai bo, tay có khe ở nách, vạch giữa hai chân; ngược sáng thì tối đặc); thẻ `surface` ba đoạn "Là gì", "Khi nào dùng", "Khi nào phá lệ"; mục "Nguồn" dưới thẻ: mỗi nguồn hai dòng, tên bài (`hint`, giữ nguyên tiếng Anh) và nơi đăng (`caption`, `muted`); không có link vì app chạy offline, link đầy đủ ở composition.md; vuốt từ mép trái (dải 28 px, `edgeSwipe`) để quay lại; nút primary đáy "Chụp thử" đặt kỹ thuật rồi đóng thẻ và Thư viện về thẳng Camera (thẻ chỉ đọc bật Lưới 3×3, hoặc 1/3 với Khoảng trên đầu / Khoảng phía nhìn).
+
+**Kiểm tra bố cục (Phase 5a, chốt 2026-11-20: cạnh cụm zoom).** Nút tròn 44 nền `camGlass`, icon `scan-search` trắng, ngay bên phải cụm zoom (cách `compositionUi.checkGap` 8), cùng hàng. Chỉ hiện khi đang bật một kỹ thuật (không hiện khi Tắt, Lưới 3×3, Lưới 4×4). Thước zoom mở ra (330 px) hoặc đang kéo pose thì nút mờ hẳn. Chạm: rung `selection`, icon thành vòng quay; app chụp lặng một ảnh (không tiếng, không chớp màn), khoảng 1 s sau hiện kết quả trên khung ngắm `compositionUi.checkShowMs` (5 s) rồi tự ẩn: khung người chính viền trắng 1 px 70%, chấm mắt trắng 12 viền `camBg` 2 px, và một viên ở chỗ dòng gợi ý (thay viên gợi ý cảm biến trong lúc hiện): dòng chưa đạt đầu tiên (chữ như nhận xét sau khi chụp, icon `scan-search` `camAccent`), hoặc "Đạt <kỹ thuật>" nền `camAccent` có dấu tích và rung `levelReached` khi mọi dòng đạt. Không thấy người: "Không thấy người, tiến lại gần hoặc zoom vào". Lỗi: "Chưa kiểm tra được, thử lại". Viên dài thì xuống tối đa 2 dòng. Chưa có bộ tách người: hộp thoại hỏi tải (ghi số MB), không tự tải. Bấm chụp, đổi kỹ thuật, đổi camera lúc đang kiểm tra: bỏ lần kiểm tra, chụp ngay. Camera trước mà ảnh không lật như khung ngắm thì khung người và chấm mắt lật lại cho khớp. Cái app tìm thấy vẽ màu trắng, chỗ cần đặt (lớp bố cục) giữ màu xanh, để không lẫn. Kỹ thuật Đường chân trời: vẽ chân trời tìm được (nét liền `camInk` 2 px, kéo hết bề ngang khung, kể cả đoạn bị người che); Đường dẫn: vẽ các đường hội tụ (nét liền `camInk` 2 px) và vòng 34 viền `camInk` ở điểm hội tụ. Bản dev hiện thêm dòng nhỏ "Dò đường … ms" dưới viên (đo cổng Phase 5a), thêm "· Trời … ms" khi model trời chạy. Đường chân trời mà chưa có gói trời: hộp thoại "Tải bộ tìm trời" (ghi số MB) với hai nút "Kiểm tra bố cục ngay" (dò chỉ bằng đường thẳng) và "Tải bộ tìm trời".
+
+**Mục "Gợi ý lúc ngắm" trong Cài đặt:** chốt sau cổng quyết định Phase 5 Bước 3 (chỉ cần nếu gợi ý lúc ngắm có phân tích người).
 
 ## 7. Accessibility
 
-- Vùng chạm nhỏ nhất 44×44, kể cả ô màu (36 + hitSlop 4).
+- Vùng chạm nhỏ nhất 44×44, kể cả ô màu (36 + hitSlop 4) và nút zoom (38 + hitSlop 3).
 - Mọi `IconButton` có `accessibilityLabel` và `accessibilityState` (`selected` khi đang bật).
-- Slider có `accessibilityValue` bằng chữ: "Độ dày viền, 3 pixel".
-- Thước cân bằng đọc "Máy đã thẳng" một lần khi chuyển trạng thái (VoiceOver, TalkBack).
-- Không truyền đạt trạng thái chỉ bằng màu: flash auto có chữ "A", vùng xóa có icon và chữ.
+- Slider và thanh độ hiện có `accessibilityValue` bằng chữ ("Độ hiện pose, 60 phần trăm") và `accessibilityActions` tăng/giảm, vì thao tác giữ rồi kéo khó dùng với VoiceOver/TalkBack.
+- Cột công cụ dời được bằng kéo; với trình đọc màn hình nó đứng yên, các nút đọc theo thứ tự trên xuống.
+- Thước cân bằng đọc "Máy đã thẳng" một lần khi chuyển trạng thái.
+- Không truyền đạt trạng thái chỉ bằng màu (§3.1).
 - Tôn trọng Reduce Motion (§3.5) và cỡ chữ động (§3.3).
 
 ---
@@ -459,11 +604,12 @@ Không có spinner che màn hình. Màn vẫn hiện ảnh đang xử lý (mờ 
 
 - [ ] Chỉ dùng token trong `src/ui/tokens.ts`, không mã màu hay số rời
 - [ ] Đúng một nút primary
-- [ ] Không có màu tím, không gradient, không shadow
-- [ ] Mọi chuỗi lấy từ `src/ui/strings.ts`, nhãn theo §5.3, không chữ tiếng Anh sót lại, không dấu chấm than
-- [ ] Mọi số dùng font `mono` và có đơn vị
+- [ ] Không có màu tím; không gradient (trừ Bảng màu); bóng chỉ ở lớp nổi
+- [ ] Đúng kiểu đầu màn (§6): mở đè = tiêu đề trái + Đóng; bước trong luồng = Quay lại + tên giữa
+- [ ] Mọi chuỗi lấy từ `src/ui/strings.ts`, nhãn theo §5.2, không chữ tiếng Anh sót lại, không dấu chấm than
+- [ ] Mọi số có `tabular-nums` và có đơn vị
 - [ ] Chạm vào mọi điều khiển đều thấy phản hồi nhấn trong 90 ms
 - [ ] Không có chuyển động tự chạy, không spring nảy
-- [ ] Không setState trong lúc cử chỉ đang chạy (kiểm tra bằng React DevTools Profiler)
+- [ ] Không setState trong lúc cử chỉ đang chạy (cột công cụ, thanh độ hiện, zoom đều là worklet)
 - [ ] Bật Reduce Motion và cỡ chữ lớn nhất: không vỡ bố cục
 - [ ] Mọi nút icon có `accessibilityLabel`

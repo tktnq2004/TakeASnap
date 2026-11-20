@@ -1,3 +1,5 @@
+import { color } from './tokens';
+
 /** Tỉ lệ tương phản WCAG 2.x giữa hai màu hex dạng #rrggbb. */
 export function contrastRatio(a: string, b: string): number {
   const la = relativeLuminance(a);
@@ -14,4 +16,9 @@ export function relativeLuminance(hex: string): number {
     return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
   }) as [number, number, number];
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** Ô màu gần trùng nền thẻ (vd màu Đen trên nền tối) cần viền để còn thấy được ô. */
+export function needsEdge(hex: string, against: string = color.surface): boolean {
+  return contrastRatio(hex, against) < 1.6;
 }

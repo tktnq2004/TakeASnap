@@ -266,3 +266,59 @@ export function personAreaRatio(contours: Contour[]): number {
   for (const c of contours) s += (c.isHole ? -1 : 1) * Math.abs(signedArea(c.points));
   return Math.max(0, s);
 }
+
+/** Điểm (tọa độ chuẩn hóa) nằm trong người: chẵn-lẻ trên mọi đường, lỗ tự bị trừ. */
+export function insideContours(contours: Contour[], x: number, y: number): boolean {
+  let inside = false;
+  for (const c of contours) {
+    const p = c.points;
+    for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+      const a = p[i]!;
+      const b = p[j]!;
+      if (a.y > y !== b.y > y && x < ((b.x - a.x) * (y - a.y)) / (b.y - a.y) + a.x) {
+        inside = !inside;
+      }
+    }
+  }
+  return inside;
+}
+
+function distToContours(contours: Contour[], x: number, y: number): number {
+  let best = Infinity;
+  for (const c of contours) {
+    const p = c.points;
+    for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+      const a = p[j]!;
+      const b = p[i]!;
+      const dx = b.x - a.x;
+      const dy = b.y - a.y;
+      const len = dx * dx + dy * dy;
+      const t = len > 0 ? Math.max(0, Math.min(1, ((x - a.x) * dx + (y - a.y) * dy) / len)) : 0;
+      const d = Math.hypot(x - (a.x + t * dx), y - (a.y + t * dy));
+      if (d < best) best = d;
+    }
+  }
+  return best;
+}
+
+/**
+ * Đoạn thẳng phẳng [x1, y1, x2, y2, …] (chuẩn hóa) chỉ giữ đoạn có trung điểm nằm trong người,
+ * hoặc ngoài nhưng cách viền ≤ `slop` (mép mặt nghiêng hay chạm viền). Dùng khi Sửa nét đã xóa
+ * vùng mặt: nét mặt ở đó phải mất theo. Không còn đoạn nào → null.
+ */
+export function segmentsInContours(
+  segments: number[] | null,
+  contours: Contour[],
+  slop = 0.01,
+): number[] | null {
+  if (!segments) return null;
+  const out: number[] = [];
+  for (let i = 0; i + 3 < segments.length; i += 4) {
+    const mx = (segments[i]! + segments[i + 2]!) / 2;
+    const my = (segments[i + 1]! + segments[i + 3]!) / 2;
+    if (insideContours(contours, mx, my) || distToContours(contours, mx, my) <= slop) {
+      out.push(segments[i]!, segments[i + 1]!, segments[i + 2]!, segments[i + 3]!);
+    }
+  }
+  return out.length ? out : null;
+}

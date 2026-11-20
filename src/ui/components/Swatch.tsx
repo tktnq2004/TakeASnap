@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { needsEdge } from '@/ui/contrast';
 import { color, radius, size } from '@/ui/tokens';
 
 import { PressableScale } from './PressableScale';
@@ -12,7 +13,9 @@ type Props = {
   onPress: () => void;
 };
 
+/** Ô màu tròn 36 (design.md §4); đang chọn: vòng 2 px màu nhấn. Màu gần trùng nền thì có viền. */
 export function Swatch({ value, name, selected, onPress }: Props) {
+  const edge = needsEdge(value);
   return (
     <PressableScale
       accessibilityRole="radio"
@@ -22,7 +25,7 @@ export function Swatch({ value, name, selected, onPress }: Props) {
       onPress={onPress}
       style={[styles.ring, selected && styles.ringOn]}
     >
-      <View style={[styles.fill, { backgroundColor: value }]} />
+      <View style={[styles.fill, { backgroundColor: value }, edge && styles.edge]} />
     </PressableScale>
   );
 }
@@ -34,18 +37,13 @@ const styles = StyleSheet.create({
   ring: {
     width: size.swatch + (RING + GAP) * 2,
     height: size.swatch + (RING + GAP) * 2,
-    borderRadius: radius.sm + RING + GAP,
+    borderRadius: radius.full,
     borderWidth: RING,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ringOn: { borderColor: color.ink },
-  fill: {
-    width: size.swatch,
-    height: size.swatch,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: color.line,
-  },
+  ringOn: { borderColor: color.accent },
+  fill: { width: size.swatch, height: size.swatch, borderRadius: radius.full },
+  edge: { borderWidth: 2, borderColor: color.swatchEdge },
 });

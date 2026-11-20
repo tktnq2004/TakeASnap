@@ -1,0 +1,357 @@
+# Phase 5 — Phiếu kiểm tra trên máy thật
+
+Cách điền: mỗi ô máy ghi `đạt`, `lỗi` hoặc `—` (không áp dụng). Mục lỗi thì ghi ở cột Ghi chú đã làm gì và thấy gì.
+
+Gợi ý từ cảm biến cần máy thật. Trên emulator Android chỉ thử được bảng Bố cục, lớp kẻ và pose dính đường (cảm biến giả thì ghi `—`).
+
+| Máy | Phiên bản |
+|---|---|
+| iPhone | iPhone 15 Pro Max · Expo Go 58 · iOS |
+| Android | Pixel_8a emulator · Expo Go 58 · Android |
+
+Ngày thử: d là đạt , l là lỗi
+
+## 1. Nút Bố cục và bảng chọn
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 1.1 | Mở app (trước đó đang bật Lưới 3×3 hoặc 4×4) | Nút Lưới cũ thành nút Bố cục, đang chọn "Lưới 3×3"; trước đó tắt lưới thì Bố cục tắt |đạt |đạt |nhưng như v thì bị mất option lưới 4x4 và mất bật lưới nhanh, phải đem chức năng này ra riêng 1 nút nào đó |
+| 1.2 | Chạm nút Bố cục | Bảng tối trượt lên từ đáy, nền sau mờ; tiêu đề "Bố cục", nút đóng; 9 dòng: Tắt, Lưới 3×3, Quy tắc 1/3, Đặt ở giữa, Đường chân trời, Đường dẫn, Góc thấp, Selfie, Nhóm người |đ|đ | |
+| 1.3 | Nhìn từng dòng | Mỗi dòng có hình nhỏ, tên và một dòng mô tả; dòng đang chọn nền xanh nhạt + dấu tích |d |d | |
+| 1.4 | Chạm một dòng | Bảng trượt xuống, lớp kẻ đổi ngay theo kỹ thuật; nút Bố cục nền xanh, hiện hình nhỏ của kỹ thuật |d |d | |
+| 1.5 | Mở bảng rồi chạm ra ngoài, hoặc chạm nút đóng | Bảng đóng, kỹ thuật không đổi |d |d | |
+| 1.6 | Chạm Mở thêm (⌄) | Bảng thả xuống chỉ còn Đèn flash và Hẹn giờ, không còn hàng Lưới |d |d | |
+| 1.7 | Thoát hẳn app rồi mở lại | Kỹ thuật vừa chọn vẫn còn | d|d | |
+
+## 2. Lớp bố cục trên khung ngắm
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 2.1 | Chọn Lưới 3×3 | Chỉ có lưới 3×3 như cũ, không có chấm, không có dòng gợi ý |d |d | |
+| 2.2 | Chọn Quy tắc 1/3 | Lưới 3×3 + vòng xanh có chấm giữa ở giao điểm trên trái | d|d | nhưng chỉ có chấm ở góc 1/3 bên trái, còn bên phải thì sao ? |
+| 2.3 | Có pose, lật ngang pose (cột công cụ) khi đang ở 1/3 | Chấm đích sang giao điểm trên phải |d |d | vậy là chức năng này đang hoạt động dựa trên pose chứ không phải ảnh của camera? |
+| 2.4 | Chọn Đặt ở giữa | Một đường dọc giữa khung + chấm đích trên trục, ở 1/3 trên |d |d | |
+| 2.5 | Chọn Đường chân trời | Hai đường ngang: đường trên trắng, đường dưới xanh đậm hơn; không có đường dọc |d |d | |
+| 2.6 | Chọn Đường dẫn | Lưới 3×3 + hai nét đứt xanh từ hai góc dưới chụm về chấm đích |d |d | |
+| 2.7 | Chọn Góc thấp, Selfie, Nhóm người | Lưới 3×3, không có chấm |d |d | |
+| 2.8 | Đổi tỉ lệ khung 3:4 → 9:16 → 1:1 khi đang bật một kỹ thuật | Lớp kẻ luôn nằm đúng trong khung |d |d | |
+| 2.9 | Chụp ảnh khi đang bật lớp kẻ | Ảnh lưu không có đường kẻ, chấm hay dòng gợi ý |d |d | |
+
+## 3. Dòng gợi ý
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 3.1 | Chọn Quy tắc 1/3, cầm máy thẳng | Viên tối ở đáy khung ngắm "Đặt mắt người lên chấm xanh", tự ẩn sau khoảng 4 giây |d |d | |
+| 3.2 | Lặp 3.1 với Đặt ở giữa, Đường chân trời, Đường dẫn, Nhóm người | Mỗi kỹ thuật một câu hướng dẫn riêng, tự ẩn sau khoảng 4 giây |d |d | |
+| 3.3 | Bật một kỹ thuật (không phải Tắt / Lưới), nghiêng máy rõ sang một bên rồi giữ yên | Sau khoảng nửa giây: "Máy nghiêng n°, xoay cho thẳng" kèm mũi tên xoay đúng chiều cần xoay; số độ đổi theo tay |d |d | |
+| 3.4 | Từ 3.3 xoay máy về thẳng | Dòng gợi ý biến mất; tay run quanh 1–2° thì dòng không nhấp nháy |d |d | |
+| 3.5 | Đường chân trời: cầm máy thẳng sau khi nghiêng | Viên xanh "Máy đã thẳng" có dấu tích, tự ẩn sau khoảng 1,5 giây |d |d | |
+| 3.6 | Góc thấp, camera sau, cầm máy thẳng đứng | "Hạ máy ngang hông, ngửa lên nhẹ" + mũi tên xuống |d |d | |
+| 3.7 | Từ 3.6 ngửa ống kính lên khoảng 10–30° | Viên xanh "Đạt góc thấp", rung nhẹ một lần, tự ẩn sau 1,5 giây; giữ yên thì không hiện lại |d | d| |
+| 3.8 | Góc thấp, ngửa máy quá nhiều (gần như chụp lên trời) | "Ngửa máy ít lại một chút" |d |d | |
+| 3.9 | Chọn Selfie khi đang ở camera sau | "Đổi sang camera trước để selfie" + icon đổi camera | d|d | |
+| 3.10 | Selfie, đổi sang camera trước, cầm máy ngang mặt | "Giơ máy cao hơn mắt một chút" + mũi tên lên |d |d | |
+| 3.11 | Từ 3.10 giơ máy cao hơn mắt, nghiêng màn hình xuống mặt | Viên xanh "Đạt góc selfie", rung nhẹ một lần, tự ẩn |d |d | |
+| 3.12 | Selfie, giơ máy rất cao, chĩa thẳng xuống | "Hạ máy xuống một chút" |d |d | |
+| 3.13 | Đặt máy nằm ngửa trên bàn | Không có gợi ý cảm biến nào (thước cũng ẩn) |d |d | |
+| 3.14 | Dòng gợi ý khi có pose và cột công cụ | Dòng nằm trong khung, không che nút chụp, không chặn kéo pose |d |d | |
+
+## 4. Pose dính đường bố cục
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 4.1 | Bố cục đang Tắt, chọn một pose mẫu (không phải nhóm Selfie) | Bố cục tự bật Quy tắc 1/3 |d |d | nhưng không cần thiết |
+| 4.2 | Bố cục đang Tắt, chọn một pose nhóm Selfie | Bố cục tự bật Selfie |d |d | nhưng không cần thiết |
+| 4.3 | Bố cục đang bật một kỹ thuật, chọn pose khác | Kỹ thuật giữ nguyên, không bị đổi |d |d | |
+| 4.4 | Quy tắc 1/3: kéo pose sao cho mắt người mẫu gần chấm đích rồi thả | Pose trượt nhẹ để mắt nằm đúng đường 1/3 (dọc và ngang), rung nhẹ một lần |d |d | |
+| 4.5 | Thả pose xa mọi đường | Pose đứng yên chỗ thả, không rung |d |d | |
+| 4.6 | Đặt ở giữa: thả pose gần trục giữa | Mắt dính vào trục giữa |d |d | |
+| 4.7 | Góc thấp / Selfie / Lưới: thả pose bất kỳ chỗ nào | Không dính |d |d | |
+| 4.8 | Sau khi dính, rời Camera rồi quay lại | Pose ở đúng chỗ đã dính | d|d | |
+| 4.9 | Kéo pose vào vùng xóa khi đang bật 1/3 | Vẫn gỡ pose như cũ, không bị dính ngược lại |d |d | |
+
+## 5. Sửa theo phiếu lần 1
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 5.1 | Nhìn thanh trên | Nút Lưới về chỗ cũ: chạm đổi Tắt → 3×3 → 4×4 (huy hiệu số); Mở thêm có lại hàng Lưới |d |d | nhưng bật cùng lúc lưới 4x4 và bố cục sẽ bị lưới chồng lưới tạo nhiều đường kẻ rối mắt. Gộp lại về như ban đầu và thêm bố cục lưới 4x4 là được  |
+| 5.2 | Mở app lần đầu sau bản này (vòng trước đang chọn "Lưới 3×3" trong Bố cục) | Lưới bật 3×3, Bố cục tắt | | | |
+| 5.3 | Nhìn hàng zoom | Nút tròn Bố cục bên trái cụm zoom, thẳng cột ô ảnh vừa chụp; không còn nút Bố cục trên thanh trên | | | |
+| 5.4 | Chạm nút Bố cục | Mở bảng Bố cục, 8 dòng (không còn dòng Lưới); chọn kỹ thuật thì nút thành nền xanh với hình nhỏ của kỹ thuật | | | |
+| 5.5 | Giữ rồi kéo ngang cụm zoom | Nút Bố cục mờ đi khi thước cuộn hiện, hiện lại khi thả tay | | | |
+| 5.6 | Bật Lưới 4×4 + Quy tắc 1/3 cùng lúc | Thấy cả lưới 4×4 và đường 1/3 + chấm; tắt Lưới thì lớp 1/3 vẫn còn | | | |
+| 5.7 | Quy tắc 1/3, chưa có pose | Cả 4 giao điểm có vòng nhỏ xanh |d |d | |
+| 5.8 | Quy tắc 1/3, có pose: kéo pose sang nửa phải hoặc nửa dưới rồi thả | Vòng đích lớn chuyển tới giao điểm gần mắt người mẫu nhất (kể cả hai giao điểm dưới); thả gần thì mắt dính vào giao điểm đó | d|d | không chỉ dính mắt, cột dọc tự kéo mặt của pose vào cột dù mặt người không phải ngay giao điểm 2 đường kẻ (vòng đích) |
+| 5.9 | Đường dẫn, kéo pose sang phải rồi thả | Hai nét đứt chụm về giao điểm trên bên phải |d |d | |
+| 5.10 | Bố cục đang Tắt, chọn một pose mẫu bất kỳ | Bố cục vẫn Tắt (không tự bật nữa) |d | d| |
+
+## 6. Sửa theo phiếu lần 2
+
+Lưới gộp lại vào Bố cục: nút Bố cục về chỗ nút Lưới trên thanh trên, bảng có thêm Lưới 3×3 và Lưới 4×4. Nút Bố cục cạnh zoom bỏ. Mục 5.2–5.6 không còn áp dụng.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 6.1 | Mở app sau bản này (vòng trước Lưới 4×4 đang bật, Bố cục tắt) | Bố cục đang chọn Lưới 4×4; nút trên thanh trên có icon lưới + huy hiệu 4 d| d| | |
+| 6.2 | Nhìn thanh trên và hàng zoom | Nút Bố cục ở chỗ nút Lưới cũ; cạnh cụm zoom không còn nút; Mở thêm chỉ còn Đèn flash, Hẹn giờ |d | d| |
+| 6.3 | Chạm nút Bố cục | 10 dòng: Tắt, Lưới 3×3, Lưới 4×4, Quy tắc 1/3, Đặt ở giữa, Đường chân trời, Đường dẫn, Góc thấp, Selfie, Nhóm người; bảng không tràn màn |d |d | |
+| 6.4 | Chọn Lưới 4×4, rồi Quy tắc 1/3 | Mỗi lúc chỉ một lớp kẻ, không còn lưới chồng lưới |d |d | |
+| 6.5 | Chọn Lưới 3×3 / 4×4 | Nút có huy hiệu 3 / 4 như nút Lưới cũ; không có dòng gợi ý |d |d | |
+| 6.6 | Lặp 5.7–5.10 (chấm 1/3, đường dẫn theo pose, không tự bật kỹ thuật) | Như kỳ vọng ở mục 5 | | | |
+
+## 7. Sửa theo phiếu lần 3
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 7.1 | Quy tắc 1/3: thả pose sao cho mắt người mẫu sát một đường dọc nhưng xa mọi giao điểm (ví dụ giữa khung theo chiều cao) | Pose đứng yên chỗ thả, không bị kéo vào đường dọc |d |d |khi mắt người vào được vòng tròn rồi thì nên ẩn, khi mắt không còn khớp mới hiện lên |
+| 7.2 | Quy tắc 1/3: thả pose với mắt gần vòng đích (cách khoảng một đốt ngón tay) | Mắt dính đúng vào giao điểm, rung nhẹ |d |d | |
+| 7.3 | Đường dẫn: thả mắt gần điểm hội tụ | Dính vào điểm hội tụ; gần đường dọc mà xa điểm thì không dính |d |d |cũng như 1/3 ẩn khi mắt đã vào ô tròn |
+| 7.4 | Đặt ở giữa: thả mắt gần trục giữa ở bất kỳ độ cao nào | Dính vào trục dọc; gần chấm đích thì dính cả vào chấm |d |d |cũng như 1/3 ẩn khi mắt đã vào ô tròn |
+
+## 8. Thẻ học
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 8.1 | Mở Thư viện | Có tab thứ ba "Bố cục" sau Pose mẫu, Pose của bạn |d |d | |
+| 8.2 | Chạm tab Bố cục | Lưới 2 cột, 16 ô: hình vẽ nhỏ, tên, nhãn "Có trên Camera" (xanh) hoặc "Chỉ đọc" (xám); không có nút Thêm ảnh từ máy |d |d | vẽ nhân vật từ các hình trụ tròn nhẫn và có tay đi người này hơi xấu |
+| 8.3 | Chạm một ô | Mở màn thẻ: nút Quay lại, tiêu đề "Bố cục", tên kỹ thuật to; hai hình Chưa đạt (X đỏ) / Đạt (dấu tích xanh); thẻ ba đoạn Là gì · Khi nào dùng · Khi nào phá lệ; nút Chụp thử ở đáy |d |d |nên thêm vuốt từ mép trái qua phải để về cho tiện. Có thể trích dẫn thêm nguồn để tăng độ tin cậy |
+| 8.4 | Xem lần lượt cả 16 thẻ | Hình vẽ đúng ý câu chữ (ví dụ Không cắt khớp: mép dưới cắt gối / cắt giữa đùi; Nhóm người: đầu thẳng hàng / tam giác); chữ không tràn, cuộn được tới hết |d |d | |
+| 8.5 | Quay lại từ màn thẻ | Về tab Bố cục của Thư viện |d |d | |
+| 8.6 | Thẻ Quy tắc 1/3 → Chụp thử | Đóng thẻ và Thư viện, về thẳng Camera; Bố cục đang chọn Quy tắc 1/3 |d |d | |
+| 8.7 | Thẻ Máy thẳng, đường chân trời → Chụp thử; thẻ Tiền cảnh → Chụp thử | Lần lượt bật Đường chân trời; Lưới 3×3 |d |d | |
+| 8.8 | Camera → nút Bố cục → "Học các kỹ thuật" | Bảng đóng, Thư viện mở thẳng tab Bố cục |d |d | |
+
+## 9. Sửa theo phiếu lần 4
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 9.1 | Quy tắc 1/3: thả pose cho mắt dính vào giao điểm | Vòng đích ẩn đi; kéo pose lệch ra rồi thả thì vòng hiện lại |d |d | |
+| 9.2 | Lặp 9.1 với Đường dẫn và Đặt ở giữa | Vòng đích ẩn khi mắt trong vòng (hai nét đứt của đường dẫn vẫn còn) |d |d | |
+| 9.3 | Tỉ lệ 9:16 | Mép trên khung đi qua khoảng giữa thanh công cụ trên, mép dưới qua khoảng giữa nút chụp / ô ảnh / đổi camera |d |d | |
+| 9.4 | Tỉ lệ 9:16 + một kỹ thuật bố cục có dòng gợi ý (ví dụ Góc thấp) | Dòng gợi ý nằm trên cụm zoom, không bị nút chụp che |d |d | |
+| 9.5 | Tỉ lệ 3:4 và 1:1 | Khung như cũ; dòng gợi ý vẫn ở đáy khung |d |d | |
+| 9.6 | Thẻ học: nhìn các hình | Người vẽ kiểu biểu tượng có tay, nét bo tròn; dễ nhìn hơn bản trước | d|d |sử dụng hình người tôi gửi |
+| 9.7 | Màn thẻ: vuốt từ sát mép trái sang phải | Màn trượt theo tay; thả quá khoảng 1/4 màn hoặc vuốt nhanh thì về Thư viện, không thì trượt lại |d |d |thêm tính năng này cho editor luôn |
+| 9.8 | Màn thẻ: vuốt dọc để cuộn, vuốt ngang ở giữa màn | Cuộn bình thường; vuốt ngang ở giữa màn không quay lại |d |d | |
+| 9.9 | Màn thẻ: mục Nguồn | Có 1–2 nguồn dưới thẻ chữ; chạm mở trang trong trình duyệt |l |l |trích từ tiêu đề, tác giả, hoặc cuốn sách, .... nếu là link thì sẽ bị vi phạm tính offline của app |
+
+## 10. Sửa theo phiếu lần 5
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 10.1 | Thẻ học: nhìn hình ở tab Bố cục và trong từng thẻ | Người vẽ giống biểu tượng đã gửi: viền một nét, đầu tròn tách thân, tay có khe ở nách, vạch giữa hai chân |d |d | |
+| 10.2 | Thẻ Ánh sáng, thẻ Không cắt khớp | Ánh sáng: người tối đặc trên nền sáng / người viền sáng; Không cắt khớp: vạch mép dưới qua gối / qua giữa đùi |d |d | |
+| 10.3 | Màn thẻ: mục Nguồn | Mỗi nguồn là tên bài + nơi đăng, không có link, chạm vào không mở gì |d |d | |
+| 10.4 | Chỉnh pose: vuốt từ sát mép trái sang phải | Màn trượt theo tay; thả xa hoặc vuốt nhanh thì về màn trước (như nút Quay lại, không lưu) |d |d | |
+| 10.5 | Chỉnh pose: tô cọ / kéo ảnh bắt đầu sát mép trái vùng ảnh | Cọ vẫn vẽ, không bị hiểu là vuốt quay lại |l |l | tô từ mép trái kéo vào thì vẫn bị nhưng chấp nhận được  |
+
+## 11. Nhận xét sau khi chụp (Bước 3)
+
+Cần bộ tách người (gói tải ở lần tạo pose đầu tiên). Nếu chưa tải, mục 11.2 sẽ hiện nút tải.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 11.1 | Bố cục Tắt, chụp rồi mở Xem ảnh vừa chụp | Như cũ: "Ảnh n trên m · giờ", không có thẻ nhận xét |d |d | |
+| 11.2 | Chưa có bộ tách người (xóa ở Cài đặt): chụp với Quy tắc 1/3, mở Xem ảnh | Thẻ: câu "Nhận xét bố cục cần bộ tách người…" + nút "Tải bộ tách người (x MB)"; bấm thì tải rồi nhận xét |d |d | |
+| 11.3 | Quy tắc 1/3: chụp một người đứng giữa khung | Dòng trên: "Ảnh n trên m · Quy tắc 1/3"; ảnh có lưới 3×3; thẻ có "Người đứng giữa khung, chưa theo đường 1/3" (X đỏ) |d |d | |
+| 11.4 | Quy tắc 1/3: chụp người có mắt gần giao điểm 1/3 | Thẻ có "Mắt gần đường 1/3 trên" và "Người đứng trên đường dọc 1/3" (dấu tích) |d |d | |
+| 11.5 | Từ 11.3: bấm "Xem khung cắt gợi ý" | Khung nét đứt xanh trên ảnh, ngoài khung tối đi; nút đáy "Ảnh gốc" · "Lưu bản cắt"; không vuốt sang ảnh khác được | d|d | |
+| 11.6 | Bấm "Lưu bản cắt" | Rung nhẹ; nhảy sang ảnh mới (bản cắt) ở cuối; ảnh mới có nhận xét đạt hơn; album có cả ảnh gốc và bản cắt |d |d | |
+| 11.7 | Bấm "Ảnh gốc" trong chế độ cắt | Thoát chế độ cắt, ảnh và thẻ như trước | d|d | |
+| 11.8 | Chạm vào ảnh | Lớp bố cục trên ảnh tắt / bật | d|d | |
+| 11.9 | Đặt ở giữa: chụp người lệch trục | "Người lệch khỏi trục giữa"; có khung cắt gợi ý đưa người vào giữa |d |d | |
+| 11.10 | Góc thấp: chụp mất bàn chân / lấy cả chân | "Mất bàn chân…" / "Thấy cả bàn chân" |d |d | |
+| 11.11 | Nhóm người: 3 người đầu ngang nhau / so le | "Các đầu gần như cùng một độ cao" / "Các đầu cao thấp so le" |d |d | |
+| 11.12 | Chụp mà mép dưới cắt ngang gối; chụp người sát mép trái | "Mép ảnh cắt ngang gối"; "Người sát mép trái" |d |d | |
+| 11.13 | Chụp ảnh không có người (bố cục đang bật) | "Không thấy người trong ảnh nên chưa nhận xét được." |d |d | |
+| 11.14 | Chụp liên tục 5 ảnh với 1/3, mở Xem ảnh, vuốt qua lại | Mỗi ảnh nhận xét một lần (vuốt lại không chạy lại); ảnh nhảy cỡ ít khi đổi ảnh |d |d |5 ảnh nhận xét giống nhau |
+| 11.15 | Thời gian: từ lúc mở ảnh tới khi thẻ hiện nhận xét | Ghi số giây ở cột Ghi chú (lần đầu có nạp bộ tách, các lần sau) | d| d| 1s - 2s|
+
+## 12. Tắt bố cục nhanh, sửa pose nhanh
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 12.1 | Đang bật một kỹ thuật (ví dụ 1/3), chạm nút Bố cục | Tắt ngay, rung nhẹ, viên "Đã tắt bố cục" khoảng 1,5 s; không mở bảng |d |d | |
+| 12.2 | Đang tắt, chạm nút Bố cục | Mở bảng Bố cục như cũ |d |d | |
+| 12.3 | Thư viện → Pose mẫu: nhìn các ô | Mỗi ô có nút bút chì tròn nhỏ ở góc dưới phải |d |d | |
+| 12.4 | Chạm bút chì trên một pose mẫu | Mở Chỉnh pose; lưu thì thành pose mới trong Pose của bạn (pose mẫu giữ nguyên) |d | d| |
+| 12.5 | Pose của bạn: chạm bút chì | Mở Chỉnh pose của đúng bản đó | d|d | |
+| 12.6 | Chạm phần còn lại của ô | Dùng pose để chụp như cũ (về Camera) |d |d | |
+| 12.7 | Giữ ô | Menu pose như cũ |d |d | |
+| 12.8 | Pose của bạn → Chọn pose (chọn nhiều) | Bút chì ẩn, chỉ còn vòng chọn |d | d|cho vòng chọn nằm ở dưới chỗ bút chì luôn cho đẹp |
+
+## 13. Nguyên tắc thêm từ bảng 12 nguyên tắc (phiếu lần 8)
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 13.1 | Mở bảng Bố cục | 11 dòng, có "Lấp đầy khung · Người chiếm gần hết khung" sau Đặt ở giữa; bảng không tràn màn |d |d | |
+| 13.2 | Chọn Lấp đầy khung | Lưới 3×3, dòng "Tiến lại gần để người lấp đầy khung" vài giây; nút Bố cục có hình đầu và vai |d | d| |
+| 13.3 | Lấp đầy khung: chụp người nhỏ giữa khung, mở Xem ảnh | "Người còn nhỏ, tiến lại gần hoặc zoom vào"; có khung cắt gợi ý ôm sát người |d |d | |
+| 13.4 | Lấp đầy khung: chụp cận người (từ ngực trở lên) | "Người chiếm gần hết khung" (dấu tích), không có khung cắt |d |d | |
+| 13.5 | Tab Bố cục trong Thư viện | 19 thẻ; có Lấp đầy khung (Có trên Camera), Cân bằng, Sự lặp lại (Chỉ đọc) |d |d | |
+| 13.6 | Thẻ Cân bằng, Sự lặp lại | Cân bằng: người bên trái + con bướm bên phải; Sự lặp lại: hàng sáu người |d |d | |
+| 13.7 | Thẻ Hậu cảnh gọn, Tiền cảnh và chiều sâu, Góc thấp, góc cao | Tên mới; chữ có thêm ý nền khác tông / nhiều lớp xa gần / chụp từ trên cao; hình chiều sâu có hai lớp đồi | d|d | |
+| 13.8 | Thẻ Lấp đầy khung → Chụp thử | Về Camera với Lấp đầy khung |d |d | |
+
+## 14. Spike gợi ý lúc ngắm (Bước 3, cổng quyết định)
+
+Mở **Cài đặt → Nhà phát triển → Màn thử nghiệm → Phase 5 · Gợi ý lúc ngắm**. Màn này tự chụp ảnh nhỏ liên tục (không tiếng), tìm người + khung xương rồi áp quy tắc nhận xét như sau khi chụp. Trên khung xem: khung xanh = người, chấm xanh = giữa hai mắt, dòng dưới = gợi ý. Cần bộ tách người (đã có nếu đã tạo pose; chưa có thì lần đầu tự tải).
+
+Mặc định: **Không ghi file · Người + xương · 256 · CPU · cỡ Mặc định**. Cho một người đứng trước camera (hoặc tự cầm máy chĩa vào gương / ảnh người trên màn khác).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 14.1 | Mở màn | Khung xem camera hiện; nút Bắt đầu đo bấm được |d |d | |
+| 14.2 | Bắt đầu đo, giữ 1 phút | Ghi lại: lần / giây, độ trễ trung bình, lâu nhất, và 6 bước (Chụp · Thu nhỏ · Giải mã · Tách người · Khung xương · Quy tắc) |d |d | |
+| 14.3 | Trong lúc đo | Khung xem **không nháy, không đứng hình**, **không có tiếng chụp** |d |d | |
+| 14.4 | Người đi chậm qua lại, rồi đứng yên | Chấm mắt và khung xanh bám theo, trễ bao lâu (ước lượng); đứng yên thì dòng gợi ý có đổi qua lại liên tục không (xem "Dòng gợi ý đổi") |d |d | |
+| 14.5 | Đổi Kỹ thuật: 1/3 · Ở giữa · Lấp đầy khung | Dòng gợi ý đổi theo kỹ thuật, đúng với ảnh đang ngắm |d | d| |
+| 14.6 | Phân tích **Khung xương**, rồi **Người** | Ghi lần / giây mỗi chế độ (Khung xương: không có khung xanh; Người: không có chấm mắt) |d |d | |
+| 14.7 | Cạnh ảnh gửi vào **192** và **384** | Ghi lần / giây mỗi cỡ; 192 có còn bắt được người ở xa không |d |d | |
+| 14.8 | Khung xương chạy **GPU** | Ghi lần / giây; có lỗi không | | | |
+| 14.9 | Cách chụp **Ghi file** | Ghi bước Chụp (ms) so với Không ghi file | | | |
+| 14.10 | Dừng đo → Cỡ chụp **Nhỏ nhất** → Bắt đầu đo | Ghi Cỡ ảnh chụp, lần / giây, bước Chụp; khung xem có mờ đi không |d |d | |
+| 14.11 | Cấu hình nhanh nhất ở trên, chạy **5 phút** | Ghi % pin trước và sau, máy mát / ấm / nóng, lần / giây phút cuối, số lỗi |d |d | |
+| 14.12 | Thoát màn, về Camera chính | Camera chính chạy bình thường, chụp được, không đen màn |d |d | |
+
+
+### Số đo mục 14
+
+Chép số từ bảng trên màn đo. Mỗi dòng: đo khoảng 30 giây rồi chép. Ô không đo thì để trống.
+
+**A. Từng bước, cấu hình mặc định** (Không ghi file · Người + xương · 256 · CPU · Mặc định)
+
+| Số đo | iPhone | Android |
+|---|---|---|
+| Lần / giây |1.2 | - |
+| Độ trễ trung bình (ms) |837 |- |
+| Độ trễ lâu nhất (ms) |890 | -|
+| Chụp (ms) |602 | -|
+| Thu nhỏ (ms) |158 |- |
+| Giải mã trong WebView (ms) |1 |- |
+| Tách người (ms) |47 | -|
+| Khung xương (ms) | 20|- |
+| Quy tắc (ms) |1 | -|
+| Cỡ ảnh chụp | 3024x4032| -|
+| Backend tách người | mediapipe-GPU| -|
+| Dòng gợi ý đổi (đứng yên 30 giây) |0 |- |
+
+**B. Đổi từng thứ một so với mặc định**
+
+| Cấu hình | iPhone lần / giây | iPhone độ trễ TB (ms) | Android lần / giây | Android độ trễ TB (ms) | Ghi chú |
+|---|---|---|---|---|---|
+| Phân tích: Khung xương |1.3 |795ms |- |- | |
+| Phân tích: Người |0.9 |1111 |- |- | |
+| Cạnh ảnh gửi vào: 192 |0.9 |1078 |- | -| Người ở xa còn bắt được không: cùng khoảng cách bắt người với 256 |
+| Cạnh ảnh gửi vào: 384 |0.9 |1076 |- |- | |
+| Khung xương chạy: GPU |1.2 |834 | -|- | Lỗi: |
+| Cách chụp: Ghi file (ghi thêm bước Chụp ms) |1.0 |1002 |- | -| Chụp iPhone: 749 · Android: |
+| Cỡ chụp: Nhỏ nhất (ghi thêm bước Chụp ms) |5.5 |181 |chụp: 78ms |- |- | Khung xem mờ đi không: không |
+-> từng bước đều reset về mặc định -> chỉ đổi 1 tiêu chí rồi đo
+**C. Chạy 5 phút**
+
+| Số đo | iPhone | Android |
+|---|---|---|
+| Cấu hình đã dùng |mặc định | |
+| % pin lúc bắt đầu | 43% | |
+| % pin sau 3 phút | 40% | |
+| Máy mát / ấm / nóng |rất nóng gần đạt cảnh báo nhiệt độ | |
+| Lần / giây phút cuối | quên nhìn | |
+| Số lỗi (và lỗi cuối nếu có) | không lỗi| |
+| Khung xem nháy / đứng hình, tiếng chụp | ổn| |
+| Chấm mắt trễ so với người thật (ước lượng) |1s | |
+
+**Kết quả lần 1 (iPhone; Android chưa đo):**
+
+- Cỡ chụp mặc định (3024×4032): 1,2 lần / giây, độ trễ ~840 ms. Riêng bước **chụp mất ~600 ms** và thu nhỏ ~160 ms; phân tích trong WebView chỉ ~70 ms (tách người 47 ms GPU, khung xương 20 ms). Chạy 3 phút: hết 3% pin, máy **rất nóng**, gần cảnh báo nhiệt → **không đạt cổng**.
+- Cỡ chụp **Nhỏ nhất**: **5,5 lần / giây**, độ trễ ~180 ms, chụp 78 ms, khung xem không mờ → đạt về tốc độ. Nhưng ảnh thật cũng bị chụp ở cỡ nhỏ, nên Camera thật phải **đổi sang cỡ thật lúc bấm chụp** rồi đổi lại. Chưa đo thời gian đổi cỡ và nhiệt ở cỡ nhỏ → mục 15.
+- Đổi phân tích, cạnh ảnh gửi vào, CPU / GPU, ghi file: chênh nhau ít, vì chậm nằm ở bước chụp.
+- Đứng yên 30 giây: dòng gợi ý không đổi lần nào (không nhảy qua lại).
+
+Ngưỡng cổng (roadmap Phase 5 Bước 3): **≥ 2 lần / giây, không nháy / không tiếng, máy không nóng sau 5 phút** → làm gợi ý lúc ngắm theo người cho các kỹ thuật. Chưa đạt → lúc ngắm chỉ giữ gợi ý cảm biến, phân tích người chỉ ở nhận xét sau khi chụp.
+
+## 15. Spike gợi ý lúc ngắm, lần 2: cỡ nhỏ + đổi cỡ lúc chụp
+
+Cùng màn đo. Mới: **Giới hạn lần / giây** (Không giới hạn · 3 · 2), nút **Thử chụp ảnh thật** (đổi sang cỡ thật, chụp một ảnh, đổi về cỡ nhỏ, đo thời gian), đổi Cỡ chụp không còn dựng lại camera. Để cấu hình mặc định, chỉ đổi những gì dòng đó ghi.
+
+| # | Thao tác | Kỳ vọng / ghi lại | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 15.1 | Cỡ chụp **Nhỏ nhất**, Bắt đầu đo 30 giây | Ghi **Cỡ ảnh chụp** và lần / giây |cỡ chụp nhỏ nhất - 6.3 | | |
+| 15.2 | Đang đo, bấm **Thử chụp ảnh thật** 3 lần | Ghi 3 lần dòng "Đổi sang cỡ thật" (ms · lần chụp · cỡ) và "Đổi về cỡ nhỏ" (ms); cỡ thật phải là 3024×4032 hoặc cỡ lớn nhất của máy |1071ms - 2 - 3024x4032 - đổi về cỡ nhỏ 975ms | | |
+| 15.3 | Nhìn khung xem lúc bấm 15.2 | Khung xem có **nháy, đen, đứng hình, giật zoom** lúc đổi cỡ không | có nháy chụp và tầm 1,5s trả về nút chụp | | |
+| 15.4 | Nhỏ nhất + Giới hạn **3**, chạy **5 phút** | % pin trước / sau, máy mát / ấm / nóng, lần / giây phút cuối |47/45 | nóng nhưng vẫn ổn |đo 4p |
+| 15.5 | Nhỏ nhất + Giới hạn **2**, chạy **5 phút** (để máy nguội trước) | Như 15.4 |45/43 |ấm gần nóng  |đo 4p |
+| 15.6 | Android: lặp lại bảng A mục 14 (mặc định) và 15.1–15.2 | Ghi vào cột Android của các bảng |với simulator không thể sử dụng cam nên không test được | | |
+
+Cách đọc: nếu đổi sang cỡ thật ≤ ~300 ms, không nháy, và 15.4 hoặc 15.5 máy chỉ ấm → làm gợi ý lúc ngắm theo người (ngắm ở cỡ nhỏ, bấm chụp thì đổi cỡ). Đổi cỡ lâu hoặc nháy → độ trễ bấm chụp quá lớn, giữ gợi ý cảm biến.
+
+**Kết quả spike (iPhone; Android chỉ có simulator, không có camera):** cỡ chụp mặc định 1,2 lần / giây (chụp 12 MP ~600 ms mỗi khung), rất nóng sau 3 phút. Cỡ chụp nhỏ nhất 5,5–6,3 lần / giây nhưng ảnh thật cũng nhỏ; đổi sang cỡ thật lúc bấm chụp mất ~1,07 s (về lại ~0,98 s), khung xem nháy, nút chụp ~1,5 s mới dùng lại được; cỡ nhỏ giới hạn 3 lần / giây vẫn nóng, 2 lần / giây ấm gần nóng sau 4 phút. → **Không đạt cổng: gợi ý lúc ngắm chỉ từ cảm biến, phân tích người chỉ ở nhận xét sau khi chụp.** Gốc vấn đề: Expo Go không có frame processor, mỗi lần lấy ảnh là một lần chụp thật.
+
+## 16. Độ đúng của quy tắc nhận xét (cổng Phase 5, phần cuối)
+
+> **Không bắt buộc nữa:** đã đo tự động bằng `npm run eval:review` (composition.md §8: đúng 95%, khớp nhãn nhiếp ảnh gia 85%). Mục này chỉ để soát chéo trên máy nếu muốn.
+
+Mở **Cài đặt → Nhà phát triển → Màn thử nghiệm → Phase 5 · Độ đúng quy tắc**. Cần bộ tách người (đã có).
+
+Cách làm:
+
+1. Chọn kỹ thuật ở hàng "Kỹ thuật cho ảnh sắp chọn", bấm **Chọn ảnh thử**, chọn nhiều ảnh một lần. Mỗi kỹ thuật nên có cả ảnh **đúng** và ảnh **sai** (ví dụ 1/3: vài ảnh mắt trên đường 1/3, vài ảnh người đứng giữa). Gán sai kỹ thuật thì đổi ngay trên thẻ ảnh.
+2. App phân tích từng ảnh (1–2 s mỗi ảnh). Trên ảnh nhỏ: đường 1/3, khung xanh = người app thấy, chấm = mắt, nét đứt trắng = khung cắt gợi ý.
+3. Chấm **Đúng / Sai** cho từng dòng nhận xét, theo mắt của bạn (dòng có dấu tích mà ảnh thật ra chưa đạt → Sai). Có khung cắt thì chấm cả khung cắt.
+4. App không nói một lỗi rõ (cắt ngang gối, đầu chạm mép…) hoặc không thấy người trong ảnh có người → tích **App bỏ sót một lỗi rõ**.
+
+Gợi ý số ảnh (~30): 1/3 ×8, Ở giữa ×5, Lấp đầy khung ×5, Nhóm người ×4, Góc thấp ×4, Selfie ×4. Ảnh và kết quả chấm lưu trong máy; thoát ra vào lại vẫn còn.
+
+| # | Thao tác | Kỳ vọng / ghi lại | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 16.1 | Chọn nhiều ảnh một lần | Thẻ ảnh hiện ngay, lần lượt chuyển Đang chờ → Đang phân tích → nhận xét | | | |
+| 16.2 | Thoát màn khi đang phân tích, vào lại | Ảnh và điểm đã chấm còn nguyên; ảnh dở được phân tích tiếp | | | |
+| 16.3 | Chấm xong ~30 ảnh | Chép bảng tổng trên màn vào bảng dưới | | | |
+
+**Kết quả chấm** (chép từ bảng tổng trên màn):
+
+| Số đo | Giá trị |
+|---|---|
+| Độ đúng chung | |
+| Khung cắt hợp lý | |
+| Quy tắc 1/3 | |
+| Đặt ở giữa | |
+| Lấp đầy khung | |
+| Nhóm người | |
+| Góc thấp | |
+| Selfie | |
+| Dòng sai nhiều nhất (tên dòng, số sai) | |
+| Lỗi app hay bỏ sót | |
+
+## 17. Sau khi tách package, nhóm người, chữ mới (phiếu lần 9)
+
+Từ lần thử trước: quy tắc chuyển sang package `composition-critic` (cài từ GitHub), "Nhóm người" so đầu theo khung xương, chỉnh ngưỡng 1/3 / Ở giữa / cắt khớp theo số đo, chữ nhận xét mới (dòng chưa đạt nói việc cần làm), dòng nhận xét hiện dần + rung khi đạt hết. Chạy lại dev server có xóa cache: `npx expo start -c`.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 17.1 | Mở app, tạo một pose từ ảnh trong máy | Như trước: tách người, chọn người (ảnh nhiều người), pose mới trong Pose của bạn |d |d | |
+| 17.2 | Bật Quy tắc 1/3, chụp người đứng giữa khung, mở Xem ảnh | Dòng "Người đứng giữa khung, dời máy để người sang đường 1/3" (chữ mới); các dòng hiện dần lần lượt; có khung cắt gợi ý |d |d | |
+| 17.3 | Quy tắc 1/3, chụp mắt trên đường 1/3 và người trên đường dọc | Hai dòng dấu tích; **rung nhẹ một lần** lúc nhận xét hiện; vuốt sang ảnh khác rồi vuốt lại thì không rung |l |l |chỉ hiện tích người nằm trên đường dọc 1/3, không có mắt nằm trên đường 1/3 |
+| 17.4 | Đặt ở giữa: người ở giữa nhưng nghiêng mặt sang một bên | "Người ở đúng trục giữa" (trước đây hay báo lệch) |d |d | nhưng độ chính xác chưa thật sự cao tầm 70-80 |
+| 17.5 | Nhóm người: 2–3 người **đứng sát nhau** ngang hàng, rồi một người ngồi xuống | Ngang hàng: "Các đầu cùng một độ cao, cho một người ngồi hoặc đứng lên bậc"; một người ngồi: "Các đầu cao thấp so le" |d |d | |
+| 17.6 | Lưới 3×3: chụp mép dưới ngang gối, rồi ngang cổ chân | "Mép dưới gần ngang gối, …" / "Mép dưới cắt ngang cổ chân, …" (có thể không hiện mọi lần: đo được báo đúng ~69% / ~94%) | d| d|đúng như những gì đã dự đoán |
+| 17.7 | Chụp cảnh rộng, người rất nhỏ ở xa | "Không thấy người trong ảnh. Người ở xa quá thì tiến lại gần hoặc zoom vào." | -| -| |
+
+## 18. Mắt từ bộ dò mặt, bỏ nhận xét ở chế độ lưới (phiếu lần 10)
+
+Chạy lại dev server có xóa cache (`npx expo start -c`): app nâng lên composition-critic v0.1.1.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 18.1 | Lặp 17.3: Quy tắc 1/3, mắt trên đường 1/3, người trên đường dọc | Có **cả hai** dòng dấu tích (mắt + đường dọc); rung nhẹ một lần |d |d |tốt hơn rồi |
+| 18.2 | Quy tắc 1/3, tóc che một bên mắt hoặc mặt nghiêng | Vẫn có dòng về mắt (đạt hoặc chưa đạt), không mất hẳn |d |d | khá tốt |
+| 18.3 | Bật Lưới 3×3, chụp rồi mở Xem ảnh; lặp với Lưới 4×4 | Không có thẻ nhận xét (như khi tắt bố cục) |d |d | |
+| 18.4 | Lặp 17.7: bật **Quy tắc 1/3** (hoặc kỹ thuật bất kỳ, trừ Tắt và Lưới vì hai chế độ này không có nhận xét), chụp cảnh rộng có một người cao chưa tới ~1/4 khung, mở Xem ảnh | "Không thấy người trong ảnh. Người ở xa quá thì tiến lại gần hoặc zoom vào." |d |d | |
+
+## Góp ý thêm
+Gợi ý của lưới 3x3 còn sai quá nhiều, cân nhắc không nhận xét chế độ lưới 3x3
+
+**Sửa sau lần 9:** 17.3 không có dòng nào về mắt = khung xương không thấy rõ mắt (tóc che, mặt nghiêng); nay lấy mắt từ bộ dò mặt khi khung xương không thấy (composition-critic v0.1.1). Lưới 3×3 / 4×4 không còn nhận xét. 17.4 độ đúng ~70–80% trên máy: khớp số đo (Ở giữa 99% trên khung cắt, 7/8 ảnh nhãn), ghi nhận. 17.7 chưa thử → mục 18.
+
+**Kết quả lần 10:** 18.1–18.3 đạt trên iPhone và Android (18.1 "tốt hơn rồi", 18.2 "khá tốt"). 18.4 chưa thử vì phiếu không nói chế độ: nay ghi rõ (Quy tắc 1/3; người chiếm dưới 2% ảnh thì app bỏ qua như không có người).
+
+**Kết quả lần 11:** 18.4 đạt trên iPhone và Android. **Phiếu Phase 5 đạt hết** → chuyển sang Phase 5a.

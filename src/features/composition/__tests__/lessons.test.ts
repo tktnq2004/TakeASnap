@@ -1,0 +1,44 @@
+import { t } from '@/ui/strings';
+
+import { lessonById, LESSONS } from '../lessons';
+import { isTechnique } from '../techniques';
+
+describe('lessons', () => {
+  it('19 thẻ, id không trùng, thẻ nào cũng có đủ chữ', () => {
+    expect(LESSONS).toHaveLength(19);
+    expect(new Set(LESSONS.map((l) => l.id)).size).toBe(19);
+    for (const l of LESSONS) {
+      const item = t.lessons.items[l.id];
+      for (const k of ['name', 'wrong', 'right', 'what', 'when', 'breakRule'] as const) {
+        expect(item[k].length).toBeGreaterThan(0);
+        expect(item[k]).not.toMatch(/!/);
+      }
+    }
+  });
+
+  it('Chụp thử mở một kỹ thuật có trong bảng Bố cục; thẻ chỉ đọc mở lưới 3×3', () => {
+    for (const l of LESSONS) {
+      expect(isTechnique(l.tryTechnique)).toBe(true);
+      if (!l.onCamera) expect(['grid', 'thirds']).toContain(l.tryTechnique);
+    }
+  });
+
+  it('thẻ nào cũng có ít nhất một nguồn ghi bằng chữ (không link, app chạy offline)', () => {
+    for (const l of LESSONS) {
+      expect(l.sources.length).toBeGreaterThan(0);
+      for (const s of l.sources) {
+        expect(s.title.length).toBeGreaterThan(0);
+        expect(s.by.length).toBeGreaterThan(0);
+        expect(`${s.title} ${s.by}`).not.toMatch(/https?:|www\./);
+      }
+    }
+  });
+
+  it('thẻ có trên Camera bật đúng kỹ thuật của nó', () => {
+    expect(lessonById('level')?.tryTechnique).toBe('horizon');
+    expect(lessonById('selfie')?.tryTechnique).toBe('selfie');
+    expect(lessonById('fill')?.tryTechnique).toBe('fill');
+    expect(lessonById('balance')?.onCamera).toBe(false);
+    expect(lessonById('nope')).toBeUndefined();
+  });
+});

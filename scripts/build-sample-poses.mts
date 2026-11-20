@@ -1,7 +1,7 @@
 /**
- * Tách sẵn 25 pose mẫu (roadmap Phase 1, BR-13: pose mẫu không cần tải model).
+ * Tách sẵn các pose mẫu (32 ảnh) (roadmap Phase 1, BR-13: pose mẫu không cần tải model).
  *
- * Chạy ĐÚNG trang WebView của app (src/engine/segmentation/web/segmenterHtml.ts, model Multiclass)
+ * Chạy ĐÚNG trang WebView của app (composition-critic/src/page.ts, model Multiclass)
  * trong Chrome headless, rồi dùng ĐÚNG engine viền của app (src/engine/contour.ts). Kết quả là
  * assets/poses/samples.json chỉ chứa viền vector, không có ảnh mask.
  *
@@ -16,7 +16,8 @@ import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 
 import { buildContours, personAreaRatio, type Contour } from '../src/engine/contour.ts';
-import { MEDIAPIPE_VERSION, segmenterHtml } from '../src/engine/segmentation/web/segmenterHtml.ts';
+// Node không bỏ kiểu TypeScript trong node_modules: đọc trang từ bản clone composition-critic cạnh app.
+import { MEDIAPIPE_VERSION, segmenterHtml } from '../../composition-critic/src/page.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const SOURCE_DIR = path.join(ROOT, 'assets/poses/source');

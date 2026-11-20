@@ -12,26 +12,8 @@ import { haptic } from '@/lib/haptics';
 import { t } from '@/ui/strings';
 import { color, levelGuide } from '@/ui/tokens';
 
-import type { GridMode } from './cameraStore';
 import type { Rect } from './frame';
 import { deviceRoll, levelUsable } from './level';
-
-/** Lưới chia khung (business-flow §4.3): vẽ TRONG vùng ảnh sẽ được lưu. */
-export function FrameGrid({ frame, mode }: { frame: Rect; mode: GridMode }) {
-  if (mode === 'off') return null;
-  const n = mode === '3' ? 3 : 4;
-  const lines = Array.from({ length: n - 1 }, (_, i) => (i + 1) / n);
-  return (
-    <View pointerEvents="none" style={[styles.abs, frameStyle(frame)]}>
-      {lines.map((f) => (
-        <View key={`v${f}`} style={[styles.v, { left: `${f * 100}%` }]} />
-      ))}
-      {lines.map((f) => (
-        <View key={`h${f}`} style={[styles.h, { top: `${f * 100}%` }]} />
-      ))}
-    </View>
-  );
-}
 
 const IOS = Platform.OS === 'ios';
 const LEVEL_RAD = (levelGuide.levelDeg * Math.PI) / 180;
@@ -66,7 +48,7 @@ export function LevelGuide({ frame }: { frame: Rect }) {
     const usable = levelUsable(g.x, g.y, g.z);
     return {
       opacity: usable ? 1 : 0,
-      backgroundColor: level.get() ? color.accent : color.ink,
+      backgroundColor: level.get() ? color.camAccent : color.camWarn,
       transform: [{ rotate: `${-deviceRoll(g.x, g.y, IOS)}rad` }],
     };
   });
@@ -89,20 +71,6 @@ const frameStyle = (f: Rect) => ({ left: f.x, top: f.y, width: f.width, height: 
 const styles = StyleSheet.create({
   abs: { position: 'absolute' },
   center: { alignItems: 'center', justifyContent: 'center' },
-  v: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: color.guide,
-  },
-  h: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: color.guide,
-  },
   level: { width: levelGuide.length, height: levelGuide.thickness, borderRadius: 1 },
   // Hai vạch ngắn cố định hai bên: mốc để so vạch xoay.
   levelRefLeft: {

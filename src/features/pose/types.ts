@@ -75,6 +75,13 @@ export type Pose = {
   contours: Contour[];
   /** Nét mặt + khung xương; null nếu chưa có (dữ liệu cũ trước v3). */
   landmarks: Landmarks | null;
+  /**
+   * Nét phụ gốc trước khi lọc theo viền đã Sửa nét (chỉ có khi viền đã sửa). Màn Chỉnh pose lọc
+   * lại từ đây, để tô lại vùng mặt thì nét mặt hiện lại.
+   */
+  rawLandmarks?: Landmarks | null;
+  /** Dáng mọi người trong ảnh lúc tạo pose, cho cọ Thêm. Không có = dùng viền hiện tại. */
+  originalContours?: Contour[];
   /** Nhóm của pose mẫu; null với ảnh của người dùng. */
   sampleGroup: string | null;
   /** Mask PNG trong Paths.document (Sửa nét ở Phase 3); pose mẫu không có. */

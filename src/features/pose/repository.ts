@@ -7,12 +7,19 @@ import { Asset } from 'expo-asset';
 import { Directory, File, Paths } from 'expo-file-system';
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import type { Contour } from '@/engine/contour';
+
+import { transaction } from '@/db/transaction';
+
 import {
+  bboxOf,
   type ContourRow,
   contoursToRows,
+  landmarksForContours,
   type PhotoRow,
   poseToPhotoRow,
   poseToVariantRow,
+  rowsToContours,
   rowsToPose,
   styleToColumns,
   type VariantRow,
@@ -63,11 +70,25 @@ async function loadPoses(db: SQLiteDatabase, variants: VariantRow[]): Promise<Po
     }
     const pose = rowsToPose(p.row, v, p.contours);
     // Ảnh chép từ pose mẫu: luôn dùng viền và nét mặt MỚI NHẤT của pose mẫu đó, để bản đã lưu
-    // trước khi app có tính năng mới cũng được cập nhật.
+    // trước khi app có tính năng mới cũng được cập nhật. Viền đã Sửa nét thì giữ viền đã sửa.
     const sample = pose.sampleId
       ? sampleLibrary.find((s) => s.sampleId === pose.sampleId)
       : undefined;
-    out.push(sample ? { ...pose, contours: sample.contours, landmarks: sample.landmarks } : pose);
+    out.push(
+      sample
+        ? {
+            ...pose,
+            contours: p.row.contours_edited ? pose.contours : sample.contours,
+            ...(p.row.contours_edited
+              ? {
+                  landmarks: landmarksForContours(sample.landmarks, pose.contours),
+                  rawLandmarks: sample.landmarks,
+                  originalContours: sample.contours,
+                }
+              : { landmarks: sample.landmarks }),
+          }
+        : pose,
+    );
   }
   return out;
 }
@@ -76,8 +97,8 @@ async function insertPhoto(db: SQLiteDatabase, pose: Pose & { source: string }) 
   const r = poseToPhotoRow(pose);
   await db.runAsync(
     `INSERT INTO photos
-      (id, origin, sample_id, source_uri, mask_uri, width, height, bbox_json, sample_group, landmarks_json, created_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, origin, sample_id, source_uri, mask_uri, width, height, bbox_json, sample_group, landmarks_json, original_contours_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     r.id,
     r.origin,
     r.sample_id,
@@ -88,9 +109,14 @@ async function insertPhoto(db: SQLiteDatabase, pose: Pose & { source: string }) 
     r.bbox_json,
     r.sample_group,
     r.landmarks_json,
+    r.original_contours_json ?? null,
     r.created_at,
   );
-  for (const c of contoursToRows(pose.photoId, pose.contours)) {
+  await insertContours(db, pose.photoId, pose.contours);
+}
+
+async function insertContours(db: SQLiteDatabase, photoId: string, contours: Contour[]) {
+  for (const c of contoursToRows(photoId, contours)) {
     await db.runAsync(
       'INSERT INTO photo_contours (photo_id, idx, points_json, is_hole) VALUES (?, ?, ?, ?)',
       c.photo_id,
@@ -99,6 +125,35 @@ async function insertPhoto(db: SQLiteDatabase, pose: Pose & { source: string }) 
       c.is_hole,
     );
   }
+}
+
+/** Viền đã Sửa nét: thay viền của ảnh gốc (mọi bản của ảnh dùng chung viền) và đánh dấu đã sửa. */
+async function writeContours(db: SQLiteDatabase, photoId: string, contours: Contour[]) {
+  // Ảnh tạo trước v5 chưa có dáng gốc: lần sửa đầu giữ viền lúc đó cho cọ Thêm.
+  const photo = await db.getFirstAsync<{ original_contours_json: string | null }>(
+    'SELECT original_contours_json FROM photos WHERE id = ?',
+    photoId,
+  );
+  if (photo && photo.original_contours_json == null) {
+    const old = await db.getAllAsync<ContourRow>(
+      'SELECT * FROM photo_contours WHERE photo_id = ? ORDER BY idx',
+      photoId,
+    );
+    if (old.length) {
+      await db.runAsync(
+        'UPDATE photos SET original_contours_json = ? WHERE id = ?',
+        JSON.stringify(rowsToContours(old)),
+        photoId,
+      );
+    }
+  }
+  await db.runAsync('DELETE FROM photo_contours WHERE photo_id = ?', photoId);
+  await insertContours(db, photoId, contours);
+  await db.runAsync(
+    'UPDATE photos SET bbox_json = ?, contours_edited = 1 WHERE id = ?',
+    JSON.stringify(bboxOf(contours)),
+    photoId,
+  );
 }
 
 async function insertVariant(db: SQLiteDatabase, pose: Pose) {
@@ -152,18 +207,47 @@ export async function updateStyle(db: SQLiteDatabase, variantId: string, style: 
   );
 }
 
-/** "Lưu thành bản mới": thêm một bản pose cho cùng ảnh gốc, không chép lại ảnh. */
-export async function createVariant(db: SQLiteDatabase, base: Pose, style: PoseStyle) {
-  if (isSampleId(base.id)) return createFromSample(db, base, style);
+/**
+ * "Lưu thành bản mới": thêm một bản pose cho cùng ảnh gốc, không chép lại ảnh. `contours` khác
+ * null = đã Sửa nét: viền mới dùng cho mọi bản của ảnh (các bản chỉ khác nhau ở style).
+ */
+export async function createVariant(
+  db: SQLiteDatabase,
+  base: Pose,
+  style: PoseStyle,
+  contours: Contour[] | null = null,
+) {
+  if (isSampleId(base.id)) return createFromSample(db, base, style, contours);
   const t = now();
   const pose: Pose = { ...base, id: newId('v'), style, createdAt: t, updatedAt: t };
-  await insertVariant(db, pose);
+  await transaction(db, async () => {
+    await insertVariant(db, pose);
+    if (contours) await writeContours(db, pose.photoId, contours);
+  });
   return pose;
+}
+
+/** Lưu từ màn Chỉnh pose (business-flow §5.2). Trả id của bản đã lưu (bản mới hoặc chính nó). */
+export async function saveEdits(
+  db: SQLiteDatabase,
+  pose: Pose,
+  style: PoseStyle,
+  opts: { asNew: boolean; contours: Contour[] | null },
+): Promise<string> {
+  // Pose mẫu chỉ đọc (BR-09): lưu luôn là thêm bản vào "Pose của bạn".
+  if (opts.asNew || isSampleId(pose.id)) {
+    return (await createVariant(db, pose, style, opts.contours)).id;
+  }
+  await transaction(db, async () => {
+    await updateStyle(db, pose.id, style);
+    if (opts.contours) await writeContours(db, pose.photoId, opts.contours);
+  });
+  return pose.id;
 }
 
 /** Ảnh gốc mới (tạo từ ảnh trong máy) + bản pose đầu tiên, trong một transaction. */
 export async function savePhotoAndVariant(db: SQLiteDatabase, pose: Pose & { source: string }) {
-  await db.withTransactionAsync(async () => {
+  await transaction(db, async () => {
     await insertPhoto(db, pose);
     await insertVariant(db, pose);
   });
@@ -171,19 +255,23 @@ export async function savePhotoAndVariant(db: SQLiteDatabase, pose: Pose & { sou
 
 /**
  * Pose mẫu chỉ đọc (BR-09): lưu = thêm bản vào "Pose của bạn". Lần đầu chép ảnh gốc vào
- * Paths.document; các lần sau dùng lại ảnh đã chép (tìm theo sample_id).
+ * Paths.document; các lần sau dùng lại ảnh đã chép chưa sửa viền (tìm theo sample_id). Đã Sửa
+ * nét thì luôn chép ảnh mới, để viền đã sửa không đổi các bản chép trước đó.
  */
 export async function createFromSample(
   db: SQLiteDatabase,
   sample: Pose,
   style: PoseStyle,
+  contours: Contour[] | null = null,
 ): Promise<Pose> {
   const sampleId = sample.id.slice(SAMPLE_PREFIX.length);
   const t = now();
-  const existing = await db.getFirstAsync<{ id: string; source_uri: string }>(
-    'SELECT id, source_uri FROM photos WHERE sample_id = ? LIMIT 1',
-    sampleId,
-  );
+  const existing = contours
+    ? null
+    : await db.getFirstAsync<{ id: string; source_uri: string }>(
+        'SELECT id, source_uri FROM photos WHERE sample_id = ? AND contours_edited = 0 LIMIT 1',
+        sampleId,
+      );
   let photoId: string;
   let source: string;
   if (existing) {
@@ -206,13 +294,17 @@ export async function createFromSample(
     origin: 'library',
     sampleId,
     source,
+    contours: contours ?? sample.contours,
     style,
     createdAt: t,
     updatedAt: t,
   };
-  await db.withTransactionAsync(async () => {
+  await transaction(db, async () => {
     if (!existing) await insertPhoto(db, pose);
     await insertVariant(db, pose);
+    if (contours) {
+      await db.runAsync('UPDATE photos SET contours_edited = 1 WHERE id = ?', photoId);
+    }
   });
   return pose;
 }

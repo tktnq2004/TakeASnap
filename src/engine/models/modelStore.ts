@@ -8,6 +8,15 @@ import type { ModelPack } from './packs';
 
 export type DownloadProgress = { bytes: number; total: number };
 
+/**
+ * Dung lượng file trên iOS có thể về dạng BigInt (số nguyên 64 bit) dù kiểu khai báo là number;
+ * so sánh `===` với number luôn sai và cộng với number thì ném lỗi (phiếu Phase 4, mục 6.7, 8.4).
+ * Mọi dung lượng đi qua hàm này trước khi tính.
+ */
+export function toBytes(v: number | bigint | null | undefined): number {
+  return typeof v === 'bigint' ? Number(v) : (v ?? 0);
+}
+
 function packDir(pack: ModelPack): Directory {
   return new Directory(Paths.document, 'models', pack.id);
 }
@@ -28,7 +37,7 @@ export function isPackReady(pack: ModelPack): boolean {
   }
   return pack.files.every((f) => {
     const file = packFile(pack, f.name);
-    return file.exists && file.size === f.bytes;
+    return file.exists && toBytes(file.size) === f.bytes;
   });
 }
 
@@ -48,7 +57,7 @@ export async function downloadPack(
 
   for (const f of pack.files) {
     const target = packFile(pack, f.name);
-    if (target.exists && target.size === f.bytes) {
+    if (target.exists && toBytes(target.size) === f.bytes) {
       done += f.bytes;
       onProgress?.({ bytes: done, total });
       continue;
@@ -60,11 +69,11 @@ export async function downloadPack(
     const base = done;
     const task = new DownloadTask(f.url, part, {
       signal,
-      onProgress: (p) => onProgress?.({ bytes: base + p.bytesWritten, total }),
+      onProgress: (p) => onProgress?.({ bytes: base + toBytes(p.bytesWritten), total }),
     });
     const file = await task.downloadAsync();
-    if (!file) throw new Error('Đã hủy tải bộ tách người');
-    if (part.size !== f.bytes) {
+    if (!file) throw new Error(`Đã hủy tải ${f.name}`);
+    if (toBytes(part.size) !== f.bytes) {
       part.delete();
       throw new Error(`Tải thiếu dữ liệu: ${f.name}`);
     }
@@ -82,6 +91,19 @@ export async function downloadPack(
       files: pack.files.map(({ name, bytes }) => ({ name, bytes })),
     }),
   );
+}
+
+/** Dung lượng gói đang nằm trong máy (cả file đang tải dở), byte. Chưa tải thì 0. */
+export function packDiskBytes(pack: ModelPack): number {
+  const dir = packDir(pack);
+  if (!dir.exists) return 0;
+  return dir.list().reduce((sum, e) => sum + (e instanceof File ? toBytes(e.size) : 0), 0);
+}
+
+/** Xóa cả gói khỏi máy (Cài đặt, business-flow §7.4). Lần dùng sau sẽ tải lại. */
+export function deletePack(pack: ModelPack): void {
+  const dir = packDir(pack);
+  if (dir.exists) dir.delete();
 }
 
 /** Đọc một file của gói thành base64 (để gửi vào WebView). */

@@ -7,10 +7,13 @@
 import { requireOptionalNativeModule } from 'expo';
 import * as Haptics from 'expo-haptics';
 
+import { useSettings } from '@/features/settings/settingsStore';
+
 export const hapticsAvailable = requireOptionalNativeModule('ExpoHaptics') != null;
 
 function safe(run: () => Promise<void>) {
-  if (!hapticsAvailable) return;
+  // Tắt trong Cài đặt (business-flow §7.4) thì không rung.
+  if (!hapticsAvailable || !useSettings.getState().haptics) return;
   run().catch(() => {});
 }
 
@@ -18,6 +21,10 @@ export const haptic = {
   capture: () => safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)),
   snap: () => safe(() => Haptics.selectionAsync()),
   levelReached: () => safe(() => Haptics.selectionAsync()),
+  /** Chọn / bỏ chọn một người trên màn Chọn người. */
+  select: () => safe(() => Haptics.selectionAsync()),
   enterTrash: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)),
+  /** Giữ ô pose mở menu. */
+  menu: () => safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)),
   saved: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
 };

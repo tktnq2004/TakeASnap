@@ -1,5 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
+import { transaction } from './transaction';
+
 /**
  * Migration theo PRAGMA user_version. Mỗi phần tử là một bước nâng version, không bao giờ sửa
  * bước cũ, chỉ thêm bước mới. Mô hình dữ liệu: docs/business-flow.md §9.
@@ -179,6 +181,15 @@ const steps: string[] = [
   CREATE INDEX variants_updated_at ON pose_variants (updated_at DESC);
   CREATE INDEX photos_sample_id ON photos (sample_id);
   `,
+  // v4 — Sửa nét (Phase 3): ảnh đã sửa viền thì không lấy lại viền mới nhất của pose mẫu.
+  `
+  ALTER TABLE photos ADD COLUMN contours_edited INTEGER NOT NULL DEFAULT 0;
+  `,
+  // v5 — cọ Khôi phục (góp ý Phase 3): viền lúc tạo pose, ghi lần đầu Sửa nét. NULL = chưa sửa
+  // (viền hiện tại là viền gốc) hoặc ảnh đã sửa trước bản này.
+  `
+  ALTER TABLE photos ADD COLUMN original_contours_json TEXT;
+  `,
 ];
 
 export const SCHEMA_VERSION = steps.length;
@@ -190,7 +201,7 @@ export async function migrate(db: SQLiteDatabase): Promise<void> {
 
   while (version < steps.length) {
     const sql = steps[version] as string;
-    await db.withTransactionAsync(async () => {
+    await transaction(db, async () => {
       await db.execAsync(sql);
       await db.execAsync(`PRAGMA user_version = ${version + 1}`);
     });

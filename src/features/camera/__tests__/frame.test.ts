@@ -1,4 +1,4 @@
-import { ASPECTS, frameToPhotoCrop, viewfinderRect } from '../frame';
+import { ASPECTS, frameToPhotoCrop, isWholeImage, previewRect, viewfinderRect } from '../frame';
 
 // iPhone 15 Pro Max: 430 × 932 pt; thanh trên 100, dưới 200 (ước lượng).
 const SW = 430;
@@ -16,6 +16,27 @@ describe('viewfinderRect', () => {
     const r = viewfinderRect(SW, SH, 100, 200, ASPECTS['9:16']);
     expect(r.height).toBeCloseTo(764.44, 1);
     expect(r.y).toBeCloseTo((932 - 764.44) / 2, 1);
+  });
+
+  it('9:16 có đường giữa hai cụm nút → mép khung đi qua giữa thanh trên và giữa nút chụp', () => {
+    // Giữa thanh trên y = 93, giữa nút chụp y = 841: cách nhau 748 < 764 → khung thấp lại.
+    const r = viewfinderRect(SW, SH, 100, 200, ASPECTS['9:16'], { top: 93, bottom: 841 });
+    expect(r.y).toBeCloseTo(93);
+    expect(r.y + r.height).toBeCloseTo(841);
+    expect(r.width).toBeCloseTo(748 * (9 / 16));
+    expect(r.x).toBeCloseTo((SW - r.width) / 2);
+  });
+
+  it('9:16 thấp hơn khoảng giữa hai cụm nút → giữ cỡ, đặt giữa hai đường', () => {
+    const r = viewfinderRect(SW, SH, 100, 200, ASPECTS['9:16'], { top: 60, bottom: 900 });
+    expect(r.height).toBeCloseTo(764.44, 1);
+    expect(r.y + r.height / 2).toBeCloseTo(480);
+  });
+
+  it('3:4 vừa thì không dùng đường cắt', () => {
+    const a = viewfinderRect(SW, SH, 100, 200, ASPECTS['3:4']);
+    const b = viewfinderRect(SW, SH, 100, 200, ASPECTS['3:4'], { top: 93, bottom: 841 });
+    expect(b).toEqual(a);
   });
 
   it('không bao giờ cao quá màn hình', () => {
@@ -52,5 +73,40 @@ describe('frameToPhotoCrop', () => {
     expect(c.height).toBe(PH);
     expect(c.width).toBe(Math.floor(SW / s));
     expect(c.x).toBe(Math.round((PW - SW / s) / 2));
+  });
+});
+
+describe('previewRect (màn xem trước đúng tỉ lệ cảm biến)', () => {
+  it('khung 3:4 thấy đủ cảm biến: màn xem trước trùng khung', () => {
+    const f = { x: 0, y: 112, width: 390, height: 520 };
+    expect(previewRect(f)).toEqual(f);
+  });
+
+  it('khung 1:1 cắt trên dưới như app gốc', () => {
+    const p = previewRect({ x: 0, y: 200, width: 390, height: 390 });
+    expect(p.width).toBe(390);
+    expect(p.height).toBeCloseTo(520);
+    expect(p.y).toBeCloseTo(200 - 65);
+  });
+
+  it('khung 9:16 cắt hai bên như app gốc', () => {
+    const p = previewRect({ x: 0, y: 75, width: 390, height: 693.33 });
+    expect(p.height).toBeCloseTo(693.33);
+    expect(p.width).toBeCloseTo(520);
+    expect(p.x).toBeCloseTo(-65);
+  });
+});
+
+describe('isWholeImage (chụp liên tục: khung trùng cả ảnh thì không cắt)', () => {
+  const photo = { width: 3024, height: 4032 };
+  it('khung 3:4 trùng màn xem trước thì là cả ảnh', () => {
+    const frame = { x: 0, y: 0, width: 390, height: 520 };
+    const crop = frameToPhotoCrop(frame, 390, 520, photo.width, photo.height);
+    expect(isWholeImage(crop, photo)).toBe(true);
+  });
+  it('khung 1:1 thì phải cắt', () => {
+    const frame = { x: 0, y: 65, width: 390, height: 390 };
+    const crop = frameToPhotoCrop(frame, 390, 520, photo.width, photo.height);
+    expect(isWholeImage(crop, photo)).toBe(false);
   });
 });

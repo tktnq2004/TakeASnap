@@ -3,11 +3,10 @@ import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
 import type { Landmarks, SegmentModelId, SegmentTimings, WebSegmentResult } from './types';
-import { buildSegmenterHtml } from './web/segmenterHtml';
+import { buildSegmenterHtml } from 'composition-critic/page';
 
 type ReadyInfo = {
   ua: string;
-  ort: boolean;
   webgl2: boolean;
   wasm: boolean;
   crossOriginIsolated: boolean;
@@ -27,7 +26,7 @@ type Incoming =
   | OkMessage
   | { id: number; ok: false; error: string };
 
-/** Lần đầu dùng RMBG phải tải ~44 MB, nên cho phép lâu. */
+/** Lần đầu ở chế độ cdn phải tải model từ mạng, nên cho phép lâu. */
 const TIMEOUT_MS = 180_000;
 
 /**
@@ -44,6 +43,16 @@ type WebViewHandle = { postMessage: (data: string) => void; reload: () => void }
 const ASSET_CHUNK = 1024 * 1024;
 
 export type MaskGrid = { width: number; height: number; base64: string };
+
+/** Phần trời trong kết quả `run` khi có `skySide` (Phase 5a). */
+export type SkyResult = {
+  /** Mặt nạ trời Uint8 (1 = trời). */
+  sky?: MaskGrid;
+  skyMs?: number;
+  skyLoadMs?: number;
+  skyBackend?: string;
+  skyError?: string;
+};
 
 /**
  * `mode`: 'cdn' (spike, nạp model từ CDN) hoặc 'local' (app gửi gói model trong máy bằng
@@ -83,7 +92,7 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
 
   /**
    * iOS/Android đóng tiến trình WebView (thường do hết bộ nhớ): trang chết im lặng, không gửi
-   * được lỗi. Báo lỗi cho mọi yêu cầu đang chờ rồi nạp lại trang (spike B, RMBG treo 180 s).
+   * được lỗi. Báo lỗi cho mọi yêu cầu đang chờ rồi nạp lại trang.
    */
   const onProcessGone = () => {
     const message = 'WebView bị hệ điều hành đóng, có thể do hết bộ nhớ';
@@ -99,16 +108,25 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
 
   /**
    * Tách người: mask PNG cùng kích thước ảnh vào. `gridSide`: trả thêm lưới alpha (Uint8, cạnh
-   * dài ≤ gridSide) để dò viền mà không phải giải mã PNG.
+   * dài ≤ gridSide) để dò viền mà không phải giải mã PNG. `graySide`: trả thêm ảnh xám (Uint8,
+   * cạnh dài ≤ graySide) cho bộ dò đường thẳng (Phase 5a). `skySide`: chạy thêm model trời ở
+   * cạnh dài này (gói trời phải gửi vào trang trước).
    */
   const run = async (
     model: SegmentModelId,
     base64: string,
     gridSide?: number,
-  ): Promise<WebSegmentResult & { grid?: MaskGrid }> =>
-    (await request({ type: 'segment', model, base64, gridSide })) as unknown as WebSegmentResult & {
-      grid?: MaskGrid;
-    };
+    graySide?: number,
+    skySide?: number,
+  ): Promise<WebSegmentResult & { grid?: MaskGrid; gray?: MaskGrid } & SkyResult> =>
+    (await request({
+      type: 'segment',
+      model,
+      base64,
+      gridSide,
+      graySide,
+      skySide,
+    })) as unknown as WebSegmentResult & { grid?: MaskGrid; gray?: MaskGrid } & SkyResult;
 
   /** Gửi một file của gói model vào trang, từng khúc, chờ trang nhận xong từng khúc. */
   const sendAsset = async (name: string, mime: string, base64: string) => {
@@ -122,6 +140,10 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
   /** Nét mặt + khung xương (lớp Nét của pose). */
   const landmarks = async (base64: string) =>
     (await request({ type: 'landmarks', base64 })) as unknown as Landmarks & {
+      /** Khung xương mọi người (tới 6), người đầu tiên trùng `bodyPoints`. */
+      bodies?: number[][];
+      /** Giữa hai mắt của từng mặt [x, y]. */
+      faceEyes?: number[][];
       timings: SegmentTimings;
     };
 

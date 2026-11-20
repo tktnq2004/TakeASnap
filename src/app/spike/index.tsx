@@ -7,14 +7,13 @@ import { t } from '@/ui/strings';
 import { color, radius, size, space, type } from '@/ui/tokens';
 
 /**
- * Màn thử nghiệm: danh sách spike để đo trên máy thật. Từ Phase 2 mở bằng nút cài đặt trên
- * Camera.
+ * Màn thử nghiệm, chỉ hiện trong bản dev (Cài đặt → Nhà phát triển). Spike B: so các model MediaPipe
+ * tách người trên máy thật. Độ đúng quy tắc nhận xét (Phase 5 Bước 3).
  */
 const spikes: { href: Href; title: string }[] = [
-  { href: '/spike/camera', title: t.spike.cameraTitle },
   { href: '/spike/segment', title: t.spike.segmentTitle },
-  { href: '/spike/overlay', title: t.spike.overlayTitle },
-  { href: '/spike/save', title: t.spike.saveTitle },
+  // Kiểu route mới sinh lại khi chạy dev server.
+  { href: '/spike/rules' as Href, title: t.spike.rulesTitle },
 ];
 
 export default function SpikeMenu() {

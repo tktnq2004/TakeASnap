@@ -15,8 +15,10 @@ export type Rect = { x: number; y: number; width: number; height: number };
 
 /**
  * Khung ngắm rộng bằng màn hình, cao theo tỉ lệ. Vừa giữa thanh trên và thanh dưới thì đặt giữa
- * vùng đó; không vừa (9:16 trên máy dài) thì được tràn ra sau các thanh, đặt giữa màn hình, và
- * không bao giờ cao quá màn hình.
+ * vùng đó. Không vừa (9:16 trên máy dài) thì tràn ra sau các thanh và không bao giờ cao quá màn
+ * hình; có `cut` (giữa thanh trên và giữa hàng nút chụp, tọa độ màn hình) thì mép khung đi qua
+ * đúng giữa hai cụm nút: khung đặt giữa hai đường đó và thấp lại cho vừa (phiếu Phase 5 lần 4:
+ * mép khung cắt 3/4 nút chụp trông lệch). Không có `cut` thì đặt giữa màn hình.
  */
 export function viewfinderRect(
   screenW: number,
@@ -24,6 +26,7 @@ export function viewfinderRect(
   topH: number,
   bottomH: number,
   aspect: number,
+  cut?: { top: number; bottom: number },
 ): Rect {
   let width = screenW;
   let height = width / aspect;
@@ -32,8 +35,43 @@ export function viewfinderRect(
     width = height * aspect;
   }
   const available = screenH - topH - bottomH;
-  const y = height <= available ? topH + (available - height) / 2 : (screenH - height) / 2;
-  return { x: (screenW - width) / 2, y, width, height };
+  if (height <= available) {
+    return { x: (screenW - width) / 2, y: topH + (available - height) / 2, width, height };
+  }
+  if (cut && cut.bottom > cut.top) {
+    const span = cut.bottom - cut.top;
+    if (height > span) {
+      height = span;
+      width = height * aspect;
+    }
+    const mid = (cut.top + cut.bottom) / 2;
+    return { x: (screenW - width) / 2, y: mid - height / 2, width, height };
+  }
+  return { x: (screenW - width) / 2, y: (screenH - height) / 2, width, height };
+}
+
+/** Tỉ lệ cảm biến khi chụp (CameraView ratio "4:3"), dựng đứng: rộng / cao = 3 / 4. */
+export const SENSOR_ASPECT = 3 / 4;
+
+/**
+ * Chỗ đặt màn xem trước của camera: hình 3:4 nhỏ nhất phủ kín khung ngắm, cùng tâm (góp ý Phase
+ * 4, mục 4.4). Trước đây màn xem trước phủ cả màn hình dài nên ảnh 4:3 bị phóng thêm ~1,6 lần và
+ * mọi mức zoom hẹp hơn app Camera của máy. Khung 3:4 giờ thấy đúng toàn bộ cảm biến như app gốc;
+ * 1:1 và 9:16 cắt bớt cảm biến như app gốc.
+ */
+export function previewRect(frame: Rect, aspect: number = SENSOR_ASPECT): Rect {
+  let width = frame.width;
+  let height = width / aspect;
+  if (height < frame.height) {
+    height = frame.height;
+    width = height * aspect;
+  }
+  return {
+    x: frame.x + (frame.width - width) / 2,
+    y: frame.y + (frame.height - height) / 2,
+    width,
+    height,
+  };
 }
 
 /**
@@ -64,4 +102,11 @@ export function frameToPhotoCrop(
     width: Math.floor(width),
     height: Math.floor(height),
   };
+}
+
+/** Vùng cắt phủ cả ảnh (lệch tối đa 2 px do làm tròn): không cần cắt. */
+export function isWholeImage(crop: Rect, photo: { width: number; height: number }): boolean {
+  return (
+    crop.x <= 1 && crop.y <= 1 && crop.width >= photo.width - 2 && crop.height >= photo.height - 2
+  );
 }

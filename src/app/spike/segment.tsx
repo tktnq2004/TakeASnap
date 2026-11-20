@@ -24,8 +24,6 @@ const models = [
   { key: 'multiclass', label: 'Multiclass' },
   { key: 'selfie', label: 'Selfie' },
   { key: 'deeplab', label: 'DeepLab' },
-  { key: 'rmbg-cpu', label: 'RMBG CPU' },
-  { key: 'rmbg-gpu', label: 'RMBG GPU' },
 ] as const;
 
 /** 3 ảnh đã soi trên máy tính (docs/spikes.md): ngồi bệt, váy xòe cầm giỏ, đứng giơ tay. */
