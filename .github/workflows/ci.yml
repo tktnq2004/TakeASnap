@@ -9,12 +9,12 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Không lưu GITHUB_TOKEN vào git config: header đó được gửi kèm mọi yêu cầu tới
           # github.com và đè lên token trong URL, nên git không đọc được repo composition-critic.
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: npm
