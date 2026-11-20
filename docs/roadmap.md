@@ -531,6 +531,8 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 
 Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b).
 
+**Chốt khi bắt đầu (2026-11-21, chi tiết ở [phase5b-data.md](phase5b-data.md)):** Claude gán nhãn sẵn ngay trong phiên phát triển (không gọi API), người duyệt ≥ 300 ảnh; huấn luyện toàn bộ trên Windows bằng ImageEmbedder có sẵn của MediaPipe + đặc trưng người + một lớp phân loại nhỏ (không Colab, không Model Maker); bộ nhãn là kỹ thuật nhìn ra từ cảnh (1/3, ở giữa, lấp đầy khung, chân trời, đường dẫn, nhóm, khác), selfie chọn bằng luật camera trước, góc thấp không đoán; nguồn ảnh Open Images V7 (CC BY 2.0) + Wikimedia. Các bước dưới giữ ý, đổi cách làm theo các chốt này.
+
 **Chia việc:** model chỉ làm bài toán **phân loại** (khung cảnh → kỹ thuật hợp); hướng dẫn chỉnh vẫn là quy tắc (§3.6). Không làm model "đầu cuối" (nhìn ảnh → "dời máy sang phải 2 cm"): cần dữ liệu từng cặp ảnh lệch / đúng, nặng và khó giải thích; để sau v1.
 
 **Bước 1 — Dữ liệu (khoảng 1 tuần)**
