@@ -54,19 +54,31 @@ Sửa theo 1.5, 1.6, 2.1. Cái app **tìm thấy** (khung người, chấm mắt
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 4.1 | Bật Quy tắc 1/3, chưa có pose | Chỉ hai vòng nhỏ ở hai giao điểm **trên** (không còn hai giao điểm dưới) | | | |
-| 4.2 | Có pose, kéo mắt người mẫu tới gần giao điểm dưới rồi thả | Không dính vào giao điểm dưới; chấm đích xanh ở giao điểm trên gần nhất. Kéo tới gần giao điểm trên thì dính như cũ | | | |
-| 4.3 | Quy tắc 1/3: đặt mắt người thật vào chấm xanh, chạm Kiểm tra bố cục | Chấm trắng ở mắt trùng chấm xanh; dòng mắt đạt (nếu người còn ở giữa khung thì dòng về đường dọc) | | | |
-| 4.4 | Bật Đường chân trời | Cả hai đường ngang 1/3 đều xanh; dòng giới thiệu "Đặt chỗ trời gặp biển hoặc đất lên một đường xanh" | | | |
-| 4.5 | Đường chân trời, ngoài trời có chân trời thật (biển, hồ, cánh đồng, hoặc dãy nhà xa), chân trời **cao hơn** đường xanh trên, chạm Kiểm tra bố cục | Đường trắng nằm đúng chỗ trời gặp đất; "Chân trời cao hơn đường 1/3, ngửa máy lên một chút"; ghi số ms | | | |
-| 4.6 | Như 4.5 nhưng chân trời **thấp hơn** đường xanh gần nhất | "Chân trời thấp hơn đường 1/3, chúc máy xuống một chút" | | | |
-| 4.7 | Làm theo dòng ở 4.5 / 4.6 tới khi đường trắng trùng một đường xanh, chạm lại | Viên xanh "Đạt Đường chân trời", rung nhẹ (nếu không còn dòng chung chưa đạt) | | | |
-| 4.8 | Người đứng cả người trong khung, có mép sàn / chân tường / bậc thềm ngay ở bàn chân, ở Đường chân trời | Không vẽ đường trắng ở bàn chân (nếu không có chân trời khác thì không có đường nào). Nếu vẫn có đường sai, ghi đường đó nằm ở đâu | | | |
-| 4.9 | Chân trời đi ngang cổ người | "Chân trời cắt ngang cổ, hạ hoặc nâng máy một chút" | | | |
-| 4.10 | Bật Đường dẫn, người đứng trên đường đi / hành lang / đường ray hội tụ về phía người, chạm Kiểm tra bố cục | Các đường trắng trên mép đường, vòng trắng ở chỗ các đường gặp nhau; "Đường dẫn hướng tới người" | | | |
-| 4.11 | Như 4.10 nhưng người đứng lệch hẳn sang một bên | "Đường dẫn chưa hướng tới người, đứng ở chỗ các đường gặp nhau" | | | |
-| 4.12 | Chụp ảnh ở Đường chân trời / Đường dẫn rồi mở Xem ảnh | Thẻ nhận xét có dòng về chân trời / đường dẫn như trên | | | |
-| 4.13 | Android: làm 4.5 và ghi số ms | ≤ 300 ms | — | | |
+| 4.1 | Bật Quy tắc 1/3, chưa có pose | Chỉ hai vòng nhỏ ở hai giao điểm **trên** (không còn hai giao điểm dưới) |d |d | |
+| 4.2 | Có pose, kéo mắt người mẫu tới gần giao điểm dưới rồi thả | Không dính vào giao điểm dưới; chấm đích xanh ở giao điểm trên gần nhất. Kéo tới gần giao điểm trên thì dính như cũ |d |d | |
+| 4.3 | Quy tắc 1/3: đặt mắt người thật vào chấm xanh, chạm Kiểm tra bố cục | Chấm trắng ở mắt trùng chấm xanh; dòng mắt đạt (nếu người còn ở giữa khung thì dòng về đường dọc) |d | d| |
+| 4.4 | Bật Đường chân trời | Cả hai đường ngang 1/3 đều xanh; dòng giới thiệu "Đặt chỗ trời gặp biển hoặc đất lên một đường xanh" |d |d | đường chân trời phải nằm giữa 2 đường xanh ? Nếu vậy thì ghi đường chân trời nằm giữa 2 đường xanh cho dễ hiểu |
+| 4.5 | Đường chân trời, ngoài trời có chân trời thật (biển, hồ, cánh đồng, hoặc dãy nhà xa), chân trời **cao hơn** đường xanh trên, chạm Kiểm tra bố cục | Đường trắng nằm đúng chỗ trời gặp đất; "Chân trời cao hơn đường 1/3, ngửa máy lên một chút"; ghi số ms |d |d | |
+| 4.6 | Như 4.5 nhưng chân trời **thấp hơn** đường xanh gần nhất | "Chân trời thấp hơn đường 1/3, chúc máy xuống một chút" |d |d | |
+| 4.7 | Làm theo dòng ở 4.5 / 4.6 tới khi đường trắng trùng một đường xanh, chạm lại | Viên xanh "Đạt Đường chân trời", rung nhẹ (nếu không còn dòng chung chưa đạt) |d |d | |
+| 4.8 | Người đứng cả người trong khung, có mép sàn / chân tường / bậc thềm ngay ở bàn chân, ở Đường chân trời | Không vẽ đường trắng ở bàn chân (nếu không có chân trời khác thì không có đường nào). Nếu vẫn có đường sai, ghi đường đó nằm ở đâu |d |d | |
+| 4.9 | Chân trời đi ngang cổ người | "Chân trời cắt ngang cổ, hạ hoặc nâng máy một chút" |d |d | |
+| 4.10 | Bật Đường dẫn, người đứng trên đường đi / hành lang / đường ray hội tụ về phía người, chạm Kiểm tra bố cục | Các đường trắng trên mép đường, vòng trắng ở chỗ các đường gặp nhau; "Đường dẫn hướng tới người" |d | d| |
+| 4.11 | Như 4.10 nhưng người đứng lệch hẳn sang một bên | "Đường dẫn chưa hướng tới người, đứng ở chỗ các đường gặp nhau" |d |d | phần này quá khó để test, vì đường dẫn là kĩ thuật cao |
+| 4.12 | Chụp ảnh ở Đường chân trời / Đường dẫn rồi mở Xem ảnh | Thẻ nhận xét có dòng về chân trời / đường dẫn như trên |d |d | |
+| 4.13 | Android: làm 4.5 và ghi số ms | ≤ 300 ms | — | -| android khong có cam nên bỏ qua |
+
+## 5. Sau góp ý lần 2 (đường trên ảnh Xem ảnh)
+
+**Trả lời 4.4:** chân trời không nằm giữa hai đường xanh mà **trùng một trong hai đường**: đường trên (nhiều đất / biển) hoặc đường dưới (nhiều trời). Dòng giới thiệu đổi thành "Đặt chỗ trời gặp biển hoặc đất trùng đường xanh trên hoặc dưới".
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 5.1 | Bật Đường chân trời | Dòng giới thiệu "Đặt chỗ trời gặp biển hoặc đất trùng đường xanh trên hoặc dưới" | | | |
+| 5.2 | Chụp ở Đường chân trời (có chân trời thật), mở Xem ảnh | Trên ảnh có hai đường xanh và một đường trắng đúng chỗ chân trời; thẻ nhận xét có dòng chân trời | | | |
+| 5.3 | Chụp ở Đường dẫn (có đường đi / hành lang), mở Xem ảnh | Trên ảnh có nét đứt xanh, các đường trắng trên mép đường và vòng trắng ở chỗ chúng gặp nhau | | | |
+| 5.4 | Chạm ảnh ở 5.2 / 5.3 | Lớp xanh và đường trắng cùng ẩn, chạm lại cùng hiện | | | |
+| 5.5 | Ảnh ở Quy tắc 1/3, Đặt ở giữa | Không có đường trắng nào | | | |
 
 ## Góp ý thêm
 

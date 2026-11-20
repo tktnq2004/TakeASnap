@@ -4,17 +4,16 @@
  * chỗ viên gợi ý, hiện `compositionUi.checkShowMs` rồi tự ẩn. Cái app tìm thấy vẽ màu trắng, chỗ
  * cần đặt (lớp bố cục) màu xanh, để không lẫn (phiếu phase5a 2.1).
  */
-import type { Segment } from 'composition-critic';
 import { Check, ScanSearch } from 'lucide-react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import Svg, { Circle, Line } from 'react-native-svg';
 
 import type { Rect } from '@/features/camera/frame';
 import { ease } from '@/ui/easing';
 import { t } from '@/ui/strings';
 import { color, compositionUi, motion, radius, size, space, type } from '@/ui/tokens';
 
+import { SceneLines } from './SceneLines';
 import type { CheckResult } from './useLayoutCheck';
 
 export function CheckOverlay({
@@ -34,9 +33,6 @@ export function CheckOverlay({
   let eye: { x: number; y: number } | null = null;
   let text: string;
   let ok = false;
-  /** Đoạn cần vẽ (tọa độ chuẩn hóa, đã lật nếu cần); điểm hội tụ. */
-  let lines: { a: { x: number; y: number }; b: { x: number; y: number } }[] = [];
-  let vp: { x: number; y: number } | null = null;
   let sceneMs: number | null = null;
   if (result.kind === 'review') {
     const f = result.features;
@@ -47,27 +43,6 @@ export function CheckOverlay({
       box = [Math.min(x0, x1), b[1], Math.max(x0, x1), b[3]];
     }
     if (f.eye) eye = { x: fx(f.eye.x), y: f.eye.y };
-    const flipSeg = (q: Segment) => ({
-      a: { x: fx(q.a.x), y: q.a.y },
-      b: { x: fx(q.b.x), y: q.b.y },
-    });
-    const sc = result.scene;
-    if (sc && result.technique === 'horizon' && sc.horizon) {
-      // Vẽ cả đường (kể cả phần bị che), kéo dài hết bề ngang khung.
-      const e = sc.horizon.seg.extent;
-      const k = (e.b.y - e.a.y) / (e.b.x - e.a.x || 1);
-      lines = [
-        flipSeg({
-          ...sc.horizon.seg,
-          a: { x: 0, y: e.a.y - k * e.a.x },
-          b: { x: 1, y: e.a.y + k * (1 - e.a.x) },
-        }),
-      ];
-    }
-    if (sc && result.technique === 'lead' && sc.vanishing) {
-      lines = sc.vanishing.lines.map(flipSeg);
-      vp = { x: fx(sc.vanishing.point.x), y: sc.vanishing.point.y };
-    }
     sceneMs = result.sceneMs;
     if (result.note) text = t.review.notes[result.note.id];
     else {
@@ -92,31 +67,14 @@ export function CheckOverlay({
           { left: frame.x, top: frame.y, width: frame.width, height: frame.height },
         ]}
       >
-        {lines.length > 0 && (
-          <Svg width={frame.width} height={frame.height} style={StyleSheet.absoluteFill}>
-            {lines.map((l, i) => (
-              <Line
-                key={i}
-                x1={l.a.x * frame.width}
-                y1={l.a.y * frame.height}
-                x2={l.b.x * frame.width}
-                y2={l.b.y * frame.height}
-                stroke={color.camInk}
-                strokeWidth={compositionUi.accentStroke}
-                strokeLinecap="round"
-              />
-            ))}
-            {vp && (
-              <Circle
-                cx={vp.x * frame.width}
-                cy={vp.y * frame.height}
-                r={compositionUi.target / 2}
-                stroke={color.camInk}
-                strokeWidth={compositionUi.targetStroke}
-                fill="none"
-              />
-            )}
-          </Svg>
+        {result.kind === 'review' && (
+          <SceneLines
+            width={frame.width}
+            height={frame.height}
+            technique={result.technique}
+            scene={result.scene}
+            flip={flip}
+          />
         )}
         {box && (
           <View

@@ -93,7 +93,7 @@ export const t = {
       thirds: 'Đặt mắt người lên một chấm xanh',
       center: 'Đưa người vào trục giữa',
       fill: 'Tiến lại gần để người lấp đầy khung',
-      horizon: 'Đặt chỗ trời gặp biển hoặc đất lên một đường xanh',
+      horizon: 'Đặt chỗ trời gặp biển hoặc đất trùng đường xanh trên hoặc dưới',
       lead: 'Xếp đường đi theo hai nét đứt',
       group: 'Cho các đầu cao thấp khác nhau',
     },
