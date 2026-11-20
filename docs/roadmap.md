@@ -486,7 +486,7 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 
 **Xong khi:** chọn được kỹ thuật và thấy lớp bố cục trên camera; gợi ý cảm biến chạy tức thì; có nhận xét sau khi chụp (hoặc đã ghi rõ vì sao bỏ theo cổng); 19 thẻ học; phiếu `phase5-test.md` đạt trên iPhone và Android.
 
-### Phase 5a — Dò đường chân trời và đường dẫn (khoảng 1 tuần, có cổng quyết định)
+### Phase 5a — Dò đường chân trời và đường dẫn (khoảng 1 tuần, có cổng quyết định) — xong 2026-11-21
 
 Làm sau khi Phase 5 chạy. Nâng bản đơn giản của Phase 5 (lớp kẻ cố định, người dùng tự xếp cảnh) thành app tự tìm đường trong ảnh. Nghiệp vụ ở [business-flow §6.9](business-flow.md#69-dò-đường-chân-trời-và-đường-dẫn-phase-5a).
 
@@ -520,8 +520,10 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 
 **Thử model trời (spike, người dùng chọn 2026-11-20):** DeepLab v3 ADE20K bản TF.js lượng tử 1 byte (~2,4 MB, lớp "sky"), chạy trong WebView như MediaPipe. Mặt nạ trời không thay đường thẳng mà dùng để: bỏ đường nằm trong trời (vệt mây), ảnh không có trời thì không có chân trời, ưu tiên đường ở đáy vùng trời, không còn đường nào thì lấy đáy vùng trời (`scripts/sky-eval.ts`, composition-critic v0.3.0). Kết quả: bộ cũ 80 → **84%**, bộ giữ riêng 55 → **79%** khung cắt; ảnh nguyên **100% / 89%**; ảnh không có chân trời báo đúng **100%**. Luật trời chỉnh trên cả hai bộ nên không còn bộ giữ riêng: số này là trần trên. Luật bàn chân đổi sang dùng cổ chân của khung xương (vùng người hay chỉ lấy được nửa trên).
 - [x] Gói trời `sky` (~3,9 MB: TF.js 4.22.0 + model), tải khi bấm Kiểm tra bố cục ở Đường chân trời lần đầu (hỏi trước; chọn "Kiểm tra bố cục ngay" thì dò chỉ bằng đường thẳng); nhận xét sau khi chụp dùng gói trời nếu đã có, không tự tải
-- [ ] Đo thời gian model trời trên iPhone / Android (bản dev hiện "Trời … ms"; Chrome không GPU mất ~4,9 s nên chưa nói được gì); chạy ở cạnh 257 thì nhanh hơn ~4 lần nhưng kém hơn: khung cắt 79% / 83% (gần như cũ) nhưng ảnh nguyên 84% / 92% và ảnh tường nhà lại báo nhầm chân trời (8/9 khung cắt), nên giữ 513, chỉ hạ xuống khi máy quá chậm
-- [ ] Chốt cổng chân trời khi có thời gian trên máy
+- [x] Đo thời gian model trời trên máy (phiếu 6.3–6.4): iPhone 167–183 ms, Android 210–261 ms, đạt ≤ 300 ms; chạy ở cạnh 257 thì nhanh hơn ~4 lần nhưng kém hơn: khung cắt 79% / 83% (gần như cũ) nhưng ảnh nguyên 84% / 92% và ảnh tường nhà lại báo nhầm chân trời (8/9 khung cắt), nên giữ 513, chỉ hạ xuống khi máy quá chậm
+- [x] Thử cảnh trên máy tính, cùng trang và model (`scripts/horizon-scenes.ts`, phiếu 6.5–6.7): có mây 6/6, không có chân trời 5/5, hướng nghiêng máy 9/9
+
+**Chốt cổng (2026-11-21):** chân trời **có bộ tìm trời** đưa vào app: 79% / 84% khung cắt, 89% / 100% ảnh nguyên, không báo nhầm khi không có trời, model trời ≤ 300 ms trên cả hai máy. Số chỉnh trên chính 45 ảnh có nhãn (không còn bộ giữ riêng) nên là trần trên; người dùng gặp ảnh sai thì thêm vào bộ ảnh rồi đo lại. Không có gói trời thì dò chỉ bằng đường thẳng (55–80%). Đường dẫn giữ (75% trên 7 ảnh, ít ảnh). Cột sau đầu không đưa vào.
 
 **Xong khi:** chân trời, đường dẫn và vật "mọc" sau đầu tự phát hiện trên iPhone và Android, đạt cổng ở trên (hoặc chỉ phần đạt được đưa vào, phần còn lại giữ bản Phase 5 và ghi rõ vì sao); phiếu `phase5a-test.md` đạt.
 

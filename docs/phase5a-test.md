@@ -90,16 +90,16 @@ Chạy lại `npx expo start -c` (composition-critic lên v0.3.0).
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 6.1 | Bật Đường chân trời, chạm Kiểm tra bố cục lần đầu | Hộp thoại "Tải bộ tìm trời" ghi 3,9 MB, hai nút "Kiểm tra bố cục ngay" và "Tải bộ tìm trời" | | | |
-| 6.2 | Android: chọn "Kiểm tra bố cục ngay" | Kiểm tra chạy như cũ (không có "Trời … ms"); chạm lại thì hộp thoại hỏi lại | — | | |
-| 6.3 | Chọn "Tải bộ tìm trời" | Tải xong tự kiểm tra; dòng dev "Dò đường … ms · Trời … ms": ghi số ms lần đầu (có thời gian nạp model) | | | |
-| 6.4 | Chạm Kiểm tra bố cục thêm 3 lần ở cùng cảnh | Ghi số "Trời … ms" từng lần (cổng: cả lần kiểm tra ≤ khoảng 1,5 s, model trời ≤ 300 ms là tốt) | | | |
-| 6.5 | Ngoài trời có mây thành vệt ngang và chân trời thấp hơn (hoặc nhà / cây xa) | Đường trắng ở chỗ trời gặp đất, không nằm trên vệt mây | | | |
-| 6.6 | Trong nhà (tường, sàn), người đứng cả người | Không có đường trắng, không có dòng chân trời | | | |
-| 6.7 | Như 4.5–4.7 (chân trời cao / thấp / đạt) | Dòng gợi ý vẫn đúng hướng, đạt thì viên xanh | | | |
-| 6.8 | Chụp ở Đường chân trời rồi mở Xem ảnh | Đường trắng trên ảnh đúng chỗ chân trời, thẻ có dòng chân trời | | | |
-| 6.9 | Quy tắc 1/3 (kỹ thuật khác), chạm Kiểm tra bố cục | Không hỏi tải bộ tìm trời, không có "Trời … ms" | | | |
-| 6.10 | Đường chân trời, chạm Kiểm tra bố cục 10 lần (đợi mỗi lần xong) | Không lỗi, máy không nóng, nút chụp vẫn dùng bình thường | | | |
+| 6.1 | Bật Đường chân trời, chạm Kiểm tra bố cục lần đầu | Hộp thoại "Tải bộ tìm trời" ghi 3,9 MB, hai nút "Kiểm tra bố cục ngay" và "Tải bộ tìm trời" |d |d | |
+| 6.2 | Android: chọn "Kiểm tra bố cục ngay" | Kiểm tra chạy như cũ, dòng dev ghi "Trời: chưa có gói"; chạm lại thì hộp thoại hỏi lại | — | — | Máy đã tải gói nên không thử lại được. Claude đọc code: không có gói thì không chạy model trời, lần sau vẫn hỏi |
+| 6.3 | Chọn "Tải bộ tìm trời" | Tải xong tự kiểm tra; dòng dev "Dò đường … ms · Trời … ms": ghi số ms lần đầu (có thời gian nạp model) |167ms |210ms | |
+| 6.4 | Chạm Kiểm tra bố cục thêm 3 lần ở cùng cảnh | Ghi số "Trời … ms" từng lần (cổng: cả lần kiểm tra ≤ khoảng 1,5 s, model trời ≤ 300 ms là tốt) |183 |261 | |
+| 6.5 | Ngoài trời có mây thành vệt ngang và chân trời thấp hơn (hoặc nhà / cây xa) | Đường trắng ở chỗ trời gặp đất, không nằm trên vệt mây | — | — | Claude thử trên máy tính (cùng trang WebView, cùng model, `scripts/horizon-scenes.ts`): 6/6 ảnh có mây, đường trắng lệch nhãn tay ≤ 0,04. Ảnh cặp đôi trước đây chọn vệt mây 0,32, giờ 0,656 (nhãn 0,69) |
+| 6.6 | Trong nhà (tường, sàn), người đứng cả người | Không có đường trắng, không có dòng chân trời | — | — | Claude thử trên máy tính: 5/5 ảnh không có chân trời (tường nhà, 3 ảnh trong rừng, 1 ảnh cận) không có đường, không có dòng chân trời |
+| 6.7 | Như 4.5–4.7 (chân trời cao / thấp / đạt) | Dòng gợi ý vẫn đúng hướng, đạt thì viên xanh | — | — | Claude thử trên máy tính: cắt ảnh có người cho chân trời cao / trên đường 1/3 / thấp. 9/9 khung còn người cho dòng đúng hướng. Khung cắt mất người thì không có dòng (app báo "Không thấy người") |
+| 6.8 | Chụp ở Đường chân trời rồi mở Xem ảnh | Đường trắng trên ảnh đúng chỗ chân trời, thẻ có dòng chân trời | — | — | Claude đọc code: Xem ảnh dùng cùng model trời và bộ dò như Kiểm tra bố cục (khi đã có gói), vẽ từ cùng kết quả. Ảnh không có người thì không có thẻ nhận xét (như trước) |
+| 6.9 | Quy tắc 1/3 (kỹ thuật khác), chạm Kiểm tra bố cục | Không hỏi tải bộ tìm trời, không có "Trời … ms" |d |d | |
+| 6.10 | Đường chân trời, chạm Kiểm tra bố cục 10 lần (đợi mỗi lần xong) | Không lỗi, máy không nóng, nút chụp vẫn dùng bình thường | d|d | |
 
 ## Góp ý thêm
 
