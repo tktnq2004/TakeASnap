@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Không lưu GITHUB_TOKEN vào git config: header đó được gửi kèm mọi yêu cầu tới
+          # github.com và đè lên token trong URL, nên git không đọc được repo composition-critic.
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -20,6 +24,8 @@ jobs:
         env:
           TOKEN: ${{ secrets.COMPOSITION_CRITIC_TOKEN }}
         run: |
+          # Bỏ khoảng trắng / xuống dòng lỡ dán vào secret.
+          TOKEN=$(printf %s "$TOKEN" | tr -d '[:space:]')
           if [ -z "$TOKEN" ]; then
             echo "::error::Thiếu secret COMPOSITION_CRITIC_TOKEN (token chỉ đọc repo composition-critic)"
             exit 1
@@ -27,7 +33,8 @@ jobs:
           # Thử token trước để lỗi nói rõ nguyên nhân thay vì "npm ci exit 128".
           if ! out=$(git ls-remote "https://x-access-token:${TOKEN}@github.com/tktnq2004/composition-critic.git" HEAD 2>&1); then
             echo "$out" | sed "s/${TOKEN}/***/g"
-            echo "::error::Token trong COMPOSITION_CRITIC_TOKEN không đọc được repo tktnq2004/composition-critic. 'Invalid username or token': token sai, hết hạn hoặc chép thiếu. 'Repository not found' / 403: token chưa được cấp repo này (Fine-grained: Only select repositories → composition-critic, Contents: Read-only)."
+            reason=$(echo "$out" | sed "s/${TOKEN}/***/g" | grep -iE "remote:|fatal:" | paste -sd ' ')
+            echo "::error::Token trong COMPOSITION_CRITIC_TOKEN không đọc được repo tktnq2004/composition-critic (dài ${#TOKEN} ký tự, đầu ${TOKEN:0:4}…). Git: ${reason} — 'Invalid username or token': token sai, hết hạn hoặc chép thiếu. 'Repository not found' / 403: token chưa được cấp repo này (Fine-grained: Only select repositories → composition-critic, Contents: Read-only)."
             exit 1
           fi
           git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
