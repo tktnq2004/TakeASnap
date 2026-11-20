@@ -44,6 +44,14 @@ Hay đi đôi: `horizon` + `thirds`, `lead` + `center`, `group` + `horizon`. Khi
 - Kiểm tra: ~300 ảnh để chọn ngưỡng tin cậy.
 - Huấn luyện: phần còn lại.
 
+## Kết quả gán nhãn lần 1 (2026-11-21)
+
+- 640 ảnh ngẫu nhiên (tập validation) + 892 ảnh nhắm đích (tập test: thẻ chân trời, đường dẫn, đối xứng / chân dung, nhóm; người ≥ 4% ảnh; bỏ xe, thể thao, sân khấu, đồ ăn). Dừng phần ngẫu nhiên ở 640 vì 60% là "Khác".
+- 1.532 ảnh có nhãn. Nhãn chính: Khác 962, 1/3 221, Lấp đầy 129, Ở giữa 117, Nhóm 58, Chân trời 24, Đường dẫn 21 (tính cả nhãn phụ: chân trời 38, đường dẫn 21).
+- **Đề xuất:** chân trời và đường dẫn quá ít ảnh để model học, nhưng Phase 5a đã có bộ dò riêng cho hai kỹ thuật này. "Tự chọn" chọn chân trời / đường dẫn khi bộ dò thấy rõ; model chỉ phân 1/3, ở giữa, lấp đầy, nhóm, khác.
+- Chia (`node scripts/p5b-split.mts`): giữ riêng 310 (Khác 140, 1/3 66, Lấp đầy 39, Ở giữa 35, Nhóm 17, Chân trời 7, Đường dẫn 6), kiểm tra 230, huấn luyện 992.
+- Duyệt nhãn bộ giữ riêng: `node scripts/p5b-review.mts` rồi mở http://127.0.0.1:5175 (Enter: đồng ý / lưu, phím 1–7: đổi nhãn). Kết quả ở `eval/composition/labels-review.json`.
+
 ## Cổng (roadmap)
 
 Trên bộ giữ riêng: lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%; model đoán một ảnh ≤ 300 ms trên máy.
