@@ -22,7 +22,7 @@ import type { CameraView } from 'expo-camera';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useEffect, useRef, useState } from 'react';
 
-import { useSegmenter } from '@/engine/segmentation/SegmenterProvider';
+import { type SkyPart, useSegmenter } from '@/engine/segmentation/SegmenterProvider';
 import { frameToPhotoCrop, type Rect } from '@/features/camera/frame';
 import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
 import { haptic } from '@/lib/haptics';
@@ -42,11 +42,11 @@ export type CheckResult =
       scene: Scene | null;
       /** Thời gian dò đường trên máy (ms), để đo cổng Phase 5a (≤ 300 ms). */
       sceneMs: number | null;
-      /** Thời gian model trời (ms), null khi không chạy (không phải Đường chân trời, chưa có gói). */
-      skyMs: number | null;
+      /** Model trời (chỉ để bản dev hiện, đo cổng Phase 5a). */
+      sky: Pick<SkyPart, 'skyMs' | 'skyLoadMs' | 'skyState' | 'skyError'>;
     }
   | { kind: 'none' }
-  | { kind: 'error' };
+  | { kind: 'error'; /** Lý do, chỉ bản dev hiện. */ message: string };
 
 /** Kỹ thuật có nút Kiểm tra bố cục (giống nhận xét sau khi chụp: lưới chỉ để căn khung). */
 export const CHECKABLE = (t: TechniqueId) => t !== 'off' && t !== 'grid' && t !== 'grid4';
@@ -151,10 +151,11 @@ export function useLayoutCheck() {
         note: failing,
         scene: found?.scene ?? null,
         sceneMs: found?.ms ?? null,
-        skyMs: a.skyMs,
+        sky: { skyMs: a.skyMs, skyLoadMs: a.skyLoadMs, skyState: a.skyState, skyError: a.skyError },
       });
-    } catch {
-      if (token.current === my) show({ kind: 'error' });
+    } catch (e) {
+      if (token.current === my)
+        show({ kind: 'error', message: e instanceof Error ? e.message : String(e) });
     } finally {
       capture.current = null;
       if (token.current === my) setBusy(false);

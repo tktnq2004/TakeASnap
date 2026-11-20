@@ -105,8 +105,12 @@ export const t = {
       noPerson: 'Không thấy người, tiến lại gần hoặc zoom vào',
       failed: 'Chưa kiểm tra được, thử lại',
       /** Chỉ hiện trong bản dev: đo cổng Phase 5a. */
-      devSceneMs: (ms: number, skyMs: number | null) =>
-        skyMs == null ? `Dò đường ${ms} ms` : `Dò đường ${ms} ms · Trời ${skyMs} ms`,
+      devSceneMs: (ms: number) => `Dò đường ${ms} ms`,
+      devSkyMs: (ms: number, loadMs: number) =>
+        loadMs > 0 ? `Trời ${ms} ms, nạp model ${loadMs} ms` : `Trời ${ms} ms`,
+      devSkyNoPack: 'Trời: chưa có gói',
+      devSkyError: (msg: string) => `Trời lỗi: ${msg}`,
+      devError: (msg: string) => `Lỗi: ${msg}`,
       needPackTitle: 'Tải bộ tách người',
       needPack: (mb: string) =>
         `Kiểm tra bố cục cần bộ tách người (${mb} MB), tải một lần rồi dùng không cần mạng.`,

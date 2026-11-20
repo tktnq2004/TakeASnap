@@ -31,6 +31,11 @@ export type SkyPart = {
   sky: { width: number; height: number; data: Uint8Array } | null;
   /** Thời gian chạy model trời (ms), null khi không chạy. */
   skyMs: number | null;
+  /** Thời gian nạp TF.js + model lần đầu trong trang (ms), 0 khi đã nạp. */
+  skyLoadMs: number | null;
+  /** 'off': không xin; 'noPack': xin nhưng gói trời chưa tải; 'ran': đã chạy (có thể lỗi). */
+  skyState: 'off' | 'noPack' | 'ran';
+  skyError: string | null;
 };
 
 /** `sky`: chạy thêm model trời nếu gói trời đã tải (không tự tải). */
@@ -74,10 +79,19 @@ export const SKY_SIDE = 513;
 const grayOf = (g: { width: number; height: number; base64: string } | undefined) =>
   g ? { width: g.width, height: g.height, data: base64ToBytes(g.base64) } : null;
 
-/** Model trời lỗi thì bỏ qua (dò chân trời như không có trời), chỉ ghi log khi dev. */
-const skyOf = (r: SkyResult): SkyPart => {
+/**
+ * Model trời lỗi thì bỏ qua (dò chân trời như không có trời); lý do giữ lại để bản dev hiện
+ * (phiếu phase5a 6.3).
+ */
+const skyOf = (r: SkyResult, opts: SkyOpt | undefined, ran: boolean): SkyPart => {
   if (r.skyError && __DEV__) console.warn('Model trời lỗi:', r.skyError);
-  return { sky: grayOf(r.sky), skyMs: r.sky ? (r.skyMs ?? null) : null };
+  return {
+    sky: grayOf(r.sky),
+    skyMs: r.sky ? (r.skyMs ?? null) : null,
+    skyLoadMs: r.sky ? (r.skyLoadMs ?? null) : null,
+    skyState: !opts?.sky ? 'off' : ran ? 'ran' : 'noPack',
+    skyError: r.skyError ?? (ran && !r.sky ? 'trang không trả mặt nạ trời' : null),
+  };
 };
 
 /**
@@ -155,7 +169,7 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
           landmarks: { face: lm.face ?? null, bodyPoints: lm.bodyPoints ?? null },
           bodies: lm.bodies ?? (lm.bodyPoints ? [lm.bodyPoints] : []),
           faceEyes: lm.faceEyes ?? [],
-          ...skyOf(r),
+          ...skyOf(r, opts, sky),
         };
       },
       analyzeSnapshot: async (base64, gridSide, opts) => {
@@ -163,7 +177,13 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
         await ensurePoseLoaded();
         const sky = await ensureSky(opts);
         const s = segRef.current;
-        const r = await s.run('multiclass', base64, gridSide, GRAY_SIDE, sky ? SKY_SIDE : undefined);
+        const r = await s.run(
+          'multiclass',
+          base64,
+          gridSide,
+          GRAY_SIDE,
+          sky ? SKY_SIDE : undefined,
+        );
         if (!r.grid) throw new Error('WebView không trả lưới mask');
         const lm = await s.landmarks(base64);
         return {
@@ -174,7 +194,7 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
           bodyPoints: lm.bodyPoints ?? null,
           bodies: lm.bodies ?? (lm.bodyPoints ? [lm.bodyPoints] : []),
           faceEyes: lm.faceEyes ?? [],
-          ...skyOf(r),
+          ...skyOf(r, opts, sky),
         };
       },
     };

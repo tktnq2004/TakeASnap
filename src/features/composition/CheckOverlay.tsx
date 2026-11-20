@@ -33,8 +33,8 @@ export function CheckOverlay({
   let eye: { x: number; y: number } | null = null;
   let text: string;
   let ok = false;
-  let sceneMs: number | null = null;
-  let skyMs: number | null = null;
+  /** Dòng nhỏ chỉ bản dev hiện (đo cổng Phase 5a, tìm lỗi model trời). */
+  const dev: string[] = [];
   if (result.kind === 'review') {
     const f = result.features;
     const b = f.people[f.main]?.box;
@@ -44,14 +44,23 @@ export function CheckOverlay({
       box = [Math.min(x0, x1), b[1], Math.max(x0, x1), b[3]];
     }
     if (f.eye) eye = { x: fx(f.eye.x), y: f.eye.y };
-    sceneMs = result.sceneMs;
-    skyMs = result.skyMs;
+    const c = t.composition.check;
+    if (result.sceneMs != null) dev.push(c.devSceneMs(Math.round(result.sceneMs)));
+    const sk = result.sky;
+    if (sk.skyError) dev.push(c.devSkyError(sk.skyError));
+    else if (sk.skyState === 'noPack') dev.push(c.devSkyNoPack);
+    else if (sk.skyMs != null)
+      dev.push(c.devSkyMs(Math.round(sk.skyMs), Math.round(sk.skyLoadMs ?? 0)));
     if (result.note) text = t.review.notes[result.note.id];
     else {
       ok = true;
       text = t.composition.check.ok(t.composition.names[result.technique]);
     }
-  } else text = result.kind === 'none' ? t.composition.check.noPerson : t.composition.check.failed;
+  } else if (result.kind === 'none') text = t.composition.check.noPerson;
+  else {
+    text = t.composition.check.failed;
+    dev.push(t.composition.check.devError(result.message));
+  }
 
   const top = Math.min(frame.y + frame.height - space[3], maxBottom) - compositionUi.hintH;
   const enter = FadeIn.duration(motion.in).easing(ease);
@@ -124,11 +133,10 @@ export function CheckOverlay({
             {text}
           </Text>
         </Animated.View>
-        {__DEV__ && sceneMs != null && (
-          <Text style={styles.dev}>{t.composition.check.devSceneMs(
-              Math.round(sceneMs),
-              skyMs == null ? null : Math.round(skyMs),
-            )}</Text>
+        {__DEV__ && dev.length > 0 && (
+          <Text style={styles.dev} numberOfLines={4}>
+            {dev.join(' · ')}
+          </Text>
         )}
       </View>
     </>
