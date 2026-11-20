@@ -498,7 +498,7 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 - [x] Vẽ đường tìm được lên kết quả Kiểm tra bố cục: chân trời (kỹ thuật Đường chân trời), các đường dẫn + vòng ở điểm hội tụ (Đường dẫn)
 - [ ] Vẽ đường tìm được lên ảnh ở nhận xét sau khi chụp (thay lớp kẻ cố định)
 - [x] Dò đường thẳng bằng JS thuần, package composition-critic v0.2.0 (`lines.ts`): trang WebView trả ảnh xám cạnh 256 (`graySide`), app dò trên JS thread: làm mờ hai lượt, Sobel, giữ đỉnh cạnh, Hough theo hướng pháp tuyến, khe hở trên người không tính, đường bị che thành nhiều mẩu vẫn giữ cả đường. Không cần OpenCV.js
-- [x] Đường chân trời: đoạn gần ngang trải rộng nhất, ưu tiên đường cao hơn; dòng "Chân trời nằm trên đường 1/3" / "chưa nằm trên đường 1/3" / "cắt ngang cổ"
+- [x] Đường chân trời: đoạn gần ngang trải rộng nhất, ưu tiên đường cao hơn, bỏ đường ở bàn chân người (v0.2.1); dòng "Chân trời nằm trên đường 1/3" / "cao hơn … ngửa máy lên" / "thấp hơn … chúc máy xuống" / "cắt ngang cổ"
 - [x] Đường dẫn: giao điểm được nhiều đường dài đi qua nhất; điểm hội tụ ngoài người chính thì "Đường dẫn chưa hướng tới người"
 - [ ] Vật "mọc" sau đầu: bộ dò có trong package nhưng app chưa dùng (đo đúng 4/7 ảnh); cần thêm ảnh đo
 - [ ] Bộ ảnh thử (một phần): tải 98 ảnh Wikimedia Commons (giấy phép tự do, `eval/lines/`, không commit), dùng được 25 ảnh có nhãn tay (12 chân trời, 6 đường dẫn, 7 cột). Cần thêm ảnh tự chụp làm bộ giữ riêng (phiếu phase5a-test.md mục 3)
@@ -510,7 +510,7 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 | Tìm đúng chân trời ≥ 80%, đường dẫn ≥ 70%, ≤ 300 ms một ảnh trên máy | Đưa vào app, thay lớp kẻ cố định của Phase 5 bằng đường tìm được |
 | Một trong hai không đạt | Chỉ đưa phần đạt vào; phần còn lại giữ bản đơn giản của Phase 5 |
 
-**Kết quả đo lần 1 (2026-11-20, `scripts/eval-lines.ts`, mỗi ảnh nhãn tay + 8 khung cắt):** chân trời đúng ±0,04 ở 80% (82/103 khung), không báo nhầm khi không có chân trời 80% (36/45), điểm hội tụ đúng trong 0,08 ở 70% (30/43), cột sau đầu 4/7 ảnh; dò đường ~12 ms trên Node. Vừa chạm ngưỡng nhưng ngưỡng chỉnh trên chính bộ ảnh này (ít ảnh) → **chưa chốt cổng**: chờ đo thời gian trên máy (bản dev hiện "Dò đường … ms") và đo lại trên ảnh tự chụp chưa dùng để chỉnh.
+**Kết quả đo lần 1 (2026-11-20, `scripts/eval-lines.ts`, mỗi ảnh nhãn tay + 8 khung cắt):** chân trời đúng ±0,04 ở 80% (82/103 khung), không báo nhầm khi không có chân trời 80% (36/45), điểm hội tụ đúng trong 0,08 ở 70% (30/43), cột sau đầu 4/7 ảnh; dò đường ~12 ms trên Node. Vừa chạm ngưỡng nhưng ngưỡng chỉnh trên chính bộ ảnh này (ít ảnh) → **chưa chốt cổng**: chờ đo thời gian trên máy (bản dev hiện "Dò đường … ms") và đo lại trên ảnh tự chụp chưa dùng để chỉnh. **Thời gian trên máy:** iPhone 193 ms (phiếu phase5a 2.1, ≤ 300 ms đạt); Android chưa đo.
 
 **Xong khi:** chân trời, đường dẫn và vật "mọc" sau đầu tự phát hiện trên iPhone và Android, đạt cổng ở trên (hoặc chỉ phần đạt được đưa vào, phần còn lại giữ bản Phase 5 và ghi rõ vì sao); phiếu `phase5a-test.md` đạt.
 

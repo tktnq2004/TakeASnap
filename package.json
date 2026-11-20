@@ -33,7 +33,7 @@
   "dependencies": {
     "@expo-google-fonts/nunito": "^0.4.2",
     "@shopify/react-native-skia": "2.14.0",
-    "composition-critic": "github:tktnq2004/composition-critic#v0.2.0",
+    "composition-critic": "github:tktnq2004/composition-critic#v0.2.1",
     "expo": "~58.0.23",
     "expo-asset": "~58.0.20",
     "expo-blur": "~58.0.6",

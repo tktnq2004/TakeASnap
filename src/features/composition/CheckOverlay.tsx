@@ -1,7 +1,8 @@
 /**
  * Kết quả Kiểm tra bố cục trên khung ngắm (design.md §6.15, Phase 5a): khung người chính, chấm
  * mắt, chân trời / đường dẫn tìm được (kỹ thuật Đường chân trời, Đường dẫn) và một dòng gợi ý ở
- * chỗ viên gợi ý, hiện `compositionUi.checkShowMs` rồi tự ẩn.
+ * chỗ viên gợi ý, hiện `compositionUi.checkShowMs` rồi tự ẩn. Cái app tìm thấy vẽ màu trắng, chỗ
+ * cần đặt (lớp bố cục) màu xanh, để không lẫn (phiếu phase5a 2.1).
  */
 import type { Segment } from 'composition-critic';
 import { Check, ScanSearch } from 'lucide-react-native';
@@ -100,7 +101,7 @@ export function CheckOverlay({
                 y1={l.a.y * frame.height}
                 x2={l.b.x * frame.width}
                 y2={l.b.y * frame.height}
-                stroke={color.camAccent}
+                stroke={color.camInk}
                 strokeWidth={compositionUi.accentStroke}
                 strokeLinecap="round"
               />
@@ -110,7 +111,7 @@ export function CheckOverlay({
                 cx={vp.x * frame.width}
                 cy={vp.y * frame.height}
                 r={compositionUi.target / 2}
-                stroke={color.camAccent}
+                stroke={color.camInk}
                 strokeWidth={compositionUi.targetStroke}
                 fill="none"
               />

@@ -2,8 +2,9 @@
  * Hình của lớp bố cục trên khung ngắm (design.md §6.15). Tọa độ chuẩn hóa 0..1 trong khung
  * (0,0 = góc trên trái). Hàm thuần.
  *
- * Phase 5 chưa phân tích ảnh camera: chấm đích bám theo POSE đang đặt trên khung (giao điểm gần
- * mắt người mẫu nhất). Chưa có pose thì hiện đủ các điểm để người dùng tự chọn.
+ * Phase 5 chưa phân tích ảnh camera: chấm đích bám theo POSE đang đặt trên khung (giao điểm TRÊN
+ * gần mắt người mẫu nhất). Chưa có pose thì hiện hai giao điểm trên để người dùng tự chọn. Chỉ giao
+ * điểm trên, vì nhận xét chấm mắt theo đường 1/3 trên (phiếu phase5a 1.5).
  */
 import type { TechniqueId } from './techniques';
 
@@ -29,7 +30,7 @@ const EMPTY: GuideShape = { v: [], h: [], accentH: [], target: null, points: [],
 
 /** Bốn giao điểm 1/3. */
 export const INTERSECTIONS: Pt[] = THIRDS.flatMap((y) => THIRDS.map((x) => ({ x, y })));
-const UPPER = INTERSECTIONS.filter((p) => p.y < 0.5);
+export const UPPER = INTERSECTIONS.filter((p) => p.y < 0.5);
 
 export function nearest(list: Pt[], a: Pt): Pt {
   let best = list[0]!;
@@ -54,12 +55,13 @@ export function guideShape(t: TechniqueId, anchor: Pt | null = null): GuideShape
       return { ...EMPTY, v: QUARTERS, h: QUARTERS };
     case 'thirds':
       return anchor
-        ? { ...EMPTY, v: THIRDS, h: THIRDS, target: nearest(INTERSECTIONS, anchor) }
-        : { ...EMPTY, v: THIRDS, h: THIRDS, points: INTERSECTIONS };
+        ? { ...EMPTY, v: THIRDS, h: THIRDS, target: nearest(UPPER, anchor) }
+        : { ...EMPTY, v: THIRDS, h: THIRDS, points: UPPER };
     case 'center':
       return { ...EMPTY, v: [0.5], target: { x: 0.5, y: 1 / 3 } };
     case 'horizon':
-      return { ...EMPTY, h: [1 / 3], accentH: [2 / 3] };
+      // Nhận xét đạt khi chân trời trên một trong hai đường 1/3 (phiếu phase5a 2.1).
+      return { ...EMPTY, accentH: THIRDS };
     case 'lead': {
       // Đường dẫn chụm về giao điểm trên gần người nhất; chưa có pose thì bên trái.
       const to = anchor ? nearest(UPPER, anchor) : UPPER[0]!;

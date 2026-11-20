@@ -90,10 +90,10 @@ export const t = {
     },
     /** Dòng hướng dẫn hiện vài giây khi vừa chọn kỹ thuật (chưa có phân tích người). */
     intro: {
-      thirds: 'Đặt mắt người lên chấm xanh',
+      thirds: 'Đặt mắt người lên một chấm xanh',
       center: 'Đưa người vào trục giữa',
       fill: 'Tiến lại gần để người lấp đầy khung',
-      horizon: 'Đặt chân trời lên đường xanh',
+      horizon: 'Đặt chỗ trời gặp biển hoặc đất lên một đường xanh',
       lead: 'Xếp đường đi theo hai nét đứt',
       group: 'Cho các đầu cao thấp khác nhau',
     },
@@ -437,7 +437,8 @@ export const t = {
       cutWrist: 'Mép ảnh cắt ngang cổ tay, lấy cả bàn tay',
       noLookRoom: 'Người nhìn ra mép gần, chừa chỗ phía trước',
       horizonOnThird: 'Chân trời nằm trên đường 1/3',
-      horizonOffThird: 'Chân trời chưa nằm trên đường 1/3, nghiêng máy để đặt lên đường này',
+      horizonHigh: 'Chân trời cao hơn đường 1/3, ngửa máy lên một chút',
+      horizonLow: 'Chân trời thấp hơn đường 1/3, chúc máy xuống một chút',
       horizonNeck: 'Chân trời cắt ngang cổ, hạ hoặc nâng máy một chút',
       leadToPerson: 'Đường dẫn hướng tới người',
       leadAway: 'Đường dẫn chưa hướng tới người, đứng ở chỗ các đường gặp nhau',

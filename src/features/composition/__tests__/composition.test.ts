@@ -1,4 +1,4 @@
-import { guideShape, INTERSECTIONS } from '../guides';
+import { guideShape, UPPER } from '../guides';
 import { cameraPitchDeg, isAchieved, SENSOR, sensorHint } from '../sensor';
 import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '../snap';
 import { isTechnique, TECHNIQUES } from '../techniques';
@@ -31,21 +31,24 @@ describe('guideShape', () => {
     expect(g.points).toEqual([]);
   });
 
-  it('1/3 chưa có pose: đủ 4 giao điểm, chưa có đích', () => {
+  it('1/3 chưa có pose: hai giao điểm trên, chưa có đích', () => {
     const g = guideShape('thirds');
     expect(g.v).toHaveLength(2);
     expect(g.target).toBeNull();
-    expect(g.points).toEqual(INTERSECTIONS);
+    expect(g.points).toEqual(UPPER);
+    expect(UPPER.every((p) => p.y === 1 / 3)).toBe(true);
   });
 
-  it('1/3 có pose: đích là giao điểm gần mắt người mẫu nhất', () => {
+  it('1/3 có pose: đích là giao điểm trên gần mắt người mẫu nhất', () => {
     expect(guideShape('thirds', { x: 0.7, y: 0.3 }).target).toEqual({ x: 2 / 3, y: 1 / 3 });
-    expect(guideShape('thirds', { x: 0.2, y: 0.8 }).target).toEqual({ x: 1 / 3, y: 2 / 3 });
+    // Mắt pose ở dưới vẫn chỉ về đường 1/3 trên, khớp nhận xét.
+    expect(guideShape('thirds', { x: 0.2, y: 0.8 }).target).toEqual({ x: 1 / 3, y: 1 / 3 });
     expect(guideShape('thirds', { x: 0.2, y: 0.8 }).points).toEqual([]);
   });
 
-  it('Chân trời tô đường 1/3 dưới, Đường dẫn có hai đường chéo về đích', () => {
-    expect(guideShape('horizon').accentH).toEqual([2 / 3]);
+  it('Chân trời tô cả hai đường 1/3, Đường dẫn có hai đường chéo về đích', () => {
+    expect(guideShape('horizon').accentH).toEqual([1 / 3, 2 / 3]);
+    expect(guideShape('horizon').h).toEqual([]);
     const lead = guideShape('lead');
     expect(lead.diagonals).toHaveLength(2);
     for (const d of lead.diagonals) expect(d.to).toEqual({ x: 1 / 3, y: 1 / 3 });
@@ -150,6 +153,8 @@ describe('snap', () => {
     // Sát đường dọc nhưng xa giao điểm: không dính (lỗi phiếu lần 3).
     expect(snapPlacement(id, { x: 48, y: 0 }, tg, 28, 18)).toBeNull();
     expect(snapPlacement(id, { x: 0, y: 0 }, tg, 28, 18)).toBeNull();
+    // Giao điểm dưới không còn là chỗ dính.
+    expect(snapPlacement(id, { x: -45, y: 60 }, tg, 28, 18)).toBeNull();
   });
 
   it('Đặt ở giữa: dính trục dọc, gần điểm đích thì dính cả điểm', () => {

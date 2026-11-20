@@ -74,11 +74,8 @@ export function snapTargets(t: TechniqueId, frame: { width: number; height: numb
   const w = frame.width;
   const h = frame.height;
   switch (t) {
+    // 1/3: chỉ hai giao điểm trên, khớp chấm đích và nhận xét (phiếu phase5a 1.5).
     case 'thirds':
-      return {
-        points: [-h / 6, h / 6].flatMap((y) => [-w / 6, w / 6].map((x) => ({ x, y }))),
-        v: [],
-      };
     case 'lead':
       return { points: [-w / 6, w / 6].map((x) => ({ x, y: -h / 6 })), v: [] };
     case 'center':

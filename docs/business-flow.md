@@ -305,7 +305,7 @@ flowchart TD
 ### 6.7 Đi cùng pose
 
 - Chọn pose **không** tự bật kỹ thuật (bỏ sau phiếu Phase 5 lần 1: không cần thiết); người dùng tự chọn trong bảng Bố cục.
-- Phase 5 chưa phân tích ảnh camera: chấm đích 1/3 và điểm hội tụ của đường dẫn đặt ở giao điểm gần mắt người mẫu của pose nhất; chưa có pose thì hiện đủ 4 giao điểm.
+- Phase 5 chưa phân tích ảnh camera: chấm đích 1/3 và điểm hội tụ của đường dẫn đặt ở giao điểm trên gần mắt người mẫu của pose nhất; chưa có pose thì hiện hai giao điểm trên. Chỉ giao điểm trên vì nhận xét Quy tắc 1/3 chấm mắt theo đường 1/3 trên.
 - Thả pose trên khung ngắm thì mắt người mẫu dính theo kỹ thuật đang chọn (rung nhẹ khi dính): 1/3 và đường dẫn chỉ dính vào **giao điểm** khi mắt ở gần (không dính riêng một đường); đặt ở giữa dính trục dọc giữa.
 - Pose của bạn (tạo từ ảnh) không gắn kỹ thuật; app gợi ý theo cỡ cảnh của pose.
 
@@ -322,7 +322,7 @@ Nâng bản đơn giản của Phase 5 (lớp kẻ cố định) thành app tự
 
 App tìm đường thẳng trên ảnh nhỏ (bỏ phần nằm trên người nhờ vùng người đã tách): ảnh chụp lặng khi chạm **Kiểm tra bố cục** (§6.4) và ảnh vừa chụp ở nhận xét sau khi chụp (§6.5). Rồi:
 
-- **Đường chân trời:** đường dài gần nằm ngang. Gợi ý "Đặt chân trời lên đường 1/3"; chân trời đi qua cổ hoặc đầu thì "Chân trời cắt ngang cổ, hạ máy một chút". Lớp kẻ vẽ đúng chân trời tìm được.
+- **Đường chân trời:** chỗ trời gặp biển hoặc đất, tìm là đường dài gần nằm ngang. Chân trời đi qua người ở độ cao của máy, nên đường ở bàn chân người (mép sàn, chân tường, bậc thềm) không tính. Đạt khi nằm trên một trong hai đường 1/3 (cả hai tô xanh); chưa đạt thì nói hướng: "Chân trời cao hơn đường 1/3, ngửa máy lên một chút" / "Chân trời thấp hơn đường 1/3, chúc máy xuống một chút" (so với đường 1/3 gần nhất); đi qua cổ thì "Chân trời cắt ngang cổ, hạ hoặc nâng máy một chút". Kiểm tra bố cục vẽ chân trời tìm được màu trắng.
 - **Đường dẫn:** các đường hội tụ về một điểm (đường đi, hàng rào, cầu thang). Người không ở gần điểm hội tụ thì "Bước sang trái để đường đi dẫn tới người". Lớp kẻ vẽ đúng các đường tìm được thay cho đường chéo cố định của Phase 5.
 - **Vật "mọc" sau đầu:** đường dọc chạm đỉnh đầu (cột điện, thân cây). Gợi ý "Có cột mọc sau đầu, bước sang một bên". Chưa bật trong app: đo mới đúng 4/7 ảnh, báo nhầm phiền hơn có ích.
 - Gợi ý từ phần này xếp cùng thứ tự ưu tiên ở §6.4, sau máy thẳng và cắt khớp.
