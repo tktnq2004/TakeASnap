@@ -17,6 +17,8 @@ export type PoseSegmentation = {
   maskBase64: string;
   /** Lưới alpha 0..255 cạnh dài ≤ 512, để dò viền. */
   grid: { width: number; height: number; data: Uint8Array };
+  /** Ảnh xám cạnh dài ≤ `GRAY_SIDE` cho bộ dò đường thẳng (Phase 5a); null khi trang cũ không trả. */
+  gray: { width: number; height: number; data: Uint8Array } | null;
   landmarks: Landmarks;
   /** Khung xương mọi người trong ảnh (tới 6, mỗi cái 33 khớp phẳng); không lưu vào pose. */
   bodies: number[][];
@@ -42,6 +44,7 @@ export type Snapshot = {
   height: number;
   /** Alpha 0..255 (xác suất là người), cạnh dài ≤ gridSide. */
   grid: { width: number; height: number; data: Uint8Array };
+  gray: { width: number; height: number; data: Uint8Array } | null;
   bodyPoints: number[] | null;
   bodies: number[][];
   faceEyes: number[][];
@@ -52,6 +55,11 @@ const SegmenterContext = createContext<Ctx | null>(null);
 /** Cạnh dài của ảnh gửi vào model (roadmap §3.3) và của lưới dò viền. */
 const IMAGE_SIDE = 1024;
 const GRID_SIDE = 512;
+/** Ảnh xám cho bộ dò đường thẳng (composition-critic `lines.ts` đo ở cỡ này). */
+export const GRAY_SIDE = 256;
+
+const grayOf = (g: { width: number; height: number; base64: string } | undefined) =>
+  g ? { width: g.width, height: g.height, data: base64ToBytes(g.base64) } : null;
 
 /**
  * Gắn một WebView ẩn chế độ 'local' ở gốc app (roadmap §3.7). Gói model chỉ được gửi vào trang
@@ -96,7 +104,7 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
         const prepared = await prepareImage(input.uri, input.width, input.height, IMAGE_SIDE);
         onProgress?.({ stage: 'segment' });
         const s = segRef.current;
-        const r = await s.run('multiclass', prepared.base64, GRID_SIDE);
+        const r = await s.run('multiclass', prepared.base64, GRID_SIDE, GRAY_SIDE);
         if (!r.grid) throw new Error('WebView không trả lưới mask');
         onProgress?.({ stage: 'landmarks' });
         const lm = await s.landmarks(prepared.base64);
@@ -104,6 +112,7 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
           prepared,
           maskBase64: r.maskBase64,
           grid: { width: r.grid.width, height: r.grid.height, data: base64ToBytes(r.grid.base64) },
+          gray: grayOf(r.gray),
           landmarks: { face: lm.face ?? null, bodyPoints: lm.bodyPoints ?? null },
           bodies: lm.bodies ?? (lm.bodyPoints ? [lm.bodyPoints] : []),
           faceEyes: lm.faceEyes ?? [],
@@ -113,13 +122,14 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
         if (!isPackReady(POSE_PACK)) throw new Error('Chưa có bộ tách người');
         await ensurePoseLoaded();
         const s = segRef.current;
-        const r = await s.run('multiclass', base64, gridSide);
+        const r = await s.run('multiclass', base64, gridSide, GRAY_SIDE);
         if (!r.grid) throw new Error('WebView không trả lưới mask');
         const lm = await s.landmarks(base64);
         return {
           width: r.width,
           height: r.height,
           grid: { width: r.grid.width, height: r.grid.height, data: base64ToBytes(r.grid.base64) },
+          gray: grayOf(r.gray),
           bodyPoints: lm.bodyPoints ?? null,
           bodies: lm.bodies ?? (lm.bodyPoints ? [lm.bodyPoints] : []),
           faceEyes: lm.faceEyes ?? [],

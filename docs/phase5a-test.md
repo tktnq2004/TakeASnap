@@ -22,5 +22,27 @@ Chạy lại dev server có xóa cache: `npx expo start -c`.
 | 1.12 | Chạm liên tục 10 lần (đợi mỗi lần xong) | Không lỗi, máy không nóng, nút chụp vẫn dùng bình thường | | | |
 | 1.13 | Đặt ở giữa, Lấp đầy khung, Nhóm người, Góc thấp, Selfie: mỗi kỹ thuật chạm một lần | Có kết quả hợp kỹ thuật (Góc thấp / Selfie: dòng chung như cắt khớp, sát mép, hoặc Đạt) | | | |
 
+## 2. Dò chân trời và đường dẫn (lần 1)
+
+Bản dev hiện thêm dòng nhỏ "Dò đường … ms" dưới viên kết quả: ghi số đó vào cột Ghi chú (cổng: ≤ 300 ms).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 2.1 | Bật Đường chân trời, hướng ra biển / cánh đồng / mặt hồ có người đứng, chạm Kiểm tra bố cục | Một đường xanh nằm đúng chân trời (kể cả đoạn người che); viên "Chân trời nằm trên đường 1/3" hoặc "Chân trời chưa nằm trên đường 1/3, …"; ghi số ms | | | |
+| 2.2 | Như 2.1, nghiêng máy cho chân trời lên / xuống đường 1/3 rồi chạm lại | Dòng đổi theo: trên đường 1/3 thì đạt (viên xanh, rung nhẹ nếu mọi dòng đạt) | | | |
+| 2.3 | Chân trời đi ngang cổ người | "Chân trời cắt ngang cổ, hạ hoặc nâng máy một chút" | | | |
+| 2.4 | Bật Đường dẫn, người đứng trên đường đi / hành lang / đường ray hội tụ về phía người, chạm Kiểm tra bố cục | Các đường xanh trên mép đường, vòng xanh ở chỗ các đường gặp nhau; "Đường dẫn hướng tới người" | | | |
+| 2.5 | Như 2.4 nhưng người đứng lệch hẳn sang một bên | "Đường dẫn chưa hướng tới người, đứng ở chỗ các đường gặp nhau" | | | |
+| 2.6 | Chụp ảnh ở Đường chân trời / Đường dẫn rồi mở Xem ảnh | Thẻ nhận xét có dòng về chân trời / đường dẫn như trên | | | |
+| 2.7 | Cảnh không có chân trời (trong nhà) ở Đường chân trời | Không vẽ đường sai lung tung; nếu có dòng chân trời thì ghi lại cảnh đó | | | |
+
+## 3. Ảnh tự chụp để đo cổng (không bắt buộc, rất có ích)
+
+Bộ ảnh đo hiện chỉ có 12 ảnh chân trời và 6 ảnh đường dẫn lấy từ Wikimedia, và tôi đã chỉnh ngưỡng trên chính các ảnh đó. Muốn chốt cổng cho công bằng cần ảnh chưa dùng để chỉnh. Nếu được, chụp bằng app camera thường rồi chép vào `eval/lines/user/` (thư mục này không bao giờ được commit):
+
+- 10–15 ảnh có chân trời (biển, hồ, cánh đồng), có hoặc không có người;
+- 10–15 ảnh có đường dẫn (đường đi, hành lang, đường ray, cầu, hàng cây) có người;
+- 5–10 ảnh có cột / thân cây ngay sau đầu người, và vài ảnh cột ở cạnh người (không sau đầu).
+
 ## Góp ý thêm
 

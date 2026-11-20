@@ -2,12 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
-import type {
-  Landmarks,
-  SegmentModelId,
-  SegmentTimings,
-  WebSegmentResult,
-} from './types';
+import type { Landmarks, SegmentModelId, SegmentTimings, WebSegmentResult } from './types';
 import { buildSegmenterHtml } from 'composition-critic/page';
 
 type ReadyInfo = {
@@ -103,16 +98,22 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
 
   /**
    * Tách người: mask PNG cùng kích thước ảnh vào. `gridSide`: trả thêm lưới alpha (Uint8, cạnh
-   * dài ≤ gridSide) để dò viền mà không phải giải mã PNG.
+   * dài ≤ gridSide) để dò viền mà không phải giải mã PNG. `graySide`: trả thêm ảnh xám (Uint8,
+   * cạnh dài ≤ graySide) cho bộ dò đường thẳng (Phase 5a).
    */
   const run = async (
     model: SegmentModelId,
     base64: string,
     gridSide?: number,
-  ): Promise<WebSegmentResult & { grid?: MaskGrid }> =>
-    (await request({ type: 'segment', model, base64, gridSide })) as unknown as WebSegmentResult & {
-      grid?: MaskGrid;
-    };
+    graySide?: number,
+  ): Promise<WebSegmentResult & { grid?: MaskGrid; gray?: MaskGrid }> =>
+    (await request({
+      type: 'segment',
+      model,
+      base64,
+      gridSide,
+      graySide,
+    })) as unknown as WebSegmentResult & { grid?: MaskGrid; gray?: MaskGrid };
 
   /** Gửi một file của gói model vào trang, từng khúc, chờ trang nhận xong từng khúc. */
   const sendAsset = async (name: string, mime: string, base64: string) => {

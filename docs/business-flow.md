@@ -324,7 +324,7 @@ App tìm đường thẳng trên ảnh nhỏ (bỏ phần nằm trên người n
 
 - **Đường chân trời:** đường dài gần nằm ngang. Gợi ý "Đặt chân trời lên đường 1/3"; chân trời đi qua cổ hoặc đầu thì "Chân trời cắt ngang cổ, hạ máy một chút". Lớp kẻ vẽ đúng chân trời tìm được.
 - **Đường dẫn:** các đường hội tụ về một điểm (đường đi, hàng rào, cầu thang). Người không ở gần điểm hội tụ thì "Bước sang trái để đường đi dẫn tới người". Lớp kẻ vẽ đúng các đường tìm được thay cho đường chéo cố định của Phase 5.
-- **Vật "mọc" sau đầu:** đường dọc chạm đỉnh đầu (cột điện, thân cây). Gợi ý "Bước sang một bên để cột không mọc sau đầu".
+- **Vật "mọc" sau đầu:** đường dọc chạm đỉnh đầu (cột điện, thân cây). Gợi ý "Có cột mọc sau đầu, bước sang một bên". Chưa bật trong app: đo mới đúng 4/7 ảnh, báo nhầm phiền hơn có ích.
 - Gợi ý từ phần này xếp cùng thứ tự ưu tiên ở §6.4, sau máy thẳng và cắt khớp.
 
 ### 6.10 Tự chọn kỹ thuật bằng model riêng (Phase 5b)

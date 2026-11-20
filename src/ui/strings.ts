@@ -104,6 +104,8 @@ export const t = {
       ok: (name: string) => `Đạt ${name}`,
       noPerson: 'Không thấy người, tiến lại gần hoặc zoom vào',
       failed: 'Chưa kiểm tra được, thử lại',
+      /** Chỉ hiện trong bản dev: đo cổng Phase 5a. */
+      devSceneMs: (ms: number) => `Dò đường ${ms} ms`,
       needPackTitle: 'Tải bộ tách người',
       needPack: (mb: string) =>
         `Kiểm tra bố cục cần bộ tách người (${mb} MB), tải một lần rồi dùng không cần mạng.`,
@@ -434,6 +436,12 @@ export const t = {
       cutElbow: 'Mép ảnh cắt ngang khuỷu tay, lấy cả cánh tay',
       cutWrist: 'Mép ảnh cắt ngang cổ tay, lấy cả bàn tay',
       noLookRoom: 'Người nhìn ra mép gần, chừa chỗ phía trước',
+      horizonOnThird: 'Chân trời nằm trên đường 1/3',
+      horizonOffThird: 'Chân trời chưa nằm trên đường 1/3, nghiêng máy để đặt lên đường này',
+      horizonNeck: 'Chân trời cắt ngang cổ, hạ hoặc nâng máy một chút',
+      leadToPerson: 'Đường dẫn hướng tới người',
+      leadAway: 'Đường dẫn chưa hướng tới người, đứng ở chỗ các đường gặp nhau',
+      poleBehindHead: 'Có cột mọc sau đầu, bước sang một bên',
     },
   },
   status: {

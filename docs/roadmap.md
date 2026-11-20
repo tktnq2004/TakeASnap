@@ -495,12 +495,13 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 **Lấy ảnh: nút Kiểm tra bố cục (cách B, chốt sau spike Phase 5 Bước 3).** Expo Go không có frame processor; chụp liên tục để theo dõi thì nóng máy (cỡ thật) hoặc làm nút chụp trễ ~1 s và nháy (cỡ nhỏ). Nên app chỉ nhìn khung ngắm **khi người dùng chạm**: chụp lặng một ảnh cỡ thật, thu nhỏ, phân tích một lần (~1 s). Không chạy nền, không nóng máy, không chặn nút chụp. Phase 5b dùng lại đúng lần chụp này để đoán kỹ thuật. Dò đường cũng chạy trên ảnh vừa chụp ở nhận xét sau khi chụp.
 
 - [x] Nút **Kiểm tra bố cục** trên Camera (cạnh cụm zoom, design.md §6.15): chạm → `takePictureAsync({ pictureRef: true, shutterSound: false })` → cắt theo khung, thu nhỏ 512 → WebView (`analyzeSnapshot`: lưới người 256 + mọi khung xương + mắt từ bộ dò mặt) → quy tắc `reviewPhoto` của composition-critic → khung người, chấm mắt, 1 dòng gợi ý trên khung ngắm 5 s. Đang kiểm tra mà bấm chụp thì chụp ngay, bỏ lần kiểm tra. Đã bỏ màn spike `spike/live` và đường `frame` của nó trong app
-- [ ] Vẽ đường tìm được (chân trời, đường dẫn, vật sau đầu) lên kết quả Kiểm tra bố cục và ảnh ở nhận xét sau khi chụp, khi phần dò đường qua cổng
-- [ ] Dò đường thẳng trên ảnh 256–512 px trong WebView: dò cạnh + Hough hoặc LSD bằng JS thuần (OpenCV.js chỉ dùng nếu đo thấy đủ nhẹ); bỏ đường nằm trên người nhờ mask
-- [ ] Đường chân trời: đường dài gần ngang; gợi ý đặt lên đường 1/3, cắt ngang cổ / đầu thì nhắc hạ hoặc nâng máy; lớp kẻ vẽ đúng đường tìm được
-- [ ] Đường dẫn: tìm điểm hội tụ của các đường; người xa điểm hội tụ thì gợi ý bước sang; lớp kẻ vẽ đúng các đường tìm được
-- [ ] Vật "mọc" sau đầu: đường dọc chạm đỉnh đầu, gợi ý bước sang một bên
-- [ ] Bộ ảnh thử ~100 ảnh có chân trời / đường dẫn / cột sau đầu, đánh dấu tay vị trí đúng
+- [x] Vẽ đường tìm được lên kết quả Kiểm tra bố cục: chân trời (kỹ thuật Đường chân trời), các đường dẫn + vòng ở điểm hội tụ (Đường dẫn)
+- [ ] Vẽ đường tìm được lên ảnh ở nhận xét sau khi chụp (thay lớp kẻ cố định)
+- [x] Dò đường thẳng bằng JS thuần, package composition-critic v0.2.0 (`lines.ts`): trang WebView trả ảnh xám cạnh 256 (`graySide`), app dò trên JS thread: làm mờ hai lượt, Sobel, giữ đỉnh cạnh, Hough theo hướng pháp tuyến, khe hở trên người không tính, đường bị che thành nhiều mẩu vẫn giữ cả đường. Không cần OpenCV.js
+- [x] Đường chân trời: đoạn gần ngang trải rộng nhất, ưu tiên đường cao hơn; dòng "Chân trời nằm trên đường 1/3" / "chưa nằm trên đường 1/3" / "cắt ngang cổ"
+- [x] Đường dẫn: giao điểm được nhiều đường dài đi qua nhất; điểm hội tụ ngoài người chính thì "Đường dẫn chưa hướng tới người"
+- [ ] Vật "mọc" sau đầu: bộ dò có trong package nhưng app chưa dùng (đo đúng 4/7 ảnh); cần thêm ảnh đo
+- [ ] Bộ ảnh thử (một phần): tải 98 ảnh Wikimedia Commons (giấy phép tự do, `eval/lines/`, không commit), dùng được 25 ảnh có nhãn tay (12 chân trời, 6 đường dẫn, 7 cột). Cần thêm ảnh tự chụp làm bộ giữ riêng (phiếu phase5a-test.md mục 3)
 
 **Cổng quyết định:**
 
@@ -508,6 +509,8 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 |---|---|
 | Tìm đúng chân trời ≥ 80%, đường dẫn ≥ 70%, ≤ 300 ms một ảnh trên máy | Đưa vào app, thay lớp kẻ cố định của Phase 5 bằng đường tìm được |
 | Một trong hai không đạt | Chỉ đưa phần đạt vào; phần còn lại giữ bản đơn giản của Phase 5 |
+
+**Kết quả đo lần 1 (2026-11-20, `scripts/eval-lines.ts`, mỗi ảnh nhãn tay + 8 khung cắt):** chân trời đúng ±0,04 ở 80% (82/103 khung), không báo nhầm khi không có chân trời 80% (36/45), điểm hội tụ đúng trong 0,08 ở 70% (30/43), cột sau đầu 4/7 ảnh; dò đường ~12 ms trên Node. Vừa chạm ngưỡng nhưng ngưỡng chỉnh trên chính bộ ảnh này (ít ảnh) → **chưa chốt cổng**: chờ đo thời gian trên máy (bản dev hiện "Dò đường … ms") và đo lại trên ảnh tự chụp chưa dùng để chỉnh.
 
 **Xong khi:** chân trời, đường dẫn và vật "mọc" sau đầu tự phát hiện trên iPhone và Android, đạt cổng ở trên (hoặc chỉ phần đạt được đưa vào, phần còn lại giữ bản Phase 5 và ghi rõ vì sao); phiếu `phase5a-test.md` đạt.
 

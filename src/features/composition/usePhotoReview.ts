@@ -8,7 +8,13 @@
  *   bấm mới tải (`allowDownload`).
  * - Mỗi lúc một ảnh qua WebView (chung với tạo pose), các yêu cầu xếp hàng.
  */
-import { photoFeatures, type PhotoFeatures, type Review, reviewPhoto } from 'composition-critic';
+import {
+  photoFeatures,
+  type PhotoFeatures,
+  type Review,
+  reviewPhoto,
+  type Scene,
+} from 'composition-critic';
 import { useEffect } from 'react';
 import { create } from 'zustand';
 
@@ -19,10 +25,11 @@ import type { SessionPhoto } from '@/features/camera/sessionPhotos';
 import type { TechniqueId } from '@/features/composition/techniques';
 import { analyzeImage, PoseCreateError } from '@/features/pose/createFromImage';
 
+import { sceneFor } from './scene';
 
 export type ReviewEntry =
   | { status: 'running'; stage: PoseProgress['stage'] | 'queued' }
-  | { status: 'done'; features: PhotoFeatures; review: Review }
+  | { status: 'done'; features: PhotoFeatures; review: Review; scene: Scene | null }
   | { status: 'none' }
   | { status: 'error' };
 
@@ -81,7 +88,13 @@ export function usePhotoReview(photo: SessionPhoto | undefined, allowDownload: b
           bodies: a.seg.bodies,
           faceEyes: a.seg.faceEyes,
         });
-        set(id, { status: 'done', features, review: reviewPhoto(photo.technique, features) });
+        const s = sceneFor(a.seg.gray, a.seg.grid, features)?.scene ?? null;
+        set(id, {
+          status: 'done',
+          features,
+          review: reviewPhoto(photo.technique, features, s ?? undefined),
+          scene: s,
+        });
       } catch (e) {
         set(id, e instanceof PoseCreateError ? { status: 'none' } : { status: 'error' });
       }

@@ -16,6 +16,7 @@ import {
   photoFeatures,
   type PhotoFeatures,
   reviewPhoto,
+  type Scene,
 } from 'composition-critic';
 import type { CameraView } from 'expo-camera';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
@@ -27,6 +28,7 @@ import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
 import { haptic } from '@/lib/haptics';
 import { compositionUi } from '@/ui/tokens';
 
+import { sceneFor } from './scene';
 import type { TechniqueId } from './techniques';
 
 export type CheckResult =
@@ -36,6 +38,10 @@ export type CheckResult =
       features: PhotoFeatures;
       /** Dòng chưa đạt đầu tiên (kỹ thuật trước dòng chung); null = mọi dòng đều đạt. */
       note: Note | null;
+      /** Chân trời, đường dẫn tìm được (vẽ lên khung ngắm); null khi trang không trả ảnh xám. */
+      scene: Scene | null;
+      /** Thời gian dò đường trên máy (ms), để đo cổng Phase 5a (≤ 300 ms). */
+      sceneMs: number | null;
     }
   | { kind: 'none' }
   | { kind: 'error' };
@@ -130,7 +136,8 @@ export function useLayoutCheck() {
         show({ kind: 'none' });
         return;
       }
-      const review = reviewPhoto(technique, features);
+      const found = sceneFor(a.gray, a.grid, features);
+      const review = reviewPhoto(technique, features, found?.scene);
       const failing = review.notes.find((n) => !n.ok) ?? null;
       if (!failing) haptic.levelReached();
       show({
@@ -138,6 +145,8 @@ export function useLayoutCheck() {
         technique,
         features,
         note: failing,
+        scene: found?.scene ?? null,
+        sceneMs: found?.ms ?? null,
       });
     } catch {
       if (token.current === my) show({ kind: 'error' });
