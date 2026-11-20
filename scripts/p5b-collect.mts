@@ -67,10 +67,15 @@ function* csvRows(file: string): Generator<string[]> {
   }
 }
 
+/** Đọc một bảng CSV; `idx('Cột')` là vị trí cột (báo lỗi ngay nếu file thiếu cột). */
 function table(file: string) {
   const rows = csvRows(path.join(META, file));
   const head = rows.next().value as string[];
-  const idx = Object.fromEntries(head.map((h, i) => [h, i]));
+  const idx = (name: string): number => {
+    const i = head.indexOf(name);
+    if (i < 0) throw new Error(`${file}: thiếu cột ${name}`);
+    return i;
+  };
   return { idx, rows };
 }
 
@@ -80,12 +85,12 @@ const info = new Map<string, Info>();
   const { idx, rows } = table('validation-images-with-rotation.csv');
   for (const r of rows) {
     if (r.length < 5) continue;
-    info.set(r[idx.ImageID]!, {
-      license: r[idx.License]!,
-      author: r[idx.Author]!,
-      landing: r[idx.OriginalLandingURL]!,
-      title: r[idx.Title]!,
-      rotation: r[idx.Rotation] ?? '',
+    info.set(r[idx('ImageID')]!, {
+      license: r[idx('License')]!,
+      author: r[idx('Author')]!,
+      landing: r[idx('OriginalLandingURL')]!,
+      title: r[idx('Title')]!,
+      rotation: r[idx('Rotation')] ?? '',
     });
   }
 }
@@ -95,15 +100,16 @@ const people = new Map<string, People>();
 {
   const { idx, rows } = table('validation-annotations-bbox.csv');
   for (const r of rows) {
-    if (!PERSON.has(r[idx.LabelName]!)) continue;
-    const id = r[idx.ImageID]!;
+    if (!PERSON.has(r[idx('LabelName')]!)) continue;
+    const id = r[idx('ImageID')]!;
     const area =
-      (Number(r[idx.XMax]) - Number(r[idx.XMin])) * (Number(r[idx.YMax]) - Number(r[idx.YMin]));
+      (Number(r[idx('XMax')]) - Number(r[idx('XMin')])) *
+      (Number(r[idx('YMax')]) - Number(r[idx('YMin')]));
     const p = people.get(id) ?? { maxArea: 0, count: 0, group: false, depiction: false };
-    if (r[idx.IsDepiction] === '1') p.depiction = true;
+    if (r[idx('IsDepiction')] === '1') p.depiction = true;
     else {
-      p.count += r[idx.IsGroupOf] === '1' ? 5 : 1;
-      if (r[idx.IsGroupOf] === '1') p.group = true;
+      p.count += r[idx('IsGroupOf')] === '1' ? 5 : 1;
+      if (r[idx('IsGroupOf')] === '1') p.group = true;
       else p.maxArea = Math.max(p.maxArea, area);
     }
     people.set(id, p);
@@ -115,10 +121,10 @@ const tags = new Map<string, Set<string>>();
   const wanted = new Set(Object.values(BOOST).flatMap((b) => b.tags));
   const { idx, rows } = table('oidv7-val-annotations-human-imagelabels.csv');
   for (const r of rows) {
-    if (r[idx.Confidence] !== '1' || !wanted.has(r[idx.LabelName]!)) continue;
-    const id = r[idx.ImageID]!;
+    if (r[idx('Confidence')] !== '1' || !wanted.has(r[idx('LabelName')]!)) continue;
+    const id = r[idx('ImageID')]!;
     if (!tags.has(id)) tags.set(id, new Set());
-    tags.get(id)!.add(r[idx.LabelName]!);
+    tags.get(id)!.add(r[idx('LabelName')]!);
   }
 }
 
