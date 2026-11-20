@@ -74,11 +74,32 @@ Sửa theo 1.5, 1.6, 2.1. Cái app **tìm thấy** (khung người, chấm mắt
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 5.1 | Bật Đường chân trời | Dòng giới thiệu "Đặt chỗ trời gặp biển hoặc đất trùng đường xanh trên hoặc dưới" | | | |
-| 5.2 | Chụp ở Đường chân trời (có chân trời thật), mở Xem ảnh | Trên ảnh có hai đường xanh và một đường trắng đúng chỗ chân trời; thẻ nhận xét có dòng chân trời | | | |
-| 5.3 | Chụp ở Đường dẫn (có đường đi / hành lang), mở Xem ảnh | Trên ảnh có nét đứt xanh, các đường trắng trên mép đường và vòng trắng ở chỗ chúng gặp nhau | | | |
-| 5.4 | Chạm ảnh ở 5.2 / 5.3 | Lớp xanh và đường trắng cùng ẩn, chạm lại cùng hiện | | | |
-| 5.5 | Ảnh ở Quy tắc 1/3, Đặt ở giữa | Không có đường trắng nào | | | |
+| 5.1 | Bật Đường chân trời | Dòng giới thiệu "Đặt chỗ trời gặp biển hoặc đất trùng đường xanh trên hoặc dưới" |d |d | |
+| 5.2 | Chụp ở Đường chân trời (có chân trời thật), mở Xem ảnh | Trên ảnh có hai đường xanh và một đường trắng đúng chỗ chân trời; thẻ nhận xét có dòng chân trời |d |d | |
+| 5.3 | Chụp ở Đường dẫn (có đường đi / hành lang), mở Xem ảnh | Trên ảnh có nét đứt xanh, các đường trắng trên mép đường và vòng trắng ở chỗ chúng gặp nhau |d |d | nhưng bố cục đường chân trời có bắt buộc đường chân trời phải nằm đúng ở lưới 1/3 không ? |
+| 5.4 | Chạm ảnh ở 5.2 / 5.3 | Lớp xanh và đường trắng cùng ẩn, chạm lại cùng hiện |d |d | |
+| 5.5 | Ảnh ở Quy tắc 1/3, Đặt ở giữa | Không có đường trắng nào |d |d | |
+
+## 6. Bộ tìm trời (thử model, lần 1)
+
+**Trả lời 5.3:** chân trời không phải nằm đúng tuyệt đối trên đường 1/3: app cho lệch ±5% chiều cao khung (khoảng 1/7 một ô lưới). Đặt lên đường 1/3 là quy tắc hay dùng chứ không bắt buộc. Muốn ảnh phản chiếu đối xứng (mặt hồ phẳng) thì đặt chân trời ở giữa đẹp hơn: app vẫn nhắc, bạn bỏ qua là được.
+
+**Đo trên ảnh bạn chép vào `eval/lines/user/`:** tôi gắn nhãn 20 ảnh trước khi chạy bộ dò. Chỉ dò đường thẳng thì chân trời đúng 55% (trượt cổng 80%): hay chọn vệt mây thay vì mép đất, hoặc báo chân trời trên tường nhà. Thêm **bộ tìm trời** (model nhận ra vùng trời, ~3,9 MB, tải một lần) thì lên 79% trên ảnh của bạn và 84% trên bộ cũ; ảnh không có trời không còn báo nhầm. Mục này đo **thời gian** model trên máy thật: Chrome trên máy tính không có GPU mất ~5 s một ảnh nên chưa nói được gì.
+
+Chạy lại `npx expo start -c` (composition-critic lên v0.3.0).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 6.1 | Bật Đường chân trời, chạm Kiểm tra bố cục lần đầu | Hộp thoại "Tải bộ tìm trời" ghi 3,9 MB, hai nút "Kiểm tra bố cục ngay" và "Tải bộ tìm trời" | | | |
+| 6.2 | Android: chọn "Kiểm tra bố cục ngay" | Kiểm tra chạy như cũ (không có "Trời … ms"); chạm lại thì hộp thoại hỏi lại | — | | |
+| 6.3 | Chọn "Tải bộ tìm trời" | Tải xong tự kiểm tra; dòng dev "Dò đường … ms · Trời … ms": ghi số ms lần đầu (có thời gian nạp model) | | | |
+| 6.4 | Chạm Kiểm tra bố cục thêm 3 lần ở cùng cảnh | Ghi số "Trời … ms" từng lần (cổng: cả lần kiểm tra ≤ khoảng 1,5 s, model trời ≤ 300 ms là tốt) | | | |
+| 6.5 | Ngoài trời có mây thành vệt ngang và chân trời thấp hơn (hoặc nhà / cây xa) | Đường trắng ở chỗ trời gặp đất, không nằm trên vệt mây | | | |
+| 6.6 | Trong nhà (tường, sàn), người đứng cả người | Không có đường trắng, không có dòng chân trời | | | |
+| 6.7 | Như 4.5–4.7 (chân trời cao / thấp / đạt) | Dòng gợi ý vẫn đúng hướng, đạt thì viên xanh | | | |
+| 6.8 | Chụp ở Đường chân trời rồi mở Xem ảnh | Đường trắng trên ảnh đúng chỗ chân trời, thẻ có dòng chân trời | | | |
+| 6.9 | Quy tắc 1/3 (kỹ thuật khác), chạm Kiểm tra bố cục | Không hỏi tải bộ tìm trời, không có "Trời … ms" | | | |
+| 6.10 | Đường chân trời, chạm Kiểm tra bố cục 10 lần (đợi mỗi lần xong) | Không lỗi, máy không nóng, nút chụp vẫn dùng bình thường | | | |
 
 ## Góp ý thêm
 

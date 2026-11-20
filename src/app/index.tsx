@@ -32,7 +32,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { downloadPack, isPackReady } from '@/engine/models/modelStore';
-import { POSE_PACK, packBytes } from '@/engine/models/packs';
+import { POSE_PACK, packBytes, SKY_PACK } from '@/engine/models/packs';
 import { CameraLayer, ULTRA_WIDE_LENS } from '@/features/camera/CameraLayer';
 import {
   clearPlacement,
@@ -442,31 +442,48 @@ function CameraBody() {
     );
   };
 
-  const onCheck = () => {
-    if (check.busy || downloading) return;
-    if (isPackReady(POSE_PACK)) {
+  const mbOf = (p: typeof POSE_PACK) => (packBytes(p) / 1e6).toFixed(1).replace('.', ',');
+  /** Tải một gói rồi chạy tiếp `then`; lỗi thì báo `failed`. */
+  const fetchPack = async (p: typeof POSE_PACK, failed: string, then: () => void) => {
+    setDownloading(true);
+    try {
+      await downloadPack(p);
+    } catch {
+      Alert.alert(failed);
+      return;
+    } finally {
+      setDownloading(false);
+    }
+    then();
+  };
+
+  /**
+   * Đường chân trời: có gói trời thì tìm chân trời đúng hơn (Phase 5a). Chưa có thì hỏi tải, hoặc
+   * kiểm tra ngay chỉ bằng đường thẳng.
+   */
+  const checkWithSky = () => {
+    if (technique !== 'horizon' || isPackReady(SKY_PACK)) {
       startCheck();
       return;
     }
+    const c = t.composition.check;
+    Alert.alert(c.needSkyTitle, c.needSky(mbOf(SKY_PACK)), [
+      { text: c.skipSky, style: 'cancel', onPress: startCheck },
+      { text: c.downloadSky, onPress: () => fetchPack(SKY_PACK, c.downloadSkyFailed, startCheck) },
+    ]);
+  };
+
+  const onCheck = () => {
+    if (check.busy || downloading) return;
+    if (isPackReady(POSE_PACK)) {
+      checkWithSky();
+      return;
+    }
     // Chưa có bộ tách người: hỏi trước, không tự tải (tốn dung lượng mạng).
-    const mb = (packBytes(POSE_PACK) / 1e6).toFixed(1).replace('.', ',');
-    Alert.alert(t.composition.check.needPackTitle, t.composition.check.needPack(mb), [
+    const c = t.composition.check;
+    Alert.alert(c.needPackTitle, c.needPack(mbOf(POSE_PACK)), [
       { text: t.common.cancel, style: 'cancel' },
-      {
-        text: t.composition.check.download,
-        onPress: async () => {
-          setDownloading(true);
-          try {
-            await downloadPack(POSE_PACK);
-          } catch {
-            Alert.alert(t.composition.check.downloadFailed);
-            return;
-          } finally {
-            setDownloading(false);
-          }
-          startCheck();
-        },
-      },
+      { text: c.download, onPress: () => fetchPack(POSE_PACK, c.downloadFailed, checkWithSky) },
     ]);
   };
 

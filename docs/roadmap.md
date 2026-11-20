@@ -514,7 +514,14 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 
 **Phiếu lần 2 (2026-11-20):** mục 4 đạt trên iPhone và Android: chấm 1/3 chỉ ở giao điểm trên, chân trời nói hướng nghiêng máy, mép sàn ở bàn chân không còn bị nhận là chân trời, đường dẫn hướng / chưa hướng tới người (4.11 khó dựng cảnh nhưng đạt).
 
-**Chốt cổng (tạm, 2026-11-20):** chân trời và đường dẫn đưa vào app (số đo chạm ngưỡng, chạy đúng trên máy, iPhone 193 ms); cột sau đầu không đưa vào. Còn nợ: đo lại trên ảnh tự chụp chưa dùng để chỉnh (phiếu mục 3) và số ms trên Android; số đo tụt dưới ngưỡng thì xét lại.
+**Chốt cổng tạm (2026-11-20, đã bỏ):** chân trời và đường dẫn đưa vào app, cột sau đầu không. Chờ đo lại trên ảnh giữ riêng.
+
+**Đo trên bộ giữ riêng (2026-11-20):** 20 ảnh người dùng chép vào `eval/lines/user/`, gắn nhãn tay trên ảnh có thước **trước** khi chạy bộ dò. Chỉ đường thẳng: chân trời đúng **55%** khung cắt (91/164), 74% ảnh nguyên (14/19), ảnh không có chân trời báo đúng 2/9 → **trượt cổng 80%**. Lỗi hay gặp: chọn vệt mây thay vì mép đất, chọn lan can gần thay vì mép hồ xa, báo chân trời trên tường nhà. Đường dẫn chỉ có 1 ảnh, chưa đo được. Đã thử ba cách chỉ dùng đường thẳng (độ chênh sáng hai bên đường, ghép đoạn rộng hơn, ưu tiên mép dưới vùng trời trơn): bộ mới lên tối đa 60% và bộ cũ tụt, nên bỏ.
+
+**Thử model trời (spike, người dùng chọn 2026-11-20):** DeepLab v3 ADE20K bản TF.js lượng tử 1 byte (~2,4 MB, lớp "sky"), chạy trong WebView như MediaPipe. Mặt nạ trời không thay đường thẳng mà dùng để: bỏ đường nằm trong trời (vệt mây), ảnh không có trời thì không có chân trời, ưu tiên đường ở đáy vùng trời, không còn đường nào thì lấy đáy vùng trời (`scripts/sky-eval.ts`, composition-critic v0.3.0). Kết quả: bộ cũ 80 → **84%**, bộ giữ riêng 55 → **79%** khung cắt; ảnh nguyên **100% / 89%**; ảnh không có chân trời báo đúng **100%**. Luật trời chỉnh trên cả hai bộ nên không còn bộ giữ riêng: số này là trần trên. Luật bàn chân đổi sang dùng cổ chân của khung xương (vùng người hay chỉ lấy được nửa trên).
+- [x] Gói trời `sky` (~3,9 MB: TF.js 4.22.0 + model), tải khi bấm Kiểm tra bố cục ở Đường chân trời lần đầu (hỏi trước; chọn "Kiểm tra bố cục ngay" thì dò chỉ bằng đường thẳng); nhận xét sau khi chụp dùng gói trời nếu đã có, không tự tải
+- [ ] Đo thời gian model trời trên iPhone / Android (bản dev hiện "Trời … ms"; Chrome không GPU mất ~4,9 s nên chưa nói được gì); chậm quá thì chạy ở cạnh 257 (đang đo độ đúng)
+- [ ] Chốt cổng chân trời khi có thời gian trên máy
 
 **Xong khi:** chân trời, đường dẫn và vật "mọc" sau đầu tự phát hiện trên iPhone và Android, đạt cổng ở trên (hoặc chỉ phần đạt được đưa vào, phần còn lại giữ bản Phase 5 và ghi rõ vì sao); phiếu `phase5a-test.md` đạt.
 

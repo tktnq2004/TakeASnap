@@ -34,6 +34,7 @@ export function CheckOverlay({
   let text: string;
   let ok = false;
   let sceneMs: number | null = null;
+  let skyMs: number | null = null;
   if (result.kind === 'review') {
     const f = result.features;
     const b = f.people[f.main]?.box;
@@ -44,6 +45,7 @@ export function CheckOverlay({
     }
     if (f.eye) eye = { x: fx(f.eye.x), y: f.eye.y };
     sceneMs = result.sceneMs;
+    skyMs = result.skyMs;
     if (result.note) text = t.review.notes[result.note.id];
     else {
       ok = true;
@@ -123,7 +125,10 @@ export function CheckOverlay({
           </Text>
         </Animated.View>
         {__DEV__ && sceneMs != null && (
-          <Text style={styles.dev}>{t.composition.check.devSceneMs(Math.round(sceneMs))}</Text>
+          <Text style={styles.dev}>{t.composition.check.devSceneMs(
+              Math.round(sceneMs),
+              skyMs == null ? null : Math.round(skyMs),
+            )}</Text>
         )}
       </View>
     </>

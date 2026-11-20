@@ -11,14 +11,19 @@ import type { TechniqueId } from './techniques';
 
 type Bytes = { width: number; height: number; data: Uint8Array };
 
+/**
+ * `sky`: mặt nạ trời (gói trời, kỹ thuật Đường chân trời): bỏ vệt mây, mép tường, ưu tiên đáy vùng
+ * trời (composition-critic v0.3.0). Null thì dò chân trời chỉ bằng đường thẳng.
+ */
 export function sceneFor(
   gray: Bytes | null,
   personGrid: Bytes,
   features: PhotoFeatures,
+  sky: Bytes | null = null,
 ): { scene: Scene; ms: number } | null {
   if (!gray) return null;
   const t0 = performance.now();
-  const scene = analyzeScene(gray, { ...personGrid, scale: 255 }, features);
+  const scene = analyzeScene(gray, { ...personGrid, scale: 255 }, features, sky);
   return { scene: { ...scene, pole: null }, ms: performance.now() - t0 };
 }
 

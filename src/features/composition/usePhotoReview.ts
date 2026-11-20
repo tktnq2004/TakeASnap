@@ -70,8 +70,10 @@ export function usePhotoReview(photo: SessionPhoto | undefined, allowDownload: b
     set(id, { status: 'running', stage: 'queued' });
     chain = chain.then(async () => {
       try {
+        // Đường chân trời: chạy thêm model trời nếu gói trời đã có (không tự tải ở đây).
+        const sky = photo.technique === 'horizon';
         const a = await analyzeImage(
-          segmentForPose,
+          (input, onProgress) => segmentForPose(input, onProgress, { sky }),
           { uri: photo.uri, width: photo.width, height: photo.height },
           (p) => {
             if (p.stage !== 'contour' && p.stage !== 'save')
@@ -88,7 +90,7 @@ export function usePhotoReview(photo: SessionPhoto | undefined, allowDownload: b
           bodies: a.seg.bodies,
           faceEyes: a.seg.faceEyes,
         });
-        const s = sceneFor(a.seg.gray, a.seg.grid, features)?.scene ?? null;
+        const s = sceneFor(a.seg.gray, a.seg.grid, features, a.seg.sky)?.scene ?? null;
         set(id, {
           status: 'done',
           features,

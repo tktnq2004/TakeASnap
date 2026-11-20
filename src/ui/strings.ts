@@ -105,12 +105,20 @@ export const t = {
       noPerson: 'Không thấy người, tiến lại gần hoặc zoom vào',
       failed: 'Chưa kiểm tra được, thử lại',
       /** Chỉ hiện trong bản dev: đo cổng Phase 5a. */
-      devSceneMs: (ms: number) => `Dò đường ${ms} ms`,
+      devSceneMs: (ms: number, skyMs: number | null) =>
+        skyMs == null ? `Dò đường ${ms} ms` : `Dò đường ${ms} ms · Trời ${skyMs} ms`,
       needPackTitle: 'Tải bộ tách người',
       needPack: (mb: string) =>
         `Kiểm tra bố cục cần bộ tách người (${mb} MB), tải một lần rồi dùng không cần mạng.`,
       download: 'Tải bộ tách người',
       downloadFailed: 'Chưa tải được bộ tách người. Kiểm tra mạng rồi thử lại.',
+      /** Gói trời (Phase 5a): Đường chân trời tìm vùng trời để dò chân trời. */
+      needSkyTitle: 'Tải bộ tìm trời',
+      needSky: (mb: string) =>
+        `Đường chân trời cần bộ tìm trời (${mb} MB) để tìm đúng chân trời, tải một lần rồi dùng không cần mạng.`,
+      downloadSky: 'Tải bộ tìm trời',
+      skipSky: 'Kiểm tra bố cục ngay',
+      downloadSkyFailed: 'Chưa tải được bộ tìm trời. Kiểm tra mạng rồi thử lại.',
     },
     hints: {
       level: (deg: number) => `Máy nghiêng ${deg}°, xoay cho thẳng`,

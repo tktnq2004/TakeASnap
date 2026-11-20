@@ -72,7 +72,7 @@ export async function downloadPack(
       onProgress: (p) => onProgress?.({ bytes: base + toBytes(p.bytesWritten), total }),
     });
     const file = await task.downloadAsync();
-    if (!file) throw new Error('Đã hủy tải bộ tách người');
+    if (!file) throw new Error(`Đã hủy tải ${f.name}`);
     if (toBytes(part.size) !== f.bytes) {
       part.delete();
       throw new Error(`Tải thiếu dữ liệu: ${f.name}`);

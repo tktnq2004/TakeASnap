@@ -42,6 +42,8 @@ export type CheckResult =
       scene: Scene | null;
       /** Thời gian dò đường trên máy (ms), để đo cổng Phase 5a (≤ 300 ms). */
       sceneMs: number | null;
+      /** Thời gian model trời (ms), null khi không chạy (không phải Đường chân trời, chưa có gói). */
+      skyMs: number | null;
     }
   | { kind: 'none' }
   | { kind: 'error' };
@@ -112,7 +114,9 @@ export function useLayoutCheck() {
       }
       if (token.current !== my) return;
 
-      const a = await analyzeSnapshot(base64, compositionUi.checkGrid);
+      const a = await analyzeSnapshot(base64, compositionUi.checkGrid, {
+        sky: technique === 'horizon',
+      });
       if (token.current !== my) return;
       const { width, height, data } = a.grid;
       const prob = new Float32Array(data.length);
@@ -136,7 +140,7 @@ export function useLayoutCheck() {
         show({ kind: 'none' });
         return;
       }
-      const found = sceneFor(a.gray, a.grid, features);
+      const found = sceneFor(a.gray, a.grid, features, a.sky);
       const review = reviewPhoto(technique, features, found?.scene);
       const failing = review.notes.find((n) => !n.ok) ?? null;
       if (!failing) haptic.levelReached();
@@ -147,6 +151,7 @@ export function useLayoutCheck() {
         note: failing,
         scene: found?.scene ?? null,
         sceneMs: found?.ms ?? null,
+        skyMs: a.skyMs,
       });
     } catch {
       if (token.current === my) show({ kind: 'error' });
