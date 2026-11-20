@@ -12,14 +12,22 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import puppeteer from 'puppeteer-core';
 
 import { buildContours, personAreaRatio, type Contour } from '../src/engine/contour.ts';
-// Node không bỏ kiểu TypeScript trong node_modules: đọc trang từ bản clone composition-critic cạnh app.
-import { MEDIAPIPE_VERSION, segmenterHtml } from '../../composition-critic/src/page.ts';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
+
+// Node không bỏ kiểu TypeScript trong node_modules: lúc chạy đọc trang từ bản clone
+// composition-critic cạnh app (hoặc COMPOSITION_CRITIC_DIR). Nạp động để typecheck (và CI, nơi
+// không có bản clone) lấy kiểu từ package đã cài.
+const CRITIC_DIR =
+  process.env.COMPOSITION_CRITIC_DIR ?? path.resolve(ROOT, '../composition-critic');
+const { MEDIAPIPE_VERSION, segmenterHtml } = (await import(
+  pathToFileURL(path.join(CRITIC_DIR, 'src/page.ts')).href
+)) as typeof import('composition-critic/page');
 const SOURCE_DIR = path.join(ROOT, 'assets/poses/source');
 const OUT_FILE = path.join(ROOT, 'assets/poses/samples.json');
 const CHROME = process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe';
