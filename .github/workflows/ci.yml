@@ -14,6 +14,18 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      # composition-critic là repo riêng tư; package-lock tải nó qua git+ssh. Máy CI không có
+      # khóa SSH nên đổi sang https với token chỉ đọc repo đó (secret COMPOSITION_CRITIC_TOKEN).
+      - name: Access to composition-critic
+        env:
+          TOKEN: ${{ secrets.COMPOSITION_CRITIC_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::Thiếu secret COMPOSITION_CRITIC_TOKEN (token chỉ đọc repo composition-critic)"
+            exit 1
+          fi
+          git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://x-access-token:${TOKEN}@github.com/".insteadOf "git@github.com:"
       - run: npm ci
       - name: Typecheck
         run: npm run typecheck
