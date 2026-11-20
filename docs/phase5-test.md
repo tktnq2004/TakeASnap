@@ -345,7 +345,7 @@ Chạy lại dev server có xóa cache (`npx expo start -c`): app nâng lên com
 | 18.1 | Lặp 17.3: Quy tắc 1/3, mắt trên đường 1/3, người trên đường dọc | Có **cả hai** dòng dấu tích (mắt + đường dọc); rung nhẹ một lần |d |d |tốt hơn rồi |
 | 18.2 | Quy tắc 1/3, tóc che một bên mắt hoặc mặt nghiêng | Vẫn có dòng về mắt (đạt hoặc chưa đạt), không mất hẳn |d |d | khá tốt |
 | 18.3 | Bật Lưới 3×3, chụp rồi mở Xem ảnh; lặp với Lưới 4×4 | Không có thẻ nhận xét (như khi tắt bố cục) |d |d | |
-| 18.4 | Lặp 17.7: bật **Quy tắc 1/3** (hoặc kỹ thuật bất kỳ, trừ Tắt và Lưới vì hai chế độ này không có nhận xét), chụp cảnh rộng có một người cao chưa tới ~1/4 khung, mở Xem ảnh | "Không thấy người trong ảnh. Người ở xa quá thì tiến lại gần hoặc zoom vào." | | | |
+| 18.4 | Lặp 17.7: bật **Quy tắc 1/3** (hoặc kỹ thuật bất kỳ, trừ Tắt và Lưới vì hai chế độ này không có nhận xét), chụp cảnh rộng có một người cao chưa tới ~1/4 khung, mở Xem ảnh | "Không thấy người trong ảnh. Người ở xa quá thì tiến lại gần hoặc zoom vào." |d |d | |
 
 ## Góp ý thêm
 Gợi ý của lưới 3x3 còn sai quá nhiều, cân nhắc không nhận xét chế độ lưới 3x3
@@ -353,3 +353,5 @@ Gợi ý của lưới 3x3 còn sai quá nhiều, cân nhắc không nhận xét
 **Sửa sau lần 9:** 17.3 không có dòng nào về mắt = khung xương không thấy rõ mắt (tóc che, mặt nghiêng); nay lấy mắt từ bộ dò mặt khi khung xương không thấy (composition-critic v0.1.1). Lưới 3×3 / 4×4 không còn nhận xét. 17.4 độ đúng ~70–80% trên máy: khớp số đo (Ở giữa 99% trên khung cắt, 7/8 ảnh nhãn), ghi nhận. 17.7 chưa thử → mục 18.
 
 **Kết quả lần 10:** 18.1–18.3 đạt trên iPhone và Android (18.1 "tốt hơn rồi", 18.2 "khá tốt"). 18.4 chưa thử vì phiếu không nói chế độ: nay ghi rõ (Quy tắc 1/3; người chiếm dưới 2% ảnh thì app bỏ qua như không có người).
+
+**Kết quả lần 11:** 18.4 đạt trên iPhone và Android. **Phiếu Phase 5 đạt hết** → chuyển sang Phase 5a.

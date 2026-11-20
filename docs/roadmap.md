@@ -433,7 +433,7 @@ Phạm vi nghiệp vụ ở [business-flow §3](business-flow.md#3-bản-đồ-m
 
 **Xong khi:** mọi màn hiện có theo design.md mới; nút bánh răng mở Cài đặt; phiếu kiểm tra `phase4-test.md` đạt trên iPhone và Android.
 
-### Phase 5 — Trợ lý bố cục (timebox 3 tuần, có cổng quyết định)
+### Phase 5 — Trợ lý bố cục (timebox 3 tuần, có cổng quyết định) — xong 2026-11-20
 
 Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [phase5-bo-cuc.md](phase5-bo-cuc.md); nghiệp vụ ở [business-flow §6](business-flow.md#6-chức-năng-3--trợ-lý-bố-cục); kỹ thuật ở §3.6.
 
@@ -482,7 +482,7 @@ Hướng dẫn bố cục khi chụp người. Ý tưởng và cách làm ở [p
 **Bước 4 — Hoàn thiện (tuần 3)**
 
 - [x] Chữ gợi ý ngắn theo quy tắc chữ của app (dòng chưa đạt nói luôn việc cần làm; không thấy người thì gợi ý tiến lại gần); chuyển động khi đạt (dòng nhận xét hiện dần lần lượt, rung nhẹ khi mọi dòng đạt); trường hợp không thấy người, chưa tải bộ tách, lỗi (đã có từ Bước 3, rà lại chữ)
-- [ ] Phiếu `phase5-test.md`, thử trên iPhone và Android, sửa theo góp ý từng vòng
+- [x] Phiếu `phase5-test.md`, thử trên iPhone và Android, sửa theo góp ý từng vòng (10 lần; lần 10 đạt hết; lưới 3×3 / 4×4 không có nhận xét theo góp ý lần 9)
 
 **Xong khi:** chọn được kỹ thuật và thấy lớp bố cục trên camera; gợi ý cảm biến chạy tức thì; có nhận xét sau khi chụp (hoặc đã ghi rõ vì sao bỏ theo cổng); 19 thẻ học; phiếu `phase5-test.md` đạt trên iPhone và Android.
 
