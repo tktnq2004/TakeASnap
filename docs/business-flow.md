@@ -294,7 +294,7 @@ flowchart TD
 - 1–3 dòng: điều đã đạt và điều chưa đạt (ví dụ "Mắt nằm trên đường 1/3", "Cắt ngang đầu gối");
 - **khung cắt gợi ý** khi cắt lại sẽ đạt kỹ thuật; lưu bản cắt thành ảnh mới, ảnh gốc giữ nguyên.
 
-Ảnh chụp khi đang tắt bố cục thì không có nhận xét.
+Ảnh chụp khi đang tắt bố cục hoặc chỉ bật Lưới 3×3 / 4×4 thì không có nhận xét (lưới chỉ để căn khung; phiếu Phase 5 lần 9: các dòng chung ở chế độ lưới sai nhiều).
 
 ### 6.6 Thẻ học
 

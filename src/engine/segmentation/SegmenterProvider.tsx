@@ -20,6 +20,8 @@ export type PoseSegmentation = {
   landmarks: Landmarks;
   /** Khung xương mọi người trong ảnh (tới 6, mỗi cái 33 khớp phẳng); không lưu vào pose. */
   bodies: number[][];
+  /** Giữa hai mắt của từng mặt bộ dò mặt tìm được [x, y]. */
+  faceEyes: number[][];
 };
 
 type Ctx = {
@@ -98,6 +100,7 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
           grid: { width: r.grid.width, height: r.grid.height, data: base64ToBytes(r.grid.base64) },
           landmarks: { face: lm.face ?? null, bodyPoints: lm.bodyPoints ?? null },
           bodies: lm.bodies ?? (lm.bodyPoints ? [lm.bodyPoints] : []),
+          faceEyes: lm.faceEyes ?? [],
         };
       },
       analyzeFrame: async (base64, opts, onProgress) => {

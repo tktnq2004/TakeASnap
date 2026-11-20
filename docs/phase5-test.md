@@ -328,12 +328,26 @@ Từ lần thử trước: quy tắc chuyển sang package `composition-critic` 
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 17.1 | Mở app, tạo một pose từ ảnh trong máy | Như trước: tách người, chọn người (ảnh nhiều người), pose mới trong Pose của bạn | | | |
-| 17.2 | Bật Quy tắc 1/3, chụp người đứng giữa khung, mở Xem ảnh | Dòng "Người đứng giữa khung, dời máy để người sang đường 1/3" (chữ mới); các dòng hiện dần lần lượt; có khung cắt gợi ý | | | |
-| 17.3 | Quy tắc 1/3, chụp mắt trên đường 1/3 và người trên đường dọc | Hai dòng dấu tích; **rung nhẹ một lần** lúc nhận xét hiện; vuốt sang ảnh khác rồi vuốt lại thì không rung | | | |
-| 17.4 | Đặt ở giữa: người ở giữa nhưng nghiêng mặt sang một bên | "Người ở đúng trục giữa" (trước đây hay báo lệch) | | | |
-| 17.5 | Nhóm người: 2–3 người **đứng sát nhau** ngang hàng, rồi một người ngồi xuống | Ngang hàng: "Các đầu cùng một độ cao, cho một người ngồi hoặc đứng lên bậc"; một người ngồi: "Các đầu cao thấp so le" | | | |
-| 17.6 | Lưới 3×3: chụp mép dưới ngang gối, rồi ngang cổ chân | "Mép dưới gần ngang gối, …" / "Mép dưới cắt ngang cổ chân, …" (có thể không hiện mọi lần: đo được báo đúng ~69% / ~94%) | | | |
-| 17.7 | Chụp cảnh rộng, người rất nhỏ ở xa | "Không thấy người trong ảnh. Người ở xa quá thì tiến lại gần hoặc zoom vào." | | | |
+| 17.1 | Mở app, tạo một pose từ ảnh trong máy | Như trước: tách người, chọn người (ảnh nhiều người), pose mới trong Pose của bạn |d |d | |
+| 17.2 | Bật Quy tắc 1/3, chụp người đứng giữa khung, mở Xem ảnh | Dòng "Người đứng giữa khung, dời máy để người sang đường 1/3" (chữ mới); các dòng hiện dần lần lượt; có khung cắt gợi ý |d |d | |
+| 17.3 | Quy tắc 1/3, chụp mắt trên đường 1/3 và người trên đường dọc | Hai dòng dấu tích; **rung nhẹ một lần** lúc nhận xét hiện; vuốt sang ảnh khác rồi vuốt lại thì không rung |l |l |chỉ hiện tích người nằm trên đường dọc 1/3, không có mắt nằm trên đường 1/3 |
+| 17.4 | Đặt ở giữa: người ở giữa nhưng nghiêng mặt sang một bên | "Người ở đúng trục giữa" (trước đây hay báo lệch) |d |d | nhưng độ chính xác chưa thật sự cao tầm 70-80 |
+| 17.5 | Nhóm người: 2–3 người **đứng sát nhau** ngang hàng, rồi một người ngồi xuống | Ngang hàng: "Các đầu cùng một độ cao, cho một người ngồi hoặc đứng lên bậc"; một người ngồi: "Các đầu cao thấp so le" |d |d | |
+| 17.6 | Lưới 3×3: chụp mép dưới ngang gối, rồi ngang cổ chân | "Mép dưới gần ngang gối, …" / "Mép dưới cắt ngang cổ chân, …" (có thể không hiện mọi lần: đo được báo đúng ~69% / ~94%) | d| d|đúng như những gì đã dự đoán |
+| 17.7 | Chụp cảnh rộng, người rất nhỏ ở xa | "Không thấy người trong ảnh. Người ở xa quá thì tiến lại gần hoặc zoom vào." | -| -| |
+
+## 18. Mắt từ bộ dò mặt, bỏ nhận xét ở chế độ lưới (phiếu lần 10)
+
+Chạy lại dev server có xóa cache (`npx expo start -c`): app nâng lên composition-critic v0.1.1.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 18.1 | Lặp 17.3: Quy tắc 1/3, mắt trên đường 1/3, người trên đường dọc | Có **cả hai** dòng dấu tích (mắt + đường dọc); rung nhẹ một lần | | | |
+| 18.2 | Quy tắc 1/3, tóc che một bên mắt hoặc mặt nghiêng | Vẫn có dòng về mắt (đạt hoặc chưa đạt), không mất hẳn | | | |
+| 18.3 | Bật Lưới 3×3, chụp rồi mở Xem ảnh; lặp với Lưới 4×4 | Không có thẻ nhận xét (như khi tắt bố cục) | | | |
+| 18.4 | Lặp 17.7: cảnh rộng, người rất nhỏ ở xa | "Không thấy người trong ảnh. Người ở xa quá thì tiến lại gần hoặc zoom vào." | | | |
 
 ## Góp ý thêm
+Gợi ý của lưới 3x3 còn sai quá nhiều, cân nhắc không nhận xét chế độ lưới 3x3
+
+**Sửa sau lần 9:** 17.3 không có dòng nào về mắt = khung xương không thấy rõ mắt (tóc che, mặt nghiêng); nay lấy mắt từ bộ dò mặt khi khung xương không thấy (composition-critic v0.1.1). Lưới 3×3 / 4×4 không còn nhận xét. 17.4 độ đúng ~70–80% trên máy: khớp số đo (Ở giữa 99% trên khung cắt, 7/8 ảnh nhãn), ghi nhận. 17.7 chưa thử → mục 18.

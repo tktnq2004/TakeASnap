@@ -130,6 +130,8 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
     (await request({ type: 'landmarks', base64 })) as unknown as Landmarks & {
       /** Khung xương mọi người (tới 6), người đầu tiên trùng `bodyPoints`. */
       bodies?: number[][];
+      /** Giữa hai mắt của từng mặt [x, y]. */
+      faceEyes?: number[][];
       timings: SegmentTimings;
     };
 

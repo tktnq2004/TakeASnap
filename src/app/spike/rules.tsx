@@ -109,6 +109,7 @@ export default function RulesSpike() {
           people: a.people,
           body: a.seg.landmarks.bodyPoints,
           bodies: a.seg.bodies,
+          faceEyes: a.seg.faceEyes,
         });
         update(next.id, { status: 'done', features });
       } catch (e) {

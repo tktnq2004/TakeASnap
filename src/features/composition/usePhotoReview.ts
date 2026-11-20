@@ -16,6 +16,7 @@ import { isPackReady } from '@/engine/models/modelStore';
 import { POSE_PACK } from '@/engine/models/packs';
 import { type PoseProgress, useSegmenter } from '@/engine/segmentation/SegmenterProvider';
 import type { SessionPhoto } from '@/features/camera/sessionPhotos';
+import type { TechniqueId } from '@/features/composition/techniques';
 import { analyzeImage, PoseCreateError } from '@/features/pose/createFromImage';
 
 
@@ -41,6 +42,9 @@ export const useReviewNotes = create<State>()((set) => ({
     }),
 }));
 
+/** Kỹ thuật không có nhận xét sau khi chụp. */
+const NO_REVIEW = new Set<TechniqueId>(['off', 'grid', 'grid4']);
+
 /** Hàng đợi một ảnh một lần qua WebView. */
 let chain: Promise<unknown> = Promise.resolve();
 
@@ -48,7 +52,8 @@ export function usePhotoReview(photo: SessionPhoto | undefined, allowDownload: b
   const { segmentForPose } = useSegmenter();
   const entry = useReviewNotes((s) => (photo ? s.byId[photo.assetId] : undefined));
   const packReady = isPackReady(POSE_PACK);
-  const wanted = !!photo && photo.technique !== 'off';
+  // Lưới chỉ để căn khung, không phải kỹ thuật: không nhận xét (phiếu Phase 5 lần 9).
+  const wanted = !!photo && !NO_REVIEW.has(photo.technique);
   const canRun = wanted && !entry && (packReady || allowDownload);
 
   useEffect(() => {
@@ -74,6 +79,7 @@ export function usePhotoReview(photo: SessionPhoto | undefined, allowDownload: b
           people: a.people,
           body: a.seg.landmarks.bodyPoints,
           bodies: a.seg.bodies,
+          faceEyes: a.seg.faceEyes,
         });
         set(id, { status: 'done', features, review: reviewPhoto(photo.technique, features) });
       } catch (e) {
