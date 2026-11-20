@@ -3,8 +3,6 @@ import { StyleSheet, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
 import type {
-  FrameOptions,
-  FrameResult,
   Landmarks,
   SegmentModelId,
   SegmentTimings,
@@ -135,10 +133,6 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
       timings: SegmentTimings;
     };
 
-  /** Khung hình nhỏ lúc ngắm: lưới người + một khung xương, bản nhẹ. */
-  const frame = async (base64: string, opts: FrameOptions) =>
-    (await request({ type: 'frame', base64, ...opts })) as unknown as FrameResult;
-
   const request = (payload: Record<string, unknown>) =>
     new Promise<OkMessage>((resolve, reject) => {
       const id = nextId.current++;
@@ -174,7 +168,6 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
     element,
     run,
     landmarks,
-    frame,
     sendAsset,
     generation: () => generation.current,
     ready: info !== null,

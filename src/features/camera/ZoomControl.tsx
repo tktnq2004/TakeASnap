@@ -9,6 +9,7 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   type SharedValue,
+  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
@@ -30,6 +31,8 @@ type Props = {
   settle: SharedValue<number>;
   /** 0,5 khi máy có ống góc rộng, còn lại 1. */
   min: number;
+  /** Báo ra ngoài khi thước cuộn đang hiện (nút Kiểm tra bố cục cạnh cụm nhường chỗ). */
+  expanded?: SharedValue<boolean>;
 };
 
 const CHIP = 44;
@@ -41,12 +44,18 @@ const TAPE_H = 56;
 const MAJORS = [0.5, 1, 2, 3, 5];
 const TICKS = Array.from({ length: 46 }, (_, i) => Math.round((0.5 + i * 0.1) * 10) / 10);
 
+/** Bề ngang cụm nút lúc nghỉ (để đặt nút Kiểm tra bố cục ngay bên phải cụm). */
+export const zoomChipsWidth = (min: number) => {
+  const n = min < 1 ? 4 : 3;
+  return n * CHIP + (n - 1) * GAP + 2 * PAD;
+};
+
 /**
  * Zoom (design.md §6.1, kiểu B): lúc nghỉ là các nút nhanh 0,5 · 1× · 2 · 3; đặt ngón lên cụm rồi
  * kéo ngang thì thành thước cuộn, kim đứng yên ở giữa, thước chạy dưới kim. Thả tay thì về nút.
  * Mọi thứ chạy trên UI thread; CameraLayer đọc `factor` và đẩy zoom xuống camera.
  */
-export function ZoomControl({ factor, settle, min }: Props) {
+export function ZoomControl({ factor, settle, min, expanded }: Props) {
   const presets = min < 1 ? [0.5, 1, 2, 3] : [1, 2, 3];
   const dragging = useSharedValue(false);
   const start = useSharedValue(1);
@@ -100,6 +109,13 @@ export function ZoomControl({ factor, settle, min }: Props) {
   });
 
   const gesture = useExclusiveGestures(useSimultaneousGestures(pan, hold), tap);
+
+  useAnimatedReaction(
+    () => dragging.get() || holding.get(),
+    (now, old) => {
+      if (now !== old) expanded?.set(now);
+    },
+  );
 
   const chipsStyle = useAnimatedStyle(() => ({
     opacity: withTiming(dragging.get() || holding.get() ? 0 : 1, {

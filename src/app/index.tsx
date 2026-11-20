@@ -2,9 +2,18 @@ import { type CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useFocusEffect } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
-import { SwitchCamera, Trash2 } from 'lucide-react-native';
+import { ScanSearch, SwitchCamera, Trash2 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Image, Linking, Platform, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Linking,
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import {
   GestureDetector,
   usePinchGesture,
@@ -22,6 +31,8 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import { downloadPack, isPackReady } from '@/engine/models/modelStore';
+import { POSE_PACK, packBytes } from '@/engine/models/packs';
 import { CameraLayer, ULTRA_WIDE_LENS } from '@/features/camera/CameraLayer';
 import {
   clearPlacement,
@@ -47,18 +58,19 @@ import { useSessionPhotos } from '@/features/camera/sessionPhotos';
 import { ToolRail } from '@/features/camera/ToolRail';
 import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
-import { ZoomControl, zoomControlHeight } from '@/features/camera/ZoomControl';
+import { ZoomControl, zoomChipsWidth, zoomControlHeight } from '@/features/camera/ZoomControl';
+import { CheckOverlay } from '@/features/composition/CheckOverlay';
 import { CompositionGuide } from '@/features/composition/CompositionGuide';
 import { CompositionHint, HintPill } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
 import type { Pt } from '@/features/composition/guides';
 import type { TechniqueId } from '@/features/composition/techniques';
 import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '@/features/composition/snap';
+import { CHECKABLE, useLayoutCheck } from '@/features/composition/useLayoutCheck';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
 import { useSettings } from '@/features/settings/settingsStore';
-import { useLiveSpikeCamera } from '@/features/spike/liveCameraLock';
 import { haptic } from '@/lib/haptics';
 import { EmptyState, PressableScale } from '@/ui/components';
 import { ease, easeIO } from '@/ui/easing';
@@ -114,8 +126,6 @@ function CameraBody() {
 
   const flash = useCameraStore((s) => s.flash);
   const technique = useCameraStore((s) => s.technique);
-  // Màn spike gợi ý lúc ngắm đang mở camera riêng.
-  const spikeCamera = useLiveSpikeCamera((s) => s.busy);
   const levelOn = useCameraStore((s) => s.level);
   const timer = useCameraStore((s) => s.timer);
   const aspect = useCameraStore((s) => s.aspect);
@@ -164,6 +174,9 @@ function CameraBody() {
   /** Ảnh đang bay từ khung ngắm vào ô ảnh vừa chụp. */
   const [flying, setFlying] = useState<string | null>(null);
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Kiểm tra bố cục (Phase 5a): chụp lặng một ảnh khi chạm, nhận xét trên khung ngắm.
+  const check = useLayoutCheck();
+  const checkable = CHECKABLE(technique);
 
   // ---- Bố cục (design.md §6.1): thanh trên, khung ngắm, zoom, hàng chụp ----
   const barTop = insets.top + space[2];
@@ -368,6 +381,7 @@ function CameraBody() {
 
   /** Đổi camera thật sự. Gọi qua `switchCamera` (đợi ảnh đang chụp xong, phiếu Phase 4 mục 15.8). */
   const flipCamera = () => {
+    check.cancel();
     // Camera đang dựng lại: không cho chụp tới khi báo sẵn sàng (có hạn chờ phòng khi không báo).
     readyRef.current = false;
     setReady(false);
@@ -402,6 +416,59 @@ function CameraBody() {
   const trashZoneStyle = useAnimatedStyle(() => ({
     opacity: withTiming(dragging.get() ? 1 : 0, { duration: motion.in, easing: ease }),
   }));
+
+  // ---- Kiểm tra bố cục (Phase 5a): chụp lặng một ảnh khi chạm, nhận xét trên khung ngắm ----
+  const [downloading, setDownloading] = useState(false);
+  // Thước zoom đang mở (330 px) thì đè lên chỗ nút: nút mờ đi, cũng mờ khi đang kéo pose.
+  const zoomOpen = useSharedValue(false);
+  const checkStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(dragging.get() || zoomOpen.get() ? 0 : 1, {
+      duration: motion.in,
+      easing: ease,
+    }),
+  }));
+
+  const startCheck = () => {
+    const cam = cameraRef.current;
+    if (!cam || !readyRef.current || countdown != null) return;
+    const b = burst.current;
+    if (b.capturing || b.switchPending) return;
+    haptic.select();
+    check.run(
+      cam,
+      { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
+      { width: preview.width, height: preview.height },
+      technique,
+    );
+  };
+
+  const onCheck = () => {
+    if (check.busy || downloading) return;
+    if (isPackReady(POSE_PACK)) {
+      startCheck();
+      return;
+    }
+    // Chưa có bộ tách người: hỏi trước, không tự tải (tốn dung lượng mạng).
+    const mb = (packBytes(POSE_PACK) / 1e6).toFixed(1).replace('.', ',');
+    Alert.alert(t.composition.check.needPackTitle, t.composition.check.needPack(mb), [
+      { text: t.common.cancel, style: 'cancel' },
+      {
+        text: t.composition.check.download,
+        onPress: async () => {
+          setDownloading(true);
+          try {
+            await downloadPack(POSE_PACK);
+          } catch {
+            Alert.alert(t.composition.check.downloadFailed);
+            return;
+          } finally {
+            setDownloading(false);
+          }
+          startCheck();
+        },
+      },
+    ]);
+  };
 
   // ---- Chụp ----
   const flashOpacity = useSharedValue(0);
@@ -519,6 +586,8 @@ function CameraBody() {
     if (b.capturing) return;
     b.capturing = true;
     for (;;) {
+      // Camera chỉ chụp một ảnh mỗi lúc: đợi lần chụp lặng của Kiểm tra bố cục (nếu có).
+      await check.settled();
       const cam = cameraRef.current;
       if (!cam || !readyRef.current || b.switchPending) break;
       haptic.capture();
@@ -559,6 +628,8 @@ function CameraBody() {
   const shoot = () => {
     const b = burst.current;
     if (!readyRef.current || b.switchPending) return;
+    // Đang kiểm tra bố cục mà bấm chụp: chụp ngay, bỏ lần kiểm tra (business-flow §6.4).
+    check.cancel();
     // Giới hạn số ảnh chờ lưu: tránh nóng máy và đầy bộ nhớ khi bấm liên tục lâu.
     if (b.queue.length >= cameraUi.burstMaxPending) return;
     if (!b.capturing && !b.saving && !b.queue.length && !b.settle) {
@@ -636,7 +707,6 @@ function CameraBody() {
       }}
     >
       <StatusBar style="light" />
-      {!spikeCamera && (
       <CameraLayer
         cameraRef={cameraRef}
         facing={facing}
@@ -649,7 +719,6 @@ function CameraBody() {
         onLenses={onLenses}
         onReady={onCameraReady}
       />
-      )}
 
       {root.height > 0 && (
         <>
@@ -691,12 +760,21 @@ function CameraBody() {
             </View>
           )}
 
-          <CompositionHint
-            frame={frame}
-            technique={technique}
-            front={facing === 'front'}
-            maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
-          />
+          {check.result && checkable ? (
+            <CheckOverlay
+              frame={frame}
+              result={check.result}
+              flip={facing === 'front' && !frontMirror}
+              maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
+            />
+          ) : (
+            <CompositionHint
+              frame={frame}
+              technique={technique}
+              front={facing === 'front'}
+              maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
+            />
+          )}
           {offNotice && technique === 'off' && (
             <HintPill
               frame={frame}
@@ -740,8 +818,38 @@ function CameraBody() {
         style={[styles.zoomRow, { bottom: zoomBottom }, zoomStyle]}
         pointerEvents="box-none"
       >
-        <ZoomControl factor={factor} settle={settle} min={zoomMin} />
+        <ZoomControl factor={factor} settle={settle} min={zoomMin} expanded={zoomOpen} />
       </Animated.View>
+
+      {/* Kiểm tra bố cục: ngay bên phải cụm zoom, chỉ khi đang bật một kỹ thuật (Phase 5a). */}
+      {checkable && (
+        <Animated.View
+          pointerEvents="box-none"
+          style={[
+            styles.checkWrap,
+            {
+              bottom: zoomBottom + (zoomControlHeight - size.iconButton) / 2,
+              left: root.width / 2 + zoomChipsWidth(zoomMin) / 2 + compositionUi.checkGap,
+            },
+            checkStyle,
+          ]}
+        >
+          <PressableScale
+            accessibilityRole="button"
+            accessibilityLabel={check.busy ? t.composition.check.running : t.composition.check.button}
+            accessibilityState={{ busy: check.busy || downloading }}
+            hitSlop={4}
+            onPress={onCheck}
+            style={styles.check}
+          >
+            {check.busy || downloading ? (
+              <ActivityIndicator size="small" color={color.camInk} />
+            ) : (
+              <ScanSearch size={size.icon} strokeWidth={2} color={color.camInk} />
+            )}
+          </PressableScale>
+        </Animated.View>
+      )}
 
       {flying && (
         <Animated.Image
@@ -798,6 +906,7 @@ function CameraBody() {
         onSettings={() => router.push('/settings')}
         onComposition={() => {
           setToolsOpen(false);
+          check.cancel();
           // Đang bật: chạm là tắt nhanh; đang tắt: mở bảng chọn (phiếu Phase 5 lần 7).
           if (technique !== 'off') {
             store().setTechnique('off');
@@ -814,6 +923,7 @@ function CameraBody() {
         value={technique}
         bottomInset={insets.bottom}
         onChange={(k) => {
+          check.cancel();
           store().setTechnique(k);
           setCompositionOpen(false);
         }}
@@ -887,6 +997,15 @@ const styles = StyleSheet.create({
   shutterFlash: { backgroundColor: color.shutterFlash },
   flying: { borderWidth: 2, borderColor: color.camInk, overflow: 'hidden' },
   zoomRow: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
+  checkWrap: { position: 'absolute' },
+  check: {
+    width: size.iconButton,
+    height: size.iconButton,
+    borderRadius: radius.full,
+    backgroundColor: color.camGlass,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   shutterRow: {
     position: 'absolute',
     left: SIDE,

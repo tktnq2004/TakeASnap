@@ -5,7 +5,7 @@ import { prepareImage, type PreparedImage } from '@/engine/image';
 import { downloadPack, isPackReady, readPackFileBase64 } from '@/engine/models/modelStore';
 import { POSE_PACK, packBytes } from '@/engine/models/packs';
 
-import type { FrameOptions, FrameResult, Landmarks } from './types';
+import type { Landmarks } from './types';
 import { useWebSegmenter } from './WebSegmenterBridge';
 
 export type PoseProgress =
@@ -31,14 +31,20 @@ type Ctx = {
     onProgress?: (p: PoseProgress) => void,
   ) => Promise<PoseSegmentation>;
   /**
-   * Khung hình nhỏ lúc ngắm (spike, Phase 5 Bước 3): ảnh JPEG base64 đã thu nhỏ → lưới người +
-   * khung xương. Dùng chung gói pose; tự tải lần đầu như segmentForPose.
+   * Ảnh chụp lặng của nút Kiểm tra bố cục (Phase 5a): JPEG base64 đã cắt theo khung và thu nhỏ →
+   * lưới người + mọi khung xương + mắt từ bộ dò mặt. Không tự tải gói: gọi khi gói đã có.
    */
-  analyzeFrame: (
-    base64: string,
-    opts: FrameOptions,
-    onProgress?: (p: PoseProgress) => void,
-  ) => Promise<FrameResult>;
+  analyzeSnapshot: (base64: string, gridSide: number) => Promise<Snapshot>;
+};
+
+export type Snapshot = {
+  width: number;
+  height: number;
+  /** Alpha 0..255 (xác suất là người), cạnh dài ≤ gridSide. */
+  grid: { width: number; height: number; data: Uint8Array };
+  bodyPoints: number[] | null;
+  bodies: number[][];
+  faceEyes: number[][];
 };
 
 const SegmenterContext = createContext<Ctx | null>(null);
@@ -103,9 +109,21 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
           faceEyes: lm.faceEyes ?? [],
         };
       },
-      analyzeFrame: async (base64, opts, onProgress) => {
-        await ensurePoseLoaded(onProgress);
-        return segRef.current.frame(base64, opts);
+      analyzeSnapshot: async (base64, gridSide) => {
+        if (!isPackReady(POSE_PACK)) throw new Error('Chưa có bộ tách người');
+        await ensurePoseLoaded();
+        const s = segRef.current;
+        const r = await s.run('multiclass', base64, gridSide);
+        if (!r.grid) throw new Error('WebView không trả lưới mask');
+        const lm = await s.landmarks(base64);
+        return {
+          width: r.width,
+          height: r.height,
+          grid: { width: r.grid.width, height: r.grid.height, data: base64ToBytes(r.grid.base64) },
+          bodyPoints: lm.bodyPoints ?? null,
+          bodies: lm.bodies ?? (lm.bodyPoints ? [lm.bodyPoints] : []),
+          faceEyes: lm.faceEyes ?? [],
+        };
       },
     };
   }, []);

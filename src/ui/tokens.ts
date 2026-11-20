@@ -337,6 +337,15 @@ export const compositionUi = {
   /** Bảng Bố cục: dòng, ô hình nhỏ. */
   sheetRow: 52,
   sheetIcon: 40,
+  /** Kiểm tra bố cục (Phase 5a): kết quả hiện chừng này rồi tự ẩn. */
+  checkShowMs: 5000,
+  /** Ảnh chụp lặng thu về cạnh dài này trước khi gửi vào WebView; lưới người cạnh dài này. */
+  checkSide: 512,
+  checkGrid: 256,
+  /** Chấm mắt trên khung ngắm (design.md §6.15: chấm trắng 12, viền tối). */
+  checkEye: 12,
+  /** Nút Kiểm tra bố cục cách mép phải cụm zoom chừng này. */
+  checkGap: 8,
 } as const;
 
 /** Vuốt từ mép trái để quay lại (màn mở kiểu fullScreenModal). */
