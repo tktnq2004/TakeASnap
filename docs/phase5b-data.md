@@ -72,6 +72,31 @@ Lệch nhiều nhất: Claude ghi 1/3, người ghi Đặt ở giữa (13) hoặ
 
 **Chấm cổng trên bộ giữ riêng:** lấy nhãn người duyệt làm đáp án. Lựa chọn đầu của model đúng khi nằm trong các nhãn người chọn (ảnh 2 nhãn: đúng cả hai; ảnh "Khác + X": người không chắc, đúng khi là Khác hoặc X). Báo kèm số chặt (trùng nhãn đầu người chọn). Độ khớp người ↔ Claude (84–88%) là trần thực tế của model.
 
+## Huấn luyện lần 1 (2026-11-22)
+
+Đặc trưng: `node scripts/p5b-features.mts` (trang WebView của app trong Chrome headless, GPU thật, 1.532 ảnh, không lỗi): vector ảnh MobileNetV3 small 1.024 chiều + 19 đặc trưng người (`personGeometry`, composition-critic v0.4.1). Huấn luyện: `node scripts/p5b-train.mts` (TypeScript thuần, Adam, 12 cấu hình, chọn theo độ đúng top-1 + ½ top-2 trên bộ kiểm tra).
+
+| Cấu hình | Kiểm tra (nhãn Claude) top-1 / top-2 |
+|---|---|
+| Hồi quy logistic (tốt nhất) | 65,8% / 82,5% |
+| Một lớp ẩn 64, L2 0,001, không cân lớp (chọn) | 77,6% / 88,2% |
+
+**Bộ giữ riêng (294 ảnh, nhãn người duyệt, chấm một lần): top-1 61,6%, top-2 80,6% → chưa qua cổng** (≥ 70% hoặc ≥ 85%). Chặt (trùng nhãn đầu): 57,5%.
+
+| Nhãn đầu người chọn \ model đoán | 1/3 | Ở giữa | Lấp đầy | Nhóm | Khác |
+|---|---|---|---|---|---|
+| 1/3 | 17 | 5 | 1 | 0 | 30 |
+| Ở giữa | 18 | 11 | 3 | 0 | 22 |
+| Lấp đầy | 4 | 2 | 33 | 1 | 5 |
+| Nhóm | 1 | 1 | 1 | 3 | 18 |
+| Khác | 8 | 2 | 2 | 1 | 105 |
+
+Vì sao thấp hơn bộ kiểm tra:
+- **Model đoán "Khác" quá nhiều** (1/3 → Khác 30, ở giữa → Khác 22, nhóm → Khác 18). Bộ huấn luyện 68% là Khác; bộ kiểm tra cũng 63% Khác nên chọn cấu hình theo nó ưu tiên đoán Khác, còn bộ giữ riêng chỉ 45% Khác.
+- **Ít ảnh** cho 1/3 (122), ở giữa (64), nhóm (32) trong bộ huấn luyện.
+- **Nhãn lệch người ↔ Claude** ở 1/3 và ở giữa (mục trên); model học nhãn Claude, chấm bằng nhãn người.
+- Lấp đầy khung tốt (33/45), Khác tốt (105/118).
+
 ## Cổng (roadmap)
 
 Trên bộ giữ riêng: lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%; model đoán một ảnh ≤ 300 ms trên máy.
