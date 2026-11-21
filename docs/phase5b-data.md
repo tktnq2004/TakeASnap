@@ -52,6 +52,26 @@ Hay đi đôi: `horizon` + `thirds`, `lead` + `center`, `group` + `horizon`. Khi
 - Chia (`node scripts/p5b-split.mts`): giữ riêng 310 (Khác 140, 1/3 66, Lấp đầy 39, Ở giữa 35, Nhóm 17, Chân trời 7, Đường dẫn 6), kiểm tra 230, huấn luyện 992.
 - Duyệt nhãn bộ giữ riêng: `node scripts/p5b-review.mts` rồi mở http://127.0.0.1:5175 (Enter: đồng ý / lưu, phím 1–7: đổi nhãn). Kết quả ở `eval/composition/labels-review.json`.
 
+## Duyệt nhãn bộ giữ riêng (2026-11-21)
+
+Người duyệt 300 / 310 ảnh (10 ảnh bị trang duyệt bỏ sót do bấm Enter hai lần nhanh; đã sửa, duyệt bù sau). Cách người duyệt đánh:
+
+- 2 nhãn: ảnh có cả hai kỹ thuật (không phân chính / phụ).
+- 1 nhãn: gần như chắc chắn.
+- Có "Khác": **không chắc**. Không phải "không kỹ thuật nào hợp" như hướng dẫn gán nhãn.
+
+Độ khớp Claude ↔ người (300 ảnh):
+
+| | |
+|---|---|
+| Nhãn chính trùng nhau | 84% (252) |
+| Nhãn chính của Claude nằm trong nhãn người chọn | 88% (263) |
+| Có ít nhất một nhãn chung | 88% (265) |
+
+Lệch nhiều nhất: Claude ghi 1/3, người ghi Đặt ở giữa (13) hoặc Lấp đầy (6); Claude ghi Khác, người ghi Nhóm (7), 1/3 (6), Ở giữa (4), Đường dẫn (3). Chân trời, đường dẫn, lấp đầy, nhóm khớp hoàn toàn khi Claude gán. Model học từ nhãn của Claude nên có thể nghiêng về 1/3 hơn người.
+
+**Chấm cổng trên bộ giữ riêng:** lấy nhãn người duyệt làm đáp án. Lựa chọn đầu của model đúng khi nằm trong các nhãn người chọn (ảnh 2 nhãn: đúng cả hai; ảnh "Khác + X": người không chắc, đúng khi là Khác hoặc X). Báo kèm số chặt (trùng nhãn đầu người chọn). Độ khớp người ↔ Claude (84–88%) là trần thực tế của model.
+
 ## Cổng (roadmap)
 
 Trên bộ giữ riêng: lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%; model đoán một ảnh ≤ 300 ms trên máy.

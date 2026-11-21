@@ -79,13 +79,21 @@ function toggle(k) {
   else sel = [sel[0], k];
   render();
 }
+// Bấm Enter hai lần nhanh từng lưu một ảnh hai lần rồi nhảy qua ảnh sau (10 ảnh bị bỏ sót lần 1).
+let busy = false;
 async function save() {
   const it = items[i];
-  if (!it || !sel.length) return;
-  await fetch('/api/review', {method:'POST', headers:{'content-type':'application/json'},
-    body: JSON.stringify({id: it.id, labels: sel})});
-  it.review = [...sel];
-  i++; load();
+  if (busy || !it || !sel.length) return;
+  busy = true;
+  try {
+    await fetch('/api/review', {method:'POST', headers:{'content-type':'application/json'},
+      body: JSON.stringify({id: it.id, labels: sel})});
+    it.review = [...sel];
+    // Sang ảnh chưa duyệt kế tiếp (lần duyệt bù chỉ đi qua các ảnh còn thiếu).
+    const next = items.findIndex((x, k) => k > i && !x.review);
+    i = next < 0 ? items.length : next;
+    load();
+  } finally { busy = false; }
 }
 $('save').onclick = save;
 $('back').onclick = () => { if (i > 0) { i--; load(); } };
