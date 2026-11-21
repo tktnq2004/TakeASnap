@@ -9,19 +9,44 @@
  * ảnh để bộ giữ riêng không bị "Khác" lấn át. Bộ giữ riêng không bao giờ dùng để huấn luyện hay
  * chỉnh; người duyệt lại nhãn của chính bộ này (scripts/p5b-review.mts).
  * Chạy lại không đổi kết quả khi nhãn không đổi; đã có split.json thì giữ nguyên bộ giữ riêng.
+ *
+ *   node scripts/p5b-split.mts --r2
+ *
+ * Vòng 2 (bộ giữ riêng lần 1 đã chấm một lần nên không dùng lại để đo): ghi split-r2.json. Bộ giữ
+ * riêng mới chỉ lấy từ ảnh tập train của Open Images (scripts/p5b-collect-train.mts, gần ảnh của
+ * app hơn), mỗi nhãn 45%, "Khác" tối đa 143. Mọi ảnh có nhãn còn lại (kể cả bộ giữ riêng lần 1, có
+ * nhãn người duyệt) vào huấn luyện / kiểm tra, chia theo nhãn người duyệt nếu có.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 
 const ROOT = path.resolve(import.meta.dirname, '..', 'eval', 'composition');
 const LABELS = path.join(ROOT, 'labels-claude.json');
-const OUT = path.join(ROOT, 'split.json');
+const R2 = process.argv.includes('--r2');
+const OUT = path.join(ROOT, R2 ? 'split-r2.json' : 'split.json');
 /** Phần mỗi nhãn đưa vào bộ giữ riêng / kiểm tra. */
-const HOLDOUT = 0.3;
+const HOLDOUT = R2 ? 0.45 : 0.3;
 const VAL = 0.15;
-const HOLDOUT_OTHER = 140;
+const HOLDOUT_OTHER = R2 ? 143 : 140;
 
-const labels = JSON.parse(fs.readFileSync(LABELS, 'utf8')) as Record<string, string[]>;
+const claude = JSON.parse(fs.readFileSync(LABELS, 'utf8')) as Record<string, string[]>;
+const REVIEW = path.join(ROOT, 'labels-review.json');
+const review =
+  R2 && fs.existsSync(REVIEW)
+    ? (JSON.parse(fs.readFileSync(REVIEW, 'utf8')) as Record<string, string[]>)
+    : {};
+/** Vòng 2: nhãn người duyệt nếu có. */
+const labels: Record<string, string[]> = { ...claude, ...review };
+/** Ảnh được chọn vào bộ giữ riêng (vòng 2: chỉ ảnh tập train của Open Images). */
+const subset = new Map(
+  (
+    JSON.parse(fs.readFileSync(path.join(ROOT, 'manifest.json'), 'utf8')) as {
+      id: string;
+      subset?: string;
+    }[]
+  ).map((m) => [m.id, m.subset ?? 'validation']),
+);
+const holdoutPool = (id: string) => !R2 || subset.get(id) === 'train';
 const previous = fs.existsSync(OUT)
   ? (JSON.parse(fs.readFileSync(OUT, 'utf8')) as { holdout: string[] })
   : null;
@@ -49,13 +74,15 @@ for (const [label, ids] of [...byLabel.entries()].sort()) {
     .map((id) => [rnd(), id] as const)
     .sort((a, b) => a[0] - b[0])
     .map((x) => x[1]);
-  const rest = shuffled.filter((id) => !holdout.has(id));
+  let rest = shuffled.filter((id) => !holdout.has(id));
   if (!previous) {
+    const pool = rest.filter(holdoutPool);
     const n = Math.min(
-      Math.round(ids.length * HOLDOUT),
+      Math.round(pool.length * HOLDOUT),
       label === 'other' ? HOLDOUT_OTHER : Infinity,
     );
-    for (const id of rest.splice(0, n)) holdout.add(id);
+    for (const id of pool.slice(0, n)) holdout.add(id);
+    rest = rest.filter((id) => !holdout.has(id));
   }
   val.push(...rest.splice(0, Math.round(ids.length * VAL)));
   train.push(...rest);

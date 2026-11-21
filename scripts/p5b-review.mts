@@ -2,6 +2,7 @@
  * Phase 5b, Bước 1: trang duyệt nhãn bộ giữ riêng (người ↔ Claude), chạy trên máy.
  *
  *   node scripts/p5b-review.mts        rồi mở http://127.0.0.1:5175
+ *   SPLIT=split-r2.json node scripts/p5b-review.mts      bộ giữ riêng vòng 2
  *
  * Mỗi lần một ảnh của bộ giữ riêng (eval/composition/split.json), nhãn Claude chọn sẵn. Enter: lưu
  * nhãn đang chọn và sang ảnh sau; phím 1–7 bật / tắt nhãn (bật trước là nhãn chính, tối đa 2);
@@ -19,7 +20,8 @@ const claude = JSON.parse(fs.readFileSync(path.join(ROOT, 'labels-claude.json'),
   string,
   string[]
 >;
-const { holdout } = JSON.parse(fs.readFileSync(path.join(ROOT, 'split.json'), 'utf8')) as {
+const SPLIT = process.env.SPLIT ?? 'split.json';
+const { holdout } = JSON.parse(fs.readFileSync(path.join(ROOT, SPLIT), 'utf8')) as {
   holdout: string[];
 };
 const review: Record<string, string[]> = fs.existsSync(REVIEW)

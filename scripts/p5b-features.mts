@@ -3,10 +3,12 @@
  * khung xương, mắt, vector ảnh MobileNetV3 small) trên mọi ảnh có nhãn, trong Chrome headless.
  *
  *   node scripts/p5b-features.mts [số tiến trình, mặc định 3]
+ *   node scripts/p5b-features.mts 3 --large      chỉ vector ảnh MobileNetV3 large
  *
  * Ghi eval/composition/features.json: { id: Raw không có lưới / ảnh xám (chỉ người, khung xương,
  * mắt, vector ảnh) }. Ảnh đã có thì bỏ qua (chạy tiếp được khi bị ngắt). Dùng GPU thật của máy cho
- * nhanh; tách người trên điện thoại cũng chạy GPU.
+ * nhanh; tách người trên điện thoại cũng chạy GPU. `--large`: chỉ vector ảnh bằng MobileNetV3 large
+ * (không tách người), ghi eval/composition/embeddings-large.json ({ id: number[] }).
  *
  * Node không bỏ kiểu TypeScript trong node_modules nên nạp analyzer từ bản clone composition-critic
  * cạnh app (hoặc COMPOSITION_CRITIC_DIR), như scripts/build-sample-poses.mts.
@@ -17,7 +19,8 @@ import { pathToFileURL } from 'node:url';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const DATA = path.join(ROOT, 'eval', 'composition');
-const OUT = path.join(DATA, 'features.json');
+const LARGE = process.argv.includes('--large');
+const OUT = path.join(DATA, LARGE ? 'embeddings-large.json' : 'features.json');
 const WORKERS = Number(process.argv[2] ?? 3);
 const CRITIC_DIR =
   process.env.COMPOSITION_CRITIC_DIR ?? path.resolve(ROOT, '../composition-critic');
@@ -29,7 +32,7 @@ const labels = JSON.parse(fs.readFileSync(path.join(DATA, 'labels-claude.json'),
   string,
   string[]
 >;
-type Stored = Record<string, unknown>;
+type Stored = Record<string, unknown> | number[];
 const done: Record<string, Stored> = fs.existsSync(OUT)
   ? (JSON.parse(fs.readFileSync(OUT, 'utf8')) as Record<string, Stored>)
   : {};
@@ -49,10 +52,14 @@ const worker = async () => {
       const id = todo.pop();
       if (!id) return;
       try {
-        const { raw } = await a.analyzeFile(path.join(DATA, 'images', `${id}.jpg`));
-        // Bỏ lưới người và ảnh xám (lớn, không dùng để huấn luyện).
-        const { grid: _g, gray: _y, sky: _s, ...keep } = raw;
-        done[id] = keep;
+        const file = path.join(DATA, 'images', `${id}.jpg`);
+        if (LARGE) done[id] = await a.embedFile(file, true);
+        else {
+          const { raw } = await a.analyzeFile(file);
+          // Bỏ lưới người và ảnh xám (lớn, không dùng để huấn luyện).
+          const { grid: _g, gray: _y, sky: _s, ...keep } = raw;
+          done[id] = keep;
+        }
       } catch (e) {
         failed++;
         console.warn(id, (e as Error).message);
