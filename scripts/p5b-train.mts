@@ -24,6 +24,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 
+import {
+  fit as fitModel,
+  oneHot,
+  stats,
+  type FitConfig,
+  type Norm,
+  type TrainSet,
+} from './p5b-fit.mts';
+
 const ROOT = path.resolve(import.meta.dirname, '..');
 const DATA = path.join(ROOT, 'eval', 'composition');
 const CRITIC_DIR =
@@ -62,15 +71,16 @@ const target = (labels: string[] | undefined) => {
   return l === undefined ? -1 : CLASSES.indexOf(l);
 };
 
-type Set = { ids: string[]; X: number[][]; y: number[] };
+type Set = TrainSet & { y: number[] };
 const build = (ids: string[], labelsOf: (id: string) => string[] | undefined): Set => {
-  const out: Set = { ids: [], X: [], y: [] };
+  const out: Set = { ids: [], X: [], T: [], y: [] };
   for (const id of ids) {
     const x = input(id);
     const y = target(labelsOf(id));
     if (!x || y < 0) continue;
     out.ids.push(id);
     out.X.push(x);
+    out.T.push(oneHot(y, K));
     out.y.push(y);
   }
   return out;
@@ -80,112 +90,8 @@ const val = build(split.val, labelOf);
 const D = train.X[0]!.length;
 console.log(`huấn luyện ${train.X.length}, kiểm tra ${val.X.length}, ${D} chiều`);
 
-// Chuẩn hóa theo bộ huấn luyện.
-const stats = (X: number[][]) => {
-  const mean = new Array<number>(D).fill(0);
-  const std = new Array<number>(D).fill(0);
-  for (const x of X) for (let i = 0; i < D; i++) mean[i]! += x[i]! / X.length;
-  for (const x of X) for (let i = 0; i < D; i++) std[i]! += (x[i]! - mean[i]!) ** 2 / X.length;
-  return { mean, std: std.map((v) => Math.sqrt(v) || 1) };
-};
-
-// Xáo có seed.
-let seed = 0x5b;
-const rnd = () => {
-  seed = (seed + 0x6d2b79f5) | 0;
-  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-};
-const gauss = () => Math.sqrt(-2 * Math.log(rnd() + 1e-12)) * Math.cos(2 * Math.PI * rnd());
-
-type Weight = 'none' | 'sqrt' | 'full';
-type Config = { hidden: number; l2: number; weight: Weight; epochs: number; lr: number };
-
-/** Softmax (+ một lớp ẩn ReLU) bằng Adam, cả bộ một lượt, phạt L2, trọng số lớp tùy chọn. */
-function fit(set: Set, cfg: Config, norm: { mean: number[]; std: number[] }): TechniqueModel {
-  seed = 0x5b;
-  const X = set.X.map((x) => x.map((v, i) => (v - norm.mean[i]!) / norm.std[i]!));
-  const N = X.length;
-  const counts = new Array<number>(K).fill(0);
-  for (const y of set.y) counts[y]!++;
-  const inv = (y: number) => N / (K * Math.max(1, counts[y]!));
-  const w = set.y.map((y) =>
-    cfg.weight === 'full' ? inv(y) : cfg.weight === 'sqrt' ? Math.sqrt(inv(y)) : 1,
-  );
-  const H = cfg.hidden;
-  const In = H > 0 ? H : D;
-  const W1 =
-    H > 0
-      ? Array.from({ length: H }, () => Array.from({ length: D }, () => gauss() * Math.sqrt(2 / D)))
-      : [];
-  const b1 = new Array<number>(H).fill(0);
-  const W = Array.from({ length: K }, () => Array.from({ length: In }, () => gauss() * 0.01));
-  const b = new Array<number>(K).fill(0);
-  const params = [...W1, b1, ...W, b];
-  const m = params.map((p) => new Array<number>(p.length).fill(0));
-  const v = params.map((p) => new Array<number>(p.length).fill(0));
-  for (let ep = 1; ep <= cfg.epochs; ep++) {
-    const gW1 = W1.map((r) => new Array<number>(r.length).fill(0));
-    const gb1 = new Array<number>(H).fill(0);
-    const gW = W.map((r) => new Array<number>(r.length).fill(0));
-    const gb = new Array<number>(K).fill(0);
-    const wsum = w.reduce((a, c) => a + c, 0);
-    for (let n = 0; n < N; n++) {
-      const x = X[n]!;
-      const h = H > 0 ? W1.map((r, j) => Math.max(0, dotp(r, x) + b1[j]!)) : x;
-      const z = W.map((r, k) => dotp(r, h) + b[k]!);
-      const mx = Math.max(...z);
-      const e = z.map((c) => Math.exp(c - mx));
-      const s = e.reduce((a, c) => a + c, 0);
-      const dz = e.map((c, k) => ((c / s - (k === set.y[n] ? 1 : 0)) * w[n]!) / wsum);
-      for (let k = 0; k < K; k++) {
-        gb[k]! += dz[k]!;
-        const row = gW[k]!;
-        for (let i = 0; i < In; i++) row[i]! += dz[k]! * h[i]!;
-      }
-      if (H > 0) {
-        for (let j = 0; j < H; j++) {
-          if (h[j]! <= 0) continue;
-          let dh = 0;
-          for (let k = 0; k < K; k++) dh += dz[k]! * W[k]![j]!;
-          gb1[j]! += dh;
-          const row = gW1[j]!;
-          for (let i = 0; i < D; i++) row[i]! += dh * x[i]!;
-        }
-      }
-    }
-    for (let k = 0; k < K; k++) for (let i = 0; i < In; i++) gW[k]![i]! += cfg.l2 * W[k]![i]!;
-    for (let j = 0; j < H; j++) for (let i = 0; i < D; i++) gW1[j]![i]! += cfg.l2 * W1[j]![i]!;
-    const grads = [...gW1, gb1, ...gW, gb];
-    for (let p = 0; p < params.length; p++) {
-      const P = params[p]!;
-      const G = grads[p]!;
-      for (let i = 0; i < P.length; i++) {
-        m[p]![i] = 0.9 * m[p]![i]! + 0.1 * G[i]!;
-        v[p]![i] = 0.999 * v[p]![i]! + 0.001 * G[i]! ** 2;
-        const mh = m[p]![i]! / (1 - 0.9 ** ep);
-        const vh = v[p]![i]! / (1 - 0.999 ** ep);
-        P[i]! -= (cfg.lr * mh) / (Math.sqrt(vh) + 1e-8);
-      }
-    }
-  }
-  return {
-    version: `p5b-${new Date().toISOString().slice(0, 10)}`,
-    classes: CLASSES as TechniqueModel['classes'],
-    mean: norm.mean,
-    std: norm.std,
-    ...(H > 0 ? { hidden: { W: W1, b: b1 } } : {}),
-    W,
-    b,
-    threshold: 0,
-  };
-}
-function dotp(a: number[], x: number[]) {
-  let s = 0;
-  for (let i = 0; i < a.length; i++) s += a[i]! * x[i]!;
-  return s;
-}
+const fit = (set: Set, cfg: FitConfig, n: Norm) =>
+  fitModel(set, cfg, n, CLASSES) as unknown as TechniqueModel;
 
 /** Độ đúng: lựa chọn đầu nằm trong nhãn của ảnh (`labelsOf`), và hai lựa chọn đầu. */
 function score(model: TechniqueModel, set: Set, labelsOf: (id: string) => string[]) {
@@ -213,7 +119,7 @@ function score(model: TechniqueModel, set: Set, labelsOf: (id: string) => string
 }
 
 const norm = stats(train.X);
-const configs: Config[] = [];
+const configs: FitConfig[] = [];
 for (const hidden of [32, 64, 128])
   for (const l2 of [1e-3, 1e-2, 5e-2])
     for (const weight of ['none', 'sqrt', 'full'] as const)
@@ -252,6 +158,7 @@ const pick = curve.find((c) => c.acc >= 0.85 && c.cover >= 0.5) ?? curve[0]!;
 const all: Set = {
   ids: [...train.ids, ...val.ids],
   X: [...train.X, ...val.X],
+  T: [...train.T, ...val.T],
   y: [...train.y, ...val.y],
 };
 const finalModel = { ...fit(all, best.cfg, stats(all.X)), threshold: pick.t };

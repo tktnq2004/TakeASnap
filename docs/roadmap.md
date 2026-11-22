@@ -569,14 +569,14 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 
 **Vòng 3 — mở lại (2026-11-22, người dùng chọn):**
 - **Bài toán đổi:** model **gợi ý 2 kỹ thuật** khi bấm Kiểm tra bố cục, người dùng chạm để chọn; không tự đổi kỹ thuật thay người dùng.
-- **Cổng mới:** trên bộ đo, ≥ 85% ảnh có ít nhất một trong hai gợi ý nằm trong nhãn người gán, **và** vượt rõ mốc so sánh "luôn gợi ý 2 lớp phổ biến nhất". Đo mốc này và mốc luật hình học trước khi huấn luyện. Thời gian đoán ≤ 300 ms trên máy như cũ.
+- **Cổng mới:** trên bộ đo, ≥ 75% ảnh có ít nhất một trong hai gợi ý nằm trong nhãn người gán, **và** hơn mốc luật hình học ít nhất 5 điểm (ban đầu đặt 85%; hạ sau khi đo mức hai người gán mù khớp nhau chỉ 82,4%, chốt trước khi chấm model, chi tiết ở [phase5b-data.md](phase5b-data.md)). Thời gian đoán ≤ 300 ms trên máy như cũ.
 - **Dữ liệu:** thêm ảnh người đời thường từ Wikimedia Commons (giấy phép tự do, chụp từ 2000, ghi tác giả) cùng 2.232 ảnh Open Images đã có nhãn; bộ đo cổng lấy từ ảnh Wikimedia (gần ảnh app hơn Open Images).
 - **Nhãn:** gán thử chung 40 ảnh rồi viết lại định nghĩa kèm ảnh mẫu (tách "không chắc" khỏi "Khác"); người dùng **gán mù** bộ đo cổng (trang không hiện nhãn Claude, tránh bị kéo theo); Claude gán bộ huấn luyện theo định nghĩa mới.
 - Đổi từng thứ một, luôn báo kèm các mốc so sánh.
-- [ ] Gom ảnh Wikimedia
-- [ ] Gán thử chung 40 ảnh, viết lại định nghĩa nhãn
-- [ ] Người dùng gán mù bộ đo cổng (~300 ảnh)
-- [ ] Mốc so sánh, huấn luyện gợi ý 2 kỹ thuật, đo cổng
+- [x] Gom ảnh Wikimedia (796 ảnh, 538 có người)
+- [x] Gán thử chung 40 ảnh, viết lại định nghĩa nhãn (v2)
+- [x] Người dùng gán mù bộ đo cổng (300 ảnh, 213 ảnh tính cổng); mốc: hằng số 44%, luật 67%, model vòng 2 70%, người thứ hai 82%
+- [x] Mốc so sánh, huấn luyện gợi ý 2 kỹ thuật, đo cổng: **73,2%, không đạt** (cổng 75%; luật 67,1%, người thứ hai 82,4%)
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 

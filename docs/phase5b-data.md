@@ -150,3 +150,36 @@ Nhận xét:
 ## Cổng (roadmap)
 
 Trên bộ giữ riêng: lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%; model đoán một ảnh ≤ 300 ms trên máy.
+
+## Vòng 3 — bộ đo cổng, mốc so sánh và cổng mới (2026-11-22)
+
+Người dùng gán mù 300 ảnh Wikimedia (`r3-holdout.json`, nhãn ở `labels-r3-user.json`): bỏ 65 ảnh (tranh, tượng, ảnh khỏa thân, loạt ảnh gần trùng, ảnh lưu trữ cũ, đám đông biểu tình), 22 ảnh chỉ đánh "Không chắc". Còn **213 ảnh** tính cổng; 174 ảnh chỉ 1 nhãn. Nhãn đầu: 1/3 44, Khác 42, Nhóm 41, Lấp đầy 38, Ở giữa 29, Chân trời 15, Đường dẫn 4.
+
+Mốc so sánh, đo trước khi huấn luyện vòng 3 (tỉ lệ ảnh có ít nhất một trong hai gợi ý nằm trong nhãn người dùng):
+
+| Cách gợi ý 2 kỹ thuật | Có gợi ý hợp | Gợi ý đầu hợp |
+|---|---|---|
+| Luôn gợi ý Khác + 1/3 (hai nhãn phổ biến nhất của dữ liệu huấn luyện) | 44,1% | 20,2% |
+| Luật hình học (nhóm / lấp đầy / ở giữa / 1/3) + nhãn phổ biến | 67,1% | 46,9% |
+| Model vòng 2 | 69,5% | 46,9% |
+| **Claude gán mù cùng bộ, 2 gợi ý xếp hạng (người thứ hai)** | **82,4%** (210 ảnh) | 64,8% |
+
+**Cổng đổi (người dùng chốt trước khi chấm model vòng 3):** cổng cũ 85% cao hơn mức hai người gán mù khớp nhau (82,4%), model học từ nhãn người nên gần như không thể qua. Cổng mới: **≥ 75% ảnh có gợi ý hợp, và hơn luật hình học ít nhất 5 điểm**. Gợi ý sai chỉ tốn một lần chạm chọn kỹ thuật khác.
+
+Dữ liệu huấn luyện vòng 3: Wikimedia có nhiều loạt ảnh cùng tác giả gần giống nhau, nên mọi ảnh cùng tác giả với bộ đo bị loại khỏi huấn luyện / kiểm tra (91/198 ảnh). Còn 107 ảnh, Claude gán theo định nghĩa v2 được 96 ảnh (`labels-wm-claude.json`), cộng 28 ảnh gán thử có nhãn người dùng: 124 ảnh làm bộ kiểm tra chọn cấu hình. Huấn luyện trên 2.232 ảnh Open Images đã có nhãn. Script: `node scripts/p5b-train-r3.mts [--final]`.
+
+## Vòng 3 — kết quả cổng (2026-11-22)
+
+Chọn cấu hình trên 124 ảnh kiểm tra Wikimedia (có gợi ý hợp): 5 lớp 91,1%, 7 lớp (thêm chân trời, đường dẫn) 94,4%, 7 lớp học cả hai nhãn (0,6 / 0,4) 95,2%; chọn biến thể cuối (lớp ẩn 32, L2 0,05, cân lớp đầy đủ). Bộ kiểm tra dễ hơn bộ đo nhiều (model vòng 2: 89,5% ở đây, 69,5% trên bộ đo) vì 96/124 ảnh mang nhãn Claude, cùng kiểu với nhãn Open Images model học. Chấm bộ đo **một lần**:
+
+| Cách gợi ý | Có gợi ý hợp | Gợi ý đầu hợp |
+|---|---|---|
+| Luôn gợi ý Khác + 1/3 | 44,1% | 20,2% |
+| Luật hình học + nhãn phổ biến | 67,1% | 46,9% |
+| Model vòng 2 | 69,5% | 46,9% |
+| **Model vòng 3** | **73,2%** | 54,5% |
+| Claude gán mù (người thứ hai) | 82,4% | 64,8% |
+
+**Không đạt cổng** (≥ 75%; vế "hơn luật ≥ 5 điểm" thì đạt: +6,1). Thiếu khoảng 4 ảnh trên 213. Theo nhãn đầu người dùng: Chân trời 93% (15 ảnh), Nhóm 90% (41), 1/3 77% (44), Lấp đầy 76% (38), Khác 62% (42), Đường dẫn 50% (4), Ở giữa 48% (29). Ở giữa và Khác là hai chỗ yếu, cũng là hai nhãn hai người lệch nhau nhiều nhất.
+
+Bộ đo đã chấm nên không dùng lại để chỉnh rồi chấm tiếp; vòng sau (nếu có) cần bộ đo mới gán mù.
