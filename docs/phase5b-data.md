@@ -183,3 +183,6 @@ Chọn cấu hình trên 124 ảnh kiểm tra Wikimedia (có gợi ý hợp): 5 
 **Không đạt cổng** (≥ 75%; vế "hơn luật ≥ 5 điểm" thì đạt: +6,1). Thiếu khoảng 4 ảnh trên 213. Theo nhãn đầu người dùng: Chân trời 93% (15 ảnh), Nhóm 90% (41), 1/3 77% (44), Lấp đầy 76% (38), Khác 62% (42), Đường dẫn 50% (4), Ở giữa 48% (29). Ở giữa và Khác là hai chỗ yếu, cũng là hai nhãn hai người lệch nhau nhiều nhất.
 
 Bộ đo đã chấm nên không dùng lại để chỉnh rồi chấm tiếp; vòng sau (nếu có) cần bộ đo mới gán mù.
+
+**Quyết định (2026-11-23):** người dùng vẫn đưa vào app **dạng thử nghiệm**, ghi rõ trượt cổng 1,8 điểm. Trong app chỉ gợi ý kỹ thuật (bỏ "Khác"): trên 171 ảnh người dùng thấy có kỹ thuật hợp, ít nhất một trong hai gợi ý trúng **84,8
+**Quyết định (2026-11-23):** người dùng vẫn đưa vào app **dạng thử nghiệm**, ghi rõ trượt cổng 1,8 điểm. Trong app chỉ gợi ý kỹ thuật (bỏ "Khác"): trên 171 ảnh người dùng thấy có kỹ thuật hợp, ít nhất một trong hai gợi ý trúng **84,8%**; tính cả 42 ảnh người dùng gán "Khác" (gợi ý kỹ thuật nào cũng tính trượt) là 68,1%. Model đoán "Khác" đứng đầu ở 43/213 ảnh. Luồng ở business-flow §6.10.

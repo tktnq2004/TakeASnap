@@ -578,6 +578,14 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 - [x] Người dùng gán mù bộ đo cổng (300 ảnh, 213 ảnh tính cổng); mốc: hằng số 44%, luật 67%, model vòng 2 70%, người thứ hai 82%
 - [x] Mốc so sánh, huấn luyện gợi ý 2 kỹ thuật, đo cổng: **73,2%, không đạt** (cổng 75%; luật 67,1%, người thứ hai 82,4%)
 
+**Triển khai thử nghiệm (người dùng quyết định 2026-11-23, dù trượt cổng 1,8 điểm).** Luồng ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b), giao diện ở [design §6.15](design.md). Model là bản 7 lớp học cả hai nhãn (`technique-model-r3-7-soft`); chỉ gợi ý kỹ thuật (bỏ "Khác"): 84,8% trên 171 ảnh người dùng thấy có kỹ thuật hợp. Hướng dẫn liên tục có giới hạn mở lại một phần quyết định "không theo dõi liên tục" của Phase 5 Bước 3: chạy tới khi đạt, người dùng dừng hoặc hết giới hạn (mặc định 15 giây).
+- [ ] Repo công khai riêng chứa phần đầu model (GitHub Releases, tag ghim), file JSON rút gọn
+- [ ] composition-critic: 7 lớp kỹ thuật, tag mới; app trỏ tag đó
+- [ ] Gói "Bộ gợi ý kỹ thuật" (vector ảnh MobileNetV3 small từ CDN gốc của Google + phần đầu model), tải lần đầu dùng, xóa được trong Cài đặt
+- [ ] Kiểm tra bố cục: gợi ý 2 kỹ thuật, nút hiện cả khi Tắt / Lưới
+- [ ] Hướng dẫn liên tục có giới hạn (theo giây / số ảnh) + nhóm Cài đặt
+- [ ] Đo thời gian đoán và độ nóng trên iPhone, Android; phiếu `phase5b-test.md`
+
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 
 - [ ] Hiệu năng: mở app tới khi thấy preview dưới 2 s; bộ nhớ ổn định khi mở ảnh 12 MP

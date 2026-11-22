@@ -283,7 +283,7 @@ flowchart TD
 - **Đạt**: đường kẻ chuyển màu nhấn, rung nhẹ một lần, dòng gợi ý biến mất.
 - **Không thấy người**: chỉ còn gợi ý từ cảm biến; không báo lỗi.
 - Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread.
-- **Không theo dõi người liên tục** (cổng Phase 5 Bước 3 không đạt: Expo Go chỉ lấy được ảnh bằng cách chụp thật; cỡ thật 1,2 lần / giây và nóng máy, cỡ nhỏ thì đổi sang cỡ thật lúc bấm chụp mất ~1 s và nháy).
+- **Không theo dõi người liên tục không giới hạn** (cổng Phase 5 Bước 3 không đạt: Expo Go chỉ lấy được ảnh bằng cách chụp thật; cỡ thật 1,2 lần / giây và nóng máy, cỡ nhỏ thì đổi sang cỡ thật lúc bấm chụp mất ~1 s và nháy). Từ Phase 5b (2026-11-23, người dùng chốt) có **hướng dẫn liên tục có giới hạn** (§6.10): chạy tới khi đạt, người dùng dừng, hoặc hết giới hạn trong Cài đặt.
 - **Kiểm tra bố cục (Phase 5a):** người dùng chạm nút thì app chụp lặng một ảnh, khoảng 1 s sau hiện nhận xét trên khung ngắm vài giây (khung người, chấm mắt, đường tìm được, một dòng gợi ý theo thứ tự ưu tiên ở trên). Chỉnh xong thì chạm lại. Bấm chụp lúc đang kiểm tra thì chụp ngay. Phase 5 chỉ có nhận xét sau khi chụp (§6.5).
 
 ### 6.5 Nhận xét sau khi chụp
@@ -314,7 +314,7 @@ flowchart TD
 - Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
 - App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
 - Phase 5: người dùng tự chọn kỹ thuật; đường chân trời và đường dẫn chỉ có lớp kẻ, app không dò cảnh. Dò đường thẳng trong ảnh là Phase 5a (§6.9), tự đoán kỹ thuật bằng model là Phase 5b (§6.10); mỗi phần có cổng quyết định riêng, không đạt thì giữ bản Phase 5.
-- Lúc ngắm có gợi ý từ cảm biến; phân tích người lúc ngắm chỉ khi chạm **Kiểm tra bố cục** (Phase 5a, §6.4), không theo dõi liên tục (cổng Phase 5 Bước 3 không đạt).
+- Lúc ngắm có gợi ý từ cảm biến; phân tích người lúc ngắm khi chạm **Kiểm tra bố cục** (Phase 5a, §6.4) và trong **hướng dẫn liên tục có giới hạn** (Phase 5b, §6.10); không bao giờ chạy nền không giới hạn.
 
 ### 6.9 Dò đường chân trời và đường dẫn (Phase 5a)
 
@@ -338,7 +338,16 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 - Model chạy trên máy trong WebView đang có (MediaPipe ImageClassifier), tải một lần như gói pose (BR-13), ảnh không rời máy (BR-03).
 - Không đạt cổng quyết định ở roadmap Phase 5b thì không có dòng Tự chọn; app giữ chọn tay như Phase 5.
 - **Kết quả (2026-11-22): không đạt cổng** (hai vòng, lựa chọn đầu đúng ~60% trên ảnh người duyệt), nên app không có dòng Tự chọn và không có dòng gợi ý kỹ thuật sau khi chụp. Mục này giữ lại để ghi ý định ban đầu.
-- **Vòng 3 (đang làm):** thay "Tự chọn" bằng **gợi ý 2 kỹ thuật** sau khi bấm Kiểm tra bố cục; người dùng chạm một gợi ý để đổi kỹ thuật, không chạm thì giữ nguyên. Chi tiết giao diện chốt khi qua cổng (roadmap Phase 5b).
+- **Vòng 3:** thay "Tự chọn" bằng **gợi ý 2 kỹ thuật**. Đo trên 213 ảnh người dùng gán mù: 73,2% ảnh có gợi ý hợp (tính cả "Khác"), **trượt cổng 75%** 1,8 điểm; hơn luật hình học 6 điểm. Chỉ gợi ý kỹ thuật (bỏ "Khác", cách app dùng): 84,8% trên 171 ảnh người dùng thấy có kỹ thuật hợp. **Người dùng quyết định vẫn đưa vào dạng thử nghiệm (2026-11-23)**, ghi rõ là trượt cổng.
+
+**Luồng thử nghiệm (2026-11-23, thay các gạch đầu dòng "Tự chọn" ở trên):**
+
+1. **Gợi ý.** Chạm **Kiểm tra bố cục** (nút hiện cả khi bố cục đang Tắt hoặc chỉ lưới): app chụp lặng một ảnh, model nhìn cảnh (người + nền) và gợi ý **2 kỹ thuật** trong 1/3, Ở giữa, Lấp đầy khung, Đường chân trời, Đường dẫn, Nhóm người (không gợi ý Góc thấp, Selfie: theo cảm biến). Model nghiêng về "Khác" thì vẫn gợi ý 2 kỹ thuật nhưng ghi là cảnh khó. Đang bật một kỹ thuật thì kèm nhận xét kỹ thuật đó như Phase 5a. Không chạm gợi ý thì giữ nguyên, gợi ý tự ẩn.
+2. **Đồng ý gợi ý** (chạm một gợi ý) hoặc **tự chọn một kỹ thuật** trong bảng Bố cục (kỹ thuật cần phân tích người: 1/3, Ở giữa, Lấp đầy, Chân trời, Đường dẫn, Nhóm) → **hướng dẫn liên tục**: app tự chụp lặng và phân tích khoảng 1 lần / giây, mỗi lượt cập nhật khung người, chấm mắt, đường tìm được và dòng gợi ý.
+3. **Dừng** khi: khung hình **đạt** kỹ thuật (rung, "Đạt …", lớp kẻ xanh), người dùng chạm lại nút, tắt hoặc đổi bố cục, đổi camera, rời Camera; hoặc **hết giới hạn** (Cài đặt: theo số giây hoặc theo số ảnh chụp lặng, mặc định 15 giây) mà vẫn chưa đạt, nghĩa là cảnh không áp được kỹ thuật đó (ví dụ trong phòng không có chân trời): app tự hủy để máy không nóng, không tốn pin, báo một dòng "Chưa áp được <kỹ thuật> cho cảnh này".
+4. Bấm chụp lúc đang hướng dẫn thì chụp ngay; hướng dẫn chạy tiếp sau khi chụp, giới hạn vẫn tính.
+5. Chưa có bộ tách người: chọn kỹ thuật chỉ bật lớp kẻ như Phase 5; chạm Kiểm tra bố cục thì hỏi tải. Chưa có bộ gợi ý kỹ thuật: lần đầu chạm Kiểm tra bố cục thì hỏi tải (ghi số MB), có nút bỏ qua để chỉ kiểm tra kỹ thuật đang chọn.
+6. Model và ảnh ở trên máy (BR-03); bộ gợi ý tải một lần từ nguồn ghim phiên bản (BR-13), xóa được trong Cài đặt.
 
 ---
 

@@ -500,7 +500,8 @@ Tiêu đề "Cài đặt" + `CloseButton`. Ba `SettingsGroup`, mỗi nhóm có t
 | Nhóm | Hàng |
 |---|---|
 | CHỤP | Ảnh camera trước: `Segmented` [Lưu như thật \| Lưu soi gương] · Rung phản hồi: `Switch` |
-| DUNG LƯỢNG | Bộ tách người, dung lượng `hint` + nút `dangerText` "Xóa bộ tách" |
+| HƯỚNG DẪN BỐ CỤC | Tự dừng theo: `Segmented` [Thời gian \| Số ảnh] · Giới hạn: `Segmented` [10 \| 15 \| 30] (giây hoặc ảnh, mặc định 15 giây) |
+| DUNG LƯỢNG | Bộ tách người, dung lượng `hint` + nút `dangerText` "Xóa bộ tách" · Bộ gợi ý kỹ thuật (Phase 5b), như trên với "Xóa bộ gợi ý" |
 | GIỚI THIỆU | Phiên bản · Nguồn ảnh mẫu › · Giấy phép model › |
 
 Nhóm "Nhà phát triển" (Màn thử nghiệm) chỉ hiện trong bản dev (`__DEV__`).
@@ -556,7 +557,6 @@ Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố c
 
 | Dòng | Mô tả | Phase |
 |---|---|---|
-| Tự chọn | App nhìn khung cảnh, chọn giúp | 5b, chỉ khi qua cổng |
 | Tắt | Không có đường kẻ | 5 |
 | Lưới 3×3 | Chỉ đường kẻ, không gợi ý | 5 |
 | Lưới 4×4 | Lưới dày hơn, để căn thẳng | 5 |
@@ -578,7 +578,11 @@ Chốt 2026-11-18 trên canvas thiết kế, trang "Phase 5 — Trợ lý bố c
 
 **Gợi ý (A — đích + một dòng).** Dòng gợi ý là viên 38 bo 19 ở đáy khung ngắm, nhưng không bao giờ thấp hơn mép trên cụm zoom (khung 9:16 tràn ra sau hàng nút chụp, đặt ở đáy khung thì bị nút che), nền `camBg` 72%, chữ trắng `label` cỡ 14, mũi tên `camAccent` chỉ hướng dời máy khi có. Chấm trắng 12 (viền tối) là mắt người khi đã có phân tích người, nét đứt trắng nối tới chấm đích. Mỗi lúc một dòng, giữ ổn định 0,5 s mới hiện (business-flow §6.4). **Đạt:** lưới đổi sang `camAccent`, chấm đích thành vòng đặc `camAccent` có dấu tích, viên gợi ý nền `camAccent` chữ `accentInk` "Đạt <kỹ thuật>", rung `haptic.levelReached` một lần; 1,5 s sau viên tự ẩn.
 
-**Tự chọn (Phase 5b).** Viên gợi ý ghi "Tự chọn: <kỹ thuật>" kèm nút nhỏ "Đổi" (nền `camAccent`), chạm Đổi mở bảng Bố cục.
+**Tự chọn (Phase 5b, bỏ).** Thay bằng gợi ý 2 kỹ thuật và hướng dẫn liên tục dưới đây.
+
+**Gợi ý 2 kỹ thuật (Phase 5b thử nghiệm, 2026-11-23).** Nút Kiểm tra bố cục hiện cả khi bố cục Tắt hoặc Lưới. Kiểm tra xong, chỗ dòng gợi ý hiện một hàng: chữ `caption` trắng "Gợi ý cho cảnh này" (model nghiêng về Khác: "Cảnh khó, có thể thử") rồi hai chip cao 36 bo 18 nền `camGlass`, hình nhỏ của kỹ thuật màu trắng + tên (`label` 14); kỹ thuật đang bật mà nằm trong gợi ý thì chip đó nền `camAccent` chữ `accentInk`. Đang bật kỹ thuật thì viên nhận xét Phase 5a nằm ngay trên hàng chip. Hàng chip hiện `compositionUi.suggestShowMs` (8 s) rồi mờ đi (`motion.out`). Chạm chip: rung `selection`, chọn kỹ thuật (nút Bố cục đổi theo), bắt đầu hướng dẫn liên tục. Bộ gợi ý chưa tải: hộp thoại "Tải bộ gợi ý kỹ thuật" (ghi số MB) với "Chỉ kiểm tra bố cục" và "Tải bộ gợi ý".
+
+**Hướng dẫn liên tục (Phase 5b thử nghiệm).** Bắt đầu khi chạm chip gợi ý hoặc chọn 1/3, Ở giữa, Lấp đầy khung, Đường chân trời, Đường dẫn, Nhóm người trong bảng Bố cục (đã có bộ tách người). Nút Kiểm tra bố cục thành trạng thái đang chạy: nền `camAccent`, icon `scan-search` `accentInk`, quanh nút một vòng tiến trình 2 px `camInk` giảm dần theo giới hạn còn lại. Chạm nút: dừng (rung `snap`, viên "Đã dừng hướng dẫn" 1,5 s). Mỗi lượt (~1 s) cập nhật khung người, chấm mắt, đường tìm được và viên gợi ý như Kiểm tra bố cục, không nháy (giữ kết quả cũ tới khi có kết quả mới). Đạt: như Đạt ở trên rồi dừng. Hết giới hạn chưa đạt: viên "Chưa áp được <kỹ thuật> cho cảnh này" 3 s, nút về bình thường, lớp kẻ giữ nguyên. Bấm chụp: chụp ngay, hướng dẫn tiếp sau đó.
 
 **Nhận xét sau khi chụp (A — thẻ dưới ảnh)** ở Xem ảnh vừa chụp (§6.12). Ảnh thu còn 300×400 để chừa chỗ; lớp bố cục của kỹ thuật đã dùng vẽ lên ảnh. Đường chân trời / Đường dẫn: vẽ thêm đường app tìm được trên ảnh, màu trắng như ở Kiểm tra bố cục (Phase 5a), bật / tắt cùng lớp bố cục. Dưới đầu màn, dòng `hint` thêm tên kỹ thuật ("Ảnh 3 trên 5 · Quy tắc 1/3"). Thẻ `surface` bo 24 dưới ảnh (cao tối thiểu 96 để ảnh không nhảy cỡ khi vuốt): 1–3 dòng, chưa đạt đứng trước (dòng chưa đạt nói luôn việc cần làm: "Người lệch khỏi trục giữa, dời máy để người vào giữa"), các dòng hiện dần lần lượt (`motion.in`, cách nhau `compositionUi.noteStagger` 60 ms), vừa phân tích xong mà mọi dòng đều đạt thì rung nhẹ một lần (vuốt lại ảnh cũ không rung); mỗi dòng một vòng 28 (đạt: dấu tích `accent` trên nền `accentSoft`; chưa đạt: X `danger` trên nền `danger` 16%) + câu ngắn (`label`). Không có dòng nào: "Ảnh theo đúng kỹ thuật đã chọn." Đang phân tích: vòng quay + "Đang xem bố cục". Chưa có bộ tách người: một câu + nút `soft` "Tải bộ tách người (x MB)", bấm mới tải (không tự tải). Không thấy người / lỗi: một câu (lỗi có nút Thử lại). Có khung cắt gợi ý thì cuối thẻ có nút `soft` "Xem khung cắt gợi ý": chế độ cắt — khung nét đứt `accent` trên ảnh, phần bị cắt bỏ phủ `popoverScrim`, thẻ ghi "Cắt theo khung xanh để đạt kỹ thuật", không vuốt sang ảnh khác; hai nút đáy "Ảnh gốc" (thoát) · "Lưu bản cắt" (lưu thành ảnh mới trong album, ảnh gốc giữ nguyên, BR-15; xong thì chuyển tới ảnh mới). Chạm ảnh để bật / tắt lớp bố cục. Ảnh chụp khi tắt bố cục hoặc chỉ bật Lưới 3×3 / 4×4: không có thẻ, màn như cũ.
 
