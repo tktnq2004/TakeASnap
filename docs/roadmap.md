@@ -527,7 +527,7 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 
 **Xong khi:** chân trời, đường dẫn và vật "mọc" sau đầu tự phát hiện trên iPhone và Android, đạt cổng ở trên (hoặc chỉ phần đạt được đưa vào, phần còn lại giữ bản Phase 5 và ghi rõ vì sao); phiếu `phase5a-test.md` đạt.
 
-### Phase 5b — Tự chọn kỹ thuật bằng model AI riêng (2–3 tuần, có cổng quyết định)
+### Phase 5b — Tự chọn kỹ thuật bằng model AI riêng (2–3 tuần, có cổng quyết định) — xong 2026-11-22, dừng ở cổng
 
 Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b).
 
@@ -537,23 +537,20 @@ Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610
 
 **Bước 1 — Dữ liệu (khoảng 1 tuần)**
 
-- [ ] Bộ nhãn: các kỹ thuật có gợi ý ở Phase 5 (1/3, ở giữa, góc thấp, selfie, nhóm) + "khác"; cho phép một ảnh có tới 2 nhãn
-- [ ] Gom 1.500–3.000 ảnh có người: ảnh tự chụp và ảnh có giấy phép cho phép huấn luyện (ghi nguồn từng ảnh); không bao giờ dùng ảnh của người dùng app (BR-16). Xem giấy phép các bộ dữ liệu nghiên cứu (KU-PCP 9 lớp bố cục…) trước khi dùng
-- [ ] Gán nhãn sẵn bằng một model lớn (ví dụ Claude), chạy **một lần trên máy tính lúc phát triển**, không nằm trong app; người duyệt lại ít nhất 300 ảnh để đo độ khớp giữa người và máy
-- [ ] Chia 3 phần: huấn luyện / kiểm tra / **giữ riêng** (≥ 300 ảnh, không bao giờ dùng để huấn luyện); script gom và gán nhãn trong `scripts/`
+- [x] Bộ nhãn (đổi): 1/3, ở giữa, lấp đầy, chân trời, đường dẫn, nhóm + khác, tới 2 nhãn; selfie theo luật camera trước, góc thấp không đoán
+- [x] 2.232 ảnh có nhãn từ Open Images V7 (CC BY 2.0, ghi tác giả từng ảnh): 640 ngẫu nhiên + 892 nhắm đích + 700 chân dung / nhóm (vòng 2). Không dùng ảnh người dùng app
+- [x] Claude gán nhãn trong phiên; người duyệt 2 bộ giữ riêng (300 + 301 ảnh): khớp nhãn chính 84% / 86%
+- [x] Chia huấn luyện / kiểm tra / giữ riêng (`scripts/p5b-split.mts`, `--r2`); `scripts/p5b-collect*.mts`, `p5b-review.mts`
 
 **Bước 2 — Huấn luyện và đánh giá (khoảng 1 tuần)**
 
-- [ ] Transfer learning từ model nhỏ có sẵn (MobileNetV3 / EfficientNet-Lite) bằng MediaPipe Model Maker trên Google Colab (Model Maker không chạy trên Windows); notebook lưu trong repo
-- [ ] Xuất TFLite có metadata (~5 MB), đo trên bộ giữ riêng: độ đúng lựa chọn đầu, độ đúng hai lựa chọn đầu, ma trận nhầm lẫn; chọn ngưỡng tin cậy
-- [ ] Đo trong WebView trên iPhone và Android: thời gian đoán một ảnh, bộ nhớ
+- [x] (Đổi) Vector ảnh MediaPipe ImageEmbedder MobileNetV3 small (4,1 MB) + 19 đặc trưng người, lớp phân loại một lớp ẩn huấn luyện trên Windows (`scripts/p5b-features.mts`, `p5b-train.mts`; phần chạy model dùng chung ở composition-critic `technique.ts`). Thử MobileNetV3 large: không tốt hơn
+- [x] Đo trên bộ giữ riêng: vòng 1 top-1 61,6% / top-2 80,6%; vòng 2 (thêm 700 ảnh, chọn theo độ đúng cân bằng) top-1 59,1% / top-2 80,7%; ma trận nhầm lẫn ở [phase5b-data.md](phase5b-data.md)
+- [ ] ~~Đo trong WebView trên máy~~: không làm vì trượt cổng
 
 **Bước 3 — Tích hợp (khoảng 1 tuần)**
 
-- [ ] Gói `composition` trên GitHub Releases, tải một lần (§3.3), chạy bằng `ImageClassifier` của MediaPipe trong WebView đang có
-- [ ] Dòng "Tự chọn" trong bảng Bố cục: chọn thì chụp lặng một ảnh và đoán (dùng lại đường chụp của nút **Kiểm tra bố cục**, Phase 5a); mỗi lần chạm Kiểm tra bố cục thì đoán lại trên cùng ảnh đó. Không tự đoán lại theo khung cảnh (spike Phase 5 Bước 3: không lấy ảnh liên tục được). Dưới ngưỡng tin cậy thì không đoán; dòng gợi ý ghi kỹ thuật đang dùng + "Đổi"
-- [ ] Nhận xét sau khi chụp: chạy model trên ảnh vừa chụp, gợi ý kỹ thuật hợp hơn nếu khác kỹ thuật đã dùng (không cần camera)
-- [ ] Phiếu `phase5b-test.md`
+Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22): gói `composition`, dòng "Tự chọn", gợi ý kỹ thuật ở nhận xét sau khi chụp, phiếu `phase5b-test.md`.
 
 **Cổng quyết định cuối Bước 2:**
 
@@ -563,6 +560,12 @@ Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610
 | Thấp hơn | Không đưa vào app; giữ chọn tay của Phase 5. Ghi thử nghiệm (dữ liệu, kết quả, vì sao chưa đạt) vào case study |
 
 **Xong khi:** dòng Tự chọn chạy trên iPhone và Android, đạt cổng ở trên, phiếu `phase5b-test.md` đạt; hoặc đã ghi rõ vì sao dừng ở cổng.
+
+**Kết quả cổng (2026-11-22): dừng.** Hai vòng đều trượt (top-1 61,6% và 59,1%, top-2 80,6% và 80,7%; cổng 70% / 85%). App giữ chọn tay như Phase 5, không có dòng Tự chọn. Vì sao chưa đạt (ghi cho case study Phase 6, chi tiết ở [phase5b-data.md](phase5b-data.md)):
+- **Nhãn mơ hồ:** 1/3, ở giữa và lấp đầy khó tách chỉ bằng ảnh; người và Claude cũng chỉ khớp 84–86%. Bộ kiểm tra chấm bằng nhãn Claude được ~73–78%, bộ giữ riêng chấm bằng nhãn người còn ~60%.
+- **Ảnh không giống ảnh app:** Open Images nhiều thể thao, sự kiện, đám đông ("Khác" 59% ảnh); thêm 700 ảnh chân dung không nâng được số trên bộ giữ riêng.
+- **Chân trời và đường dẫn** quá ít ảnh để học; hai kỹ thuật này đã có bộ dò riêng ở Phase 5a.
+- Hướng có thể thử sau v1: gộp 1/3 + ở giữa thành "chân dung có cảnh" rồi để luật quyết định; ảnh tự chụp đúng ngữ cảnh app; nhãn từ nhiều người. Công cụ và dữ liệu (`eval/composition/`, không commit) giữ lại.
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 

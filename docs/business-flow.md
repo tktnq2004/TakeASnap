@@ -337,6 +337,7 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 - Độ tin cậy dưới ngưỡng thì không đoán: giữ kỹ thuật đang dùng, hoặc chỉ hiện lưới 3×3.
 - Model chạy trên máy trong WebView đang có (MediaPipe ImageClassifier), tải một lần như gói pose (BR-13), ảnh không rời máy (BR-03).
 - Không đạt cổng quyết định ở roadmap Phase 5b thì không có dòng Tự chọn; app giữ chọn tay như Phase 5.
+- **Kết quả (2026-11-22): không đạt cổng** (hai vòng, lựa chọn đầu đúng ~60% trên ảnh người duyệt), nên app không có dòng Tự chọn và không có dòng gợi ý kỹ thuật sau khi chụp. Mục này giữ lại để ghi ý định ban đầu.
 
 ---
 
