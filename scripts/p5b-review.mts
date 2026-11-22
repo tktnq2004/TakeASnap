@@ -34,8 +34,12 @@ const review: Record<string, string[]> = fs.existsSync(REVIEW)
   ? (JSON.parse(fs.readFileSync(REVIEW, 'utf8')) as Record<string, string[]>)
   : {};
 const LABELS = ['thirds', 'center', 'fill', 'horizon', 'lead', 'group', 'other'];
-/** Gán mù: "Không chắc" là cờ đi kèm, không tính vào 2 nhãn. */
+/**
+ * Gán mù: "Không chắc" là cờ đi kèm, không tính vào 2 nhãn; "Bỏ ảnh này" (không phải người thật:
+ * tranh, tượng, bảng chữ; định nghĩa nhãn v2) đứng riêng.
+ */
 const UNSURE = 'unsure';
+const SKIP = 'skip';
 
 const page = `<!doctype html><html lang="vi"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Duyệt nhãn Phase 5b</title>
@@ -59,13 +63,13 @@ button.main{outline:3px solid #b8f5d2}
 <nav id="labels"></nav>
 <div class="row"><button id="back">← Ảnh trước</button><button id="save">Lưu và sang ảnh sau (Enter)</button></div>
 <div class="hint">Phím 1–7 bật / tắt nhãn; bật trước là nhãn chính (viền sáng), tối đa 2 nhãn.
-  ${BLIND ? 'Phím 8: Không chắc (đi kèm nhãn khác). ' : ''}Xem định nghĩa nhãn ở docs/phase5b-data.md.</div>
+  ${BLIND ? 'Phím 8: Không chắc (đi kèm nhãn khác); phím 9: Bỏ ảnh này (tranh, tượng, không phải người thật). ' : ''}Xem định nghĩa nhãn ở docs/phase5b-data.md.</div>
 <script>
 const NAMES = {thirds:'1 · Quy tắc 1/3',center:'2 · Đặt ở giữa',fill:'3 · Lấp đầy khung',
   horizon:'4 · Đường chân trời',lead:'5 · Đường dẫn',group:'6 · Nhóm người',other:'7 · Khác',
-  unsure:'8 · Không chắc'};
+  unsure:'8 · Không chắc',skip:'9 · Bỏ ảnh này'};
 const BLIND = ${BLIND};
-const KEYS = ${JSON.stringify(BLIND ? [...LABELS, 'unsure'] : LABELS)};
+const KEYS = ${JSON.stringify(BLIND ? [...LABELS, 'unsure', 'skip'] : LABELS)};
 if (BLIND) document.getElementById('claudeBox').style.display = 'none';
 let items = [], i = 0, sel = [];
 const $ = (id) => document.getElementById(id);
@@ -88,9 +92,10 @@ function render() {
 function load() { sel = [...(items[i]?.review ?? (BLIND ? [] : items[i]?.claude) ?? [])]; render(); }
 function toggle(k) {
   if (sel.includes(k)) sel = sel.filter((x) => x !== k);
-  else if (k === 'unsure') sel.push(k);
+  else if (k === 'skip') sel = ['skip'];
+  else if (k === 'unsure') sel = [...sel.filter((x) => x !== 'skip'), k];
   else {
-    const real = sel.filter((x) => x !== 'unsure');
+    const real = sel.filter((x) => x !== 'unsure' && x !== 'skip');
     const keep = real.length < 2 ? real : [real[0]];
     sel = [...keep, k, ...(sel.includes('unsure') ? ['unsure'] : [])];
   }
@@ -142,13 +147,15 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       const { id, labels } = JSON.parse(body) as { id: string; labels: string[] };
       const real = Array.isArray(labels) ? labels.filter((l) => l !== UNSURE) : [];
+      const skip = BLIND && Array.isArray(labels) && labels.length === 1 && labels[0] === SKIP;
       const ok =
         holdout.includes(id) &&
         Array.isArray(labels) &&
         labels.length >= 1 &&
-        real.length <= 2 &&
-        real.every((l) => LABELS.includes(l)) &&
-        (BLIND || real.length === labels.length);
+        (skip ||
+          (real.length <= 2 &&
+            real.every((l) => LABELS.includes(l)) &&
+            (BLIND || real.length === labels.length)));
       if (!ok) return void res.writeHead(400).end();
       review[id] = labels;
       fs.writeFileSync(REVIEW, JSON.stringify(review, null, 0));

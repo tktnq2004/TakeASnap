@@ -122,6 +122,31 @@ Nhận xét:
 - Thêm 700 ảnh và đổi cách chọn cấu hình không nâng được số trên bộ giữ riêng (61,6 → 59,1%, hai bộ khác nhau nên không so thẳng được).
 - Ở giữa vẫn hay nhầm thành 1/3 (15 / 40); nhóm hay nhầm thành Khác (11 / 25).
 
+## Vòng 3 — gán thử chung và định nghĩa nhãn v2 (2026-11-22)
+
+40 ảnh Wikimedia có người (`eval/composition/calib.json`), Claude và người dùng **gán mù**, độc lập. Khớp nhãn chính 24/40 (60%), có nhãn chung 26/40 (65%). Thấp hơn hai lần duyệt trước (84–86%): khi đó người duyệt thấy sẵn nhãn Claude nên bị kéo theo. Bốn kiểu lệch, đã chốt quy ước:
+
+| Kiểu lệch | Ví dụ | Quy ước v2 |
+|---|---|---|
+| Ảnh không phải người thật | tranh vẽ, tượng đồng, phù điêu | **Loại khỏi dữ liệu** (phím "Bỏ ảnh này") |
+| Cỡ của Lấp đầy khung | nữ quân nhân nửa người, lính cứu hỏa nửa người | **Từ nửa người trở lại** (ngang hông, ngang ngực, cận mặt) khi người chiếm gần hết chiều cao khung, nền phụ |
+| Người rất nhỏ / bóng đen trong cảnh rộng | bóng cây trên mặt biển, mỏm đá biển | **Gán theo cảnh** (chân trời, 1/3…), vì app hướng dẫn cả khung hình |
+| Người đứng giữa đường / lối đi | người gánh củi giữa đường, cô gái trên vạch qua đường | Nhãn chính theo vị trí người (**Ở giữa** / 1/3); đường hội tụ rõ về phía người thì thêm **Đường dẫn** |
+
+**Định nghĩa nhãn v2** (thay bảng "Hướng dẫn gán nhãn" ở trên cho vòng 3). Câu hỏi cho mỗi ảnh: *kỹ thuật nào hợp với cảnh này (đang có hoặc nên dùng)?* Tối đa 2 nhãn; hai kỹ thuật hợp ngang nhau thì chọn cả hai.
+
+| Nhãn | Khi nào |
+|---|---|
+| Quy tắc 1/3 | Người cả người hoặc nhỏ trong cảnh có nội dung, đặt lệch về một bên hoặc nên dời sang đường 1/3 |
+| Đặt ở giữa | Người ở trục giữa, cảnh hai bên cân (cửa, vòm, hành lang, con đường thẳng, phông), hoặc người nhìn thẳng vào máy |
+| Lấp đầy khung | Khung từ nửa người trở lại, người chiếm gần hết chiều cao khung, nền phụ |
+| Đường chân trời | Có chân trời / mặt nước / cánh đồng rõ, kể cả khi người nhỏ hoặc là bóng đen |
+| Đường dẫn | Đường, lối, hành lang, đường ray hội tụ rõ về phía người (thường đi kèm Ở giữa / 1/3) |
+| Nhóm người | Từ 3 người trở lên cùng là chủ thể (kể cả selfie nhóm) |
+| Khác | Không kỹ thuật nào giúp được: đám đông hỗn loạn, thể thao / hành động, sự kiện ghi lại, người bị che hoặc tối không thấy |
+| Không chắc (cờ) | Đi kèm nhãn nghiêng về; không dùng "Khác" để nói không chắc |
+| Bỏ ảnh này | Không phải người thật (tranh, tượng, bảng chữ) |
+
 ## Cổng (roadmap)
 
 Trên bộ giữ riêng: lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%; model đoán một ảnh ≤ 300 ms trên máy.
