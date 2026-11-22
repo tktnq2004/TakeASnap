@@ -4,6 +4,7 @@
  *
  *   node scripts/p5b-features.mts [số tiến trình, mặc định 3]
  *   node scripts/p5b-features.mts 3 --large      chỉ vector ảnh MobileNetV3 large
+ *   node scripts/p5b-features.mts 3 --subset wikimedia   mọi ảnh của một nguồn, kể cả chưa có nhãn
  *
  * Ghi eval/composition/features.json: { id: Raw không có lưới / ảnh xám (chỉ người, khung xương,
  * mắt, vector ảnh) }. Ảnh đã có thì bỏ qua (chạy tiếp được khi bị ngắt). Dùng GPU thật của máy cho
@@ -36,7 +37,20 @@ type Stored = Record<string, unknown> | number[];
 const done: Record<string, Stored> = fs.existsSync(OUT)
   ? (JSON.parse(fs.readFileSync(OUT, 'utf8')) as Record<string, Stored>)
   : {};
-const todo = Object.keys(labels).filter((id) => !done[id]);
+// --subset wikimedia: mọi ảnh của nguồn đó trong manifest, kể cả chưa có nhãn (lọc ảnh có người).
+const si = process.argv.indexOf('--subset');
+const SUBSET = si > 0 ? process.argv[si + 1] : null;
+const pool = SUBSET
+  ? (
+      JSON.parse(fs.readFileSync(path.join(DATA, 'manifest.json'), 'utf8')) as {
+        id: string;
+        subset?: string;
+      }[]
+    )
+      .filter((m) => m.subset === SUBSET)
+      .map((m) => m.id)
+  : Object.keys(labels);
+const todo = pool.filter((id) => !done[id]);
 console.log(
   `ảnh có nhãn ${Object.keys(labels).length}, đã có ${Object.keys(done).length}, còn ${todo.length}`,
 );

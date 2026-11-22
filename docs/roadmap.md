@@ -527,7 +527,7 @@ Không cần huấn luyện model: dò cạnh và đường thẳng bằng thu�
 
 **Xong khi:** chân trời, đường dẫn và vật "mọc" sau đầu tự phát hiện trên iPhone và Android, đạt cổng ở trên (hoặc chỉ phần đạt được đưa vào, phần còn lại giữ bản Phase 5 và ghi rõ vì sao); phiếu `phase5a-test.md` đạt.
 
-### Phase 5b — Tự chọn kỹ thuật bằng model AI riêng (2–3 tuần, có cổng quyết định) — xong 2026-11-22, dừng ở cổng
+### Phase 5b — Tự chọn kỹ thuật bằng model AI riêng (2–3 tuần, có cổng quyết định) — vòng 1–2 dừng ở cổng (2026-11-22), mở lại vòng 3
 
 Làm sau Phase 5a. Nghiệp vụ ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b).
 
@@ -566,6 +566,17 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 - **Ảnh không giống ảnh app:** Open Images nhiều thể thao, sự kiện, đám đông ("Khác" 59% ảnh); thêm 700 ảnh chân dung không nâng được số trên bộ giữ riêng.
 - **Chân trời và đường dẫn** quá ít ảnh để học; hai kỹ thuật này đã có bộ dò riêng ở Phase 5a.
 - Hướng có thể thử sau v1: gộp 1/3 + ở giữa thành "chân dung có cảnh" rồi để luật quyết định; ảnh tự chụp đúng ngữ cảnh app; nhãn từ nhiều người. Công cụ và dữ liệu (`eval/composition/`, không commit) giữ lại.
+
+**Vòng 3 — mở lại (2026-11-22, người dùng chọn):**
+- **Bài toán đổi:** model **gợi ý 2 kỹ thuật** khi bấm Kiểm tra bố cục, người dùng chạm để chọn; không tự đổi kỹ thuật thay người dùng.
+- **Cổng mới:** trên bộ đo, ≥ 85% ảnh có ít nhất một trong hai gợi ý nằm trong nhãn người gán, **và** vượt rõ mốc so sánh "luôn gợi ý 2 lớp phổ biến nhất". Đo mốc này và mốc luật hình học trước khi huấn luyện. Thời gian đoán ≤ 300 ms trên máy như cũ.
+- **Dữ liệu:** thêm ảnh người đời thường từ Wikimedia Commons (giấy phép tự do, chụp từ 2000, ghi tác giả) cùng 2.232 ảnh Open Images đã có nhãn; bộ đo cổng lấy từ ảnh Wikimedia (gần ảnh app hơn Open Images).
+- **Nhãn:** gán thử chung 40 ảnh rồi viết lại định nghĩa kèm ảnh mẫu (tách "không chắc" khỏi "Khác"); người dùng **gán mù** bộ đo cổng (trang không hiện nhãn Claude, tránh bị kéo theo); Claude gán bộ huấn luyện theo định nghĩa mới.
+- Đổi từng thứ một, luôn báo kèm các mốc so sánh.
+- [ ] Gom ảnh Wikimedia
+- [ ] Gán thử chung 40 ảnh, viết lại định nghĩa nhãn
+- [ ] Người dùng gán mù bộ đo cổng (~300 ảnh)
+- [ ] Mốc so sánh, huấn luyện gợi ý 2 kỹ thuật, đo cổng
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 
