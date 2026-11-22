@@ -97,6 +97,31 @@ Vì sao thấp hơn bộ kiểm tra:
 - **Nhãn lệch người ↔ Claude** ở 1/3 và ở giữa (mục trên); model học nhãn Claude, chấm bằng nhãn người.
 - Lấp đầy khung tốt (33/45), Khác tốt (105/118).
 
+## Vòng 2 (2026-11-22)
+
+Người dùng chọn thử thêm một vòng. Thay đổi:
+- **Thêm 700 ảnh chân dung / nhóm** từ tập train của Open Images (`scripts/p5b-collect-train.mts`: 1–2 người rõ chiếm 8–60% ảnh, hoặc ≥ 3 người; bỏ xe, bóng, đồ ăn, tranh vẽ). Claude gán nhãn: 1/3 177, ở giữa 57, lấp đầy 52, nhóm 48, khác 352. Tổng 2.232 ảnh có nhãn.
+- **Chọn cấu hình theo độ đúng cân bằng giữa các lớp**, có cân lớp (sqrt / đầy đủ) để bớt đoán "Khác".
+- **Thử MobileNetV3 large** (10,9 MB): không tốt hơn bản nhỏ trên bộ kiểm tra (cân bằng 49–60% so với 56–62%), giữ bản nhỏ.
+- **Bộ giữ riêng mới** 301 ảnh, chỉ lấy từ 700 ảnh mới (`node scripts/p5b-split.mts --r2`); bộ giữ riêng lần 1 (đã chấm một lần) chuyển sang huấn luyện với nhãn người duyệt. Người duyệt 301 / 301 ảnh; khớp Claude ↔ người: nhãn chính 86%, nhãn chính Claude nằm trong nhãn người chọn 87%.
+
+Kết quả (`SPLIT=split-r2.json node scripts/p5b-train.mts --final`): chọn lớp ẩn 64, L2 0,05, cân lớp đầy đủ; bộ kiểm tra top-1 73,3%, top-2 ~90%; ngưỡng 0,7 (đoán 64,5% ảnh, đúng 87,8%).
+
+**Bộ giữ riêng vòng 2 (296 ảnh tính được): top-1 59,1%, top-2 80,7% → vẫn chưa qua cổng.** Chặt 56,8%, cân bằng 52,6%; trên ngưỡng 0,7: đoán 52,4% ảnh, đúng 72,9%.
+
+| Nhãn đầu người chọn \ model đoán | 1/3 | Ở giữa | Lấp đầy | Nhóm | Khác |
+|---|---|---|---|---|---|
+| 1/3 | 38 | 10 | 9 | 5 | 20 |
+| Ở giữa | 15 | 11 | 2 | 5 | 7 |
+| Lấp đầy | 9 | 3 | 15 | 0 | 2 |
+| Nhóm | 0 | 0 | 2 | 12 | 11 |
+| Khác | 14 | 4 | 7 | 3 | 92 |
+
+Nhận xét:
+- Bộ kiểm tra (nhãn Claude, 73%) và bộ giữ riêng (nhãn người, 59%) lệch nhau 14 điểm ở cả hai vòng: phần lớn khoảng cách là **nhãn mơ hồ** giữa 1/3, ở giữa, lấp đầy khi chỉ nhìn ảnh, không phải thiếu ảnh. Người và Claude cũng chỉ khớp 86%.
+- Thêm 700 ảnh và đổi cách chọn cấu hình không nâng được số trên bộ giữ riêng (61,6 → 59,1%, hai bộ khác nhau nên không so thẳng được).
+- Ở giữa vẫn hay nhầm thành 1/3 (15 / 40); nhóm hay nhầm thành Khác (11 / 25).
+
 ## Cổng (roadmap)
 
 Trên bộ giữ riêng: lựa chọn đầu đúng ≥ 70% **hoặc** hai lựa chọn đầu đúng ≥ 85%; model đoán một ảnh ≤ 300 ms trên máy.
