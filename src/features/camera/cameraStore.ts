@@ -2,7 +2,8 @@
  * Trạng thái của Camera, nhớ qua các lần mở app (expo-sqlite/kv-store, ghi đồng bộ nên đọc lại
  * được ngay khi khởi động, không nháy giá trị mặc định).
  *
- * - Cài đặt camera: flash, kỹ thuật bố cục (gồm cả lưới, design.md §6.15), thước, hẹn giờ, tỉ lệ khung.
+ * - Cài đặt camera: flash, bố cục chính (gồm cả lưới, design.md §6.15) và bố cục phụ theo cảnh
+ *   (Phase 5b, business-flow §6.10), thước, hẹn giờ, tỉ lệ khung.
  * - Pose đang dùng + điều khiển nhanh: độ hiện, lật ngang (business-flow §4.4).
  * - Vị trí cột công cụ pose (design.md §6.1): mép trái / phải và độ cao trong khung ngắm.
  * - Placement theo từng pose (BR-10): lưu riêng một khóa mỗi pose, chỉ ghi khi nhấc tay.
@@ -11,6 +12,7 @@ import Storage from 'expo-sqlite/kv-store';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { isSceneTechnique, type SceneTechnique } from '@/features/composition/guidance';
 import { isTechnique, type TechniqueId } from '@/features/composition/techniques';
 import type { Placement } from '@/gestures/useTransformGesture';
 
@@ -32,7 +34,10 @@ export type RailSide = 'left' | 'right';
 
 type State = {
   flash: FlashMode;
+  /** Bố cục chính (không bao giờ là Đường chân trời / Đường dẫn: đó là bố cục phụ, `scene`). */
   technique: TechniqueId;
+  /** Bố cục phụ theo cảnh, bật cùng bố cục chính hoặc một mình. */
+  scene: SceneTechnique | null;
   level: boolean;
   timer: TimerSec;
   aspect: AspectId;
@@ -59,7 +64,11 @@ type Actions = {
   cycleOpacity: () => void;
   setOpacity: (v: number) => void;
   toggleMirror: () => void;
+  /** Chọn một dòng của bảng Bố cục: Đường chân trời / Đường dẫn đặt bố cục phụ, còn lại bố cục chính. */
   setTechnique: (t: TechniqueId) => void;
+  setScene: (s: SceneTechnique | null) => void;
+  /** Tắt cả bố cục chính và bố cục phụ. */
+  clearComposition: () => void;
   setFlash: (f: FlashMode) => void;
   setTimer: (s: TimerSec) => void;
   toggleRailCollapsed: () => void;
@@ -81,6 +90,7 @@ export const useCameraStore = create<State & Actions>()(
     (set) => ({
       flash: 'off',
       technique: 'off',
+      scene: null,
       level: true,
       timer: 0,
       aspect: '3:4',
@@ -108,7 +118,10 @@ export const useCameraStore = create<State & Actions>()(
       cycleOpacity: () => set((s) => ({ opacity: nextOpacity(s.opacity) })),
       setOpacity: (v) => set({ opacity: Math.min(1, Math.max(0, v)) }),
       toggleMirror: () => set((s) => ({ mirrored: !s.mirrored })),
-      setTechnique: (technique) => set({ technique }),
+      setTechnique: (technique) =>
+        set(isSceneTechnique(technique) ? { scene: technique } : { technique }),
+      setScene: (scene) => set({ scene }),
+      clearComposition: () => set({ technique: 'off', scene: null }),
       setFlash: (flash) => set({ flash }),
       setTimer: (timer) => set({ timer }),
       toggleRailCollapsed: () => set((s) => ({ railCollapsed: !s.railCollapsed })),
@@ -116,7 +129,7 @@ export const useCameraStore = create<State & Actions>()(
     }),
     {
       name: 'camera',
-      version: 6,
+      version: 7,
       storage: syncStorage,
       // v1 lưu độ hiện là mức 0/1/2; v2 lưu giá trị 0..1 và vị trí cột công cụ.
       migrate: (old, version) => {
@@ -128,6 +141,12 @@ export const useCameraStore = create<State & Actions>()(
         if (!isTechnique(o.technique)) o.technique = 'off';
         if (o.technique === 'off' && grid === '3') o.technique = 'grid';
         if (o.technique === 'off' && grid === '4') o.technique = 'grid4';
+        // v7: Đường chân trời / Đường dẫn thành bố cục phụ (Phase 5b).
+        if (isSceneTechnique(o.technique)) {
+          o.scene = o.technique;
+          o.technique = 'off';
+        }
+        if (!isSceneTechnique(o.scene ?? null)) o.scene = null;
         if (version < 2) {
           const { opacityLevel, ...rest } = o;
           return {
@@ -146,6 +165,7 @@ export const useCameraStore = create<State & Actions>()(
       partialize: (s) => ({
         flash: s.flash,
         technique: s.technique,
+        scene: s.scene,
         level: s.level,
         timer: s.timer,
         aspect: s.aspect,

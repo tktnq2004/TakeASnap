@@ -187,7 +187,9 @@ export default function ReviewScreen() {
     try {
       const out = await cropNormalized(photo, c);
       const assetId = await saveToAlbum(out.uri);
-      useSessionPhotos.getState().add({ ...out, assetId, technique: photo.technique });
+      useSessionPhotos
+        .getState()
+        .add({ ...out, assetId, technique: photo.technique, scene: photo.scene ?? null });
       haptic.saved();
       setCropFor(null);
       const last = useSessionPhotos.getState().photos.length - 1;
@@ -218,13 +220,9 @@ export default function ReviewScreen() {
         <OverlayHeader title={t.review.title} right={<CloseButton onPress={goBack} />} />
         {current && (
           <Text style={[type.hint, styles.counter]}>
-            {current.technique === 'off'
+            {!hasLayer(current)
               ? t.review.counter(index + 1, photos.length, clock(current.takenAt))
-              : t.review.counterTech(
-                  index + 1,
-                  photos.length,
-                  t.composition.names[current.technique],
-                )}
+              : t.review.counterTech(index + 1, photos.length, layerName(current))}
           </Text>
         )}
       </View>
@@ -258,9 +256,9 @@ export default function ReviewScreen() {
               return (
                 <View key={p.assetId} style={[styles.page, { width: page.w, height: page.h }]}>
                   <Pressable
-                    accessibilityRole={p.technique === 'off' ? 'image' : 'button'}
-                    accessibilityLabel={p.technique === 'off' ? undefined : t.review.toggleGuide}
-                    disabled={p.technique === 'off' || cropFor === p.assetId}
+                    accessibilityRole={hasLayer(p) ? 'button' : 'image'}
+                    accessibilityLabel={hasLayer(p) ? t.review.toggleGuide : undefined}
+                    disabled={!hasLayer(p) || cropFor === p.assetId}
                     onPress={() => setGuide((g) => !g)}
                     style={[styles.photo, s]}
                   >
@@ -273,17 +271,18 @@ export default function ReviewScreen() {
                       <CropFrame size={s} crop={crop} />
                     ) : (
                       guide &&
-                      p.technique !== 'off' && (
+                      hasLayer(p) && (
                         <View pointerEvents="none" style={[styles.guide, s]}>
                           <CompositionGuide
                             frame={{ x: 0, y: 0, width: s.width, height: s.height }}
                             technique={p.technique}
+                            scene={p.scene ?? null}
                             anchor={eyeOf(reviews[p.assetId])}
                           />
                           <SceneLines
                             width={s.width}
                             height={s.height}
-                            technique={p.technique}
+                            technique={p.scene ?? p.technique}
                             scene={sceneOf(reviews[p.assetId])}
                           />
                         </View>
@@ -380,6 +379,14 @@ export default function ReviewScreen() {
 
 const eyeOf = (e: ReviewEntry | undefined) => (e?.status === 'done' ? e.features.eye : null);
 const sceneOf = (e: ReviewEntry | undefined) => (e?.status === 'done' ? e.scene : null);
+/** Ảnh chụp lúc có bố cục bật (chính hoặc phụ, Phase 5b). */
+const hasLayer = (p: SessionPhoto) => p.technique !== 'off' || !!p.scene;
+/** Tên bố cục lúc chụp: chính + phụ. */
+const layerName = (p: SessionPhoto) =>
+  [p.technique !== 'off' ? p.technique : null, p.scene ?? null]
+    .filter((x) => x != null)
+    .map((x) => t.composition.names[x])
+    .join(' + ');
 
 /** Khung cắt gợi ý trên ảnh: viền nét đứt màu nhấn, phần bị cắt bỏ tối đi. */
 function CropFrame({

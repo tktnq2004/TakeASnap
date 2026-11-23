@@ -30,6 +30,7 @@ export default function SettingsScreen() {
   const goBack = useGoBack();
   const frontMirror = useSettings((s) => s.frontMirror);
   const haptics = useSettings((s) => s.haptics);
+  const autoScene = useSettings((s) => s.autoScene);
   const store = useSettings.getState;
   const [poseBytes, setPoseBytes] = useState(() => packDiskBytes(POSE_PACK));
   const top = Platform.OS === 'ios' ? space[5] : insets.top + space[3];
@@ -68,6 +69,16 @@ export default function SettingsScreen() {
           <Line />
           <Row label={t.settings.haptics}>
             <Toggle value={haptics} onChange={store().setHaptics} label={t.settings.haptics} />
+          </Row>
+        </Group>
+
+        <Group title={t.settings.groupComposition}>
+          <Row label={t.settings.autoScene} detail={t.settings.autoSceneHint}>
+            <Toggle
+              value={autoScene}
+              onChange={store().setAutoScene}
+              label={t.settings.autoScene}
+            />
           </Row>
         </Group>
 

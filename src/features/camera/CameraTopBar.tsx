@@ -48,7 +48,10 @@ export const TOP_BAR_H = size.iconButton + 8;
 export function CameraTopBar({ top, open, onToggleOpen, onSettings, onComposition }: Props) {
   const flash = useCameraStore((s) => s.flash);
   const timer = useCameraStore((s) => s.timer);
-  const technique = useCameraStore((s) => s.technique);
+  const main = useCameraStore((s) => s.technique);
+  const scene = useCameraStore((s) => s.scene);
+  // Chỉ bật bố cục phụ (Phase 5b): nút vẽ bố cục phụ; có bố cục chính thì nút vẽ bố cục chính.
+  const technique: TechniqueId = main === 'off' && scene ? scene : main;
   const level = useCameraStore((s) => s.level);
   const aspect = useCameraStore((s) => s.aspect);
   const store = useCameraStore.getState;
@@ -102,7 +105,13 @@ export function CameraTopBar({ top, open, onToggleOpen, onSettings, onCompositio
             badge={technique === 'grid' ? '3' : technique === 'grid4' ? '4' : undefined}
           >
             {!isGrid(technique) && (
-              <TechniqueIcon kind={technique} width={18} height={22} ink={color.camInk} accent={color.camInk} />
+              <TechniqueIcon
+                kind={technique}
+                width={18}
+                height={22}
+                ink={color.camInk}
+                accent={color.camInk}
+              />
             )}
           </BarButton>
           <BarButton

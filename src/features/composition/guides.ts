@@ -78,3 +78,29 @@ export function guideShape(t: TechniqueId, anchor: Pt | null = null): GuideShape
       return { ...EMPTY, v: THIRDS, h: THIRDS };
   }
 }
+
+/**
+ * Lớp kẻ khi bật cùng lúc bố cục chính và bố cục phụ (Phase 5b, business-flow §6.10): hợp các
+ * đường kẻ, đường chân trời tô màu nhấn và đường chéo của bố cục phụ; chấm đích của bố cục chính
+ * (không có thì của bố cục phụ).
+ */
+export function combinedShape(
+  main: TechniqueId,
+  scene: TechniqueId | null,
+  anchor: Pt | null = null,
+): GuideShape {
+  const a = guideShape(main, anchor);
+  if (!scene) return a;
+  const b = guideShape(scene, anchor);
+  const uniq = (xs: number[]) => [...new Set(xs)].sort((p, q) => p - q);
+  const hasMain = main !== 'off';
+  return {
+    v: uniq([...a.v, ...b.v]),
+    // Đường đã tô màu nhấn thì không vẽ lại thành đường kẻ thường.
+    h: uniq([...a.h, ...b.h]).filter((y) => !b.accentH.includes(y)),
+    accentH: b.accentH,
+    target: a.target ?? b.target,
+    points: hasMain && a.target ? [] : a.points.length ? a.points : b.points,
+    diagonals: b.diagonals.map((d) => (a.target ? { ...d, to: a.target } : d)),
+  };
+}

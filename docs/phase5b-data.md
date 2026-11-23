@@ -186,3 +186,25 @@ Bộ đo đã chấm nên không dùng lại để chỉnh rồi chấm tiếp; 
 
 **Quyết định (2026-11-23):** người dùng vẫn đưa vào app **dạng thử nghiệm**, ghi rõ trượt cổng 1,8 điểm. Trong app chỉ gợi ý kỹ thuật (bỏ "Khác"): trên 171 ảnh người dùng thấy có kỹ thuật hợp, ít nhất một trong hai gợi ý trúng **84,8
 **Quyết định (2026-11-23):** người dùng vẫn đưa vào app **dạng thử nghiệm**, ghi rõ trượt cổng 1,8 điểm. Trong app chỉ gợi ý kỹ thuật (bỏ "Khác"): trên 171 ảnh người dùng thấy có kỹ thuật hợp, ít nhất một trong hai gợi ý trúng **84,8%**; tính cả 42 ảnh người dùng gán "Khác" (gợi ý kỹ thuật nào cũng tính trượt) là 68,1%. Model đoán "Khác" đứng đầu ở 43/213 ảnh. Luồng ở business-flow §6.10.
+
+## Đổi hướng (2026-11-23): bộ dò có đủ để gợi ý bố cục phụ không
+
+Bàn với người dùng: app chỉ gợi ý **bố cục phụ** (chân trời, đường dẫn); bố cục chính người dùng tự chọn (business-flow §6.10). Muốn hướng dẫn tới một đường thì phải biết đường nằm đâu, nên câu hỏi là bộ dò Phase 5a một mình có gợi ý đúng không, hay cần model vòng 3 để lọc.
+
+Cách đo (`scripts/p5b-detectors.mts`, kết quả dò ở `eval/composition/scene-r3.json`, không commit): chạy đúng trang WebView của app (tách người, khung xương, model trời) trên ảnh có nhãn người dùng. Bộ dò "có" khi có người và tìm thấy chân trời / điểm hội tụ. "Đúng" khi người dùng cũng gán kỹ thuật đó (trong tối đa 2 nhãn). Model chỉ so trên bộ đo cổng (bộ giữ riêng cũ nằm trong dữ liệu huấn luyện bản cuối).
+
+Bộ đo cổng vòng 3 (213 ảnh Wikimedia, gán mù):
+
+| Cách | Chân trời: báo "có" | chính xác | bắt được | Đường dẫn: báo "có" | chính xác | bắt được |
+|---|---|---|---|---|---|---|
+| Bộ dò (có model trời) | 89 | 24,7% | 88,0% | 32 | 9,4% | 16,7% |
+| Bộ dò (không model trời) | 106 | 20,8% | 88,0% | | | |
+| Model một mình, P ≥ 0,15 | 31 | 61,3% | 76,0% | 23 | 34,8% | 44,4% |
+| Bộ dò + model P ≥ 0,10 | 30 | 60,0% | 72,0% | 10 | 10,0% | 5,6% |
+
+Bộ giữ riêng vòng 1–2 (602 ảnh Open Images): chân trời 12,7% chính xác, 84,2% bắt được; đường dẫn 10,0% / 38,5%.
+
+Nhãn người dùng là "kỹ thuật hợp nhất", không phải "cảnh có chân trời", nên độ chính xác ở trên thấp hơn thật. Xem tận mắt 30 ảnh bộ dò báo chân trời mà người dùng không gán: khoảng 5–9 ảnh có chân trời thật ở đúng chỗ, 2 ảnh có chân trời nhưng bộ dò chọn sai đường, còn lại là đường phố, mái nhà, hàng cây. Điểm hội tụ của bộ dò đường dẫn gần như ngẫu nhiên (chỉ vài ảnh đường phố có đường dẫn thật).
+
+**Kết luận:** bộ dò một mình **không đủ** để gợi ý: chân trời đúng chừng 1/3–1/2 số lần báo, đường dẫn gần như không. Ghép bộ dò + model lọc đưa chân trời lên khoảng 60% (theo nhãn người dùng) mà vẫn bắt được 72%. Đường dẫn thì cả hai cách đều yếu; bộ dò lại là thứ hướng dẫn cần (điểm hội tụ), nên hướng dẫn Đường dẫn cũng sẽ hay báo "không thấy đường dẫn". Người dùng chọn hướng tiếp (ghi ở dưới khi chốt).
+

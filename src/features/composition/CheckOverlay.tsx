@@ -31,7 +31,7 @@ export function CheckOverlay({
   const fx = (x: number) => (flip ? 1 - x : x);
   let box: [number, number, number, number] | null = null;
   let eye: { x: number; y: number } | null = null;
-  let text: string;
+  let text: string | null;
   let ok = false;
   /** Dòng nhỏ chỉ bản dev hiện (đo cổng Phase 5a, tìm lỗi model trời). */
   const dev: string[] = [];
@@ -52,10 +52,13 @@ export function CheckOverlay({
     else if (sk.skyMs != null)
       dev.push(c.devSkyMs(Math.round(sk.skyMs), Math.round(sk.skyLoadMs ?? 0)));
     if (result.note) text = t.review.notes[result.note.id];
-    else {
+    else if (result.techniques.length) {
       ok = true;
-      text = t.composition.check.ok(t.composition.names[result.technique]);
-    }
+      text = t.composition.check.ok(
+        result.techniques.map((x) => t.composition.names[x]).join(' + '),
+      );
+    } else if (result.suggest.length) text = null;
+    else text = t.composition.check.noScene;
   } else if (result.kind === 'none') text = t.composition.check.noPerson;
   else {
     text = t.composition.check.failed;
@@ -78,15 +81,19 @@ export function CheckOverlay({
           { left: frame.x, top: frame.y, width: frame.width, height: frame.height },
         ]}
       >
-        {result.kind === 'review' && (
-          <SceneLines
-            width={frame.width}
-            height={frame.height}
-            technique={result.technique}
-            scene={result.scene}
-            flip={flip}
-          />
-        )}
+        {result.kind === 'review' &&
+          [...result.techniques, ...result.suggest]
+            .filter((x) => x === 'horizon' || x === 'lead')
+            .map((x) => (
+              <SceneLines
+                key={x}
+                width={frame.width}
+                height={frame.height}
+                technique={x}
+                scene={result.scene}
+                flip={flip}
+              />
+            ))}
         {box && (
           <View
             style={[
@@ -113,26 +120,28 @@ export function CheckOverlay({
         )}
       </Animated.View>
       <View pointerEvents="none" style={[styles.wrap, { top }]}>
-        <Animated.View
-          entering={enter}
-          exiting={exit}
-          accessibilityRole="text"
-          accessibilityLiveRegion="polite"
-          style={[styles.pill, ok && styles.pillOk]}
-        >
-          <Icon
-            size={size.iconSmall}
-            strokeWidth={2.5}
-            color={ok ? color.accentInk : color.camAccent}
-          />
-          <Text
-            style={[styles.text, ok && styles.textOk]}
-            numberOfLines={2}
-            maxFontSizeMultiplier={1.3}
+        {text != null && (
+          <Animated.View
+            entering={enter}
+            exiting={exit}
+            accessibilityRole="text"
+            accessibilityLiveRegion="polite"
+            style={[styles.pill, ok && styles.pillOk]}
           >
-            {text}
-          </Text>
-        </Animated.View>
+            <Icon
+              size={size.iconSmall}
+              strokeWidth={2.5}
+              color={ok ? color.accentInk : color.camAccent}
+            />
+            <Text
+              style={[styles.text, ok && styles.textOk]}
+              numberOfLines={2}
+              maxFontSizeMultiplier={1.3}
+            >
+              {text}
+            </Text>
+          </Animated.View>
+        )}
         {__DEV__ && dev.length > 0 && (
           <Text style={styles.dev} numberOfLines={4}>
             {dev.join(' · ')}

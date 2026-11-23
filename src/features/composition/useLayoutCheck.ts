@@ -1,63 +1,59 @@
 /**
- * Kiểm tra bố cục (Phase 5a, business-flow §6.4): người dùng chạm nút thì chụp lặng MỘT ảnh cỡ
- * thật (không tiếng), cắt đúng khung ngắm, thu nhỏ, phân tích một lần qua WebView đang có rồi áp
- * quy tắc nhận xét của kỹ thuật đang chọn. Không chạy nền, không theo dõi liên tục (cổng Phase 5
- * Bước 3: Expo Go chỉ lấy được ảnh bằng cách chụp thật).
+ * Kiểm tra bố cục (Phase 5a, business-flow §6.4): người dùng chạm nút thì nhìn khung ngắm MỘT lần
+ * (`useSnapshot`) rồi áp quy tắc nhận xét của bố cục đang bật. Từ Phase 5b (§6.10) bố cục chính và
+ * bố cục phụ được nhận xét chung, và lần kiểm tra còn tìm bố cục phụ cảnh này áp được để gợi ý.
  *
- * - Bấm chụp lúc đang kiểm tra: `cancel()` bỏ kết quả; nút chụp đợi lần chụp lặng xong
- *   (`settled()`, camera chỉ chụp một ảnh mỗi lúc) rồi chụp ngay.
- * - Ảnh tạm không ghi ra file: ảnh camera giữ trong bộ nhớ (`pictureRef`), bản nhỏ chỉ ở dạng
- *   base64 (BR-14).
+ * Bấm chụp lúc đang kiểm tra: `cancel()` bỏ kết quả; nút chụp đợi lần chụp lặng xong (`settled()`)
+ * rồi chụp ngay.
  */
-import {
-  groupPeople,
-  labelRegions,
-  type Note,
-  photoFeatures,
-  type PhotoFeatures,
-  reviewPhoto,
-  type Scene,
-} from 'composition-critic';
+import { type Note, type PhotoFeatures, reviewPhoto, type Scene } from 'composition-critic';
 import type { CameraView } from 'expo-camera';
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { useEffect, useRef, useState } from 'react';
 
-import { type SkyPart, useSegmenter } from '@/engine/segmentation/SegmenterProvider';
-import { frameToPhotoCrop, type Rect } from '@/features/camera/frame';
-import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
+import type { Rect } from '@/features/camera/frame';
 import { haptic } from '@/lib/haptics';
 import { compositionUi } from '@/ui/tokens';
 
-import { sceneFor } from './scene';
+import { type SceneTechnique, sceneSuggestions } from './guidance';
 import type { TechniqueId } from './techniques';
+import { type Snapshot, useSnapshot } from './useSnapshot';
 
 export type CheckResult =
   | {
       kind: 'review';
-      technique: TechniqueId;
+      /** Bố cục được nhận xét (chính trước, rồi phụ); rỗng khi chỉ tìm bố cục phụ để gợi ý. */
+      techniques: TechniqueId[];
       features: PhotoFeatures;
-      /** Dòng chưa đạt đầu tiên (kỹ thuật trước dòng chung); null = mọi dòng đều đạt. */
+      /** Dòng chưa đạt đầu tiên; null = mọi dòng đều đạt. */
       note: Note | null;
       /** Chân trời, đường dẫn tìm được (vẽ lên khung ngắm); null khi trang không trả ảnh xám. */
       scene: Scene | null;
-      /** Thời gian dò đường trên máy (ms), để đo cổng Phase 5a (≤ 300 ms). */
+      /** Bố cục phụ cảnh này áp được mà chưa bật (gợi ý, Phase 5b). */
+      suggest: SceneTechnique[];
       sceneMs: number | null;
-      /** Model trời (chỉ để bản dev hiện, đo cổng Phase 5a). */
-      sky: Pick<SkyPart, 'skyMs' | 'skyLoadMs' | 'skyState' | 'skyError'>;
+      sky: Extract<Snapshot, { kind: 'ok' }>['sky'];
     }
   | { kind: 'none' }
   | { kind: 'error'; /** Lý do, chỉ bản dev hiện. */ message: string };
 
-/** Kỹ thuật có nút Kiểm tra bố cục (giống nhận xét sau khi chụp: lưới chỉ để căn khung). */
+/** Bố cục chính có nhận xét (giống nhận xét sau khi chụp: lưới chỉ để căn khung). */
 export const CHECKABLE = (t: TechniqueId) => t !== 'off' && t !== 'grid' && t !== 'grid4';
 
+/** Dòng chưa đạt đầu tiên của các bố cục (chính trước, phụ sau). */
+export function firstFailing(techniques: TechniqueId[], f: PhotoFeatures, scene: Scene | null) {
+  for (const t of techniques) {
+    const n = reviewPhoto(t, f, scene ?? undefined).notes.find((x) => !x.ok);
+    if (n) return n;
+  }
+  return null;
+}
+
 export function useLayoutCheck() {
-  const { analyzeSnapshot } = useSegmenter();
+  const snapshot = useSnapshot();
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<CheckResult | null>(null);
   /** Tăng mỗi lần bắt đầu / hủy: kết quả của lần cũ về muộn thì bỏ. */
   const token = useRef(0);
-  const capture = useRef<Promise<void> | null>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearHide = () => {
@@ -69,14 +65,22 @@ export function useLayoutCheck() {
   const show = (r: CheckResult) => {
     setResult(r);
     clearHide();
-    hideTimer.current = setTimeout(() => setResult(null), compositionUi.checkShowMs);
+    const ms =
+      r.kind === 'review' && r.suggest.length
+        ? compositionUi.suggestShowMs
+        : compositionUi.checkShowMs;
+    hideTimer.current = setTimeout(() => setResult(null), ms);
   };
 
   const run = async (
     cam: CameraView,
     frame: Rect,
     preview: { width: number; height: number },
-    technique: TechniqueId,
+    main: TechniqueId,
+    scene: SceneTechnique | null,
+    sky: boolean,
+    /** Gợi ý tự động (máy đứng yên): chỉ hiện khi có bố cục phụ để gợi ý, lỗi thì im lặng. */
+    auto = false,
   ) => {
     if (busy) return;
     const my = ++token.current;
@@ -84,80 +88,33 @@ export function useLayoutCheck() {
     setResult(null);
     clearHide();
     try {
-      const shot = cam.takePictureAsync({ pictureRef: true, shutterSound: false });
-      capture.current = shot.then(
-        () => undefined,
-        () => undefined,
-      );
-      const ref = await shot;
-      capture.current = null;
-      let base64: string;
-      try {
-        const c = frameToPhotoCrop(frame, preview.width, preview.height, ref.width, ref.height);
-        const side = compositionUi.checkSide;
-        const ctx = ImageManipulator.manipulate(ref).crop({
-          originX: c.x,
-          originY: c.y,
-          width: c.width,
-          height: c.height,
-        });
-        if (c.width >= c.height) ctx.resize({ width: Math.min(side, c.width) });
-        else ctx.resize({ height: Math.min(side, c.height) });
-        const img = await ctx.renderAsync();
-        const out = await img.saveAsync({ format: SaveFormat.JPEG, compress: 0.85, base64: true });
-        ctx.release();
-        img.release();
-        if (!out.base64) throw new Error('Không đọc được ảnh nhỏ');
-        base64 = out.base64;
-      } finally {
-        ref.release();
-      }
+      const s = await snapshot.take(cam, frame, preview, { sky });
       if (token.current !== my) return;
-
-      const a = await analyzeSnapshot(base64, compositionUi.checkGrid, {
-        sky: technique === 'horizon',
-      });
-      if (token.current !== my) return;
-      const { width, height, data } = a.grid;
-      const prob = new Float32Array(data.length);
-      for (let i = 0; i < data.length; i++) prob[i] = data[i]! / 255;
-      const people = groupPeople(labelRegions({ width, height, data: prob }), MIN_PERSON_RATIO);
-      if (!people.length) {
-        show({ kind: 'none' });
+      if (s.kind === 'none') {
+        if (!auto) show({ kind: 'none' });
         return;
       }
-      const features = photoFeatures({
-        width: a.width,
-        height: a.height,
-        gridW: width,
-        gridH: height,
-        people,
-        body: a.bodyPoints,
-        bodies: a.bodies,
-        faceEyes: a.faceEyes,
-      });
-      if (features.main < 0) {
-        show({ kind: 'none' });
-        return;
-      }
-      const found = sceneFor(a.gray, a.grid, features, a.sky);
-      const review = reviewPhoto(technique, features, found?.scene);
-      const failing = review.notes.find((n) => !n.ok) ?? null;
-      if (!failing) haptic.levelReached();
+      const techniques = [...(CHECKABLE(main) ? [main] : []), ...(scene ? [scene] : [])];
+      const note = techniques.length ? firstFailing(techniques, s.features, s.scene) : null;
+      const suggest = sceneSuggestions(s.features, s.scene, scene);
+      if (auto) {
+        if (!suggest.length) return;
+        haptic.select();
+      } else if (techniques.length && !note) haptic.levelReached();
       show({
         kind: 'review',
-        technique,
-        features,
-        note: failing,
-        scene: found?.scene ?? null,
-        sceneMs: found?.ms ?? null,
-        sky: { skyMs: a.skyMs, skyLoadMs: a.skyLoadMs, skyState: a.skyState, skyError: a.skyError },
+        techniques,
+        features: s.features,
+        note,
+        scene: s.scene,
+        suggest,
+        sceneMs: s.sceneMs,
+        sky: s.sky,
       });
     } catch (e) {
-      if (token.current === my)
+      if (token.current === my && !auto)
         show({ kind: 'error', message: e instanceof Error ? e.message : String(e) });
     } finally {
-      capture.current = null;
       if (token.current === my) setBusy(false);
     }
   };
@@ -170,8 +127,11 @@ export function useLayoutCheck() {
     setResult(null);
   };
 
-  /** Đợi lần chụp lặng (nếu có) xong để camera rảnh. */
-  const settled = () => capture.current ?? Promise.resolve();
+  /** Ẩn kết quả đang hiện (giữ lần kiểm tra đang chạy). */
+  const dismiss = () => {
+    clearHide();
+    setResult(null);
+  };
 
-  return { busy, result, run, cancel, settled };
+  return { busy, result, run, cancel, dismiss, settled: snapshot.settled };
 }

@@ -14,12 +14,18 @@ import { easeIO } from '@/ui/easing';
 import { t } from '@/ui/strings';
 import { color, compositionUi, motion, radius, size, space, type } from '@/ui/tokens';
 
+import { SCENE_TECHNIQUES } from './guidance';
 import { TechniqueIcon } from './TechniqueIcon';
 import { TECHNIQUES, type TechniqueId } from './techniques';
 
+const MAIN = TECHNIQUES.filter((k) => !SCENE_TECHNIQUES.includes(k));
+
 type Props = {
   open: boolean;
+  /** Bố cục chính đang chọn. */
   value: TechniqueId;
+  /** Bố cục phụ đang bật (Phase 5b). */
+  scene: TechniqueId | null;
   bottomInset: number;
   onChange: (t: TechniqueId) => void;
   onClose: () => void;
@@ -28,10 +34,19 @@ type Props = {
 };
 
 /**
- * Bảng Bố cục (design.md §6.15, bản A): kéo lên từ đáy, mỗi dòng một kỹ thuật. Chạm một dòng là
- * chọn và đóng; chạm ra ngoài hoặc nút đóng thì đóng.
+ * Bảng Bố cục (design.md §6.15, bản A): kéo lên từ đáy, mỗi dòng một kỹ thuật, chia hai nhóm
+ * (Phase 5b): bố cục chính (chọn một) và bố cục phụ theo cảnh (bật một hoặc không). Chạm một
+ * dòng là chọn (dòng phụ đang bật: bỏ) và đóng; chạm ra ngoài hoặc nút đóng thì đóng.
  */
-export function CompositionSheet({ open, value, bottomInset, onChange, onClose, onLearn }: Props) {
+export function CompositionSheet({
+  open,
+  value,
+  scene,
+  bottomInset,
+  onChange,
+  onClose,
+  onLearn,
+}: Props) {
   const reduceMotion = useReducedMotion();
   // Giữ bảng trong cây tới khi trượt xuống xong.
   const [mounted, setMounted] = useState(open);
@@ -92,35 +107,47 @@ export function CompositionSheet({ open, value, bottomInset, onChange, onClose, 
             <X size={size.iconSmall} strokeWidth={2.25} color={color.ink} />
           </PressableScale>
         </View>
-        <View accessibilityRole="radiogroup">
-          {TECHNIQUES.map((k) => {
-            const on = k === value;
-            return (
-              <Pressable
-                key={k}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: on }}
-                accessibilityLabel={t.composition.names[k]}
-                accessibilityHint={t.composition.subs[k]}
-                onPress={() => onChange(k)}
-                style={({ pressed }) => [styles.row, (on || pressed) && styles.rowOn]}
-              >
-                <View style={styles.icon}>
-                  <TechniqueIcon kind={k} />
-                </View>
-                <View style={styles.rowText}>
-                  <Text style={[type.label, styles.ink]} numberOfLines={1}>
-                    {t.composition.names[k]}
-                  </Text>
-                  <Text style={styles.sub} numberOfLines={1}>
-                    {t.composition.subs[k]}
-                  </Text>
-                </View>
-                {on && <Check size={size.icon} strokeWidth={2.5} color={color.accent} />}
-              </Pressable>
-            );
-          })}
-        </View>
+        {[
+          { title: t.composition.groupMain, keys: MAIN, on: (k: TechniqueId) => k === value },
+          {
+            title: t.composition.groupScene,
+            keys: SCENE_TECHNIQUES,
+            on: (k: TechniqueId) => k === scene,
+          },
+        ].map((g) => (
+          <View key={g.title} accessibilityRole="radiogroup">
+            <Text style={styles.group} accessibilityRole="header">
+              {g.title}
+            </Text>
+            {g.keys.map((k) => {
+              const on = g.on(k);
+              return (
+                <Pressable
+                  key={k}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: on }}
+                  accessibilityLabel={t.composition.names[k]}
+                  accessibilityHint={t.composition.subs[k]}
+                  onPress={() => onChange(k)}
+                  style={({ pressed }) => [styles.row, (on || pressed) && styles.rowOn]}
+                >
+                  <View style={styles.icon}>
+                    <TechniqueIcon kind={k} />
+                  </View>
+                  <View style={styles.rowText}>
+                    <Text style={[type.label, styles.ink]} numberOfLines={1}>
+                      {t.composition.names[k]}
+                    </Text>
+                    <Text style={styles.sub} numberOfLines={1}>
+                      {t.composition.subs[k]}
+                    </Text>
+                  </View>
+                  {on && <Check size={size.icon} strokeWidth={2.5} color={color.accent} />}
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
         {onLearn && (
           <PressableScale accessibilityRole="button" onPress={onLearn} style={styles.learn}>
             <Text style={[type.label, styles.accent]}>{t.composition.learn}</Text>
@@ -187,6 +214,14 @@ const styles = StyleSheet.create({
   },
   rowText: { flex: 1, gap: 2 },
   sub: { ...type.caption, fontFamily: type.hint.fontFamily, color: color.muted },
+  group: {
+    ...type.caption,
+    color: color.muted,
+    textTransform: 'uppercase',
+    paddingHorizontal: space[3],
+    paddingTop: space[2],
+    paddingBottom: space[1],
+  },
   ink: { color: color.ink },
   accent: { color: color.accent },
   learn: {

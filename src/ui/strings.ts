@@ -62,6 +62,9 @@ export const t = {
     turnOff: (name: string) => `Tắt bố cục ${name}`,
     turnedOff: 'Đã tắt bố cục',
     learn: 'Học các kỹ thuật',
+    /** Hai nhóm của bảng Bố cục (Phase 5b). */
+    groupMain: 'Bố cục chính',
+    groupScene: 'Bố cục phụ, theo cảnh',
     names: {
       off: 'Tắt',
       grid: 'Lưới 3×3',
@@ -103,6 +106,8 @@ export const t = {
       running: 'Đang kiểm tra bố cục',
       ok: (name: string) => `Đạt ${name}`,
       noPerson: 'Không thấy người, tiến lại gần hoặc zoom vào',
+      /** Kiểm tra khi chưa bật bố cục nào mà không thấy bố cục phụ (Phase 5b). */
+      noScene: 'Chưa thấy chân trời hay đường dẫn trong cảnh',
       failed: 'Chưa kiểm tra được, thử lại',
       /** Chỉ hiện trong bản dev: đo cổng Phase 5a. */
       devSceneMs: (ms: number) => `Dò đường ${ms} ms`,
@@ -123,6 +128,82 @@ export const t = {
       downloadSky: 'Tải bộ tìm trời',
       skipSky: 'Kiểm tra bố cục ngay',
       downloadSkyFailed: 'Chưa tải được bộ tìm trời. Kiểm tra mạng rồi thử lại.',
+    },
+    /**
+     * Hướng dẫn liên tục (Phase 5b, business-flow §6.10): mỗi câu là hành động + kết quả, không có
+     * số độ, số cm. Câu = `actions[thao tác]` + " " + `goals[tiêu chí]`.
+     */
+    guide: {
+      actions: {
+        panLeft: 'Xoay máy sang trái',
+        panRight: 'Xoay máy sang phải',
+        tiltUp: 'Ngửa máy lên',
+        tiltDown: 'Chúc máy xuống',
+        closer: 'Tiến lại gần',
+        back: 'Lùi ra',
+        stepLeft: 'Bước sang trái',
+        stepRight: 'Bước sang phải',
+        raise: 'Nâng máy lên',
+        lower: 'Hạ máy xuống',
+        rotateCw: 'Xoay máy theo chiều kim đồng hồ',
+        rotateCcw: 'Xoay máy ngược chiều kim đồng hồ',
+        find: 'Hướng máy về phía người',
+      },
+      goals: {
+        level: 'cho máy thẳng',
+        thirdsColumn: 'để đưa người vào cột 1/3',
+        thirdsEye: 'để đưa mắt lên đường 1/3',
+        noJointCut: 'để không cắt ngang tay chân',
+        centerAxis: 'để đưa người vào giữa',
+        centerEye: 'để đưa mắt lên chấm xanh',
+        fillSize: 'để người lấp đầy khung',
+        fillHead: 'để không cắt đỉnh đầu',
+        groupInFrame: 'để cả nhóm vào khung',
+        groupCenter: 'để nhóm vào giữa',
+        horizonThird: 'để chân trời nằm trên đường xanh',
+        horizonNeck: 'để chân trời không cắt cổ',
+        leadToPerson: 'để đường dẫn tới người',
+        leadThird: 'để đưa người vào cột 1/3',
+        person: 'để thấy lại người',
+        horizonSeen: 'để thấy lại chân trời',
+        leadSeen: 'để thấy lại đường dẫn',
+      },
+      /** Tiêu chí đã đạt / chưa đạt ở viên kết thúc. */
+      done: {
+        level: 'máy thẳng',
+        thirdsColumn: 'người trên cột 1/3',
+        thirdsEye: 'mắt trên đường 1/3',
+        noJointCut: 'không cắt ngang tay chân',
+        centerAxis: 'người ở giữa',
+        centerEye: 'mắt ở 1/3 trên',
+        fillSize: 'người lấp đầy khung',
+        fillHead: 'không cắt đỉnh đầu',
+        groupInFrame: 'cả nhóm trong khung',
+        groupCenter: 'nhóm ở giữa',
+        horizonThird: 'chân trời trên đường 1/3',
+        horizonNeck: 'chân trời không cắt cổ',
+        leadToPerson: 'đường dẫn tới người',
+        leadThird: 'người trên cột 1/3',
+        person: 'thấy người',
+        horizonSeen: 'thấy chân trời',
+        leadSeen: 'thấy đường dẫn',
+      },
+      reached: (names: string) => `Đạt ${names}`,
+      passed: (items: string) => `Đạt: ${items}`,
+      failed: (item: string) => `Chưa đạt: ${item}`,
+      missing: {
+        person: 'Cảnh này không thấy người',
+        horizon: 'Cảnh này không thấy đường chân trời',
+        lead: 'Cảnh này không thấy đường dẫn',
+        group: 'Cảnh này chưa thấy nhóm người',
+      },
+      stopped: 'Đã dừng hướng dẫn',
+      stop: 'Dừng hướng dẫn',
+      /** Gợi ý bố cục phụ (Kiểm tra bố cục, tự động khi máy đứng yên). */
+      sceneHas: 'Cảnh này có',
+      addScene: (name: string) => `Thêm ${name}`,
+      removeScene: (name: string) => `Bỏ ${name}`,
+      short: { horizon: 'Chân trời', lead: 'Đường dẫn' },
     },
     hints: {
       level: (deg: number) => `Máy nghiêng ${deg}°, xoay cho thẳng`,
@@ -212,7 +293,8 @@ export const t = {
         right: 'Chân trời thẳng, trên đường 1/3',
         what: 'Giữ máy thẳng để chân trời, mép nhà không nghiêng. Đặt chân trời lên một đường 1/3, không cắt qua cổ.',
         when: 'Ảnh có biển, cánh đồng, phố, tòa nhà.',
-        breakRule: 'Nghiêng hẳn từ 15° trở lên có chủ ý để ảnh động hơn; nghiêng nhẹ trông như lỗi.',
+        breakRule:
+          'Nghiêng hẳn từ 15° trở lên có chủ ý để ảnh động hơn; nghiêng nhẹ trông như lỗi.',
       },
       low: {
         name: 'Góc thấp, góc cao',
@@ -236,7 +318,8 @@ export const t = {
         right: 'Đứng xa, 2×',
         what: 'Đứng quá gần với ống góc rộng làm mặt méo, mũi to. Lùi ra và dùng 2× cho chân dung.',
         when: 'Chân dung cận mặt và nửa người.',
-        breakRule: 'Muốn lấy nhiều cảnh trong không gian hẹp: dùng 0,5× nhưng để người ở giữa khung.',
+        breakRule:
+          'Muốn lấy nhiều cảnh trong không gian hẹp: dùng 0,5× nhưng để người ở giữa khung.',
       },
       group: {
         name: 'Nhóm người',
@@ -260,7 +343,8 @@ export const t = {
         right: 'Cột ở bên cạnh',
         what: 'Nền phía sau gọn để người nổi lên: không có cột điện, thân cây, đường chân trời đi ngay sau đầu; nền khác tông với người (tóc tối trên nền sáng, áo sáng trên nền tối).',
         when: 'Mọi ảnh có cảnh phía sau. Bước sang trái hoặc phải một chút, hoặc đổi góc là đủ.',
-        breakRule: 'Vật mọc sau đầu thì không có lúc nào nên giữ. Nền rối có chủ ý chỉ khi kể về nơi chốn.',
+        breakRule:
+          'Vật mọc sau đầu thì không có lúc nào nên giữ. Nền rối có chủ ý chỉ khi kể về nơi chốn.',
       },
       frame: {
         name: 'Khung trong khung',
@@ -389,6 +473,9 @@ export const t = {
     saveReal: 'Lưu như thật',
     saveMirror: 'Lưu soi gương',
     haptics: 'Rung phản hồi',
+    groupComposition: 'Bố cục',
+    autoScene: 'Gợi ý bố cục phụ tự động',
+    autoSceneHint: 'Khi giữ máy yên, app tìm chân trời, đường dẫn trong cảnh',
     posePack: 'Bộ tách người',
     notDownloaded: 'Chưa tải',
     deletePack: 'Xóa bộ tách',

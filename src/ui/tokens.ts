@@ -346,6 +346,29 @@ export const compositionUi = {
   checkEye: 12,
   /** Nút Kiểm tra bố cục cách mép phải cụm zoom chừng này. */
   checkGap: 8,
+  /** Hướng dẫn liên tục (Phase 5b): nét đích sáng, chấm nhắc. */
+  focusStroke: 3,
+  remindDot: 6,
+  /** Sau lần nhắc thứ 5 còn chừng này (ms) rồi dừng (vòng quanh nút; khớp `GUIDE.graceMs`). */
+  guideGraceMs: 10000,
+  /** Mỗi lượt chụp lặng + phân tích cách nhau ít nhất chừng này (ms). */
+  guideIntervalMs: 1000,
+  /** Viên kết thúc (dừng giữa chừng, cảnh không áp được) hiện chừng này. */
+  guideEndMs: 3000,
+  /** Gợi ý bố cục phụ hiện chừng này rồi mờ đi. */
+  suggestShowMs: 8000,
+  /** Chip bố cục phụ cạnh nút Bố cục. */
+  sceneChipH: 32,
+  suggestChipH: 36,
+  /** Gợi ý tự động: máy đứng yên chừng này (ms), lệch dưới `autoStillDeg` độ. */
+  autoStillMs: 700,
+  autoStillDeg: 1.5,
+  /** Cảnh đã đổi: máy xoay hơn chừng này (độ) so với lần phân tích trước. */
+  autoTurnDeg: 15,
+  /** Hai lần phân tích tự động cách nhau ít nhất chừng này (ms). */
+  autoCooldownMs: 4000,
+  /** Máy dựng gần thẳng: ống kính lệch khỏi phương ngang không quá chừng này (độ). */
+  autoMaxPitch: 45,
 } as const;
 
 /** Vuốt từ mép trái để quay lại (màn mở kiểu fullScreenModal). */

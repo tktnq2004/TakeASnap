@@ -21,6 +21,7 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   type SharedValue,
+  useAnimatedProps,
   useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
@@ -29,6 +30,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Circle } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { downloadPack, isPackReady } from '@/engine/models/modelStore';
@@ -60,13 +62,27 @@ import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomChipsWidth, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CheckOverlay } from '@/features/composition/CheckOverlay';
+import {
+  GuideEndPill,
+  GuideOverlay,
+  SceneChip,
+  SceneSuggest,
+} from '@/features/composition/GuideOverlay';
+import {
+  type GuidePlan,
+  isGuidedMain,
+  isSceneTechnique,
+  type SceneTechnique,
+} from '@/features/composition/guidance';
 import { CompositionGuide } from '@/features/composition/CompositionGuide';
 import { CompositionHint, HintPill } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
 import type { Pt } from '@/features/composition/guides';
 import type { TechniqueId } from '@/features/composition/techniques';
 import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '@/features/composition/snap';
-import { CHECKABLE, useLayoutCheck } from '@/features/composition/useLayoutCheck';
+import { useAutoScene } from '@/features/composition/useAutoScene';
+import { useLayoutCheck } from '@/features/composition/useLayoutCheck';
+import { useLiveGuide } from '@/features/composition/useLiveGuide';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
 import { type Placement, useTransformGesture } from '@/gestures/useTransformGesture';
@@ -126,6 +142,7 @@ function CameraBody() {
 
   const flash = useCameraStore((s) => s.flash);
   const technique = useCameraStore((s) => s.technique);
+  const scene = useCameraStore((s) => s.scene);
   const levelOn = useCameraStore((s) => s.level);
   const timer = useCameraStore((s) => s.timer);
   const aspect = useCameraStore((s) => s.aspect);
@@ -133,6 +150,7 @@ function CameraBody() {
   const storedOpacity = useCameraStore((s) => s.opacity);
   const mirrored = useCameraStore((s) => s.mirrored);
   const frontMirror = useSettings((s) => s.frontMirror);
+  const autoScene = useSettings((s) => s.autoScene);
   const store = useCameraStore.getState;
 
   const [root, setRoot] = useState({ width: 0, height: 0 });
@@ -176,7 +194,8 @@ function CameraBody() {
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Kiểm tra bố cục (Phase 5a): chụp lặng một ảnh khi chạm, nhận xét trên khung ngắm.
   const check = useLayoutCheck();
-  const checkable = CHECKABLE(technique);
+  /** Kỹ thuật cho gợi ý cảm biến, dính pose: bố cục chính, chưa có thì bố cục phụ. */
+  const layerTechnique: TechniqueId = technique === 'off' && scene ? scene : technique;
 
   // ---- Bố cục (design.md §6.1): thanh trên, khung ngắm, zoom, hàng chụp ----
   const barTop = insets.top + space[2];
@@ -277,7 +296,7 @@ function CameraBody() {
 
   const snapPose = (p: Placement): Placement | null => {
     if (!poseEye || !poseBox) return null;
-    const targets = snapTargets(technique, frame);
+    const targets = snapTargets(layerTechnique, frame);
     if (targets.points.length === 0 && targets.v.length === 0) return null;
     const a = anchorOnFrame(poseEye, poseBox, p, mirrored);
     return snapPlacement(p, a, targets, compositionUi.snapPointRadius, compositionUi.snapRadius);
@@ -382,6 +401,7 @@ function CameraBody() {
   /** Đổi camera thật sự. Gọi qua `switchCamera` (đợi ảnh đang chụp xong, phiếu Phase 4 mục 15.8). */
   const flipCamera = () => {
     check.cancel();
+    guide.stop();
     // Camera đang dựng lại: không cho chụp tới khi báo sẵn sàng (có hạn chờ phòng khi không báo).
     readyRef.current = false;
     setReady(false);
@@ -439,6 +459,8 @@ function CameraBody() {
       { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
       { width: preview.width, height: preview.height },
       technique,
+      scene,
+      isPackReady(SKY_PACK),
     );
   };
 
@@ -462,7 +484,7 @@ function CameraBody() {
    * kiểm tra ngay chỉ bằng đường thẳng.
    */
   const checkWithSky = () => {
-    if (technique !== 'horizon' || isPackReady(SKY_PACK)) {
+    if (scene !== 'horizon' || isPackReady(SKY_PACK)) {
       startCheck();
       return;
     }
@@ -474,6 +496,12 @@ function CameraBody() {
   };
 
   const onCheck = () => {
+    // Đang hướng dẫn liên tục: nút là nút dừng (design.md §6.15).
+    if (guide.active) {
+      guide.stop(true);
+      haptic.snap();
+      return;
+    }
     if (check.busy || downloading) return;
     if (isPackReady(POSE_PACK)) {
       checkWithSky();
@@ -486,6 +514,81 @@ function CameraBody() {
       { text: c.download, onPress: () => fetchPack(POSE_PACK, c.downloadFailed, checkWithSky) },
     ]);
   };
+
+  // ---- Hướng dẫn liên tục (Phase 5b, business-flow §6.10) ----
+  const guide = useLiveGuide(() => {
+    const b = burst.current;
+    return {
+      cam: cameraRef.current,
+      free: readyRef.current && !b.capturing && !b.switchPending && countdownRef.current == null,
+      frame: { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
+      preview: { width: preview.width, height: preview.height },
+      front: facing === 'front',
+      flip: facing === 'front' && !frontMirror,
+      sky: isPackReady(SKY_PACK),
+    };
+  });
+  const countdownRef = useRef<number | null>(null);
+  useEffect(() => {
+    countdownRef.current = countdown;
+  }, [countdown]);
+
+  /** Bắt đầu (hoặc dừng) hướng dẫn cho bố cục vừa chọn. Chưa có bộ tách người: chỉ lớp kẻ. */
+  const guideFor = (main: TechniqueId, sc: SceneTechnique | null) => {
+    const plan: GuidePlan = { main: isGuidedMain(main) ? main : null, scene: sc };
+    if ((!plan.main && !plan.scene) || !isPackReady(POSE_PACK)) {
+      guide.stop();
+      return;
+    }
+    check.cancel();
+    guide.start(plan);
+  };
+
+  /** Chạm chip gợi ý: thêm bố cục phụ và bắt đầu hướng dẫn. */
+  const pickScene = (sc: SceneTechnique) => {
+    haptic.select();
+    store().setScene(sc);
+    guideFor(technique, sc);
+  };
+
+  // Rời Camera: dừng hướng dẫn (bản mới nhất của stop qua ref).
+  const stopGuideRef = useRef(guide.stop);
+  useEffect(() => {
+    stopGuideRef.current = guide.stop;
+  });
+  useFocusEffect(useCallback(() => () => stopGuideRef.current(), []));
+
+  // Gợi ý bố cục phụ tự động khi máy đứng yên (Cài đặt, mặc định tắt).
+  useAutoScene({
+    enabled: autoScene && isPackReady(POSE_PACK),
+    front: facing === 'front',
+    allowed: () => {
+      const b = burst.current;
+      return (
+        readyRef.current &&
+        !guide.active &&
+        !check.busy &&
+        !check.result &&
+        !compositionOpen &&
+        !b.capturing &&
+        !b.saving &&
+        countdownRef.current == null
+      );
+    },
+    onTrigger: () => {
+      const cam = cameraRef.current;
+      if (!cam) return;
+      check.run(
+        cam,
+        { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
+        { width: preview.width, height: preview.height },
+        technique,
+        scene,
+        isPackReady(SKY_PACK),
+        true,
+      );
+    },
+  });
 
   // ---- Chụp ----
   const flashOpacity = useSharedValue(0);
@@ -538,6 +641,7 @@ function CameraBody() {
       frame: Rect;
       preview: { width: number; height: number };
       technique: TechniqueId;
+      scene: SceneTechnique | null;
     }[],
     saving: false,
     /** Ảnh mới nhất đã lưu trong đợt chụp này, sẽ bay vào ô. */
@@ -578,7 +682,9 @@ function CameraBody() {
         const out = await cropToFrame(job.pic, job.frame, job.preview);
         if (out.uri !== job.pic.uri) deleteTemp(job.pic.uri);
         const assetId = await saveToAlbum(out.uri);
-        useSessionPhotos.getState().add({ ...out, assetId, technique: job.technique });
+        useSessionPhotos
+          .getState()
+          .add({ ...out, assetId, technique: job.technique, scene: job.scene });
         b.last = out.uri;
       } catch (e) {
         if (e instanceof PhotoPermissionError) {
@@ -605,6 +711,7 @@ function CameraBody() {
     for (;;) {
       // Camera chỉ chụp một ảnh mỗi lúc: đợi lần chụp lặng của Kiểm tra bố cục (nếu có).
       await check.settled();
+      await guide.settled();
       const cam = cameraRef.current;
       if (!cam || !readyRef.current || b.switchPending) break;
       haptic.capture();
@@ -622,6 +729,7 @@ function CameraBody() {
           preview: { width: preview.width, height: preview.height },
           // Kỹ thuật lúc bấm, không phải lúc lưu xong (chụp liên tục rồi đổi kỹ thuật).
           technique: useCameraStore.getState().technique,
+          scene: useCameraStore.getState().scene,
         });
         saveQueue();
       } catch {
@@ -714,6 +822,8 @@ function CameraBody() {
 
   // ---- Giao diện ----
   const frameBox = { left: frame.x, top: frame.y, width: frame.width, height: frame.height };
+  /** Đáy viên gợi ý không xuống dưới mép trên cụm zoom. */
+  const hintBottom = root.height - zoomBottom - zoomControlHeight - space[2];
 
   return (
     <View
@@ -740,7 +850,13 @@ function CameraBody() {
       {root.height > 0 && (
         <>
           <FrameMask frame={frame} root={root} />
-          <CompositionGuide frame={frame} technique={technique} anchor={anchorN} />
+          <CompositionGuide
+            frame={frame}
+            technique={technique}
+            scene={scene}
+            anchor={anchorN}
+            focus={guide.view?.state.current?.target ?? null}
+          />
           {levelOn && <LevelGuide frame={frame} />}
 
           {/* Vùng nhận cử chỉ phủ cả màn hình, nằm dưới các nút. Pose là lớp trên cùng của
@@ -777,27 +893,47 @@ function CameraBody() {
             </View>
           )}
 
-          {check.result && checkable ? (
+          {guide.view ? (
+            <GuideOverlay frame={frame} view={guide.view} maxBottom={hintBottom} />
+          ) : guide.end ? (
+            <GuideEndPill frame={frame} end={guide.end} maxBottom={hintBottom} />
+          ) : check.result ? (
             <CheckOverlay
               frame={frame}
               result={check.result}
               flip={facing === 'front' && !frontMirror}
-              maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
+              maxBottom={hintBottom}
             />
           ) : (
             <CompositionHint
               frame={frame}
-              technique={technique}
+              technique={layerTechnique}
               front={facing === 'front'}
-              maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
+              maxBottom={hintBottom}
             />
           )}
-          {offNotice && technique === 'off' && (
-            <HintPill
+          {!guide.active && check.result?.kind === 'review' && check.result.suggest.length > 0 && (
+            <SceneSuggest
               frame={frame}
-              maxBottom={root.height - zoomBottom - zoomControlHeight - space[2]}
-              text={t.composition.turnedOff}
+              maxBottom={hintBottom}
+              items={check.result.suggest}
+              onPick={pickScene}
             />
+          )}
+          {scene && (
+            <View style={[styles.sceneChip, { top: barTop + TOP_BAR_H + space[2] }]}>
+              <SceneChip
+                scene={scene}
+                onRemove={() => {
+                  haptic.snap();
+                  store().setScene(null);
+                  if (guide.active) guideFor(technique, null);
+                }}
+              />
+            </View>
+          )}
+          {offNotice && technique === 'off' && !scene && (
+            <HintPill frame={frame} maxBottom={hintBottom} text={t.composition.turnedOff} />
           )}
 
           {/* Cột công cụ pose: dọc, kéo được, nằm trong khung ngắm (design.md §6.1). */}
@@ -838,8 +974,9 @@ function CameraBody() {
         <ZoomControl factor={factor} settle={settle} min={zoomMin} expanded={zoomOpen} />
       </Animated.View>
 
-      {/* Kiểm tra bố cục: ngay bên phải cụm zoom, chỉ khi đang bật một kỹ thuật (Phase 5a). */}
-      {checkable && (
+      {/* Kiểm tra bố cục: ngay bên phải cụm zoom (Phase 5a); từ Phase 5b hiện cả khi Tắt / Lưới
+          để tìm bố cục phụ, và là nút dừng khi đang hướng dẫn liên tục. */}
+      {
         <Animated.View
           pointerEvents="box-none"
           style={[
@@ -853,20 +990,31 @@ function CameraBody() {
         >
           <PressableScale
             accessibilityRole="button"
-            accessibilityLabel={check.busy ? t.composition.check.running : t.composition.check.button}
+            accessibilityLabel={
+              guide.active
+                ? t.composition.guide.stop
+                : check.busy
+                  ? t.composition.check.running
+                  : t.composition.check.button
+            }
             accessibilityState={{ busy: check.busy || downloading }}
             hitSlop={4}
             onPress={onCheck}
-            style={styles.check}
+            style={[styles.check, guide.active && styles.checkOn]}
           >
-            {check.busy || downloading ? (
+            {guide.view?.state.deadline != null && (
+              <GraceRing deadline={guide.view.state.deadline} />
+            )}
+            {guide.active ? (
+              <ScanSearch size={size.icon} strokeWidth={2} color={color.accentInk} />
+            ) : check.busy || downloading ? (
               <ActivityIndicator size="small" color={color.camInk} />
             ) : (
               <ScanSearch size={size.icon} strokeWidth={2} color={color.camInk} />
             )}
           </PressableScale>
         </Animated.View>
-      )}
+      }
 
       {flying && (
         <Animated.Image
@@ -925,8 +1073,9 @@ function CameraBody() {
           setToolsOpen(false);
           check.cancel();
           // Đang bật: chạm là tắt nhanh; đang tắt: mở bảng chọn (phiếu Phase 5 lần 7).
-          if (technique !== 'off') {
-            store().setTechnique('off');
+          if (technique !== 'off' || scene) {
+            store().clearComposition();
+            guide.stop();
             haptic.snap();
             showOffNotice();
           } else {
@@ -938,11 +1087,20 @@ function CameraBody() {
       <CompositionSheet
         open={compositionOpen}
         value={technique}
+        scene={scene}
         bottomInset={insets.bottom}
         onChange={(k) => {
           check.cancel();
-          store().setTechnique(k);
           setCompositionOpen(false);
+          // Dòng bố cục phụ đang bật: chạm lại để bỏ (Phase 5b).
+          if (isSceneTechnique(k)) {
+            const next = scene === k ? null : k;
+            store().setScene(next);
+            guideFor(technique, next);
+          } else {
+            store().setTechnique(k);
+            guideFor(k, scene);
+          }
         }}
         onClose={() => setCompositionOpen(false)}
         onLearn={() => {
@@ -976,6 +1134,40 @@ function FrameMask({ frame, root }: { frame: Rect; root: { width: number; height
         },
       ]}
     />
+  );
+}
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const RING = size.iconButton + 6;
+const RING_R = (RING - 2) / 2;
+const RING_C = 2 * Math.PI * RING_R;
+
+/**
+ * Vòng quanh nút Kiểm tra bố cục trong 10 s cuối (sau lần nhắc thứ 5, design.md §6.15): giảm dần
+ * tới lúc hướng dẫn dừng.
+ */
+function GraceRing({ deadline }: { deadline: number }) {
+  const p = useSharedValue(1);
+  useEffect(() => {
+    const left = Math.max(0, deadline - Date.now());
+    p.set(Math.min(1, left / compositionUi.guideGraceMs));
+    p.set(withTiming(0, { duration: left }));
+  }, [deadline, p]);
+  const props = useAnimatedProps(() => ({ strokeDashoffset: RING_C * (1 - p.get()) }));
+  return (
+    <Svg width={RING} height={RING} style={styles.ring} pointerEvents="none">
+      <AnimatedCircle
+        cx={RING / 2}
+        cy={RING / 2}
+        r={RING_R}
+        stroke={color.camInk}
+        strokeWidth={2}
+        fill="none"
+        strokeDasharray={[RING_C, RING_C]}
+        animatedProps={props}
+        transform={`rotate(-90 ${RING / 2} ${RING / 2})`}
+      />
+    </Svg>
   );
 }
 
@@ -1023,6 +1215,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  checkOn: { backgroundColor: color.camAccent },
+  ring: { position: 'absolute', left: -3, top: -3 },
+  sceneChip: { position: 'absolute', left: SIDE },
   shutterRow: {
     position: 'absolute',
     left: SIDE,

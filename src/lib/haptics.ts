@@ -27,4 +27,6 @@ export const haptic = {
   /** Giữ ô pose mở menu. */
   menu: () => safe(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)),
   saved: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)),
+  /** Hướng dẫn liên tục (Phase 5b): nhắc lại khi không tiến bộ. */
+  remind: () => safe(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)),
 };
