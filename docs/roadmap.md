@@ -177,7 +177,7 @@ Cách `WebViewSegmenter` chạy:
 | Gói | Gồm | Dung lượng | Tải khi |
 |---|---|---|---|
 | `pose` | Multiclass 15.6 MB + FaceLandmarker 3.6 MB + PoseLandmarker full 9.0 MB + MediaPipe wasm 12.9 MB + JS | ~42 MB | Tạo pose lần đầu, hoặc gợi ý bố cục cần phân tích người lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
-| `composition` (Phase 5b) | Model tự chọn kỹ thuật bố cục (TFLite có metadata, tự huấn luyện) | ~5 MB | Dùng "Tự chọn" lần đầu; chạy bằng MediaPipe wasm của gói `pose` |
+| `composition` (Phase 5b) | Model tự chọn kỹ thuật bố cục (TFLite có metadata, tự huấn luyện) | ~5 MB | Chỉ khi cần model lọc gợi ý bố cục phụ (Phase 5b, đổi hướng 2026-11-23); chạy bằng MediaPipe wasm của gói `pose` |
 
 - Tải từ **CDN gốc** với phiên bản cố định: jsDelivr (MediaPipe), Google Storage (Multiclass, FaceLandmarker, PoseLandmarker). Chưa làm bản sao trên GitHub Releases; nếu CDN gốc gặp sự cố thì thêm sau, chỉ phải đổi URL.
 - Model tự huấn luyện (gói `composition`, Phase 5b) không có CDN gốc: đặt ở **GitHub Releases** của repo, tag cố định (ví dụ `composition-v1`), không commit file model vào repo.
@@ -578,13 +578,15 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 - [x] Người dùng gán mù bộ đo cổng (300 ảnh, 213 ảnh tính cổng); mốc: hằng số 44%, luật 67%, model vòng 2 70%, người thứ hai 82%
 - [x] Mốc so sánh, huấn luyện gợi ý 2 kỹ thuật, đo cổng: **73,2%, không đạt** (cổng 75%; luật 67,1%, người thứ hai 82,4%)
 
-**Triển khai thử nghiệm (người dùng quyết định 2026-11-23, dù trượt cổng 1,8 điểm).** Luồng ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b), giao diện ở [design §6.15](design.md). Model là bản 7 lớp học cả hai nhãn (`technique-model-r3-7-soft`); chỉ gợi ý kỹ thuật (bỏ "Khác"): 84,8% trên 171 ảnh người dùng thấy có kỹ thuật hợp. Hướng dẫn liên tục có giới hạn mở lại một phần quyết định "không theo dõi liên tục" của Phase 5 Bước 3: chạy tới khi đạt, người dùng dừng hoặc hết giới hạn (mặc định 15 giây).
-- [ ] Repo công khai riêng chứa phần đầu model (GitHub Releases, tag ghim), file JSON rút gọn
-- [ ] composition-critic: 7 lớp kỹ thuật, tag mới; app trỏ tag đó
-- [ ] Gói "Bộ gợi ý kỹ thuật" (vector ảnh MobileNetV3 small từ CDN gốc của Google + phần đầu model), tải lần đầu dùng, xóa được trong Cài đặt
-- [ ] Kiểm tra bố cục: gợi ý 2 kỹ thuật, nút hiện cả khi Tắt / Lưới
-- [ ] Hướng dẫn liên tục có giới hạn (theo giây / số ảnh) + nhóm Cài đặt
-- [ ] Đo thời gian đoán và độ nóng trên iPhone, Android; phiếu `phase5b-test.md`
+**Triển khai thử nghiệm (người dùng quyết định 2026-11-23, dù trượt cổng 1,8 điểm), rồi đổi hướng cùng ngày.** Bàn tiếp với người dùng: gợi ý 1/3, Ở giữa, Lấp đầy không giúp nhiều (một phần là sở thích); cái cần là nhận ra cảnh có gì (chân trời, đường dẫn) và chỉ cách di chuyển máy. Nên chia **bố cục chính** (người dùng tự chọn) và **bố cục phụ** (app nhìn cảnh và gợi ý), bật cùng lúc; mọi bố cục có **hướng dẫn liên tục** theo tiêu chí có thứ tự, dừng khi đạt hoặc sau 5 lần nhắc không tiến bộ + 10 s. Luồng ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b), giao diện ở [design §6.15](design.md). Model 7 lớp vòng 3 chỉ dùng nếu bộ dò Phase 5a gợi ý sai nhiều.
+- [x] Chốt bố cục chính / phụ, hướng dẫn liên tục, điều kiện dừng (tài liệu)
+- [ ] Đo bộ dò chân trời, đường dẫn trên 213 ảnh bộ đo cổng: khi bộ dò nói "có", người dùng có gán vậy không; quyết có cần model lọc
+- [ ] Bộ hướng dẫn: tiêu chí theo thứ tự cho từng bố cục, câu "hành động + kết quả", luật nhắc (không tiến bộ, 5 lần + 10 s); dữ liệu thuần, test Jest
+- [ ] Camera: hướng dẫn liên tục ~1 lần / giây, đích sáng, chấm nhắc, viên kết thúc
+- [ ] Bật một bố cục chính + một bố cục phụ (bảng Bố cục hai nhóm, chip bố cục phụ, nhận xét sau khi chụp chấm cả hai)
+- [ ] Gợi ý bố cục phụ: từ Kiểm tra bố cục (nút hiện cả khi Tắt / Lưới) và tự động khi máy đứng yên (Cài đặt, mặc định tắt)
+- [ ] (Chỉ khi cần) model lọc: repo công khai chứa phần đầu model, composition-critic 7 lớp, gói tải
+- [ ] Đo thời gian mỗi lượt, độ nóng, pin trên iPhone, Android; phiếu `phase5b-test.md`
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
 
