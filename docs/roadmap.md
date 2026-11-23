@@ -177,7 +177,6 @@ Cách `WebViewSegmenter` chạy:
 | Gói | Gồm | Dung lượng | Tải khi |
 |---|---|---|---|
 | `pose` | Multiclass 15.6 MB + FaceLandmarker 3.6 MB + PoseLandmarker full 9.0 MB + MediaPipe wasm 12.9 MB + JS | ~42 MB | Tạo pose lần đầu, hoặc gợi ý bố cục cần phân tích người lần đầu (pose mẫu đã tách sẵn, không cần gói này) |
-| `composition` (Phase 5b) | Model tự chọn kỹ thuật bố cục (TFLite có metadata, tự huấn luyện) | ~5 MB | Chỉ khi cần model lọc gợi ý bố cục phụ (Phase 5b, đổi hướng 2026-11-23); chạy bằng MediaPipe wasm của gói `pose` |
 
 - Tải từ **CDN gốc** với phiên bản cố định: jsDelivr (MediaPipe), Google Storage (Multiclass, FaceLandmarker, PoseLandmarker). Chưa làm bản sao trên GitHub Releases; nếu CDN gốc gặp sự cố thì thêm sau, chỉ phải đổi URL.
 - Model tự huấn luyện (gói `composition`, Phase 5b) không có CDN gốc: đặt ở **GitHub Releases** của repo, tag cố định (ví dụ `composition-v1`), không commit file model vào repo.
@@ -578,16 +577,13 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 - [x] Người dùng gán mù bộ đo cổng (300 ảnh, 213 ảnh tính cổng); mốc: hằng số 44%, luật 67%, model vòng 2 70%, người thứ hai 82%
 - [x] Mốc so sánh, huấn luyện gợi ý 2 kỹ thuật, đo cổng: **73,2%, không đạt** (cổng 75%; luật 67,1%, người thứ hai 82,4%)
 
-**Triển khai thử nghiệm (người dùng quyết định 2026-11-23, dù trượt cổng 1,8 điểm), rồi đổi hướng cùng ngày.** Bàn tiếp với người dùng: gợi ý 1/3, Ở giữa, Lấp đầy không giúp nhiều (một phần là sở thích); cái cần là nhận ra cảnh có gì (chân trời, đường dẫn) và chỉ cách di chuyển máy. Nên chia **bố cục chính** (người dùng tự chọn) và **bố cục phụ** (app nhìn cảnh và gợi ý), bật cùng lúc; mọi bố cục có **hướng dẫn liên tục** theo tiêu chí có thứ tự, dừng khi đạt hoặc sau 5 lần nhắc không tiến bộ + 10 s. Luồng ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b), giao diện ở [design §6.15](design.md). Model 7 lớp vòng 3 chỉ dùng nếu bộ dò Phase 5a gợi ý sai nhiều.
+**Triển khai thử nghiệm (người dùng quyết định 2026-11-23, dù trượt cổng 1,8 điểm), rồi đổi hướng cùng ngày.** Bàn tiếp với người dùng: gợi ý 1/3, Ở giữa, Lấp đầy không giúp nhiều (một phần là sở thích); cái cần là nhận ra cảnh có gì (chân trời, đường dẫn) và chỉ cách di chuyển máy. Nên chia **bố cục chính** (người dùng tự chọn) và **bố cục phụ** (dựa vào cảnh), bật cùng lúc; mọi bố cục có **hướng dẫn liên tục** theo tiêu chí có thứ tự, dừng khi đạt hoặc sau 5 lần nhắc không tiến bộ + 10 s. Luồng ở [business-flow §6.10](business-flow.md#610-tự-chọn-kỹ-thuật-bằng-model-riêng-phase-5b), giao diện ở [design §6.15](design.md). Ban đầu bố cục phụ do app nhìn cảnh và gợi ý; sau khi đo bộ dò thì bỏ phần gợi ý (dòng dưới), người dùng tự chọn cả hai loại.
 - [x] Chốt bố cục chính / phụ, hướng dẫn liên tục, điều kiện dừng (tài liệu)
-- [x] Đo bộ dò chân trời, đường dẫn trên 213 ảnh bộ đo cổng (`scripts/p5b-detectors.mts`): bộ dò một mình quá nhiễu (chân trời ~25% đúng, đường dẫn ~9%); bộ dò + model lọc: chân trời ~60% đúng, bắt được 72%. Người dùng chốt: chân trời gợi ý bằng bộ dò + model, đường dẫn không gợi ý
+- [x] Đo bộ dò chân trời, đường dẫn trên 213 ảnh bộ đo cổng (`scripts/p5b-detectors.mts`): bộ dò một mình quá nhiễu (chân trời ~25% đúng, đường dẫn ~9%); bộ dò + model lọc: chân trời ~60% đúng, bắt được 72%. Chỉ còn gợi ý được Đường chân trời, phải thêm gói ~4,4 MB, repo model công khai và chế độ tự gợi ý: người dùng chốt **bỏ gợi ý bố cục phụ**, làm lại khi có bộ dò tốt hơn (đã gỡ code gợi ý, model lọc, gói, Cài đặt)
 - [x] Bộ hướng dẫn: tiêu chí theo thứ tự cho từng bố cục, câu "hành động + kết quả", luật nhắc (không tiến bộ trong mỗi 2 s, 5 lần + 10 s); dữ liệu thuần, test Jest (`guidance.ts`)
 - [x] Camera: hướng dẫn liên tục ~1 lần / giây, đích sáng, chấm nhắc, vòng 10 s cuối, viên kết thúc
 - [x] Bật một bố cục chính + một bố cục phụ (bảng Bố cục hai nhóm, chip bố cục phụ, nhận xét sau khi chụp chấm cả hai)
-- [x] Gợi ý bố cục phụ: từ Kiểm tra bố cục (nút hiện cả khi Tắt / Lưới) và tự động khi máy đứng yên (Cài đặt, mặc định tắt)
 - [x] composition-critic v0.5.0: 7 lớp kỹ thuật; app trỏ tag đó
-- [x] Gói "Bộ gợi ý bố cục phụ" (vector ảnh từ CDN Google + phần đầu model rút gọn 312 KB, `scripts/p5b-export-head.mts`), tải lần đầu, xóa được trong Cài đặt
-- [ ] Repo model công khai (GitHub Releases, tag `technique-r3-1`) chứa `technique-head.json`
 - [ ] Đo thời gian mỗi lượt, độ nóng, pin trên iPhone, Android; phiếu `phase5b-test.md`
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)

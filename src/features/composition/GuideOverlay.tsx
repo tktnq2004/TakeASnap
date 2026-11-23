@@ -1,7 +1,7 @@
 /**
  * Hướng dẫn liên tục trên khung ngắm (Phase 5b, design.md §6.15): khung người, chấm mắt, đường
  * tìm được của lượt gần nhất (giữ tới khi có lượt mới, không nháy), viên "hành động + kết quả"
- * kèm icon của thao tác và chấm nhắc; viên kết thúc; hàng gợi ý bố cục phụ.
+ * kèm icon của thao tác và chấm nhắc; viên kết thúc; chip bố cục phụ đang bật.
  */
 import {
   ArrowDown,
@@ -13,7 +13,6 @@ import {
   ChevronsUp,
   Footprints,
   type LucideIcon,
-  Plus,
   RotateCcw,
   RotateCw,
   ScanSearch,
@@ -184,44 +183,6 @@ export function GuideEndPill({
   );
 }
 
-/** Hàng gợi ý bố cục phụ: "Cảnh này có" + chip, chạm để thêm và bắt đầu hướng dẫn. */
-export function SceneSuggest({
-  frame,
-  maxBottom,
-  items,
-  onPick,
-}: {
-  frame: Rect;
-  maxBottom: number;
-  items: SceneTechnique[];
-  onPick: (s: SceneTechnique) => void;
-}) {
-  const top = hintTop(frame, maxBottom) - compositionUi.suggestChipH - space[2];
-  return (
-    <Animated.View
-      entering={FadeIn.duration(motion.in).easing(ease)}
-      exiting={FadeOut.duration(motion.out).easing(ease)}
-      pointerEvents="box-none"
-      style={[styles.suggest, { top }]}
-    >
-      <Text style={styles.suggestLabel}>{t.composition.guide.sceneHas}</Text>
-      {items.map((s) => (
-        <Pressable
-          key={s}
-          accessibilityRole="button"
-          accessibilityLabel={t.composition.guide.addScene(t.composition.names[s])}
-          onPress={() => onPick(s)}
-          style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
-        >
-          <Plus size={size.iconSmall} strokeWidth={2.5} color={color.camInk} />
-          <TechniqueIcon kind={s} width={14} height={18} ink={color.camInk} accent={color.camInk} />
-          <Text style={styles.chipText}>{t.composition.names[s]}</Text>
-        </Pressable>
-      ))}
-    </Animated.View>
-  );
-}
-
 /** Chip bố cục phụ đang bật, cạnh nút Bố cục; chạm để bỏ. */
 export function SceneChip({ scene, onRemove }: { scene: SceneTechnique; onRemove: () => void }) {
   return (
@@ -283,27 +244,6 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   dotOn: { opacity: 1 },
-  suggest: {
-    position: 'absolute',
-    left: space[4],
-    right: space[4],
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: space[2],
-  },
-  suggestLabel: { ...type.caption, color: color.camInk },
-  chip: {
-    height: compositionUi.suggestChipH,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[1],
-    paddingHorizontal: space[3],
-    borderRadius: compositionUi.suggestChipH / 2,
-    backgroundColor: color.camGlass,
-  },
-  chipText: { ...type.label, fontSize: 14, color: color.camInk },
   sceneChip: {
     height: compositionUi.sceneChipH,
     flexDirection: 'row',

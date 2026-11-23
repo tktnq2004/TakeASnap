@@ -147,14 +147,6 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
       timings: SegmentTimings;
     };
 
-  /** Vector đặc trưng ảnh (MobileNetV3 small, chuẩn hóa L2) cho model gợi ý bố cục phụ (Phase 5b). */
-  const embed = async (base64: string) =>
-    (await request({ type: 'embed', base64 })) as unknown as {
-      embedding: number[];
-      loadMs: number;
-      ms: number;
-    };
-
   const request = (payload: Record<string, unknown>) =>
     new Promise<OkMessage>((resolve, reject) => {
       const id = nextId.current++;
@@ -190,7 +182,6 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
     element,
     run,
     landmarks,
-    embed,
     sendAsset,
     generation: () => generation.current,
     ready: info !== null,

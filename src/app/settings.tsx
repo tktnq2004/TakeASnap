@@ -7,7 +7,7 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, View } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deletePack, packDiskBytes } from '@/engine/models/modelStore';
-import { POSE_PACK, TECHNIQUE_PACK } from '@/engine/models/packs';
+import { POSE_PACK } from '@/engine/models/packs';
 import { useSettings } from '@/features/settings/settingsStore';
 import { useGoBack } from '@/lib/useGoBack';
 import { Button, CloseButton, OverlayHeader, Segmented, Toggle } from '@/ui/components';
@@ -30,10 +30,8 @@ export default function SettingsScreen() {
   const goBack = useGoBack();
   const frontMirror = useSettings((s) => s.frontMirror);
   const haptics = useSettings((s) => s.haptics);
-  const autoScene = useSettings((s) => s.autoScene);
   const store = useSettings.getState;
   const [poseBytes, setPoseBytes] = useState(() => packDiskBytes(POSE_PACK));
-  const [sceneBytes, setSceneBytes] = useState(() => packDiskBytes(TECHNIQUE_PACK));
   const top = Platform.OS === 'ios' ? space[5] : insets.top + space[3];
 
   const removePosePack = () =>
@@ -45,19 +43,6 @@ export default function SettingsScreen() {
         onPress: () => {
           deletePack(POSE_PACK);
           setPoseBytes(packDiskBytes(POSE_PACK));
-        },
-      },
-    ]);
-
-  const removeScenePack = () =>
-    Alert.alert(t.settings.deleteScenePack, t.settings.deleteScenePackConfirm, [
-      { text: t.common.cancel, style: 'cancel' },
-      {
-        text: t.settings.deleteScenePack,
-        style: 'destructive',
-        onPress: () => {
-          deletePack(TECHNIQUE_PACK);
-          setSceneBytes(packDiskBytes(TECHNIQUE_PACK));
         },
       },
     ]);
@@ -86,16 +71,6 @@ export default function SettingsScreen() {
           </Row>
         </Group>
 
-        <Group title={t.settings.groupComposition}>
-          <Row label={t.settings.autoScene} detail={t.settings.autoSceneHint}>
-            <Toggle
-              value={autoScene}
-              onChange={store().setAutoScene}
-              label={t.settings.autoScene}
-            />
-          </Row>
-        </Group>
-
         <Group title={t.settings.groupStorage}>
           <Row
             label={t.settings.posePack}
@@ -107,20 +82,6 @@ export default function SettingsScreen() {
                 variant="dangerText"
                 small
                 onPress={removePosePack}
-              />
-            )}
-          </Row>
-          <Line />
-          <Row
-            label={t.settings.scenePack}
-            detail={sceneBytes > 0 ? mb(sceneBytes) : t.settings.notDownloaded}
-          >
-            {sceneBytes > 0 && (
-              <Button
-                label={t.settings.deleteScenePack}
-                variant="dangerText"
-                small
-                onPress={removeScenePack}
               />
             )}
           </Row>

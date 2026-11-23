@@ -10,11 +10,9 @@ import {
   initialGuide,
   type Measure,
   measure,
-  sceneSuggestions,
   step,
 } from '../guidance';
 import { combinedShape } from '../guides';
-import { type AutoState, autoStep } from '../autoScene';
 
 /** Một người, khung [x0, y0, x1, y1], mắt tuỳ chọn. */
 const person = (
@@ -222,63 +220,5 @@ describe('combinedShape: lớp kẻ bố cục chính + phụ', () => {
 
   it('chỉ bố cục phụ (chính Tắt) vẫn vẽ', () => {
     expect(combinedShape('off', 'lead').diagonals).toHaveLength(2);
-  });
-});
-
-describe('autoStep: đoán lúc chuẩn bị chụp', () => {
-  const q = (deg: number) => {
-    const r = (deg * Math.PI) / 360;
-    return { x: 0, y: Math.sin(r), z: 0, w: Math.cos(r) };
-  };
-  const empty: AutoState = { anchor: null, anchorAt: 0, last: null, lastAt: -Infinity };
-
-  it('đứng yên đủ lâu thì nhìn một lần; cảnh chưa đổi thì không nhìn lại', () => {
-    let s = empty;
-    let fired = 0;
-    for (let t = 0; t <= 6000; t += 100) {
-      const r = autoStep(s, q(0), 0, t, true);
-      s = r.state;
-      if (r.fire) fired++;
-    }
-    expect(fired).toBe(1);
-    // Xoay 20° rồi đứng yên: nhìn lại.
-    for (let t = 6100; t <= 12000; t += 100) {
-      const r = autoStep(s, q(20), 0, t, true);
-      s = r.state;
-      if (r.fire) fired++;
-    }
-    expect(fired).toBe(2);
-  });
-
-  it('máy đang chĩa xuống đất hoặc không được phép thì không nhìn', () => {
-    let s = empty;
-    let fired = false;
-    for (let t = 0; t <= 3000; t += 100) {
-      const r = autoStep(s, q(0), -80, t, true);
-      s = r.state;
-      fired ||= r.fire;
-    }
-    expect(fired).toBe(false);
-    s = empty;
-    for (let t = 0; t <= 3000; t += 100) {
-      const r = autoStep(s, q(0), 0, t, false);
-      s = r.state;
-      fired ||= r.fire;
-    }
-    expect(fired).toBe(false);
-  });
-});
-
-describe('sceneSuggestions: chỉ gợi ý chân trời khi bộ dò và model cùng đồng ý', () => {
-  const f = person([0.3, 0.2, 0.5, 0.9]);
-  it('bộ dò thấy chân trời, model đồng ý → gợi ý; model không đồng ý hoặc chưa có → không', () => {
-    expect(sceneSuggestions(f, horizonAt(0.6), null, 0.2, 0.1)).toEqual(['horizon']);
-    expect(sceneSuggestions(f, horizonAt(0.6), null, 0.05, 0.1)).toEqual([]);
-    expect(sceneSuggestions(f, horizonAt(0.6), null, null, 0.1)).toEqual([]);
-    // Đang bật chân trời rồi thì không gợi ý lại.
-    expect(sceneSuggestions(f, horizonAt(0.6), 'horizon', 0.9, 0.1)).toEqual([]);
-  });
-  it('đường dẫn không bao giờ được gợi ý', () => {
-    expect(sceneSuggestions(f, vanishingAt(0.5, 0.4), null, 0.9, 0.1)).toEqual([]);
   });
 });

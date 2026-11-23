@@ -11,14 +11,11 @@ type State = {
   frontMirror: boolean;
   /** Rung phản hồi. */
   haptics: boolean;
-  /** Gợi ý bố cục phụ tự động khi máy đứng yên (Phase 5b, business-flow §6.10), mặc định tắt. */
-  autoScene: boolean;
 };
 
 type Actions = {
   setFrontMirror: (v: boolean) => void;
   setHaptics: (v: boolean) => void;
-  setAutoScene: (v: boolean) => void;
 };
 
 const syncStorage = createJSONStorage<State>(() => ({
@@ -34,20 +31,14 @@ export const useSettings = create<State & Actions>()(
     (set) => ({
       frontMirror: false,
       haptics: true,
-      autoScene: false,
       setFrontMirror: (frontMirror) => set({ frontMirror }),
       setHaptics: (haptics) => set({ haptics }),
-      setAutoScene: (autoScene) => set({ autoScene }),
     }),
     {
       name: 'settings',
       version: 1,
       storage: syncStorage,
-      partialize: (s) => ({
-        frontMirror: s.frontMirror,
-        haptics: s.haptics,
-        autoScene: s.autoScene,
-      }),
+      partialize: (s) => ({ frontMirror: s.frontMirror, haptics: s.haptics }),
     },
   ),
 );

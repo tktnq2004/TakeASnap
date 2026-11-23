@@ -106,8 +106,6 @@ export const t = {
       running: 'Đang kiểm tra bố cục',
       ok: (name: string) => `Đạt ${name}`,
       noPerson: 'Không thấy người, tiến lại gần hoặc zoom vào',
-      /** Kiểm tra khi chưa bật bố cục nào mà không thấy bố cục phụ (Phase 5b). */
-      noScene: 'Chưa thấy chân trời hay đường dẫn trong cảnh',
       failed: 'Chưa kiểm tra được, thử lại',
       /** Chỉ hiện trong bản dev: đo cổng Phase 5a. */
       devSceneMs: (ms: number) => `Dò đường ${ms} ms`,
@@ -128,14 +126,6 @@ export const t = {
       downloadSky: 'Tải bộ tìm trời',
       skipSky: 'Kiểm tra bố cục ngay',
       downloadSkyFailed: 'Chưa tải được bộ tìm trời. Kiểm tra mạng rồi thử lại.',
-      /** Bộ gợi ý bố cục phụ (Phase 5b): vector ảnh + model lọc chân trời. */
-      needSceneTitle: 'Tải bộ gợi ý bố cục phụ',
-      needScene: (mb: string) =>
-        `Để gợi ý đường chân trời trong cảnh, app cần bộ gợi ý (${mb} MB), tải một lần rồi dùng không cần mạng.`,
-      downloadScene: 'Tải bộ gợi ý',
-      skipScene: 'Chỉ kiểm tra bố cục',
-      downloadSceneFailed: 'Chưa tải được bộ gợi ý. Kiểm tra mạng rồi thử lại.',
-      devHorizonP: (p: number) => `P chân trời ${p.toFixed(2)}`,
     },
     /**
      * Hướng dẫn liên tục (Phase 5b, business-flow §6.10): mỗi câu là hành động + kết quả, không có
@@ -207,9 +197,7 @@ export const t = {
       },
       stopped: 'Đã dừng hướng dẫn',
       stop: 'Dừng hướng dẫn',
-      /** Gợi ý bố cục phụ (Kiểm tra bố cục, tự động khi máy đứng yên). */
-      sceneHas: 'Cảnh này có',
-      addScene: (name: string) => `Thêm ${name}`,
+      /** Chip bố cục phụ dưới thanh trên. */
       removeScene: (name: string) => `Bỏ ${name}`,
       short: { horizon: 'Chân trời', lead: 'Đường dẫn' },
     },
@@ -481,16 +469,9 @@ export const t = {
     saveReal: 'Lưu như thật',
     saveMirror: 'Lưu soi gương',
     haptics: 'Rung phản hồi',
-    groupComposition: 'Bố cục',
-    autoScene: 'Gợi ý bố cục phụ tự động',
-    autoSceneHint: 'Khi giữ máy yên, app tìm chân trời, đường dẫn trong cảnh',
     posePack: 'Bộ tách người',
     notDownloaded: 'Chưa tải',
     deletePack: 'Xóa bộ tách',
-    scenePack: 'Bộ gợi ý bố cục phụ',
-    deleteScenePack: 'Xóa bộ gợi ý',
-    deleteScenePackConfirm:
-      'Xóa bộ gợi ý bố cục phụ khỏi máy? Lần kiểm tra bố cục sau sẽ hỏi tải lại.',
     deletePackConfirm: 'Xóa bộ tách người khỏi máy? Lần tạo pose sau sẽ tải lại, cần có mạng.',
     version: 'Phiên bản',
     sampleSource: 'Nguồn ảnh mẫu',

@@ -23,7 +23,6 @@ import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
 import { compositionUi } from '@/ui/tokens';
 
 import { sceneFor } from './scene';
-import { horizonProb, loadSceneModel } from './sceneModel';
 
 export type Snapshot =
   | {
@@ -33,8 +32,6 @@ export type Snapshot =
       scene: Scene | null;
       /** Thời gian dò đường trên máy (ms), để đo cổng Phase 5a (≤ 300 ms). */
       sceneMs: number | null;
-      /** Xác suất Đường chân trời của model lọc; null khi bộ gợi ý chưa tải (Phase 5b). */
-      pHorizon: number | null;
       /** Model trời (chỉ để bản dev hiện). */
       sky: Pick<SkyPart, 'skyMs' | 'skyLoadMs' | 'skyState' | 'skyError'>;
     }
@@ -49,7 +46,7 @@ export function useSnapshot() {
     cam: CameraView,
     frame: Rect,
     preview: { width: number; height: number },
-    opts: { sky: boolean; embed?: boolean },
+    opts: { sky: boolean },
   ): Promise<Snapshot> => {
     const shot = cam.takePictureAsync({ pictureRef: true, shutterSound: false });
     capture.current = shot.then(
@@ -84,11 +81,7 @@ export function useSnapshot() {
       capture.current = null;
     }
 
-    const model = opts.embed ? await loadSceneModel() : null;
-    const a = await analyzeSnapshot(base64, compositionUi.checkGrid, {
-      sky: opts.sky,
-      embed: model != null,
-    });
+    const a = await analyzeSnapshot(base64, compositionUi.checkGrid, { sky: opts.sky });
     const { width, height, data } = a.grid;
     const prob = new Float32Array(data.length);
     for (let i = 0; i < data.length; i++) prob[i] = data[i]! / 255;
@@ -109,7 +102,6 @@ export function useSnapshot() {
     return {
       kind: 'ok',
       features,
-      pHorizon: model && a.embedding ? horizonProb(model, features, a.embedding) : null,
       scene: found?.scene ?? null,
       sceneMs: found?.ms ?? null,
       sky: { skyMs: a.skyMs, skyLoadMs: a.skyLoadMs, skyState: a.skyState, skyError: a.skyError },

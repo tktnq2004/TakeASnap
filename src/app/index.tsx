@@ -34,7 +34,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { downloadPack, isPackReady } from '@/engine/models/modelStore';
-import { POSE_PACK, packBytes, SKY_PACK, TECHNIQUE_PACK } from '@/engine/models/packs';
+import { POSE_PACK, packBytes, SKY_PACK } from '@/engine/models/packs';
 import { CameraLayer, ULTRA_WIDE_LENS } from '@/features/camera/CameraLayer';
 import {
   clearPlacement,
@@ -62,12 +62,7 @@ import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomChipsWidth, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CheckOverlay } from '@/features/composition/CheckOverlay';
-import {
-  GuideEndPill,
-  GuideOverlay,
-  SceneChip,
-  SceneSuggest,
-} from '@/features/composition/GuideOverlay';
+import { GuideEndPill, GuideOverlay, SceneChip } from '@/features/composition/GuideOverlay';
 import {
   type GuidePlan,
   isGuidedMain,
@@ -80,8 +75,7 @@ import { CompositionSheet } from '@/features/composition/CompositionSheet';
 import type { Pt } from '@/features/composition/guides';
 import type { TechniqueId } from '@/features/composition/techniques';
 import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '@/features/composition/snap';
-import { useAutoScene } from '@/features/composition/useAutoScene';
-import { useLayoutCheck } from '@/features/composition/useLayoutCheck';
+import { CHECKABLE, useLayoutCheck } from '@/features/composition/useLayoutCheck';
 import { useLiveGuide } from '@/features/composition/useLiveGuide';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
@@ -150,7 +144,6 @@ function CameraBody() {
   const storedOpacity = useCameraStore((s) => s.opacity);
   const mirrored = useCameraStore((s) => s.mirrored);
   const frontMirror = useSettings((s) => s.frontMirror);
-  const autoScene = useSettings((s) => s.autoScene);
   const store = useCameraStore.getState;
 
   const [root, setRoot] = useState({ width: 0, height: 0 });
@@ -194,6 +187,8 @@ function CameraBody() {
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Kiểm tra bố cục (Phase 5a): chụp lặng một ảnh khi chạm, nhận xét trên khung ngắm.
   const check = useLayoutCheck();
+  /** Nút Kiểm tra hiện khi đang bật bố cục có nhận xét (chính hoặc phụ). */
+  const checkable = CHECKABLE(technique) || scene != null;
   /** Kỹ thuật cho gợi ý cảm biến, dính pose: bố cục chính, chưa có thì bố cục phụ. */
   const layerTechnique: TechniqueId = technique === 'off' && scene ? scene : technique;
 
@@ -495,31 +490,6 @@ function CameraBody() {
     ]);
   };
 
-  /** Bỏ qua tải bộ gợi ý bố cục phụ trong lần mở app này (không hỏi lại mỗi lần chạm). */
-  const skipScenePack = useRef(false);
-  /** Chưa có bộ gợi ý bố cục phụ: hỏi tải một lần, hoặc chỉ kiểm tra bố cục (Phase 5b). */
-  const checkWithScene = () => {
-    if (isPackReady(TECHNIQUE_PACK) || skipScenePack.current) {
-      checkWithSky();
-      return;
-    }
-    const c = t.composition.check;
-    Alert.alert(c.needSceneTitle, c.needScene(mbOf(TECHNIQUE_PACK)), [
-      {
-        text: c.skipScene,
-        style: 'cancel',
-        onPress: () => {
-          skipScenePack.current = true;
-          checkWithSky();
-        },
-      },
-      {
-        text: c.downloadScene,
-        onPress: () => fetchPack(TECHNIQUE_PACK, c.downloadSceneFailed, checkWithSky),
-      },
-    ]);
-  };
-
   const onCheck = () => {
     // Đang hướng dẫn liên tục: nút là nút dừng (design.md §6.15).
     if (guide.active) {
@@ -529,14 +499,14 @@ function CameraBody() {
     }
     if (check.busy || downloading) return;
     if (isPackReady(POSE_PACK)) {
-      checkWithScene();
+      checkWithSky();
       return;
     }
     // Chưa có bộ tách người: hỏi trước, không tự tải (tốn dung lượng mạng).
     const c = t.composition.check;
     Alert.alert(c.needPackTitle, c.needPack(mbOf(POSE_PACK)), [
       { text: t.common.cancel, style: 'cancel' },
-      { text: c.download, onPress: () => fetchPack(POSE_PACK, c.downloadFailed, checkWithScene) },
+      { text: c.download, onPress: () => fetchPack(POSE_PACK, c.downloadFailed, checkWithSky) },
     ]);
   };
 
@@ -569,51 +539,12 @@ function CameraBody() {
     guide.start(plan);
   };
 
-  /** Chạm chip gợi ý: thêm bố cục phụ và bắt đầu hướng dẫn. */
-  const pickScene = (sc: SceneTechnique) => {
-    haptic.select();
-    store().setScene(sc);
-    guideFor(technique, sc);
-  };
-
   // Rời Camera: dừng hướng dẫn (bản mới nhất của stop qua ref).
   const stopGuideRef = useRef(guide.stop);
   useEffect(() => {
     stopGuideRef.current = guide.stop;
   });
   useFocusEffect(useCallback(() => () => stopGuideRef.current(), []));
-
-  // Gợi ý bố cục phụ tự động khi máy đứng yên (Cài đặt, mặc định tắt).
-  useAutoScene({
-    enabled: autoScene && isPackReady(POSE_PACK) && isPackReady(TECHNIQUE_PACK),
-    front: facing === 'front',
-    allowed: () => {
-      const b = burst.current;
-      return (
-        readyRef.current &&
-        !guide.active &&
-        !check.busy &&
-        !check.result &&
-        !compositionOpen &&
-        !b.capturing &&
-        !b.saving &&
-        countdownRef.current == null
-      );
-    },
-    onTrigger: () => {
-      const cam = cameraRef.current;
-      if (!cam) return;
-      check.run(
-        cam,
-        { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
-        { width: preview.width, height: preview.height },
-        technique,
-        scene,
-        isPackReady(SKY_PACK),
-        true,
-      );
-    },
-  });
 
   // ---- Chụp ----
   const flashOpacity = useSharedValue(0);
@@ -937,14 +868,6 @@ function CameraBody() {
               maxBottom={hintBottom}
             />
           )}
-          {!guide.active && check.result?.kind === 'review' && check.result.suggest.length > 0 && (
-            <SceneSuggest
-              frame={frame}
-              maxBottom={hintBottom}
-              items={check.result.suggest}
-              onPick={pickScene}
-            />
-          )}
           {scene && (
             <View style={[styles.sceneChip, { top: barTop + TOP_BAR_H + space[2] }]}>
               <SceneChip
@@ -999,9 +922,9 @@ function CameraBody() {
         <ZoomControl factor={factor} settle={settle} min={zoomMin} expanded={zoomOpen} />
       </Animated.View>
 
-      {/* Kiểm tra bố cục: ngay bên phải cụm zoom (Phase 5a); từ Phase 5b hiện cả khi Tắt / Lưới
-          để tìm bố cục phụ, và là nút dừng khi đang hướng dẫn liên tục. */}
-      {
+      {/* Kiểm tra bố cục: ngay bên phải cụm zoom, chỉ khi đang bật một bố cục có nhận xét (Phase
+          5a); là nút dừng khi đang hướng dẫn liên tục (Phase 5b). */}
+      {(checkable || guide.active) && (
         <Animated.View
           pointerEvents="box-none"
           style={[
@@ -1039,7 +962,7 @@ function CameraBody() {
             )}
           </PressableScale>
         </Animated.View>
-      }
+      )}
 
       {flying && (
         <Animated.Image

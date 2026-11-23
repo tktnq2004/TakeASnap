@@ -184,7 +184,6 @@ Chọn cấu hình trên 124 ảnh kiểm tra Wikimedia (có gợi ý hợp): 5 
 
 Bộ đo đã chấm nên không dùng lại để chỉnh rồi chấm tiếp; vòng sau (nếu có) cần bộ đo mới gán mù.
 
-**Quyết định (2026-11-23):** người dùng vẫn đưa vào app **dạng thử nghiệm**, ghi rõ trượt cổng 1,8 điểm. Trong app chỉ gợi ý kỹ thuật (bỏ "Khác"): trên 171 ảnh người dùng thấy có kỹ thuật hợp, ít nhất một trong hai gợi ý trúng **84,8
 **Quyết định (2026-11-23):** người dùng vẫn đưa vào app **dạng thử nghiệm**, ghi rõ trượt cổng 1,8 điểm. Trong app chỉ gợi ý kỹ thuật (bỏ "Khác"): trên 171 ảnh người dùng thấy có kỹ thuật hợp, ít nhất một trong hai gợi ý trúng **84,8%**; tính cả 42 ảnh người dùng gán "Khác" (gợi ý kỹ thuật nào cũng tính trượt) là 68,1%. Model đoán "Khác" đứng đầu ở 43/213 ảnh. Luồng ở business-flow §6.10.
 
 ## Đổi hướng (2026-11-23): bộ dò có đủ để gợi ý bố cục phụ không
@@ -207,4 +206,6 @@ Bộ giữ riêng vòng 1–2 (602 ảnh Open Images): chân trời 12,7% chính
 Nhãn người dùng là "kỹ thuật hợp nhất", không phải "cảnh có chân trời", nên độ chính xác ở trên thấp hơn thật. Xem tận mắt 30 ảnh bộ dò báo chân trời mà người dùng không gán: khoảng 5–9 ảnh có chân trời thật ở đúng chỗ, 2 ảnh có chân trời nhưng bộ dò chọn sai đường, còn lại là đường phố, mái nhà, hàng cây. Điểm hội tụ của bộ dò đường dẫn gần như ngẫu nhiên (chỉ vài ảnh đường phố có đường dẫn thật).
 
 **Kết luận:** bộ dò một mình **không đủ** để gợi ý: chân trời đúng chừng 1/3–1/2 số lần báo, đường dẫn gần như không. Ghép bộ dò + model lọc đưa chân trời lên khoảng 60% (theo nhãn người dùng) mà vẫn bắt được 72%. Đường dẫn thì cả hai cách đều yếu; bộ dò lại là thứ hướng dẫn cần (điểm hội tụ), nên hướng dẫn Đường dẫn cũng sẽ hay báo "không thấy đường dẫn". **Người dùng chốt (2026-11-23):** Đường chân trời gợi ý bằng bộ dò + model lọc (P ≥ 0,10); Đường dẫn không gợi ý, vẫn tự chọn được. Phần đầu model rút gọn còn 4 chữ số có nghĩa (312 KB, `scripts/p5b-export-head.mts`): xác suất chân trời lệch tối đa 0,00009 trên bộ đo cổng, không ảnh nào đổi quyết định lọc.
+
+**Người dùng chốt lại cùng ngày: bỏ gợi ý bố cục phụ.** Sau hai quyết định trên, gợi ý chỉ còn một bố cục (Đường chân trời) mà kéo theo gói tải ~4,4 MB (vector ảnh + phần đầu model), một repo model công khai, một lượt model nữa mỗi lần kiểm tra và chế độ tự gợi ý khi máy đứng yên: không đáng để thành một tính năng lớn. App giữ hướng dẫn liên tục và việc chia bố cục chính / phụ, người dùng tự chọn cả hai. Đã gỡ phần gợi ý, model lọc, gói và script rút gọn; `scripts/p5b-detectors.mts` và số đo ở trên giữ lại để làm lại gợi ý khi có bộ dò tốt hơn.
 

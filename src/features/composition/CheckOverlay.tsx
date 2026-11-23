@@ -31,7 +31,7 @@ export function CheckOverlay({
   const fx = (x: number) => (flip ? 1 - x : x);
   let box: [number, number, number, number] | null = null;
   let eye: { x: number; y: number } | null = null;
-  let text: string | null;
+  let text: string;
   let ok = false;
   /** Dòng nhỏ chỉ bản dev hiện (đo cổng Phase 5a, tìm lỗi model trời). */
   const dev: string[] = [];
@@ -46,20 +46,18 @@ export function CheckOverlay({
     if (f.eye) eye = { x: fx(f.eye.x), y: f.eye.y };
     const c = t.composition.check;
     if (result.sceneMs != null) dev.push(c.devSceneMs(Math.round(result.sceneMs)));
-    if (result.pHorizon != null) dev.push(c.devHorizonP(result.pHorizon));
     const sk = result.sky;
     if (sk.skyError) dev.push(c.devSkyError(sk.skyError));
     else if (sk.skyState === 'noPack') dev.push(c.devSkyNoPack);
     else if (sk.skyMs != null)
       dev.push(c.devSkyMs(Math.round(sk.skyMs), Math.round(sk.skyLoadMs ?? 0)));
     if (result.note) text = t.review.notes[result.note.id];
-    else if (result.techniques.length) {
+    else {
       ok = true;
       text = t.composition.check.ok(
         result.techniques.map((x) => t.composition.names[x]).join(' + '),
       );
-    } else if (result.suggest.length) text = null;
-    else text = t.composition.check.noScene;
+    }
   } else if (result.kind === 'none') text = t.composition.check.noPerson;
   else {
     text = t.composition.check.failed;
@@ -83,7 +81,7 @@ export function CheckOverlay({
         ]}
       >
         {result.kind === 'review' &&
-          [...result.techniques, ...result.suggest]
+          result.techniques
             .filter((x) => x === 'horizon' || x === 'lead')
             .map((x) => (
               <SceneLines
@@ -121,28 +119,26 @@ export function CheckOverlay({
         )}
       </Animated.View>
       <View pointerEvents="none" style={[styles.wrap, { top }]}>
-        {text != null && (
-          <Animated.View
-            entering={enter}
-            exiting={exit}
-            accessibilityRole="text"
-            accessibilityLiveRegion="polite"
-            style={[styles.pill, ok && styles.pillOk]}
+        <Animated.View
+          entering={enter}
+          exiting={exit}
+          accessibilityRole="text"
+          accessibilityLiveRegion="polite"
+          style={[styles.pill, ok && styles.pillOk]}
+        >
+          <Icon
+            size={size.iconSmall}
+            strokeWidth={2.5}
+            color={ok ? color.accentInk : color.camAccent}
+          />
+          <Text
+            style={[styles.text, ok && styles.textOk]}
+            numberOfLines={2}
+            maxFontSizeMultiplier={1.3}
           >
-            <Icon
-              size={size.iconSmall}
-              strokeWidth={2.5}
-              color={ok ? color.accentInk : color.camAccent}
-            />
-            <Text
-              style={[styles.text, ok && styles.textOk]}
-              numberOfLines={2}
-              maxFontSizeMultiplier={1.3}
-            >
-              {text}
-            </Text>
-          </Animated.View>
-        )}
+            {text}
+          </Text>
+        </Animated.View>
         {__DEV__ && dev.length > 0 && (
           <Text style={styles.dev} numberOfLines={4}>
             {dev.join(' · ')}

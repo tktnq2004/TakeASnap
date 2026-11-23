@@ -456,7 +456,7 @@ export function gaveUpLines(s: GuideState): [string | null, string] {
   return [passed.length ? G.passed(passed.map((id) => G.done[id]).join(', ')) : null, failed];
 }
 
-// ---- Khung ngắm, gợi ý bố cục phụ ----
+// ---- Khung ngắm ----
 
 /**
  * Lật ngang kết quả phân tích (ảnh không lật như khung ngắm: camera trước, tắt Lưu soi gương),
@@ -500,24 +500,4 @@ export function flipX(
       segments: scene.segments.map(seg),
     },
   };
-}
-
-/**
- * Bố cục phụ để gợi ý, trừ cái đang bật (người dùng chốt 2026-11-23 sau khi đo bộ dò):
- * - Đường chân trời: có người, bộ dò thấy chân trời VÀ model lọc cho xác suất từ `minP`
- *   (bộ dò một mình đúng ~25%, ghép model ~60%). Chưa có model (`pHorizon` null): không gợi ý.
- * - Đường dẫn: không gợi ý (bộ dò điểm hội tụ gần như ngẫu nhiên); vẫn tự chọn được.
- */
-export function sceneSuggestions(
-  f: PhotoFeatures | null,
-  scene: Scene | null,
-  current: SceneTechnique | null,
-  pHorizon: number | null,
-  minP: number,
-): SceneTechnique[] {
-  if (!f || f.main < 0 || !scene) return [];
-  if (scene.horizon && current !== 'horizon' && pHorizon != null && pHorizon >= minP) {
-    return ['horizon'];
-  }
-  return [];
 }
