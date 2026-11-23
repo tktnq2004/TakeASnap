@@ -3,7 +3,7 @@ import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef }
 import { base64ToBytes } from '@/engine/base64';
 import { prepareImage, type PreparedImage } from '@/engine/image';
 import { downloadPack, isPackReady, readPackFileBase64 } from '@/engine/models/modelStore';
-import { POSE_PACK, packBytes, SKY_PACK } from '@/engine/models/packs';
+import { POSE_PACK, packBytes, SKY_PACK, TECHNIQUE_PACK } from '@/engine/models/packs';
 
 import type { Landmarks } from './types';
 import { type SkyResult, useWebSegmenter } from './WebSegmenterBridge';
@@ -38,8 +38,11 @@ export type SkyPart = {
   skyError: string | null;
 };
 
-/** `sky`: chạy thêm model trời nếu gói trời đã tải (không tự tải). */
-export type SkyOpt = { sky?: boolean };
+/**
+ * `sky`: chạy thêm model trời nếu gói trời đã tải (không tự tải). `embed`: trả thêm vector ảnh
+ * cho model gợi ý bố cục phụ nếu bộ gợi ý đã tải (Phase 5b).
+ */
+export type SkyOpt = { sky?: boolean; embed?: boolean };
 
 type Ctx = {
   /** Ảnh trong máy → mask + lưới + nét mặt. Tự tải gói pose lần đầu (BR-13). */
@@ -64,6 +67,8 @@ export type Snapshot = {
   bodyPoints: number[] | null;
   bodies: number[][];
   faceEyes: number[][];
+  /** Vector ảnh (MobileNetV3 small), null khi không xin hoặc bộ gợi ý chưa tải. */
+  embedding: number[] | null;
 } & SkyPart;
 
 const SegmenterContext = createContext<Ctx | null>(null);
@@ -107,6 +112,7 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
   });
   const loadedGeneration = useRef(-1);
   const skyGeneration = useRef(-1);
+  const embedGeneration = useRef(-1);
 
   const value = useMemo<Ctx>(() => {
     const waitReady = async () => {
@@ -141,6 +147,17 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
         await s.sendAsset(f.name, f.mime, await readPackFileBase64(SKY_PACK, f.name));
       }
       skyGeneration.current = s.generation();
+      return true;
+    };
+
+    /** Gửi vector ảnh của bộ gợi ý vào trang (một lần mỗi lần trang nạp). False khi chưa tải. */
+    const ensureEmbedder = async (opts?: SkyOpt) => {
+      if (!opts?.embed || !isPackReady(TECHNIQUE_PACK)) return false;
+      const s = segRef.current;
+      if (embedGeneration.current === s.generation()) return true;
+      const f = TECHNIQUE_PACK.files.find((x) => x.mime === 'application/octet-stream')!;
+      await s.sendAsset(f.name, f.mime, await readPackFileBase64(TECHNIQUE_PACK, f.name));
+      embedGeneration.current = s.generation();
       return true;
     };
 
@@ -186,7 +203,9 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
         );
         if (!r.grid) throw new Error('WebView không trả lưới mask');
         const lm = await s.landmarks(base64);
+        const embedding = (await ensureEmbedder(opts)) ? (await s.embed(base64)).embedding : null;
         return {
+          embedding,
           width: r.width,
           height: r.height,
           grid: { width: r.grid.width, height: r.grid.height, data: base64ToBytes(r.grid.base64) },

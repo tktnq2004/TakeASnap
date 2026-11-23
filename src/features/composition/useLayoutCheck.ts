@@ -15,6 +15,7 @@ import { haptic } from '@/lib/haptics';
 import { compositionUi } from '@/ui/tokens';
 
 import { type SceneTechnique, sceneSuggestions } from './guidance';
+import { HORIZON_MIN_P } from './sceneModel';
 import type { TechniqueId } from './techniques';
 import { type Snapshot, useSnapshot } from './useSnapshot';
 
@@ -30,6 +31,8 @@ export type CheckResult =
       scene: Scene | null;
       /** Bố cục phụ cảnh này áp được mà chưa bật (gợi ý, Phase 5b). */
       suggest: SceneTechnique[];
+      /** Xác suất chân trời của model lọc (bản dev hiện), null khi chưa có bộ gợi ý. */
+      pHorizon: number | null;
       sceneMs: number | null;
       sky: Extract<Snapshot, { kind: 'ok' }>['sky'];
     }
@@ -88,7 +91,7 @@ export function useLayoutCheck() {
     setResult(null);
     clearHide();
     try {
-      const s = await snapshot.take(cam, frame, preview, { sky });
+      const s = await snapshot.take(cam, frame, preview, { sky, embed: true });
       if (token.current !== my) return;
       if (s.kind === 'none') {
         if (!auto) show({ kind: 'none' });
@@ -96,7 +99,7 @@ export function useLayoutCheck() {
       }
       const techniques = [...(CHECKABLE(main) ? [main] : []), ...(scene ? [scene] : [])];
       const note = techniques.length ? firstFailing(techniques, s.features, s.scene) : null;
-      const suggest = sceneSuggestions(s.features, s.scene, scene);
+      const suggest = sceneSuggestions(s.features, s.scene, scene, s.pHorizon, HORIZON_MIN_P);
       if (auto) {
         if (!suggest.length) return;
         haptic.select();
@@ -108,6 +111,7 @@ export function useLayoutCheck() {
         note,
         scene: s.scene,
         suggest,
+        pHorizon: s.pHorizon,
         sceneMs: s.sceneMs,
         sky: s.sky,
       });

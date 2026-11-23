@@ -34,7 +34,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { downloadPack, isPackReady } from '@/engine/models/modelStore';
-import { POSE_PACK, packBytes, SKY_PACK } from '@/engine/models/packs';
+import { POSE_PACK, packBytes, SKY_PACK, TECHNIQUE_PACK } from '@/engine/models/packs';
 import { CameraLayer, ULTRA_WIDE_LENS } from '@/features/camera/CameraLayer';
 import {
   clearPlacement,
@@ -495,6 +495,31 @@ function CameraBody() {
     ]);
   };
 
+  /** Bỏ qua tải bộ gợi ý bố cục phụ trong lần mở app này (không hỏi lại mỗi lần chạm). */
+  const skipScenePack = useRef(false);
+  /** Chưa có bộ gợi ý bố cục phụ: hỏi tải một lần, hoặc chỉ kiểm tra bố cục (Phase 5b). */
+  const checkWithScene = () => {
+    if (isPackReady(TECHNIQUE_PACK) || skipScenePack.current) {
+      checkWithSky();
+      return;
+    }
+    const c = t.composition.check;
+    Alert.alert(c.needSceneTitle, c.needScene(mbOf(TECHNIQUE_PACK)), [
+      {
+        text: c.skipScene,
+        style: 'cancel',
+        onPress: () => {
+          skipScenePack.current = true;
+          checkWithSky();
+        },
+      },
+      {
+        text: c.downloadScene,
+        onPress: () => fetchPack(TECHNIQUE_PACK, c.downloadSceneFailed, checkWithSky),
+      },
+    ]);
+  };
+
   const onCheck = () => {
     // Đang hướng dẫn liên tục: nút là nút dừng (design.md §6.15).
     if (guide.active) {
@@ -504,14 +529,14 @@ function CameraBody() {
     }
     if (check.busy || downloading) return;
     if (isPackReady(POSE_PACK)) {
-      checkWithSky();
+      checkWithScene();
       return;
     }
     // Chưa có bộ tách người: hỏi trước, không tự tải (tốn dung lượng mạng).
     const c = t.composition.check;
     Alert.alert(c.needPackTitle, c.needPack(mbOf(POSE_PACK)), [
       { text: t.common.cancel, style: 'cancel' },
-      { text: c.download, onPress: () => fetchPack(POSE_PACK, c.downloadFailed, checkWithSky) },
+      { text: c.download, onPress: () => fetchPack(POSE_PACK, c.downloadFailed, checkWithScene) },
     ]);
   };
 
@@ -560,7 +585,7 @@ function CameraBody() {
 
   // Gợi ý bố cục phụ tự động khi máy đứng yên (Cài đặt, mặc định tắt).
   useAutoScene({
-    enabled: autoScene && isPackReady(POSE_PACK),
+    enabled: autoScene && isPackReady(POSE_PACK) && isPackReady(TECHNIQUE_PACK),
     front: facing === 'front',
     allowed: () => {
       const b = burst.current;

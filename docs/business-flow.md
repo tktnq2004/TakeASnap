@@ -348,15 +348,18 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 | **Bố cục phụ**: dựa vào cảnh, cần kinh nghiệm mới nhận ra, giúp người nổi bật hơn | Đường chân trời, Đường dẫn (sau này có thể thêm khung trong khung, đối xứng, khoảng trống, tiền cảnh) | App nhìn cảnh và gợi ý; người dùng cũng tự chọn được |
 
 - Bật **cùng lúc** một bố cục chính và một bố cục phụ (ví dụ 1/3 + Đường chân trời). Bố cục phụ bật được một mình (bố cục chính Tắt hoặc Lưới).
-- **Cảnh áp được bố cục phụ** khi có người trong khung và bộ dò Phase 5a (§6.9) tìm thấy đường: chân trời (model trời + đường thẳng), đường dẫn (các đường hội tụ). Muốn hướng dẫn tới một đường thì phải biết đường đó nằm đâu, nên bộ dò là thứ quyết định. Model 7 lớp của vòng 3 chỉ dùng nếu đo trên 213 ảnh của bộ đo cổng thấy bộ dò hay gợi ý sai (khi đó model lọc bớt); không thì bỏ, không có gói tải thêm.
+- **Cảnh áp được bố cục phụ** khi có người trong khung và bộ dò Phase 5a (§6.9) tìm thấy đường: chân trời (model trời + đường thẳng), đường dẫn (các đường hội tụ). Muốn hướng dẫn tới một đường thì phải biết đường đó nằm đâu, nên hướng dẫn dùng bộ dò.
+- **Gợi ý thì cần chặt hơn** (đo 2026-11-23, [phase5b-data.md](phase5b-data.md)): bộ dò một mình báo chân trời ở nhiều đường phố, mái nhà, hàng cây (~25% đúng), điểm hội tụ gần như ngẫu nhiên. Người dùng chốt:
+  - **Đường chân trời** chỉ được gợi ý khi bộ dò thấy chân trời **và** model vòng 3 (7 lớp) cho xác suất chân trời từ 0,10 (~60% đúng, bắt được 72%). Model nằm trong **Bộ gợi ý bố cục phụ** (~4,4 MB: vector ảnh MobileNetV3 small từ CDN gốc của Google + phần đầu model ở repo model công khai, tag ghim), tải lần đầu chạm Kiểm tra bố cục (có nút "Chỉ kiểm tra bố cục" để bỏ qua trong lần mở app đó), xóa được trong Cài đặt. Chưa có bộ gợi ý thì không gợi ý.
+  - **Đường dẫn không được gợi ý**; người dùng vẫn tự chọn, app hướng dẫn khi tìm thấy đường dẫn, không thì báo "Cảnh này không thấy đường dẫn". Cải thiện bộ dò đường dẫn để sau.
 - "AI" của tính năng: các model trên máy **nhìn cảnh** (tách người, khung xương, mặt, mắt, vùng trời, đường thẳng); **bộ quy tắc hình học** dịch kết quả nhìn được thành thao tác. Không dùng model học để chọn thao tác: không có dữ liệu, và phép tính chính xác hơn, giải thích được.
 
 **Hai cách bắt đầu hướng dẫn:**
 
 1. **Tự chọn.** Chọn bố cục chính (1/3, Ở giữa, Lấp đầy, Nhóm) hoặc bố cục phụ trong bảng Bố cục → **hướng dẫn liên tục** bắt đầu (cần bộ tách người; chưa có thì chỉ bật lớp kẻ như Phase 5). Ảnh đầu tiên kiểm tra cảnh **áp được** không (bảng dưới); không thì báo ngay một dòng (ví dụ "Cảnh này không thấy đường chân trời") rồi dừng, lớp kẻ giữ nguyên. Góc thấp, Selfie chạy theo cảm biến như Phase 5, không cần hướng dẫn liên tục.
-2. **Gợi ý bố cục phụ.** App chụp lặng một ảnh, tìm bố cục phụ áp được; có thì hiện gợi ý (ví dụ "Cảnh này có đường chân trời"), chạm để thêm bố cục phụ và bắt đầu hướng dẫn; không chạm thì gợi ý tự ẩn sau 8 s; không có thì không hiện gì. Hai lối vào:
+2. **Gợi ý bố cục phụ.** App chụp lặng một ảnh, tìm bố cục phụ áp được (hiện chỉ Đường chân trời, qua bộ dò + model lọc ở trên); có thì hiện gợi ý (ví dụ "Cảnh này có đường chân trời"), chạm để thêm bố cục phụ và bắt đầu hướng dẫn; không chạm thì gợi ý tự ẩn sau 8 s; không có thì không hiện gì. Hai lối vào:
    - chạm **Kiểm tra bố cục** (nút hiện cả khi bố cục Tắt hoặc Lưới);
-   - **tự động** (Cài đặt "Gợi ý bố cục phụ tự động", **mặc định tắt** tới khi đo độ nóng và pin trên máy thật) khi người dùng có vẻ chuẩn bị chụp: máy đứng yên khoảng 0,7 s, máy dựng gần thẳng (không chĩa xuống đất), cảnh đã đổi so với lần phân tích trước (máy đã xoay hơn khoảng 15°), cách lần trước vài giây, không đang hướng dẫn. Bấm chụp luôn được ưu tiên: lần phân tích đang chạy bị bỏ.
+   - **tự động** (Cài đặt "Gợi ý bố cục phụ tự động", **mặc định tắt** tới khi đo độ nóng và pin trên máy thật; chỉ chạy khi đã có bộ tách người và bộ gợi ý) khi người dùng có vẻ chuẩn bị chụp: máy đứng yên khoảng 0,7 s, máy dựng gần thẳng (không chĩa xuống đất), cảnh đã đổi so với lần phân tích trước (máy đã xoay hơn khoảng 15°), cách lần trước vài giây, không đang hướng dẫn. Bấm chụp luôn được ưu tiên: lần phân tích đang chạy bị bỏ.
 
 **Hướng dẫn liên tục:**
 
@@ -437,6 +440,7 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 | Bố cục | Gợi ý lúc ngắm | Bật (mặc định) / Tắt (đề xuất, chốt ở Phase 5) |
 | Bố cục | Gợi ý bố cục phụ tự động (Phase 5b) | Tắt (mặc định) / Bật |
 | Dung lượng | Bộ tách người | Dung lượng đã tải; nút Xóa (lần dùng sau tải lại, [§11](#11-online--offline)) |
+| Dung lượng | Bộ gợi ý bố cục phụ (Phase 5b) | Dung lượng đã tải; nút Xóa |
 | Giới thiệu | Phiên bản, nguồn ảnh mẫu, giấy phép model | Chỉ đọc |
 | Nhà phát triển | Màn thử nghiệm | Chỉ hiện trong bản dev |
 

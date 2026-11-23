@@ -393,7 +393,10 @@ export default function LibraryScreen() {
             ))}
 
           {tab === 'learn' && (
-            <LearnGrid width={screenW} onOpen={(id) => router.push({ pathname: '/lesson/[id]', params: { id } })} />
+            <LearnGrid
+              width={screenW}
+              onOpen={(id) => router.push({ pathname: '/lesson/[id]', params: { id } })}
+            />
           )}
 
           {tab === 'mine' &&

@@ -10,6 +10,7 @@ import {
   initialGuide,
   type Measure,
   measure,
+  sceneSuggestions,
   step,
 } from '../guidance';
 import { combinedShape } from '../guides';
@@ -265,5 +266,19 @@ describe('autoStep: đoán lúc chuẩn bị chụp', () => {
       fired ||= r.fire;
     }
     expect(fired).toBe(false);
+  });
+});
+
+describe('sceneSuggestions: chỉ gợi ý chân trời khi bộ dò và model cùng đồng ý', () => {
+  const f = person([0.3, 0.2, 0.5, 0.9]);
+  it('bộ dò thấy chân trời, model đồng ý → gợi ý; model không đồng ý hoặc chưa có → không', () => {
+    expect(sceneSuggestions(f, horizonAt(0.6), null, 0.2, 0.1)).toEqual(['horizon']);
+    expect(sceneSuggestions(f, horizonAt(0.6), null, 0.05, 0.1)).toEqual([]);
+    expect(sceneSuggestions(f, horizonAt(0.6), null, null, 0.1)).toEqual([]);
+    // Đang bật chân trời rồi thì không gợi ý lại.
+    expect(sceneSuggestions(f, horizonAt(0.6), 'horizon', 0.9, 0.1)).toEqual([]);
+  });
+  it('đường dẫn không bao giờ được gợi ý', () => {
+    expect(sceneSuggestions(f, vanishingAt(0.5, 0.4), null, 0.9, 0.1)).toEqual([]);
   });
 });

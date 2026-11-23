@@ -110,3 +110,8 @@ export function deletePack(pack: ModelPack): void {
 export function readPackFileBase64(pack: ModelPack, name: string): Promise<string> {
   return packFile(pack, name).base64();
 }
+
+/** Đọc một file chữ của gói (JSON phần đầu model, Phase 5b). */
+export function readPackFileText(pack: ModelPack, name: string): Promise<string> {
+  return packFile(pack, name).text();
+}

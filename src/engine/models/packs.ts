@@ -6,6 +6,7 @@
 import {
   MEDIAPIPE_VERSION,
   MODEL_FILES,
+  MODEL_URLS,
   SKY_FILES,
   SKY_URLS,
   TFJS_VERSION,
@@ -77,6 +78,31 @@ export const SKY_PACK: ModelPack = {
       url: SKY_URLS.weights,
       bytes: 2_294_595,
       mime: 'application/octet-stream',
+    },
+  ],
+};
+
+/**
+ * Bộ gợi ý bố cục phụ (~4,3 MB, Phase 5b): vector ảnh MobileNetV3 small từ CDN gốc của Google +
+ * phần đầu model tự huấn luyện (vòng 3, 7 lớp) ở GitHub Releases của repo model công khai, tag
+ * ghim. Lọc gợi ý Đường chân trời của bộ dò (bộ dò một mình báo nhầm nhiều, phase5b-data.md).
+ */
+export const TECHNIQUE_HEAD = 'technique-head.json';
+export const TECHNIQUE_PACK: ModelPack = {
+  id: 'technique',
+  version: 'r3-7-soft-1',
+  files: [
+    {
+      name: MODEL_FILES.embedder,
+      url: MODEL_URLS.embedder,
+      bytes: 4_117_670,
+      mime: 'application/octet-stream',
+    },
+    {
+      name: TECHNIQUE_HEAD,
+      url: 'https://github.com/tktnq2004/takeasnap-models/releases/download/technique-r3-1/technique-head.json',
+      bytes: 319_887,
+      mime: 'application/json',
     },
   ],
 };

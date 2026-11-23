@@ -46,6 +46,7 @@ export function CheckOverlay({
     if (f.eye) eye = { x: fx(f.eye.x), y: f.eye.y };
     const c = t.composition.check;
     if (result.sceneMs != null) dev.push(c.devSceneMs(Math.round(result.sceneMs)));
+    if (result.pHorizon != null) dev.push(c.devHorizonP(result.pHorizon));
     const sk = result.sky;
     if (sk.skyError) dev.push(c.devSkyError(sk.skyError));
     else if (sk.skyState === 'noPack') dev.push(c.devSkyNoPack);
