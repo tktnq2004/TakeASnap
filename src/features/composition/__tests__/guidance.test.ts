@@ -8,6 +8,7 @@ import {
   guideLine,
   horizonLine,
   initialGuide,
+  lockColumn,
   type Measure,
   measure,
   step,
@@ -57,7 +58,8 @@ describe('measure: tiêu chí theo thứ tự', () => {
     // Người cần dịch sang trái trên khung → xoay máy sang phải.
     expect(c.action).toBe('panRight');
     expect(c.target).toEqual({ kind: 'vline', x: 1 / 3 });
-    expect(guideLine(c)).toBe('Xoay máy sang phải để đưa người vào cột 1/3');
+    // Câu nói rõ bên (phiếu Phase 5b lần 1, mục 2.9).
+    expect(guideLine(c)).toBe('Xoay máy sang phải để đưa người sang đường 1/3 bên trái');
   });
 
   it('camera trước (khung soi gương): xoay ngang đổi chiều', () => {
@@ -138,11 +140,20 @@ describe('measure: ghép bố cục chính + phụ', () => {
   });
 });
 
+/** Một tiêu chí, ngưỡng 0,05. */
+const crit = (id: Check['id'], error: number): Check => ({
+  id,
+  ok: error <= 0.05,
+  error,
+  band: 0.05,
+  action: error <= 0.05 ? null : 'panLeft',
+  target: null,
+  at: null,
+});
+const turn = (...cs: Check[]): Measure => ({ kind: 'checks', checks: cs });
+
 describe('step: luật nhắc và dừng', () => {
-  const fail = (error: number, id: Check['id'] = 'thirdsColumn'): Measure => ({
-    kind: 'checks',
-    checks: [{ id, ok: false, error, action: 'panLeft', target: null }],
-  });
+  const fail = (error: number, id: Check['id'] = 'thirdsColumn'): Measure => turn(crit(id, error));
   const run = (s: GuideState, m: Measure, now: number) => step(s, m, now);
 
   it('lượt đầu cảnh không áp được → dừng ngay', () => {
@@ -162,15 +173,11 @@ describe('step: luật nhắc và dừng', () => {
   });
 
   it('đứng yên: nhắc mỗi 2 s, sau lần thứ 5 còn 10 s rồi dừng, báo phần đã đạt', () => {
-    const m: Measure = {
-      kind: 'checks',
-      checks: [
-        { id: 'thirdsColumn', ok: true, error: 0, action: null, target: null },
-        { id: 'thirdsEye', ok: false, error: 0.2, action: 'tiltDown', target: null },
-      ],
-    };
+    const m = turn(crit('thirdsColumn', 0), crit('thirdsEye', 0.2));
+    // Lượt đầu cột đúng nhưng chưa xác nhận: giữ yên; lượt sau mới qua bước.
     let r = run(initialGuide(), m, 0);
-    expect(r.event).toBe('instruct');
+    expect(r.state.current!.id).toBe('thirdsColumn');
+    expect(r.state.holding).toBe(true);
     const events: string[] = [];
     let now = 0;
     while (r.state.status === 'running' && now < 60000) {
@@ -180,10 +187,11 @@ describe('step: luật nhắc và dừng', () => {
     }
     expect(events.filter((e) => e === 'remind')).toHaveLength(GUIDE.reminders);
     expect(events.at(-1)).toBe('gaveUp');
-    // 5 lần nhắc cách 2 s (tới 10 s) + 10 s.
-    expect(now).toBe(20000);
+    // Qua bước cột ở 1 s, rồi 5 lần nhắc cách 2 s (tới 11 s) + 10 s.
+    expect(events[0]).toBe('passed');
+    expect(now).toBe(21000);
     expect(gaveUpLines(r.state)).toEqual([
-      'Đạt: người trên cột 1/3',
+      'Đạt: người trên đường 1/3',
       'Chưa đạt: mắt trên đường 1/3',
     ]);
   });
@@ -197,6 +205,56 @@ describe('step: luật nhắc và dừng', () => {
     expect(r.event).toBe('reached');
   });
 
+  it('đúng một lượt rồi lệch lại: chưa qua bước, không nhảy tiêu chí', () => {
+    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.2), crit('thirdsEye', 0.2)), 0);
+    r = run(r.state, turn(crit('thirdsColumn', 0.03), crit('thirdsEye', 0.2)), 1000);
+    expect(r.state.current!.id).toBe('thirdsColumn');
+    expect(r.state.holding).toBe(true);
+    r = run(r.state, turn(crit('thirdsColumn', 0.07), crit('thirdsEye', 0.2)), 2000);
+    expect(r.state.current!.id).toBe('thirdsColumn');
+    expect(r.state.holding).toBe(false);
+    expect(r.state.passed).toEqual([]);
+  });
+
+  it('đúng hai lượt liền: qua bước, báo "Đạt", sang tiêu chí sau', () => {
+    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.2), crit('thirdsEye', 0.2)), 0);
+    r = run(r.state, turn(crit('thirdsColumn', 0.03), crit('thirdsEye', 0.2)), 1000);
+    r = run(r.state, turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 2000);
+    expect(r.event).toBe('passed');
+    expect(r.state.justPassed).toBe('thirdsColumn');
+    expect(r.state.passedAt).toBe(2000);
+    expect(r.state.current!.id).toBe('thirdsEye');
+  });
+
+  it('bước đã qua chỉ vỡ khi lệch quá 1,5 lần ngưỡng (rung tay không làm vỡ)', () => {
+    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 0);
+    r = run(r.state, turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 1000);
+    expect(r.state.passed).toEqual(['thirdsColumn']);
+    // 0,07 > ngưỡng 0,05 nhưng ≤ 0,075: vẫn giữ bước cột.
+    r = run(r.state, turn(crit('thirdsColumn', 0.07), crit('thirdsEye', 0.2)), 2000);
+    expect(r.state.current!.id).toBe('thirdsEye');
+    // 0,1 > 0,075: vỡ thật, quay lại bước cột.
+    r = run(r.state, turn(crit('thirdsColumn', 0.1), crit('thirdsEye', 0.2)), 3000);
+    expect(r.state.current!.id).toBe('thirdsColumn');
+  });
+
+  it('đạt hết phải giữ hai lượt mới dừng', () => {
+    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.01)), 0);
+    expect(r.state.status).toBe('running');
+    r = run(r.state, turn(crit('thirdsColumn', 0.01)), 1000);
+    expect(r.event).toBe('reached');
+  });
+
+  it('mất người một lượt: bỏ qua, giữ nguyên câu', () => {
+    let r = run(initialGuide(), fail(0.2), 0);
+    const before = r.state.current;
+    r = run(r.state, { kind: 'noPerson' }, 1000);
+    expect(r.event).toBeNull();
+    expect(r.state.current).toBe(before);
+    r = run(r.state, fail(0.2), 2000);
+    expect(r.state.lost).toBe(0);
+  });
+
   it('mất người giữa chừng: không tiến bộ được, bị nhắc rồi dừng', () => {
     let r = run(initialGuide(), fail(0.2), 0);
     let now = 0;
@@ -206,6 +264,33 @@ describe('step: luật nhắc và dừng', () => {
     }
     expect(r.state.status).toBe('gaveUp');
     expect(r.state.current!.id).toBe('person');
+  });
+});
+
+describe('lockColumn: cột 1/3 chốt trong một lần hướng dẫn', () => {
+  it('nhìn thẳng: cột gần nhất lúc đầu, người lắc qua giữa khung không đổi cột', () => {
+    let lock = lockColumn(null, person([0.4, 0.2, 0.58, 0.9], { x: 0.49, y: 0.4 }));
+    expect(lock.col).toBe(1 / 3);
+    lock = lockColumn(lock, person([0.42, 0.2, 0.6, 0.9], { x: 0.51, y: 0.4 }));
+    expect(lock.col).toBe(1 / 3);
+  });
+
+  it('thấy rõ người nhìn về phía kia hai lượt liền mới đổi cột', () => {
+    const left = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.4 }, 'left');
+    let lock = lockColumn(null, person([0.4, 0.2, 0.6, 0.9], { x: 0.49, y: 0.4 }, 'right'));
+    expect(lock.col).toBe(1 / 3);
+    lock = lockColumn(lock, left);
+    expect(lock.col).toBe(1 / 3);
+    lock = lockColumn(lock, left);
+    expect(lock.col).toBe(2 / 3);
+  });
+
+  it('measure dùng cột đã chốt', () => {
+    const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.55, y: 0.4 });
+    const c = first(measure({ main: 'thirds', scene: null }, f, null, 0, false, 1 / 3))!;
+    expect(c.target).toEqual({ kind: 'vline', x: 1 / 3 });
+    expect(c.action).toBe('panRight');
+    expect(c.at).toEqual({ x: 0.55, y: 0.4 });
   });
 });
 

@@ -169,7 +169,7 @@ export const t = {
       /** Tiêu chí đã đạt / chưa đạt ở viên kết thúc. */
       done: {
         level: 'máy thẳng',
-        thirdsColumn: 'người trên cột 1/3',
+        thirdsColumn: 'người trên đường 1/3',
         thirdsEye: 'mắt trên đường 1/3',
         noJointCut: 'không cắt ngang tay chân',
         centerAxis: 'người ở giữa',
@@ -181,11 +181,17 @@ export const t = {
         horizonThird: 'chân trời trên đường 1/3',
         horizonNeck: 'chân trời không cắt cổ',
         leadToPerson: 'đường dẫn tới người',
-        leadThird: 'người trên cột 1/3',
+        leadThird: 'người trên đường 1/3',
         person: 'thấy người',
         horizonSeen: 'thấy chân trời',
         leadSeen: 'thấy đường dẫn',
       },
+      /** Cột 1/3 có bên: "để đưa người sang đường 1/3 bên phải". */
+      toColumn: (side: string) => `để đưa người sang đường 1/3 bên ${side}`,
+      left: 'trái',
+      right: 'phải',
+      /** Tiêu chí đang làm vừa đúng, đợi lượt sau xác nhận. */
+      hold: 'Đúng rồi, giữ yên máy',
       reached: (names: string) => `Đạt ${names}`,
       passed: (items: string) => `Đạt: ${items}`,
       failed: (item: string) => `Chưa đạt: ${item}`,
@@ -197,8 +203,13 @@ export const t = {
       },
       stopped: 'Đã dừng hướng dẫn',
       stop: 'Dừng hướng dẫn',
+      /** Nút Kiểm tra bố cục khi không hướng dẫn: chạy lại hướng dẫn của bố cục đang bật. */
+      restart: 'Hướng dẫn lại bố cục',
       /** Chip bố cục phụ dưới thanh trên. */
       removeScene: (name: string) => `Bỏ ${name}`,
+      /** Chip thêm bố cục phụ khi đang bật bố cục chính (mở bảng Bố cục). */
+      addScene: 'Bố cục phụ',
+      addSceneLabel: 'Thêm bố cục phụ',
       short: { horizon: 'Chân trời', lead: 'Đường dẫn' },
     },
     hints: {

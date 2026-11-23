@@ -62,7 +62,12 @@ import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomChipsWidth, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CheckOverlay } from '@/features/composition/CheckOverlay';
-import { GuideEndPill, GuideOverlay, SceneChip } from '@/features/composition/GuideOverlay';
+import {
+  AddSceneChip,
+  GuideEndPill,
+  GuideOverlay,
+  SceneChip,
+} from '@/features/composition/GuideOverlay';
 import {
   type GuidePlan,
   isGuidedMain,
@@ -498,15 +503,18 @@ function CameraBody() {
       return;
     }
     if (check.busy || downloading) return;
+    // Bố cục có hướng dẫn: nút là phím tắt chạy lại hướng dẫn (phiếu Phase 5b lần 1: đạt rồi muốn
+    // hướng dẫn lại thì không phải tắt bố cục rồi bật lại). Góc thấp, Selfie: kiểm tra một ảnh.
+    const run = guided ? restartGuide : checkWithSky;
     if (isPackReady(POSE_PACK)) {
-      checkWithSky();
+      run();
       return;
     }
     // Chưa có bộ tách người: hỏi trước, không tự tải (tốn dung lượng mạng).
     const c = t.composition.check;
     Alert.alert(c.needPackTitle, c.needPack(mbOf(POSE_PACK)), [
       { text: t.common.cancel, style: 'cancel' },
-      { text: c.download, onPress: () => fetchPack(POSE_PACK, c.downloadFailed, checkWithSky) },
+      { text: c.download, onPress: () => fetchPack(POSE_PACK, c.downloadFailed, run) },
     ]);
   };
 
@@ -537,6 +545,14 @@ function CameraBody() {
     }
     check.cancel();
     guide.start(plan);
+  };
+
+  /** Bố cục đang bật có hướng dẫn liên tục (chính 1/3, Ở giữa, Lấp đầy, Nhóm, hoặc bố cục phụ). */
+  const guided = isGuidedMain(technique) || scene != null;
+  /** Nút Kiểm tra bố cục khi không hướng dẫn: chạy lại hướng dẫn của bố cục đang bật. */
+  const restartGuide = () => {
+    haptic.select();
+    guideFor(technique, scene);
   };
 
   // Rời Camera: dừng hướng dẫn (bản mới nhất của stop qua ref).
@@ -868,16 +884,26 @@ function CameraBody() {
               maxBottom={hintBottom}
             />
           )}
-          {scene && (
+          {(scene || technique !== 'off') && (
             <View style={[styles.sceneChip, { top: barTop + TOP_BAR_H + space[2] }]}>
-              <SceneChip
-                scene={scene}
-                onRemove={() => {
-                  haptic.snap();
-                  store().setScene(null);
-                  if (guide.active) guideFor(technique, null);
-                }}
-              />
+              {scene ? (
+                <SceneChip
+                  scene={scene}
+                  onRemove={() => {
+                    haptic.snap();
+                    store().setScene(null);
+                    if (guide.active) guideFor(technique, null);
+                  }}
+                />
+              ) : (
+                <AddSceneChip
+                  onPress={() => {
+                    setToolsOpen(false);
+                    check.cancel();
+                    setCompositionOpen(true);
+                  }}
+                />
+              )}
             </View>
           )}
           {offNotice && technique === 'off' && !scene && (
@@ -941,9 +967,11 @@ function CameraBody() {
             accessibilityLabel={
               guide.active
                 ? t.composition.guide.stop
-                : check.busy
-                  ? t.composition.check.running
-                  : t.composition.check.button
+                : guided
+                  ? t.composition.guide.restart
+                  : check.busy
+                    ? t.composition.check.running
+                    : t.composition.check.button
             }
             accessibilityState={{ busy: check.busy || downloading }}
             hitSlop={4}

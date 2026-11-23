@@ -17,10 +17,12 @@ import { haptic } from '@/lib/haptics';
 import { compositionUi } from '@/ui/tokens';
 
 import {
+  type ColumnLock,
   flipX,
   type GuidePlan,
   type GuideState,
   initialGuide,
+  lockColumn,
   measure,
   type Measure,
   step,
@@ -87,6 +89,8 @@ export function useLiveGuide(getContext: () => GuideContext) {
 
   const loop = async (my: number, plan: GuidePlan) => {
     let state = initialGuide();
+    // Cột 1/3 chốt trong cả lần hướng dẫn (không nhảy theo rung tay).
+    let lock: ColumnLock | null = null;
     while (token.current === my) {
       const t0 = Date.now();
       const c = ctxRef.current();
@@ -106,16 +110,19 @@ export function useLiveGuide(getContext: () => GuideContext) {
             const r = flipX(snap.features, snap.scene);
             snap = { ...snap, features: r.f, scene: r.scene };
           }
+          if (snap) lock = lockColumn(lock, snap.features);
           const m: Measure = measure(
             plan,
             snap?.features ?? null,
             snap?.scene ?? null,
             rollDeg(),
             c.front,
+            lock?.col,
           );
           const r = step(state, m, Date.now());
           state = r.state;
-          if (r.event === 'instruct' && state.memo[state.current!.id]?.reminders === 0) {
+          if (r.event === 'passed') haptic.levelReached();
+          else if (r.event === 'instruct' && state.memo[state.current!.id]?.reminders === 0) {
             haptic.select();
           } else if (r.event === 'remind') haptic.remind();
           else if (r.event === 'reached') haptic.levelReached();

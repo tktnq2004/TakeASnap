@@ -355,6 +355,11 @@ export const compositionUi = {
   guideIntervalMs: 1000,
   /** Viên kết thúc (dừng giữa chừng, cảnh không áp được) hiện chừng này. */
   guideEndMs: 3000,
+  /** Viên "Đạt: …" sau mỗi bước hiện chừng này rồi mới tới câu sau. */
+  stepOkMs: 1200,
+  /** Mũi tên kết quả trên khung ngắm: nét, cỡ đầu mũi tên. */
+  arrowStroke: 3,
+  arrowHead: 14,
   /** Chip bố cục phụ cạnh nút Bố cục. */
   sceneChipH: 32,
 } as const;

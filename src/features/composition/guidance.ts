@@ -71,11 +71,16 @@ export type Target =
 
 export type Check = {
   id: CriterionId;
+  /** Lượt này đạt (`error` ≤ `band`). */
   ok: boolean;
-  /** Khoảng lệch còn lại (0 khi đạt), cùng đơn vị giữa các lượt của một tiêu chí. */
+  /** Khoảng lệch đo được, cùng đơn vị giữa các lượt của một tiêu chí. */
   error: number;
+  /** Lệch tới mức này vẫn đạt. */
+  band: number;
   action: Action | null;
   target: Target | null;
+  /** Chỗ của người / mắt / chân trời lúc này (gốc mũi tên tới đích), null khi không vẽ mũi tên. */
+  at: { x: number; y: number } | null;
 };
 
 /** Một lượt đo: các tiêu chí theo thứ tự, hoặc cảnh không áp được. */
@@ -103,9 +108,10 @@ const check = (
   band: number,
   action: Action | null,
   target: Target | null,
+  at: { x: number; y: number } | null = null,
 ): Check => {
   const ok = error <= band;
-  return { id, ok, error: ok ? 0 : error, action: ok ? null : action, target };
+  return { id, ok, error, band, action: ok ? null : action, target, at };
 };
 
 /** Cột 1/3 cho người chính: chừa chỗ phía người nhìn, nhìn thẳng thì cột gần nhất. */
@@ -113,6 +119,23 @@ export function thirdsColumn(f: PhotoFeatures, x: number): number {
   if (f.facing === 'right') return 1 / 3;
   if (f.facing === 'left') return 2 / 3;
   return x < 0.5 ? 1 / 3 : 2 / 3;
+}
+
+/**
+ * Cột 1/3 đã chốt trong một lần hướng dẫn (phiếu Phase 5b lần 1: người đứng giữa khung thì cột gần
+ * nhất đổi qua lại theo rung tay, câu nhảy "xoay trái" / "xoay phải"). Chốt ở lượt đầu; chỉ đổi khi
+ * thấy rõ người nhìn về phía kia `GUIDE.confirmTurns` lượt liền.
+ */
+export type ColumnLock = { col: number; pending: number | null; count: number };
+
+export function lockColumn(lock: ColumnLock | null, f: PhotoFeatures): ColumnLock {
+  if (!lock) return { col: thirdsColumn(f, personX(f)), pending: null, count: 0 };
+  const want = f.facing === 'right' ? 1 / 3 : f.facing === 'left' ? 2 / 3 : null;
+  if (want == null || want === lock.col) return { ...lock, pending: null, count: 0 };
+  const count = lock.pending === want ? lock.count + 1 : 1;
+  return count >= GUIDE.confirmTurns
+    ? { col: want, pending: null, count: 0 }
+    : { col: lock.col, pending: want, count };
 }
 
 function personX(f: PhotoFeatures): number {
@@ -143,23 +166,45 @@ function jointCut(f: PhotoFeatures): Check {
   return check('noJointCut', cut ? 1 : 0, 0, 'back', { kind: 'frame' });
 }
 
-function mainChecks(m: GuidedMain, f: PhotoFeatures, front: boolean): Check[] {
+/** Gốc mũi tên ngang: ngang mắt, không có mắt thì giữa khung người. */
+const personAt = (f: PhotoFeatures) => {
+  const [, y0, , y1] = f.people[f.main]!.box;
+  return { x: personX(f), y: f.eye?.y ?? (y0 + y1) / 2 };
+};
+
+function mainChecks(
+  m: GuidedMain,
+  f: PhotoFeatures,
+  front: boolean,
+  col: number | undefined,
+): Check[] {
   const p = f.people[f.main]!;
   const [x0, y0, x1, y1] = p.box;
   switch (m) {
     case 'thirds': {
       const x = personX(f);
-      const col = thirdsColumn(f, x);
+      const c = col ?? thirdsColumn(f, x);
       const out = [
-        check('thirdsColumn', Math.abs(col - x), RULE.verticalBand, pan(col - x, front), {
-          kind: 'vline',
-          x: col,
-        }),
+        check(
+          'thirdsColumn',
+          Math.abs(c - x),
+          RULE.verticalBand,
+          pan(c - x, front),
+          { kind: 'vline', x: c },
+          personAt(f),
+        ),
       ];
       if (f.eye) {
         const dy = 1 / 3 - f.eye.y;
         out.push(
-          check('thirdsEye', Math.abs(dy), RULE.eyeBand, tilt(dy), { kind: 'hline', y: 1 / 3 }),
+          check(
+            'thirdsEye',
+            Math.abs(dy),
+            RULE.eyeBand,
+            tilt(dy),
+            { kind: 'hline', y: 1 / 3 },
+            f.eye,
+          ),
         );
       }
       out.push(jointCut(f));
@@ -168,19 +213,26 @@ function mainChecks(m: GuidedMain, f: PhotoFeatures, front: boolean): Check[] {
     case 'center': {
       const mid = f.eye ? (f.eye.x + (x0 + x1) / 2) / 2 : (x0 + x1) / 2;
       const out = [
-        check('centerAxis', Math.abs(0.5 - mid), RULE.centerBand, pan(0.5 - mid, front), {
-          kind: 'vline',
-          x: 0.5,
-        }),
+        check(
+          'centerAxis',
+          Math.abs(0.5 - mid),
+          RULE.centerBand,
+          pan(0.5 - mid, front),
+          { kind: 'vline', x: 0.5 },
+          { x: mid, y: f.eye?.y ?? (y0 + y1) / 2 },
+        ),
       ];
       if (f.eye) {
         const dy = 1 / 3 - f.eye.y;
         out.push(
-          check('centerEye', Math.abs(dy), RULE.eyeBand, tilt(dy), {
-            kind: 'point',
-            x: 0.5,
-            y: 1 / 3,
-          }),
+          check(
+            'centerEye',
+            Math.abs(dy),
+            RULE.eyeBand,
+            tilt(dy),
+            { kind: 'point', x: 0.5, y: 1 / 3 },
+            f.eye,
+          ),
         );
       }
       return out;
@@ -200,10 +252,14 @@ function mainChecks(m: GuidedMain, f: PhotoFeatures, front: boolean): Check[] {
       const mid = (left + right) / 2;
       return [
         check('groupInFrame', edge, 0, 'back', { kind: 'frame' }),
-        check('groupCenter', Math.abs(0.5 - mid), RULE.centerBand, pan(0.5 - mid, front), {
-          kind: 'vline',
-          x: 0.5,
-        }),
+        check(
+          'groupCenter',
+          Math.abs(0.5 - mid),
+          RULE.centerBand,
+          pan(0.5 - mid, front),
+          { kind: 'vline', x: 0.5 },
+          { x: mid, y: 0.5 },
+        ),
       ];
     }
   }
@@ -221,11 +277,17 @@ export function horizonLine(f: PhotoFeatures, y: number): number {
 
 function horizonChecks(f: PhotoFeatures, h: NonNullable<Scene['horizon']>): Check[] {
   const line = horizonLine(f, h.y);
+  // Mũi tên dọc ở phía không có người.
+  const ax = personX(f) < 0.5 ? 0.75 : 0.25;
   const out = [
-    check('horizonThird', Math.abs(line - h.y), RULE.horizonBand, tilt(line - h.y), {
-      kind: 'hline',
-      y: line,
-    }),
+    check(
+      'horizonThird',
+      Math.abs(line - h.y),
+      RULE.horizonBand,
+      tilt(line - h.y),
+      { kind: 'hline', y: line },
+      { x: ax, y: h.y },
+    ),
   ];
   if (f.eye) {
     const j = f.joints;
@@ -241,7 +303,12 @@ function horizonChecks(f: PhotoFeatures, h: NonNullable<Scene['horizon']>): Chec
   return out;
 }
 
-function leadChecks(f: PhotoFeatures, v: NonNullable<Scene['vanishing']>, front: boolean): Check[] {
+function leadChecks(
+  f: PhotoFeatures,
+  v: NonNullable<Scene['vanishing']>,
+  front: boolean,
+  col: number | undefined,
+): Check[] {
   const p = f.people[f.main]!;
   const [x0, y0, x1, y1] = p.box;
   const pt = v.point;
@@ -261,14 +328,19 @@ function leadChecks(f: PhotoFeatures, v: NonNullable<Scene['vanishing']>, front:
       0,
       pt.x > x ? 'stepLeft' : 'stepRight',
       { kind: 'point', x: pt.x, y: pt.y },
+      personAt(f),
     ),
   ];
-  const col = thirdsColumn(f, x);
+  const c = col ?? thirdsColumn(f, x);
   out.push(
-    check('leadThird', Math.abs(col - x), RULE.verticalBand, pan(col - x, front), {
-      kind: 'vline',
-      x: col,
-    }),
+    check(
+      'leadThird',
+      Math.abs(c - x),
+      RULE.verticalBand,
+      pan(c - x, front),
+      { kind: 'vline', x: c },
+      personAt(f),
+    ),
   );
   return out;
 }
@@ -283,6 +355,8 @@ export function measure(
   scene: Scene | null,
   rollDeg: number,
   front: boolean,
+  /** Cột 1/3 đã chốt (`lockColumn`); không có thì chọn theo lượt này. */
+  col?: number,
 ): Measure {
   if (!f || f.main < 0 || !f.people[f.main]) return { kind: 'noPerson' };
   if (plan.main === 'group' && f.people.length < 2 && f.heads.length < 2)
@@ -297,10 +371,10 @@ export function measure(
       check('level', r, SENSOR.levelIn, rollDeg > 0 ? 'rotateCcw' : 'rotateCw', { kind: 'frame' }),
     );
   }
-  if (plan.main) checks.push(...mainChecks(plan.main, f, front));
+  if (plan.main) checks.push(...mainChecks(plan.main, f, front, col));
   if (plan.scene === 'horizon') checks.push(...horizonChecks(f, scene!.horizon!));
   if (plan.scene === 'lead') {
-    const lead = leadChecks(f, scene!.vanishing!, front);
+    const lead = leadChecks(f, scene!.vanishing!, front, col);
     checks.push(...(plan.main === 'thirds' ? lead.filter((c) => c.id !== 'leadThird') : lead));
   }
   return { kind: 'checks', checks };
@@ -315,35 +389,65 @@ export const GUIDE = {
   remindGapMs: 2000,
   /** Sau lần nhắc cuối còn chừng này (ms) rồi dừng. */
   graceMs: compositionUi.guideGraceMs,
+  /**
+   * Một tiêu chí chỉ tính đạt khi đúng chừng này lượt liền (phiếu Phase 5b lần 1: một lượt may
+   * mắn làm câu nhảy sang tiêu chí sau trước khi người dùng kịp làm). Cũng là số lượt để đổi cột.
+   */
+  confirmTurns: 2,
+  /** Tiêu chí đã đạt chỉ tính là vỡ khi lệch quá ngưỡng × chừng này (rung tay không làm vỡ). */
+  holdBand: 1.5,
+  /** Mất người / mất đường chừng này lượt liền mới tính là mất (một lượt dò hụt thì bỏ qua). */
+  lostTurns: 2,
 } as const;
 
 export type GuideState = {
   status: 'running' | 'reached' | 'gaveUp' | 'notApplicable';
   /** Tiêu chí đang làm (chưa đạt đầu tiên), null trước lượt đầu hoặc khi đạt hết. */
   current: Check | null;
+  /** Tiêu chí đang làm vừa đúng, đợi lượt sau xác nhận ("Đúng rồi, giữ yên máy"). */
+  holding: boolean;
   /** Mỗi tiêu chí: số lần nhắc, lệch tốt nhất, lệch tốt nhất ở đầu khoảng xét tiến bộ. */
   memo: Partial<Record<CriterionId, { reminders: number; best: number; ref: number }>>;
+  /** Số lượt đúng liền của từng tiêu chí. */
+  okRun: Partial<Record<CriterionId, number>>;
   /** Đầu khoảng xét tiến bộ hiện tại (lần đổi tiêu chí hoặc lần xét trước). */
   lastRemindAt: number;
   /** Hết hạn (ms) sau lần nhắc thứ 5 của tiêu chí đang làm. */
   deadline: number | null;
-  /** Lượt gần nhất: tiêu chí đã đạt (theo thứ tự), dùng cho viên kết thúc. */
+  /** Tiêu chí đã đạt (đã xác nhận, theo thứ tự), dùng cho viên kết thúc. */
   passed: CriterionId[];
+  /** Tiêu chí vừa đạt ở lượt này và lúc đạt (viên "Đạt: …" ngắn trước câu sau). */
+  justPassed: CriterionId | null;
+  passedAt: number;
+  /** Số lượt mất người / mất đường liền. */
+  lost: number;
   /** Cảnh không áp được (lượt đầu). */
   missing: 'person' | 'horizon' | 'lead' | 'group' | null;
   /** Lượt đầu đã qua (cảnh áp được). */
   started: boolean;
 };
 
-export type GuideEvent = 'instruct' | 'remind' | 'reached' | 'gaveUp' | 'notApplicable' | null;
+export type GuideEvent =
+  | 'instruct'
+  | 'passed'
+  | 'remind'
+  | 'reached'
+  | 'gaveUp'
+  | 'notApplicable'
+  | null;
 
 export const initialGuide = (): GuideState => ({
   status: 'running',
   current: null,
+  holding: false,
   memo: {},
+  okRun: {},
   lastRemindAt: -Infinity,
   deadline: null,
   passed: [],
+  justPassed: null,
+  passedAt: -Infinity,
+  lost: 0,
   missing: null,
   started: false,
 });
@@ -364,6 +468,7 @@ export function step(
   if (s.status !== 'running') return { state: s, event: null };
 
   let checks: Check[];
+  let lost = 0;
   if (m.kind === 'checks') checks = m.checks;
   else {
     const [missing, id] = MISSING[m.kind];
@@ -371,26 +476,51 @@ export function step(
     if (!s.started) {
       return { state: { ...s, status: 'notApplicable', missing }, event: 'notApplicable' };
     }
-    // Giữa chừng mất người / mất đường: một tiêu chí giả không bao giờ tiến bộ.
+    // Một lượt dò hụt: giữ nguyên, không đổi câu.
+    lost = s.lost + 1;
+    if (lost < GUIDE.lostTurns) return { state: { ...s, lost }, event: null };
+    // Mất thật: một tiêu chí giả không bao giờ tiến bộ (bị nhắc rồi dừng).
     checks = [
-      ...s.passed.map((p) => ({ id: p, ok: true, error: 0, action: null, target: null })),
-      { id, ok: false, error: 1, action: 'find', target: null },
+      ...s.passed.map(
+        (p): Check => ({ id: p, ok: true, error: 0, band: 0, action: null, target: null, at: null }),
+      ),
+      { id, ok: false, error: 1, band: 0, action: 'find', target: null, at: null },
     ];
   }
 
-  const failing = checks.find((c) => !c.ok) ?? null;
-  const passed = checks.filter((c) => c.ok).map((c) => c.id);
-  const base = { ...s, started: true, passed };
+  // Đúng lượt này: trong ngưỡng, hoặc đã đạt trước đó và chưa lệch quá ngưỡng × holdBand.
+  const was = new Set(s.passed);
+  const good = (c: Check) => c.ok || (was.has(c.id) && c.error <= c.band * GUIDE.holdBand);
+  const okRun: GuideState['okRun'] = {};
+  for (const c of checks) okRun[c.id] = good(c) ? (s.okRun[c.id] ?? 0) + 1 : 0;
+  const confirmed = (c: Check) =>
+    good(c) && (was.has(c.id) || (okRun[c.id] ?? 0) >= GUIDE.confirmTurns);
+
+  const failing = checks.find((c) => !confirmed(c)) ?? null;
+  const passed = checks.filter(confirmed).map((c) => c.id);
+  // Tiêu chí đang làm vừa được xác nhận: báo "Đạt: …" trước câu sau.
+  const prevId = s.current?.id;
+  const fresh = prevId != null && !was.has(prevId) && passed.includes(prevId);
+  const base: GuideState = {
+    ...s,
+    started: true,
+    passed,
+    okRun,
+    lost,
+    justPassed: fresh ? prevId : s.justPassed,
+    passedAt: fresh ? now : s.passedAt,
+  };
   if (!failing) {
     return {
-      state: { ...base, status: 'reached', current: null, deadline: null },
+      state: { ...base, status: 'reached', current: null, holding: false, deadline: null },
       event: 'reached',
     };
   }
 
+  const holding = good(failing);
   const prev = s.memo[failing.id];
   // Đổi tiêu chí (sang tiêu chí sau, hoặc quay lại tiêu chí trước vừa vỡ): câu mới.
-  if (s.current?.id !== failing.id) {
+  if (prevId !== failing.id) {
     const memo = {
       ...s.memo,
       [failing.id]: { reminders: prev?.reminders ?? 0, best: failing.error, ref: failing.error },
@@ -400,11 +530,20 @@ export function step(
       state: {
         ...base,
         current: failing,
+        holding,
         memo,
         deadline: done ? now + GUIDE.graceMs : null,
         lastRemindAt: now,
       },
-      event: 'instruct',
+      event: fresh ? 'passed' : 'instruct',
+    };
+  }
+
+  // Đang đúng, đợi xác nhận: không nhắc, không hết hạn; khoảng xét tiến bộ tính lại từ đây.
+  if (holding) {
+    return {
+      state: { ...base, current: failing, holding, lastRemindAt: now },
+      event: null,
     };
   }
 
@@ -430,11 +569,14 @@ export function step(
   }
   if (deadline !== null && now >= deadline) {
     return {
-      state: { ...base, status: 'gaveUp', current: failing, memo, deadline },
+      state: { ...base, status: 'gaveUp', current: failing, holding, memo, deadline },
       event: 'gaveUp',
     };
   }
-  return { state: { ...base, current: failing, memo, lastRemindAt, deadline }, event };
+  return {
+    state: { ...base, current: failing, holding, memo, lastRemindAt, deadline },
+    event,
+  };
 }
 
 /** Số lần đã nhắc tiêu chí đang làm (chấm nhắc). */
@@ -445,9 +587,18 @@ export const remindersOf = (s: GuideState) =>
 
 const G = t.composition.guide;
 
+/** Tiêu chí đưa người sang một cột 1/3: câu nói rõ bên nào (phiếu Phase 5b lần 1, mục 2.9). */
+const SIDED: CriterionId[] = ['thirdsColumn', 'leadThird'];
+
 /** Câu "hành động + kết quả" của tiêu chí đang làm. */
-export const guideLine = (c: Check) =>
-  c.action ? `${G.actions[c.action]} ${G.goals[c.id]}` : G.done[c.id];
+export function guideLine(c: Check): string {
+  if (!c.action) return G.done[c.id];
+  const goal =
+    SIDED.includes(c.id) && c.target?.kind === 'vline'
+      ? G.toColumn(c.target.x < 0.5 ? G.left : G.right)
+      : G.goals[c.id];
+  return `${G.actions[c.action]} ${goal}`;
+}
 
 /** Viên kết thúc khi dừng giữa chừng: [đã đạt, chưa đạt]. */
 export function gaveUpLines(s: GuideState): [string | null, string] {

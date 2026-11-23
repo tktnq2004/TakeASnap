@@ -584,6 +584,8 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 - [x] Camera: hướng dẫn liên tục ~1 lần / giây, đích sáng, chấm nhắc, vòng 10 s cuối, viên kết thúc
 - [x] Bật một bố cục chính + một bố cục phụ (bảng Bố cục hai nhóm, chip bố cục phụ, nhận xét sau khi chụp chấm cả hai)
 - [x] composition-critic v0.5.0: 7 lớp kỹ thuật; app trỏ tag đó
+- [x] Phiếu lần 1: bố cục chính / phụ, 1/3 (câu nhảy bước, cột đổi qua lại, không nhận hướng nhìn khi chỉ quay đầu, không thêm được bố cục phụ khi đang bật 1/3); sửa: xác nhận 2 lượt, chốt cột, hướng nhìn theo tai (composition-critic v0.5.1), mũi tên kết quả, nút Kiểm tra thành nút hướng dẫn lại, chip "+ Bố cục phụ"
+- [ ] Thử từng bố cục chính một (phiếu lần 2: Quy tắc 1/3; rồi Ở giữa, Lấp đầy, Nhóm, bố cục phụ)
 - [ ] Đo thời gian mỗi lượt, độ nóng, pin trên iPhone, Android; phiếu `phase5b-test.md`
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
