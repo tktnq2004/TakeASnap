@@ -295,14 +295,15 @@ Thử ở hai khoảng cách: **nửa người** (khoảng 1,5–2 m) và **cả
 - Tôi có một ý tưởng, thay vì phải chụp liên tục, kiểm tra liên tục và cập nhật liên tục như v, thì mình xử lí realtime bằng fe -> cụ thể :
 + chọn bố cục 1/3 - > chụp ảnh -> tạo 1 chấm ở người -> tạo 1 chấm ở cột 1/3 -> ở giữa là mũi tên khoảng cách -> lúc này người dùng chỉ việc đưa 2 điểm đó lại gần nhau theo mũi tên mà không cần phải chụp liên tục -> mũi tên là fe nên tự kéo dài , co lại theo vị trí của 2 nút một cách realtime không delay -> khi 2 nút chạm vào hoặc mũi tên biến mất -> báo giữ yên đồng thời chụp kiểm tra cho bước 2 -> cũng tương tự với mặt tạo 2 chấm và mũi tên -> cứ liên tục như v tới hết bước. Điều kiện hủy là khi người dùng tắt chức năng hoặc đã hoàn thành -> vì không càn chụp liên tục nên không sợ tốn pin, nóng máy 
 
-## 12. Lần 4 — Quy tắc 1/3 theo máy xoay
+## 12. Lần 4 — Quy tắc 1/3 theo chuyển động của máy
 
 Vẫn chỉ thử Quy tắc 1/3. Chạy lại `npx expo start -c`. Lần 3 đạt hết; mục này thử cách hướng dẫn mới theo góp ý 11.2.1, 11.2.8 và 11.5.
 
 **Đã sửa theo lần 3:**
 
 - **11.5, ý tưởng chấm + mũi tên:** app không chụp mỗi giây nữa. Chụp **một** ảnh, đặt **chấm trắng ở người** (ngang mắt; bước mắt: ở mắt), **chấm xanh ở đích** (trên đường 1/3 sáng), giữa là **mũi tên**. Sau đó chấm trắng và mũi tên **chạy theo máy ngay trên màn hình**, không chụp thêm: app đọc **con quay** của máy (có sẵn trong Expo Go) và tính người dịch tới đâu khi máy xoay. Chấm trắng chạm chấm xanh → mũi tên biến mất, viên xanh "Đúng rồi, giữ yên máy", máy yên chừng 0,4 s thì **chụp kiểm tra**: đạt thì sang bước sau (ảnh đó đặt chấm cho bước sau), chưa đạt thì đặt lại chấm từ ảnh đó.
-  - **Giới hạn:** con quay chỉ đo được **máy xoay** (xoay ngang, ngửa / chúc). Bạn **bước ngang** hay người mẫu tự đi thì chấm không chạy; khi máy yên lại chừng 0,7 s, app chụp một ảnh đặt lại chấm. Góc nhìn của camera app ước lượng (camera chính chừng 26 mm), nên trên máy bạn chấm có thể chạy nhanh / chậm hơn người thật một chút; ảnh kiểm tra sửa lại.
+  - **Bước ngang, tiến, lùi** (bạn hỏi thêm sau khi bàn: con quay chỉ đo máy xoay): app đọc thêm **cảm biến gia tốc** để biết máy đi bao xa, và ước lượng người đứng cách bao xa từ cỡ thân người trong ảnh, nên chấm trắng **cũng chạy khi bạn bước**. Phần này chỉ **gần đúng**: chấm chạy đúng chiều nhưng quãng có thể lệch chừng 30–40%, có thể rung khi bước nhún; đứng yên chừng 0,7 s thì app chụp một ảnh đặt chấm lại đúng chỗ. Camera trước không theo bước (bạn cầm máy đi theo máy).
+  - **Giới hạn:** người mẫu tự đi thì chấm không biết (không chụp thêm); máy yên lại thì ảnh sau sửa. Góc nhìn của camera app ước lượng (camera chính chừng 26 mm), nên trên máy bạn chấm có thể chạy nhanh / chậm hơn người thật một chút; ảnh kiểm tra sửa lại.
   - **Chỉ dừng khi đạt hết hoặc bạn tắt.** Bỏ luật tự dừng sau 3 lần nhắc + 10 s và vòng đếm lùi quanh nút; mỗi bước vẫn nhắc tối đa 3 lần rồi thôi nhắc. Chưa thấy người thì viên ghi "Hướng máy về phía người" và chờ, không tự dừng.
   - Các bước không theo được bằng máy xoay (③ không cắt tay chân: lùi ra) không có chấm, mũi tên; app chụp khi máy yên lại sau khi di chuyển, và thêm một ảnh mỗi 4 s.
 - **11.2.1, 11.2.8 (chỉ bảo người chụp; một dòng):** viên còn **một dòng**, một mũi tên: "**← Xoay máy sang trái / bước sang trái**" (xoay máy sang trái hay bạn bước sang trái thì người trên khung đều dịch sang phải); mắt: "**↓ Chúc máy xuống / hạ máy xuống**", "**↑ Ngửa máy lên / đưa máy lên**". Camera trước chỉ nói xoay máy.
@@ -326,7 +327,10 @@ Vẫn chỉ thử Quy tắc 1/3. Chạy lại `npx expo start -c`. Lần 3 đạ
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 12.2.1 | Đang bước 1, **không xoay máy, bạn bước ngang** theo viên ("… / bước sang trái") rồi đứng yên | Lúc bước chấm không chạy theo (giới hạn ở trên); đứng yên chừng 1 s thì chấm nhảy tới chỗ mới | | | |
+| 12.2.1 | Đang bước 1, **không xoay máy, bạn bước ngang** một bước theo viên ("… / bước sang trái") rồi đứng yên | Lúc bước chấm trắng **chạy theo cùng chiều** (có thể rung, quãng gần đúng); đứng yên chừng 1 s thì chấm nhảy nhẹ về đúng chỗ người | | | |
+| 12.2.1b | Như 12.2.1: lúc đứng yên, chấm nhảy **xa** cỡ nào | Ghi cỡ nhảy (ví dụ "gần như không nhảy", "nhảy nửa quãng"); nhảy nhiều là phần đo bước chưa dùng được | | | |
+| 12.2.1c | Vừa bước vừa xoay máy | Chấm vẫn chạy về chấm xanh, không văng lung tung | | | |
+| 12.2.1d | Bước ngang **ngược** chiều viên | Chấm đi xa chấm xanh, mũi tên dài ra | | | |
 | 12.2.2 | Để máy yên không làm gì | Mỗi 2 s một chấm nhắc sáng + rung, tối đa 3; sau đó **không tự dừng**, chấm và viên vẫn còn | | | |
 | 12.2.3 | Để máy yên 30 s | Không nóng máy hơn bình thường (app không chụp khi máy yên và chấm đã đặt) | | | |
 | 12.2.4 | Chọn 1/3 khi khung **không có người** | Viên "Hướng máy về phía người", không dừng; hướng máy về người rồi giữ yên thì chừng 1–4 s sau có chấm | | | |

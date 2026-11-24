@@ -1,8 +1,8 @@
 /**
  * Hướng dẫn liên tục trên khung ngắm (Phase 5b, design.md §6.15): **chấm người** (trắng), **chấm
  * đích** (`camAccent`) trên đường sáng và **mũi tên** từ chấm người tới chấm đích, chạy theo máy
- * xoay ngay trên UI thread (phiếu Phase 5b lần 3, mục 11.5; `track.ts`); ô "Bước 2/3" với chấm
- * nhắc; viên hướng dẫn một dòng; viên xanh "Đúng rồi, giữ yên máy" khi chấm người tới đích (đang
+ * (xoay, dịch chuyển) ngay trên UI thread (phiếu Phase 5b lần 3, mục 11.5; `track.ts`); ô "Bước
+ * 2/3" với chấm nhắc; viên hướng dẫn một dòng; viên xanh "Đúng rồi, giữ yên máy" khi chấm người tới đích (đang
  * đợi máy yên để chụp kiểm tra), "Đạt: …" khi qua một bước; viên kết thúc.
  */
 import {
@@ -20,7 +20,7 @@ import {
   ScanSearch,
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -40,7 +40,7 @@ import { color, compositionUi, motion, radius, size, space, type } from '@/ui/to
 
 import { type Action, type Dir, GUIDE, guideLine, remindersOf, stepOf } from './guidance';
 import { SceneLines } from './SceneLines';
-import { type Live, trackFrame } from './track';
+import { type Live, trackFrame, type Xyz } from './track';
 import type { GuideEnd, GuideTrack, GuideView } from './useLiveGuide';
 
 /** Icon của viên theo thao tác, khi viên không có chiều riêng. */
@@ -79,14 +79,29 @@ const STACK_H = 120;
  * Đọc con quay, mỗi khung hình tính chấm người theo máy xoay (`trackFrame`). Chỉ mount khi đang
  * hướng dẫn: con quay chỉ chạy lúc đó.
  */
+/** iOS: `ACCELEROMETER` của Reanimated là gia tốc thô (có trọng lực); Android đã là gia tốc thẳng. */
+const RAW_ACCEL = Platform.OS === 'ios';
+
 function MotionTracker({ track, zoom }: { track: GuideTrack; zoom: SharedValue<number> }) {
   const gyro = useAnimatedSensor(SensorType.GYROSCOPE, { interval: 'auto' });
+  const acc = useAnimatedSensor(SensorType.ACCELEROMETER, { interval: 'auto' });
+  const grav = useAnimatedSensor(SensorType.GRAVITY, { interval: 'auto' });
   const { live, anchor, epoch } = track;
   useFrameCallback((f) => {
     'worklet';
     const dt = f.timeSincePreviousFrame;
     if (dt == null) return;
-    live.set(trackFrame(live.get(), gyro.sensor.get(), dt, epoch.get(), anchor.get(), zoom.get()));
+    const a = acc.sensor.get();
+    let lin: Xyz | null = { x: a.x, y: a.y, z: a.z };
+    if (RAW_ACCEL) {
+      const g = grav.sensor.get();
+      // Chưa có trọng lực để trừ: bỏ khung này.
+      lin =
+        g.x === 0 && g.y === 0 && g.z === 0 ? null : { x: a.x - g.x, y: a.y - g.y, z: a.z - g.z };
+    }
+    live.set(
+      trackFrame(live.get(), gyro.sensor.get(), lin, dt, epoch.get(), anchor.get(), zoom.get()),
+    );
   });
   return null;
 }

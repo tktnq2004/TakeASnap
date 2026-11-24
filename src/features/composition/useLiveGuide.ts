@@ -13,6 +13,7 @@
  * Camera chỉ chụp một ảnh mỗi lúc: lúc camera đang bận (người dùng đang bấm chụp) thì đợi; nút chụp
  * đợi lần chụp lặng đang chạy (`settled()`) rồi chụp ngay.
  */
+import type { PhotoFeatures } from 'composition-critic';
 import type { CameraView } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
@@ -43,7 +44,7 @@ import {
   stepLive,
   trackAxis,
 } from './guidance';
-import { type Anchor, type Lens, type Live, LIVE0, type Quat } from './track';
+import { type Anchor, depthOf, type Lens, type Live, LIVE0, type Quat, type Vec, zoomed } from './track';
 import { type Snapshot, useSnapshot } from './useSnapshot';
 
 const IOS = Platform.OS === 'ios';
@@ -123,13 +124,24 @@ export function useLiveGuide(getContext: () => GuideContext) {
     return (deviceRoll(g.x, g.y, IOS) * 180) / Math.PI;
   };
 
-  /** Chấm người / đích của tiêu chí đang làm, theo góc máy lúc chụp; null khi không theo được. */
-  const anchorFor = (c: Check | null, q: Quat, ctx: GuideContext): Anchor | null => {
+  /**
+   * Chấm người / đích của tiêu chí đang làm, theo góc và chỗ máy lúc chụp, khoảng cách tới người
+   * ước lượng từ ảnh; null khi không theo được.
+   */
+  const anchorFor = (
+    c: Check | null,
+    q: Quat,
+    s: Vec,
+    f: PhotoFeatures | null,
+    ctx: GuideContext,
+  ): Anchor | null => {
     const axis = trackAxis(c);
     if (!c || !axis || !c.at || !c.target || c.target.kind === 'frame') return null;
     return {
       id: ++anchorId.current,
       q,
+      s,
+      depth: depthOf(f, zoomed(ctx.lens, ctx.zoom)),
       lens: ctx.lens,
       zoom: ctx.zoom,
       at: c.at,
@@ -154,8 +166,8 @@ export function useLiveGuide(getContext: () => GuideContext) {
     while (token.current === my) {
       const c = ctxRef.current();
       if (want && c.cam && c.free) {
-        // Góc máy lúc chụp; từ đây tính lại "đã di chuyển", "yên bao lâu".
-        const q = live.get().q;
+        // Góc, chỗ máy lúc chụp; từ đây tính lại "đã di chuyển", "yên bao lâu".
+        const { q, s: at } = live.get();
         epoch.set(epoch.get() + 1);
         lastShot = Date.now();
         let s: Snapshot | null = null;
@@ -194,7 +206,7 @@ export function useLiveGuide(getContext: () => GuideContext) {
         else if (r.event === 'instruct' && state.memo[state.current!.id]?.reminders === 0) {
           haptic.select();
         } else if (r.event === 'remind') haptic.remind();
-        anchor.set(anchorFor(state.current, q, c));
+        anchor.set(anchorFor(state.current, q, at, snap?.features ?? null, c));
         show();
         if (state.status !== 'running') {
           token.current++;
