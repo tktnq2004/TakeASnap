@@ -1,9 +1,7 @@
 /**
  * Hướng dẫn liên tục (Phase 5b, business-flow §6.10): từ kết quả phân tích một ảnh chụp lặng ra
- * tiêu chí đang làm và thao tác máy, và luật nhắc (mỗi bước nhắc tối đa 3 lần). Hàm thuần, test
- * được trong Jest. Mỗi ảnh chụp kiểm tra: `measure` rồi `step`; giữa hai ảnh, khoảng lệch đoán theo
- * máy xoay (`track.ts`) vào `stepLive`. Hướng dẫn chỉ dừng khi đạt hết hoặc người dùng tắt (phiếu
- * Phase 5b lần 3, mục 11.5).
+ * tiêu chí đang làm và thao tác máy, và luật dừng (3 lần nhắc không tiến bộ + 10 s). Hàm thuần,
+ * test được trong Jest; Camera gọi `measure` mỗi lượt (~1 s) rồi `step`.
  *
  * Toạ độ theo khung ngắm người dùng đang thấy (0..1, gốc trên trái). Camera trước: khung ngắm soi
  * gương, nên xoay máy ngang ngược chiều so với camera sau (bước ngang thì không đổi, vì vật gần
@@ -12,6 +10,7 @@
 import { J, type PhotoFeatures, RULE, type Scene, visible } from 'composition-critic';
 
 import { t } from '@/ui/strings';
+import { compositionUi } from '@/ui/tokens';
 
 import { SENSOR } from './sensor';
 import type { TechniqueId } from './techniques';
@@ -125,7 +124,7 @@ export function thirdsColumn(f: PhotoFeatures, x: number): number {
 /**
  * Cột 1/3 đã chốt trong một lần hướng dẫn (phiếu Phase 5b lần 1: người đứng giữa khung thì cột gần
  * nhất đổi qua lại theo rung tay, câu nhảy "xoay trái" / "xoay phải"). Chốt ở lượt đầu.
- * - Chốt theo hướng nhìn (`sure`): chỉ đổi khi thấy người nhìn về phía kia `GUIDE.turnShots`
+ * - Chốt theo hướng nhìn (`sure`): chỉ đổi khi thấy người nhìn về phía kia `GUIDE.confirmTurns`
  *   lượt (không tính các lượt không đoán được hướng).
  * - Chốt theo cột gần nhất (lượt đầu không đoán được hướng): lượt đầu tiên thấy hướng nhìn thì đổi
  *   theo ngay (phiếu Phase 5b lần 2, mục 10.3.1: chọn 1/3 khi người đã quay đầu mà cột vẫn sai).
@@ -148,7 +147,7 @@ export function lockColumn(lock: ColumnLock | null, f: PhotoFeatures): ColumnLoc
   if (want === lock.col) return { col: lock.col, sure: true, pending: null, count: 0 };
   if (!lock.sure) return { col: want, sure: true, pending: null, count: 0 };
   const count = lock.pending === want ? lock.count + 1 : 1;
-  return count >= GUIDE.turnShots
+  return count >= GUIDE.confirmTurns
     ? { col: want, sure: true, pending: null, count: 0 }
     : { ...lock, pending: want, count };
 }
@@ -395,25 +394,23 @@ export function measure(
   return { kind: 'checks', checks };
 }
 
-// ---- Luật nhắc ----
+// ---- Luật dừng ----
 
 export const GUIDE = {
   /**
-   * Số lần nhắc không tiến bộ của một bước (phiếu Phase 5b lần 2, mục 10.6.1: mỗi bước nhắc 3
-   * lần, đếm lại từ đầu khi sang bước khác). Nhắc hết thì thôi nhắc nhưng vẫn hướng dẫn: hướng dẫn
-   * không còn chụp liên tục nên không tự dừng (phiếu lần 3, mục 11.5).
+   * Số lần nhắc không tiến bộ của một bước trước khi đếm lùi (phiếu Phase 5b lần 2, mục 10.6.1:
+   * mỗi bước nhắc 3 lần, đếm lại từ đầu khi sang bước khác).
    */
   reminders: 3,
   /** Xét tiến bộ (và nhắc nếu không tiến bộ) mỗi chừng này (ms). */
   remindGapMs: 2000,
+  /** Sau lần nhắc cuối còn chừng này (ms) rồi dừng. */
+  graceMs: compositionUi.guideGraceMs,
   /**
-   * Một tiêu chí tính đạt khi đúng chừng này ảnh liền. Ảnh kiểm tra chỉ chụp khi chấm người đã tới
-   * đích theo máy xoay và máy đã yên (phiếu lần 3, mục 11.5), nên một ảnh là đủ; lần 1, khi chụp
-   * đều mỗi giây, một ảnh may mắn làm câu nhảy bước nên cần 2.
+   * Một tiêu chí chỉ tính đạt khi đúng chừng này lượt liền (phiếu Phase 5b lần 1: một lượt may
+   * mắn làm câu nhảy sang tiêu chí sau trước khi người dùng kịp làm). Cũng là số lượt để đổi cột.
    */
-  confirmShots: 1,
-  /** Số ảnh thấy người nhìn về phía kia thì đổi cột 1/3 đã chốt. */
-  turnShots: 2,
+  confirmTurns: 2,
   /** Tiêu chí đã đạt chỉ tính là vỡ khi lệch quá ngưỡng × chừng này (rung tay không làm vỡ). */
   holdBand: 1.5,
   /** Mất người / mất đường chừng này lượt liền mới tính là mất (một lượt dò hụt thì bỏ qua). */
@@ -421,7 +418,7 @@ export const GUIDE = {
 } as const;
 
 export type GuideState = {
-  status: 'running' | 'reached';
+  status: 'running' | 'reached' | 'gaveUp' | 'notApplicable';
   /** Tiêu chí đang làm (chưa đạt đầu tiên), null trước lượt đầu hoặc khi đạt hết. */
   current: Check | null;
   /** Tiêu chí đang làm vừa đúng, đợi lượt sau xác nhận ("Đúng rồi, giữ yên máy"). */
@@ -432,6 +429,8 @@ export type GuideState = {
   okRun: Partial<Record<CriterionId, number>>;
   /** Đầu khoảng xét tiến bộ hiện tại (lần đổi tiêu chí hoặc lần xét trước). */
   lastRemindAt: number;
+  /** Hết hạn (ms) sau lần nhắc cuối của tiêu chí đang làm. */
+  deadline: number | null;
   /** Tiêu chí đã đạt (đã xác nhận, theo thứ tự), dùng cho viên kết thúc. */
   passed: CriterionId[];
   /** Các bước của lượt đo gần nhất, theo thứ tự ("Bước 2/3"). */
@@ -441,11 +440,20 @@ export type GuideState = {
   passedAt: number;
   /** Số lượt mất người / mất đường liền. */
   lost: number;
-  /** Đã thấy cảnh áp được ít nhất một lần. */
+  /** Cảnh không áp được (lượt đầu). */
+  missing: 'person' | 'horizon' | 'lead' | 'group' | null;
+  /** Lượt đầu đã qua (cảnh áp được). */
   started: boolean;
 };
 
-export type GuideEvent = 'instruct' | 'passed' | 'remind' | 'reached' | null;
+export type GuideEvent =
+  | 'instruct'
+  | 'passed'
+  | 'remind'
+  | 'reached'
+  | 'gaveUp'
+  | 'notApplicable'
+  | null;
 
 export const initialGuide = (): GuideState => ({
   status: 'running',
@@ -454,51 +462,22 @@ export const initialGuide = (): GuideState => ({
   memo: {},
   okRun: {},
   lastRemindAt: -Infinity,
+  deadline: null,
   passed: [],
   steps: [],
   justPassed: null,
   passedAt: -Infinity,
   lost: 0,
+  missing: null,
   started: false,
 });
 
-/** Tiêu chí giả khi không thấy cảnh ("Hướng máy về phía người"). */
 const MISSING = {
-  noPerson: 'person',
-  noHorizon: 'horizonSeen',
-  noLead: 'leadSeen',
-  noGroup: 'person',
+  noPerson: ['person', 'person'],
+  noHorizon: ['horizon', 'horizonSeen'],
+  noLead: ['lead', 'leadSeen'],
+  noGroup: ['group', 'person'],
 } as const;
-
-/**
- * Xét tiến bộ của tiêu chí đang làm theo từng khoảng `remindGapMs`: trong khoảng đó lệch tốt nhất
- * có nhỏ đi hơn `PROGRESS_EPS` so với đầu khoảng không. Xét từng lượt thì người làm theo chậm mà
- * đều cũng bị nhắc (lượt nào nhỏ đi ít hơn ngưỡng là tính).
- */
-function progress(
-  s: GuideState,
-  id: CriterionId,
-  error: number,
-  now: number,
-): Pick<GuideState, 'memo' | 'lastRemindAt'> & { event: GuideEvent } {
-  const prev = s.memo[id];
-  const reminders = prev?.reminders ?? 0;
-  const best = Math.min(prev?.best ?? error, error);
-  const ref = prev?.ref ?? best;
-  let memo = { ...s.memo, [id]: { reminders, best, ref } };
-  let event: GuideEvent = null;
-  let lastRemindAt = s.lastRemindAt;
-  if (now - s.lastRemindAt >= GUIDE.remindGapMs) {
-    lastRemindAt = now;
-    if (best < ref - PROGRESS_EPS) {
-      memo = { ...memo, [id]: { reminders, best, ref: best } };
-    } else if (reminders < GUIDE.reminders) {
-      memo = { ...memo, [id]: { reminders: reminders + 1, best, ref: best } };
-      event = 'remind';
-    }
-  }
-  return { memo, lastRemindAt, event };
-}
 
 /** Một lượt: cập nhật trạng thái theo kết quả đo lúc `now` (ms). */
 export function step(
@@ -512,14 +491,15 @@ export function step(
   let lost = 0;
   if (m.kind === 'checks') checks = m.checks;
   else {
-    const id = MISSING[m.kind];
-    // Một lượt dò hụt giữa chừng: giữ nguyên, không đổi câu.
-    if (s.started) {
-      lost = s.lost + 1;
-      if (lost < GUIDE.lostTurns) return { state: { ...s, lost }, event: null };
+    const [missing, id] = MISSING[m.kind];
+    // Lượt đầu: cảnh không áp được thì dừng ngay.
+    if (!s.started) {
+      return { state: { ...s, status: 'notApplicable', missing }, event: 'notApplicable' };
     }
-    // Chưa thấy cảnh (lượt đầu) hoặc mất thật: tiêu chí giả "Hướng máy về phía người" (không tự
-    // dừng; phiếu Phase 5b lần 3, mục 11.5).
+    // Một lượt dò hụt: giữ nguyên, không đổi câu.
+    lost = s.lost + 1;
+    if (lost < GUIDE.lostTurns) return { state: { ...s, lost }, event: null };
+    // Mất thật: một tiêu chí giả không bao giờ tiến bộ (bị nhắc rồi dừng).
     checks = [
       ...s.passed.map(
         (p): Check => ({ id: p, ok: true, error: 0, band: 0, action: null, target: null, at: null }),
@@ -534,7 +514,7 @@ export function step(
   const okRun: GuideState['okRun'] = {};
   for (const c of checks) okRun[c.id] = good(c) ? (s.okRun[c.id] ?? 0) + 1 : 0;
   const confirmed = (c: Check) =>
-    good(c) && (was.has(c.id) || (okRun[c.id] ?? 0) >= GUIDE.confirmShots);
+    good(c) && (was.has(c.id) || (okRun[c.id] ?? 0) >= GUIDE.confirmTurns);
 
   const failing = checks.find((c) => !confirmed(c)) ?? null;
   const passed = checks.filter(confirmed).map((c) => c.id);
@@ -543,7 +523,7 @@ export function step(
   const fresh = prevId != null && !was.has(prevId) && passed.includes(prevId);
   const base: GuideState = {
     ...s,
-    started: s.started || m.kind === 'checks',
+    started: true,
     passed,
     steps: m.kind === 'checks' ? checks.map((c) => c.id) : s.steps,
     okRun,
@@ -553,7 +533,7 @@ export function step(
   };
   if (!failing) {
     return {
-      state: { ...base, status: 'reached', current: null, holding: false },
+      state: { ...base, status: 'reached', current: null, holding: false, deadline: null },
       event: 'reached',
     };
   }
@@ -566,8 +546,16 @@ export function step(
       ...s.memo,
       [failing.id]: { reminders: prev?.reminders ?? 0, best: failing.error, ref: failing.error },
     };
+    const done = (prev?.reminders ?? 0) >= GUIDE.reminders;
     return {
-      state: { ...base, current: failing, holding, memo, lastRemindAt: now },
+      state: {
+        ...base,
+        current: failing,
+        holding,
+        memo,
+        deadline: done ? now + GUIDE.graceMs : null,
+        lastRemindAt: now,
+      },
       event: fresh ? 'passed' : 'instruct',
     };
   }
@@ -580,40 +568,37 @@ export function step(
     };
   }
 
-  const { event, ...p } = progress(s, failing.id, failing.error, now);
-  return { state: { ...base, current: failing, holding, ...p }, event };
+  // Tiến bộ xét theo từng khoảng `remindGapMs`: trong khoảng đó lệch tốt nhất có nhỏ đi hơn
+  // `PROGRESS_EPS` so với đầu khoảng không. Xét từng lượt thì người làm theo chậm mà đều cũng bị
+  // nhắc (lượt nào nhỏ đi ít hơn ngưỡng là tính).
+  const reminders = prev?.reminders ?? 0;
+  const best = Math.min(prev?.best ?? failing.error, failing.error);
+  const ref = prev?.ref ?? best;
+  let memo = { ...s.memo, [failing.id]: { reminders, best, ref } };
+  let event: GuideEvent = null;
+  let lastRemindAt = s.lastRemindAt;
+  let deadline = s.deadline;
+  if (now - s.lastRemindAt >= GUIDE.remindGapMs) {
+    lastRemindAt = now;
+    if (best < ref - PROGRESS_EPS) {
+      memo = { ...memo, [failing.id]: { reminders, best, ref: best } };
+    } else if (reminders < GUIDE.reminders) {
+      memo = { ...memo, [failing.id]: { reminders: reminders + 1, best, ref: best } };
+      event = 'remind';
+      if (reminders + 1 >= GUIDE.reminders) deadline = now + GUIDE.graceMs;
+    }
+  }
+  if (deadline !== null && now >= deadline) {
+    return {
+      state: { ...base, status: 'gaveUp', current: failing, holding, memo, deadline },
+      event: 'gaveUp',
+    };
+  }
+  return {
+    state: { ...base, current: failing, holding, memo, lastRemindAt, deadline },
+    event,
+  };
 }
-
-/**
- * Giữa hai ảnh kiểm tra: khoảng lệch của tiêu chí đang làm đoán theo máy xoay (`track.ts`). Chỉ
- * xét tiến bộ và nhắc; qua bước thì phải có ảnh kiểm tra (`step`). `hold`: chấm người đã tới đích,
- * đang đợi máy yên để chụp kiểm tra (không nhắc, khoảng xét tiến bộ tính lại từ đây).
- */
-export function stepLive(
-  s: GuideState,
-  error: number,
-  hold: boolean,
-  now: number,
-): { state: GuideState; event: GuideEvent } {
-  if (s.status !== 'running' || !s.current) return { state: s, event: null };
-  if (hold) return { state: { ...s, lastRemindAt: now }, event: null };
-  const { event, ...p } = progress(s, s.current.id, error, now);
-  return { state: { ...s, ...p }, event };
-}
-
-/** Trục theo dõi được bằng máy xoay (chấm người → chấm đích) của từng tiêu chí. */
-const TRACK_AXIS: Partial<Record<CriterionId, 'x' | 'y'>> = {
-  thirdsColumn: 'x',
-  centerAxis: 'x',
-  groupCenter: 'x',
-  leadThird: 'x',
-  thirdsEye: 'y',
-  centerEye: 'y',
-  horizonThird: 'y',
-};
-/** Tiêu chí đang làm theo dõi được bằng máy xoay theo trục nào, null khi không. */
-export const trackAxis = (c: Check | null): 'x' | 'y' | null =>
-  c && c.action && c.at && c.target ? (TRACK_AXIS[c.id] ?? null) : null;
 
 /** Số lần đã nhắc tiêu chí đang làm (chấm nhắc). */
 export const remindersOf = (s: GuideState) =>
@@ -623,7 +608,7 @@ export const remindersOf = (s: GuideState) =>
 
 const G = t.composition.guide;
 
-/** Chiều của viên hướng dẫn (icon mũi tên). */
+/** Chiều của một dòng hướng dẫn (icon mũi tên của dòng). */
 export type Dir = 'left' | 'right' | 'up' | 'down';
 export type GuideLine = { text: string; dir: Dir | null };
 
@@ -638,31 +623,51 @@ const ACTION_DIR: Partial<Record<Action, Dir>> = {
   lower: 'down',
 };
 
-/** Đưa người / nhóm sang ngang bằng máy: xoay máy, hoặc người chụp bước cùng chiều. */
-const SIDEWAYS: CriterionId[] = ['thirdsColumn', 'centerAxis', 'leadThird', 'groupCenter'];
-/** Đưa mắt lên / xuống: chúc / ngửa máy, hoặc hạ / đưa máy lên cùng chiều. */
+/** Đưa người / nhóm sang ngang: người bước cũng được (dòng "Hoặc người bước sang …"). */
+const PERSON_STEP: Partial<Record<CriterionId, 'person' | 'group'>> = {
+  thirdsColumn: 'person',
+  centerAxis: 'person',
+  leadThird: 'person',
+  groupCenter: 'group',
+};
+/** Đưa mắt lên / xuống: hạ / đưa máy lên cũng được (vật gần dịch ngược chiều máy). */
 const EYE: CriterionId[] = ['thirdsEye', 'centerEye'];
 
+/** Chiều người / mắt phải dịch trên khung ngắm (từ chỗ đang đứng tới đích). */
+function moveDir(c: Check): Dir | null {
+  const a = c.at;
+  const tg = c.target;
+  if (!a || !tg) return null;
+  if (tg.kind === 'vline') return tg.x > a.x ? 'right' : 'left';
+  if (tg.kind === 'hline' || tg.kind === 'point') {
+    if (tg.kind === 'point' && Math.abs(tg.y - a.y) < Math.abs(tg.x - a.x)) return null;
+    return tg.y > a.y ? 'down' : 'up';
+  }
+  return null;
+}
+
 /**
- * Viên hướng dẫn: một dòng, chỉ bảo người chụp (phiếu Phase 5b lần 3, mục 11.2.1, 11.2.8: không
- * bắt người mẫu di chuyển; hai dòng chiếm chỗ). Đưa người / mắt tới đích thì gộp hai cách làm cùng
- * chiều: "Xoay máy sang trái / bước sang trái" (camera sau: máy xoay sang trái hay người chụp bước
- * sang trái thì người trên khung đều dịch sang phải), "Chúc máy xuống / hạ máy xuống". Camera
- * trước chỉ nói xoay máy (bước ngang với máy selfie thì người trên khung đi theo máy). Tiêu chí
- * khác: "hành động + kết quả".
+ * Các dòng của viên hướng dẫn (phiếu Phase 5b lần 2, mục 10.2.2, 10.2.8): đưa người / mắt tới đích
+ * thì hai dòng ngắn, mỗi dòng một cách làm và icon mũi tên có chiều, "Xoay máy sang trái" / "Hoặc
+ * người bước sang phải": không biết người dùng sẽ xoay máy hay bảo người bước. Bên đích nằm ở dòng
+ * thứ hai và ở đường sáng, nên không cần nói "đường 1/3". Tiêu chí khác: một câu "hành động + kết
+ * quả".
  */
-export function guideLine(c: Check, front: boolean): GuideLine {
-  if (!c.action) return { text: G.done[c.id], dir: null };
-  if (c.action === 'find') return { text: G.find[c.id] ?? G.actions.find, dir: null };
-  const text = G.actions[c.action];
-  const dir = ACTION_DIR[c.action] ?? null;
-  if (SIDEWAYS.includes(c.id) && (dir === 'left' || dir === 'right')) {
-    return { text: front ? text : `${text} / ${G.orStep[dir]}`, dir };
+export function guideLines(c: Check): GuideLine[] {
+  if (!c.action) return [{ text: G.done[c.id], dir: null }];
+  const action: GuideLine = { text: G.actions[c.action], dir: ACTION_DIR[c.action] ?? null };
+  const d = moveDir(c);
+  const who = PERSON_STEP[c.id];
+  if (who && (d === 'left' || d === 'right')) {
+    return [action, { text: G.personStep[who][d], dir: d }];
   }
-  if (EYE.includes(c.id) && (dir === 'up' || dir === 'down')) {
-    return { text: `${text} / ${dir === 'down' ? G.orCamera.lower : G.orCamera.raise}`, dir };
+  if (EYE.includes(c.id) && (d === 'up' || d === 'down')) {
+    // Mắt cần lên: hạ máy xuống; mắt cần xuống: đưa máy lên.
+    return d === 'up'
+      ? [action, { text: G.cameraMove.lower, dir: 'down' }]
+      : [action, { text: G.cameraMove.raise, dir: 'up' }];
   }
-  return { text: `${text} ${G.goals[c.id]}`, dir };
+  return [{ ...action, text: `${G.actions[c.action]} ${G.goals[c.id]}` }];
 }
 
 /** Bước đang làm / số bước (bắt đầu từ 1), null khi tiêu chí đang làm không phải một bước. */
@@ -670,6 +675,13 @@ export function stepOf(s: GuideState): { index: number; total: number } | null {
   if (!s.current) return null;
   const i = s.steps.indexOf(s.current.id);
   return i < 0 ? null : { index: i + 1, total: s.steps.length };
+}
+
+/** Viên kết thúc khi dừng giữa chừng: [đã đạt, chưa đạt]. */
+export function gaveUpLines(s: GuideState): [string | null, string] {
+  const failed = s.current ? G.failed(G.done[s.current.id]) : G.stopped;
+  const passed = s.passed.filter((id) => id !== 'level' && id !== s.current?.id);
+  return [passed.length ? G.passed(passed.map((id) => G.done[id]).join(', ')) : null, failed];
 }
 
 // ---- Khung ngắm ----

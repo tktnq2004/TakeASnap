@@ -28,12 +28,14 @@ describe('guideShape', () => {
     expect(g.v).toEqual([0.25, 0.5, 0.75]);
     expect(g.h).toHaveLength(3);
     expect(g.target).toBeNull();
+    expect(g.points).toEqual([]);
   });
 
-  it('1/3 chưa có pose: chưa có đích, không có chấm ở giao điểm', () => {
+  it('1/3 chưa có pose: hai giao điểm trên, chưa có đích', () => {
     const g = guideShape('thirds');
     expect(g.v).toHaveLength(2);
     expect(g.target).toBeNull();
+    expect(g.points).toEqual(UPPER);
     expect(UPPER.every((p) => p.y === 1 / 3)).toBe(true);
   });
 
@@ -41,6 +43,7 @@ describe('guideShape', () => {
     expect(guideShape('thirds', { x: 0.7, y: 0.3 }).target).toEqual({ x: 2 / 3, y: 1 / 3 });
     // Mắt pose ở dưới vẫn chỉ về đường 1/3 trên, khớp nhận xét.
     expect(guideShape('thirds', { x: 0.2, y: 0.8 }).target).toEqual({ x: 1 / 3, y: 1 / 3 });
+    expect(guideShape('thirds', { x: 0.2, y: 0.8 }).points).toEqual([]);
   });
 
   it('Chân trời tô cả hai đường 1/3, Đường dẫn có hai đường chéo về đích', () => {

@@ -34,6 +34,7 @@ export function CompositionGuide({
   const W = frame.width;
   const H = frame.height;
   const T = compositionUi.target;
+  const P = compositionUi.point;
   // Mắt người mẫu đã nằm trong vòng đích thì ẩn vòng; lệch ra mới hiện lại (phiếu Phase 5 lần 4).
   const reached =
     g.target != null &&
@@ -76,6 +77,12 @@ export function CompositionGuide({
           ))}
         </Svg>
       )}
+      {g.points.map((p) => (
+        <View
+          key={`p${p.x}${p.y}`}
+          style={[styles.point, { left: p.x * W - P / 2, top: p.y * H - P / 2 }]}
+        />
+      ))}
       {focus && <Focus target={focus} width={W} height={H} />}
       {g.target && !reached && focus?.kind !== 'point' && (
         <View
@@ -168,6 +175,14 @@ const styles = StyleSheet.create({
     borderColor: color.camAccent,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  point: {
+    position: 'absolute',
+    width: compositionUi.point,
+    height: compositionUi.point,
+    borderRadius: compositionUi.point / 2,
+    borderWidth: compositionUi.targetStroke,
+    borderColor: color.camAccent,
   },
   targetDot: {
     width: compositionUi.targetDot,

@@ -281,7 +281,7 @@ flowchart TD
 - **Đạt**: đường kẻ chuyển màu nhấn, rung nhẹ một lần, dòng gợi ý biến mất.
 - **Không thấy người**: chỉ còn gợi ý từ cảm biến; không báo lỗi.
 - Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread.
-- **Không theo dõi người liên tục không giới hạn** (cổng Phase 5 Bước 3 không đạt: Expo Go chỉ lấy được ảnh bằng cách chụp thật; cỡ thật 1,2 lần / giây và nóng máy, cỡ nhỏ thì đổi sang cỡ thật lúc bấm chụp mất ~1 s và nháy). Từ Phase 5b (2026-11-23, người dùng chốt) có **hướng dẫn liên tục** (§6.10): chạy tới khi đạt hoặc người dùng dừng. Từ phiếu Phase 5b lần 3 (2026-11-24) không chụp đều nữa: chấm người chạy theo con quay, chỉ chụp kiểm tra khi chấm tới đích hoặc máy yên lại sau khi di chuyển, nên không cần tự dừng để đỡ nóng máy.
+- **Không theo dõi người liên tục không giới hạn** (cổng Phase 5 Bước 3 không đạt: Expo Go chỉ lấy được ảnh bằng cách chụp thật; cỡ thật 1,2 lần / giây và nóng máy, cỡ nhỏ thì đổi sang cỡ thật lúc bấm chụp mất ~1 s và nháy). Từ Phase 5b (2026-11-23, người dùng chốt) có **hướng dẫn liên tục có giới hạn** (§6.10): chạy tới khi đạt, người dùng dừng, cảnh không áp được, hoặc hết 3 lần nhắc không tiến bộ ở một bước + 10 s.
 - **Kiểm tra bố cục (Phase 5a):** người dùng chạm nút thì app chụp lặng một ảnh, khoảng 1 s sau hiện nhận xét trên khung ngắm vài giây (khung người, chấm mắt, đường tìm được, một dòng gợi ý theo thứ tự ưu tiên ở trên). Chỉnh xong thì chạm lại. Bấm chụp lúc đang kiểm tra thì chụp ngay. Phase 5 chỉ có nhận xét sau khi chụp (§6.5).
 
 ### 6.5 Nhận xét sau khi chụp
@@ -312,7 +312,7 @@ flowchart TD
 - Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
 - App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
 - Phase 5: người dùng tự chọn kỹ thuật; đường chân trời và đường dẫn chỉ có lớp kẻ, app không dò cảnh. Dò đường thẳng trong ảnh là Phase 5a (§6.9), tự đoán kỹ thuật bằng model là Phase 5b (§6.10); mỗi phần có cổng quyết định riêng, không đạt thì giữ bản Phase 5.
-- Lúc ngắm có gợi ý từ cảm biến; phân tích người lúc ngắm khi chạm **Kiểm tra bố cục** (Phase 5a, §6.4) và trong **hướng dẫn liên tục** (Phase 5b, §6.10: chụp kiểm tra theo sự kiện, không chụp đều); không bao giờ chạy nền.
+- Lúc ngắm có gợi ý từ cảm biến; phân tích người lúc ngắm khi chạm **Kiểm tra bố cục** (Phase 5a, §6.4) và trong **hướng dẫn liên tục có giới hạn** (Phase 5b, §6.10); không bao giờ chạy nền không giới hạn.
 
 ### 6.9 Dò đường chân trời và đường dẫn (Phase 5a)
 
@@ -350,23 +350,21 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 - **Không có gợi ý bố cục phụ** (người dùng chốt 2026-11-23 sau khi đo, [phase5b-data.md](phase5b-data.md)): bộ dò một mình báo chân trời ở nhiều đường phố, mái nhà, hàng cây (~25% đúng), điểm hội tụ gần như ngẫu nhiên. Lọc thêm bằng model vòng 3 thì chân trời đúng ~60%, nhưng chỉ còn gợi ý được một bố cục (Đường chân trời) mà phải thêm gói tải ~4,4 MB, repo model công khai và chế độ tự gợi ý khi máy đứng yên: không đáng để thành một tính năng lớn. Gợi ý làm lại khi có bộ dò tốt hơn và nhiều bố cục phụ hơn.
 - "AI" của tính năng: các model trên máy **nhìn cảnh** (tách người, khung xương, mặt, mắt, vùng trời, đường thẳng); **bộ quy tắc hình học** dịch kết quả nhìn được thành thao tác. Không dùng model học để chọn thao tác: không có dữ liệu, và phép tính chính xác hơn, giải thích được.
 
-**Bắt đầu hướng dẫn:** chọn bố cục chính (1/3, Ở giữa, Lấp đầy, Nhóm) hoặc bố cục phụ trong bảng Bố cục → **hướng dẫn liên tục** bắt đầu (cần bộ tách người; chưa có thì chỉ bật lớp kẻ như Phase 5). Ảnh đầu tiên kiểm tra cảnh **áp được** không (bảng dưới); không thì viên ghi "Hướng máy về phía người" (hoặc "… đường chân trời", "… đường dẫn") và chờ, không tự dừng (phiếu Phase 5b lần 3, mục 11.5). Góc thấp, Selfie chạy theo cảm biến như Phase 5, không cần hướng dẫn liên tục. **Nút Kiểm tra bố cục** (hiện khi đang bật bố cục có nhận xét, chính hoặc phụ): đang hướng dẫn thì là nút dừng; không hướng dẫn thì là phím tắt **chạy lại hướng dẫn** của bố cục đang bật (phiếu Phase 5b lần 1: đạt rồi muốn hướng dẫn lại không phải tắt bố cục rồi bật lại); Góc thấp, Selfie: kiểm tra một ảnh như Phase 5a.
+**Bắt đầu hướng dẫn:** chọn bố cục chính (1/3, Ở giữa, Lấp đầy, Nhóm) hoặc bố cục phụ trong bảng Bố cục → **hướng dẫn liên tục** bắt đầu (cần bộ tách người; chưa có thì chỉ bật lớp kẻ như Phase 5). Ảnh đầu tiên kiểm tra cảnh **áp được** không (bảng dưới); không thì báo ngay một dòng (ví dụ "Cảnh này không thấy đường chân trời") rồi dừng, lớp kẻ giữ nguyên. Góc thấp, Selfie chạy theo cảm biến như Phase 5, không cần hướng dẫn liên tục. **Nút Kiểm tra bố cục** (hiện khi đang bật bố cục có nhận xét, chính hoặc phụ): đang hướng dẫn thì là nút dừng; không hướng dẫn thì là phím tắt **chạy lại hướng dẫn** của bố cục đang bật (phiếu Phase 5b lần 1: đạt rồi muốn hướng dẫn lại không phải tắt bố cục rồi bật lại); Góc thấp, Selfie: kiểm tra một ảnh như Phase 5a.
 
 **Hướng dẫn liên tục:**
 
-- **Theo máy xoay, không chụp đều** (phiếu Phase 5b lần 3, mục 11.5, ý của người dùng): app chụp lặng **một** ảnh, phân tích, đặt **chấm người** (trắng, ở người hoặc mắt) và **chấm đích** (xanh, trên đường sáng), giữa hai chấm là **mũi tên**. Sau đó chấm người chạy theo máy ngay trên màn hình, không chụp thêm: app đọc **con quay** (gyroscope, có trong Expo Go qua Reanimated) và tính chỗ người dịch tới khi máy xoay (góc nhìn của camera chính chừng 26 mm; zoom thu hẹp góc nhìn). Máy **dịch chuyển** (bước ngang, tiến, lùi; phiếu lần 4, người dùng muốn theo cả việc này): app đọc thêm **cảm biến gia tốc**, cộng ra quãng máy đi, đổi ra quãng chấm chạy theo khoảng cách tới người ước lượng từ cỡ thân trong ảnh. Phần này gần đúng (đúng chiều, quãng lệch chừng 30–40%, chỉ tin trong một hai giây); camera trước không theo bước. Mũi tên tự dài ra, ngắn lại theo máy. Người dùng chỉ việc đưa chấm người tới chấm đích.
-- **Chụp kiểm tra** khi chấm người tới chấm đích (mũi tên biến mất, viên xanh "Đúng rồi, giữ yên máy") và máy yên khoảng 0,4 s: ảnh kiểm tra đạt thì qua bước và ảnh đó đặt chấm cho bước sau; chưa đạt thì đặt lại chấm từ ảnh đó.
-- **Chụp đặt lại chấm** khi máy đã di chuyển (xoay quá 2° hoặc rung khi bước) rồi yên lại khoảng 0,7 s mà chưa tới đích: quãng bước đo gần đúng; người mẫu tự đi, hay góc nhìn ước lượng lệch thì chấm sai dần, ảnh này sửa lại. Tiêu chí không theo được bằng máy xoay (lùi ra, tiến lại, không cắt khớp, chưa thấy người): chụp như trên, thêm một ảnh mỗi 4 s.
-- Máy không có con quay (máy ảo): như tiêu chí không theo được.
+- App tự chụp lặng và phân tích khoảng 1 lần / giây.
 - Làm **từng tiêu chí theo thứ tự** (mỗi tiêu chí là một **bước**, trên viên có "Bước 2/3"); không có số độ, số cm.
-- **Chỉ hướng dẫn người chụp, một dòng** (phiếu Phase 5b lần 3, mục 11.2.1, 11.2.8: không bắt người mẫu di chuyển; hai dòng chiếm chỗ). Đưa người / mắt tới đích: gộp hai cách làm **cùng chiều** của người chụp, một mũi tên: "← Xoay máy sang trái / bước sang trái" (camera sau: xoay máy sang trái hay bước sang trái thì người trên khung đều dịch sang phải); mắt: "↓ Chúc máy xuống / hạ máy xuống", "↑ Ngửa máy lên / đưa máy lên". Camera trước chỉ nói xoay máy (bước ngang với máy selfie thì người đi theo máy). Bên đích nằm ở chấm đích và đường sáng, không cần nói "đường 1/3". Tiêu chí khác: một câu "hành động + kết quả": "Tiến lại gần để người lấp đầy khung", "Bước sang phải để đường đi dẫn tới người".
-- **Đích sáng trên khung ngắm:** đường hoặc điểm cần đưa người, mắt, chân trời tới được tô sáng; chấm đích nằm trên đó.
-- **Không nhảy bước:** một bước chỉ qua khi **ảnh kiểm tra** đúng (lần 1 chụp đều mỗi giây nên cần 2 lượt liền; giờ ảnh kiểm tra chỉ chụp khi chấm đã tới đích và máy yên, nên một ảnh là đủ); qua bước thì viên xanh "Đạt: <tiêu chí>" khoảng 1 s rồi mới tới câu sau. Mất người một ảnh (dò hụt) thì bỏ qua ảnh đó.
+- **Đưa người / mắt tới đích: hai cách làm** (phiếu Phase 5b lần 2, mục 10.2.2: không biết người dùng sẽ xoay máy hay bảo người bước), hai dòng ngắn, mỗi dòng có mũi tên theo chiều của chính dòng đó: "← Xoay máy sang trái" / "→ Hoặc người bước sang phải"; mắt: "↓ Chúc máy xuống" / "↓ Hoặc hạ máy xuống". Bên đích (trái / phải) nằm ở dòng thứ hai và ở đường sáng, không cần nói "đường 1/3" (mục 10.2.8). "Phải / trái" của người bước là theo khung ngắm. Tiêu chí khác: một câu "hành động + kết quả": "Tiến lại gần để người lấp đầy khung", "Bước sang phải để đường đi dẫn tới người".
+- **Đích sáng trên khung ngắm:** đường hoặc điểm cần đưa người, mắt, chân trời tới được tô sáng. Khung ngắm chạy realtime nên người dùng tự thấy lúc tới; lần phân tích chỉ để xác nhận rồi chuyển tiêu chí. Không dùng con quay để đo góc.
+- **Mũi tên kết quả trên khung ngắm:** từ chỗ người / mắt đang đứng tới đích sáng, cho thấy người sẽ đi về đâu; câu nói máy làm gì. Tới đích: viên xanh "Đúng rồi, giữ yên máy".
+- **Không nhảy bước** (phiếu Phase 5b lần 1: câu đổi trước khi kịp làm): một tiêu chí chỉ tính đạt khi đúng **2 lượt liền**; qua bước thì viên xanh "Đạt: <tiêu chí>" khoảng 1 s rồi mới tới câu sau. Mất người một lượt (dò hụt) thì bỏ qua lượt đó.
 - **Tiêu chí đã đạt vẫn được giữ:** làm tiêu chí sau mà tiêu chí trước vỡ (tiến lại gần làm người lệch ngang) thì quay lại tiêu chí đó. Chỉ tính là vỡ khi lệch quá 1,5 lần ngưỡng, nên rung tay không làm câu nhảy qua lại.
 - **1/3: cột đích chốt ở lượt đầu** (phía người đang nhìn, nhìn thẳng thì cột gần nhất). Chốt theo hướng nhìn thì chỉ đổi khi thấy người nhìn về phía kia 2 lượt (lượt không đoán được hướng không tính, không xóa số đếm); chốt theo cột gần nhất thì lượt đầu tiên thấy hướng nhìn là đổi theo (phiếu Phase 5b lần 2, mục 10.3.1).
 - **Hướng nhìn** (composition-critic v0.7.0): có mặt của người chính thì theo **lưới điểm mặt** (chóp mũi so với hai mép mặt; lưới mặt dò trên vùng đầu phóng to nên đo được cả người đứng xa, phiếu lần 2 mục 10.3: camera sau, người xa, tai của khung xương nhiễu); không có mặt thì theo đầu của khung xương (mũi so với hai tai), không thấy tai thì theo vai. Đo trên máy tính: 157 ảnh người đứng xa thu về 512 px, lưới mặt không lần nào ngược chiều với tai; bộ đo luật nhận xét (cùng dữ liệu) nhận ra "thiếu chỗ phía người nhìn" 79% → 93%, không dòng nào tệ đi.
 - Máy thẳng (cảm biến) trước, rồi tiêu chí của bố cục chính, rồi của bố cục phụ. **Bố cục phụ đi theo bố cục chính:** với 1/3, mắt đã ở đường 1/3 trên thì chân trời đặt ở đường 1/3 dưới và không cắt qua đầu, cổ.
-- Chỉ người chụp di chuyển (xoay máy, bước, tiến, lùi); app không bảo người mẫu di chuyển (phiếu lần 3, mục 11.2.1).
+- Người chụp di chuyển máy là cách chính; với vị trí ngang của người, dòng thứ hai cho cách người mẫu bước (người dùng chọn cách nào cũng được).
 - Chỉ chữ và chỉ dẫn trên màn hình, không đọc thành tiếng.
 
 | Bố cục | Áp được khi | Tiêu chí theo thứ tự |
@@ -381,8 +379,8 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 | Lệch | Câu hướng dẫn (ví dụ) |
 |---|---|
 | Máy nghiêng | "Xoay máy cho thẳng" (cảm biến, tức thì) |
-| Người lệch ngang | "Xoay máy sang trái / bước sang trái" (muốn người dịch sang phải thì xoay máy hoặc bước sang trái; camera trước: "Xoay máy sang phải") |
-| Mắt lệch dọc | "Chúc máy xuống / hạ máy xuống" (mắt cần lên); "Ngửa máy lên / đưa máy lên" (mắt cần xuống) |
+| Người lệch ngang | "Xoay máy sang trái" / "Hoặc người bước sang phải" (muốn người dịch sang phải thì xoay máy sang trái; camera trước lật lại) |
+| Mắt lệch dọc | "Chúc máy xuống" / "Hoặc hạ máy xuống" (mắt cần lên); "Ngửa máy lên" / "Hoặc đưa máy lên" (mắt cần xuống) |
 | Chân trời lệch dọc | "Ngửa máy lên để chân trời nằm trên đường xanh" / "Chúc máy xuống …" |
 | Người quá nhỏ, quá to | "Tiến lại gần để người lấp đầy khung" / "Lùi ra để thấy cả nhóm" |
 | Đường dẫn không tới người | "Bước sang trái để đường đi dẫn tới người" |
@@ -390,8 +388,10 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 
 **Dừng:**
 
-- **Chỉ có hai cách dừng** (phiếu Phase 5b lần 3, mục 11.5): **đạt** mọi tiêu chí (ảnh kiểm tra cuối đúng): rung, "Đạt <bố cục>", lớp kẻ xanh, dừng; chạm nút Kiểm tra bố cục để hướng dẫn lại. Hoặc **người dùng** chạm nút đang hướng dẫn, tắt hoặc đổi bố cục, đổi camera, rời Camera. Không tự dừng khi không tiến bộ hay khi chưa thấy cảnh: hướng dẫn không chụp đều nên để máy xuống cũng không tốn pin, không nóng.
-- **Nhắc**: chỉ tính một lần nhắc khi khoảng lệch (theo chấm người lúc này) **không nhỏ đi** trong khoảng 2 s (đứng yên hoặc làm ngược); người đang làm theo thì không bị tính. **Mỗi bước nhắc tối đa 3 lần** (phiếu Phase 5b lần 2, mục 10.6.1; sang bước khác thì đếm lại); nhắc hết thì thôi nhắc, vẫn hướng dẫn.
+- **Đạt** mọi tiêu chí (giữ 2 lượt liền): rung, "Đạt <bố cục>", lớp kẻ xanh, dừng. Chạm nút Kiểm tra bố cục để hướng dẫn lại.
+- **Nhắc**: chỉ tính một lần nhắc khi khoảng lệch **không nhỏ đi** so với lượt trước (đứng yên hoặc làm ngược); người đang làm theo thì không bị tính. Hai lần nhắc cách nhau ít nhất khoảng 2 s. **Mỗi bước nhắc tối đa 3 lần** (phiếu Phase 5b lần 2, mục 10.6.1; sang bước khác thì đếm lại); sau lần nhắc thứ 3 còn **10 s**; vẫn chưa đạt thì dừng và báo phần đã đạt: "Đạt: người trên đường 1/3. Chưa đạt: mắt trên đường 1/3". Không có giới hạn tổng; để máy xuống hoặc không làm theo thì app tự dừng sau khoảng 16 s, máy không nóng.
+- Ảnh đầu tiên cho thấy cảnh không áp được: dừng ngay (ở trên).
+- Người dùng chạm nút đang hướng dẫn, tắt hoặc đổi bố cục, đổi camera, rời Camera: dừng.
 - Bấm chụp lúc đang hướng dẫn thì chụp ngay; hướng dẫn chạy tiếp sau khi chụp.
 
 Model và ảnh ở trên máy (BR-03). Nhận xét sau khi chụp (§6.5) chấm theo cả bố cục chính và bố cục phụ đang bật.

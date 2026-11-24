@@ -316,6 +316,8 @@ export const compositionUi = {
   /** Vòng chấm đích và chấm giữa. */
   target: 34,
   targetDot: 8,
+  /** Các giao điểm 1/3 khi chưa có pose: vòng nhỏ. */
+  point: 14,
   targetStroke: 2,
   /** Nét đậm của đường chân trời / đường dẫn. */
   accentStroke: 2,
@@ -347,19 +349,11 @@ export const compositionUi = {
   /** Hướng dẫn liên tục (Phase 5b): nét đích sáng, chấm nhắc. */
   focusStroke: 3,
   remindDot: 6,
-  /**
-   * Hướng dẫn theo máy xoay (phiếu Phase 5b lần 3, mục 11.5): bên JS đọc kết quả của UI thread mỗi
-   * `guidePollMs`; chấm người tới đích và máy yên `guideVerifyMs` thì chụp kiểm tra; máy đã di
-   * chuyển rồi yên `guideSettleMs` thì chụp đặt lại chấm; tiêu chí không theo được bằng máy xoay thì
-   * chụp thêm mỗi `guideRefreshMs`.
-   */
-  guidePollMs: 120,
-  guideVerifyMs: 400,
-  guideSettleMs: 700,
-  guideRefreshMs: 4000,
-  /** Chấm người, chấm đích trên khung ngắm. */
-  liveDot: 14,
-  /** Viên kết thúc (đạt) hiện chừng này. */
+  /** Sau lần nhắc thứ 5 còn chừng này (ms) rồi dừng (vòng quanh nút; khớp `GUIDE.graceMs`). */
+  guideGraceMs: 10000,
+  /** Mỗi lượt chụp lặng + phân tích cách nhau ít nhất chừng này (ms). */
+  guideIntervalMs: 1000,
+  /** Viên kết thúc (dừng giữa chừng, cảnh không áp được) hiện chừng này. */
   guideEndMs: 3000,
   /** Viên "Đạt: …" sau mỗi bước hiện chừng này rồi mới tới câu sau. */
   stepOkMs: 1200,
