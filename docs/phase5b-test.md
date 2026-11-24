@@ -154,10 +154,10 @@ Chạy lại `npx expo start -c` (composition-critic lên v0.5.1).
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.1.1 | Bật Quy tắc 1/3 | Dưới thanh trên, căn trái: chip "+ Bố cục phụ" | | | |
-| 10.1.2 | Chạm chip "+ Bố cục phụ", chọn Đường chân trời | Bảng mở, 1/3 vẫn bật; chọn xong chip đổi thành "Chân trời ×"; lớp kẻ vẽ cả hai | | | |
-| 10.1.3 | Chạm chip "Chân trời ×" | Bỏ chân trời, chip về "+ Bố cục phụ", 1/3 vẫn bật | | | |
-| 10.1.4 | Chạm nút Bố cục trên thanh trên | Tắt hết như trước, chip biến mất | | | |
+| 10.1.1 | Bật Quy tắc 1/3 | Dưới thanh trên, căn trái: chip "+ Bố cục phụ" |d | d| nhưng sẽ bị chiếm 1 góc màn ảnh chụp, tìm cách khác |
+| 10.1.2 | Chạm chip "+ Bố cục phụ", chọn Đường chân trời | Bảng mở, 1/3 vẫn bật; chọn xong chip đổi thành "Chân trời ×"; lớp kẻ vẽ cả hai | d|d |mở cả bảng thì không cần, mở ra chỉ nên có phụ |
+| 10.1.3 | Chạm chip "Chân trời ×" | Bỏ chân trời, chip về "+ Bố cục phụ", 1/3 vẫn bật |d |d | |
+| 10.1.4 | Chạm nút Bố cục trên thanh trên | Tắt hết như trước, chip biến mất |d |d | |
 
 ### 10.2 Bước 1: người vào đường 1/3 (camera sau, người nhìn thẳng vào máy)
 
@@ -165,53 +165,53 @@ Người mẫu đứng yên nhìn thẳng vào máy; bạn di chuyển máy.
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.2.1 | Người hơi lệch trái khỏi giữa khung, chọn 1/3 | Đường dọc 1/3 **bên trái** sáng; câu "Xoay máy sang phải để đưa người sang đường 1/3 bên trái"; mũi tên trắng từ người sang trái tới đường sáng | | | |
-| 10.2.2 | Người hơi lệch phải | Như trên nhưng **bên phải**, "Xoay máy sang trái …", mũi tên sang phải | | | |
-| 10.2.3 | Người đứng đúng giữa khung, máy rung nhẹ trong tay khoảng 10 s | Cột đích **không đổi** qua lại; câu không nhảy "xoay trái" / "xoay phải" | | | |
-| 10.2.4 | Làm theo câu, xoay máy chậm | Người và mũi tên tiến dần về đường sáng, mũi tên ngắn dần | | | |
-| 10.2.5 | Tới đường sáng | Viên xanh "Đúng rồi, giữ yên máy", mũi tên ẩn | | | |
-| 10.2.6 | Giữ yên thêm khoảng 1–2 s | Rung nhẹ, viên xanh "Đạt: người trên đường 1/3" khoảng 1 s, rồi mới tới câu của bước mắt | | | |
-| 10.2.7 | Tới đường sáng rồi lệch ra ngay (chưa kịp giữ yên) | Không qua bước; câu quay lại "Xoay máy …" của bước này | | | |
-| 10.2.8 | Câu, mũi tên, đường sáng có đủ rõ không; có biết lúc nào là đúng không | Ghi cảm nhận | | | |
+| 10.2.1 | Người hơi lệch trái khỏi giữa khung, chọn 1/3 | Đường dọc 1/3 **bên trái** sáng; câu "Xoay máy sang phải để đưa người sang đường 1/3 bên trái"; mũi tên trắng từ người sang trái tới đường sáng | — | — | Claude thử trên máy tính (Jest, `guidance.test.ts`): người lệch trái, nhìn thẳng → cột trái, "Xoay máy sang phải", đích x = 1/3; đối xứng với 10.2.2 đã đạt trên máy |
+| 10.2.2 | Người hơi lệch phải | Như trên nhưng **bên phải**, "Xoay máy sang trái …", mũi tên sang phải |d |d | mũi tên chỉ đúng, tốt. Tối ưu thêm ở thanh gợi ý hướng -> hoặc <- thay vì <->, gợi ý nên kèm luôn cả 2 hành động di chuyển máy hoặc di chuyển người, vì không biết người dùng chọn cái nào |
+| 10.2.3 | Người đứng đúng giữa khung, máy rung nhẹ trong tay khoảng 10 s | Cột đích **không đổi** qua lại; câu không nhảy "xoay trái" / "xoay phải" | — | — | Claude thử trên máy tính (Jest): người lắc qua lại giữa khung (mắt 0,49 → 0,51) không đổi cột đã chốt. Chưa thử rung tay thật |
+| 10.2.4 | Làm theo câu, xoay máy chậm | Người và mũi tên tiến dần về đường sáng, mũi tên ngắn dần |d |d | |
+| 10.2.5 | Tới đường sáng | Viên xanh "Đúng rồi, giữ yên máy", mũi tên ẩn |d |d | |
+| 10.2.6 | Giữ yên thêm khoảng 1–2 s | Rung nhẹ, viên xanh "Đạt: người trên đường 1/3" khoảng 1 s, rồi mới tới câu của bước mắt | d| d| |
+| 10.2.7 | Tới đường sáng rồi lệch ra ngay (chưa kịp giữ yên) | Không qua bước; câu quay lại "Xoay máy …" của bước này |d |d | |
+| 10.2.8 | Câu, mũi tên, đường sáng có đủ rõ không; có biết lúc nào là đúng không | Ghi cảm nhận |d |d |chưa đủ rõ, nhưng lại chưa đủ ngắn gọn xúc tích, cạnh bên phải bên trái là được không cần cạnh 1/3 |
 
 ### 10.3 Bước 1: hướng người nhìn
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.3.1 | Người đứng giữa khung, **chỉ quay đầu** sang phải của khung (vai vẫn thẳng), rồi chọn 1/3 | Cột đích là đường 1/3 **bên trái** (chừa chỗ phía người nhìn) | | | |
-| 10.3.2 | Như trên, quay đầu sang trái của khung | Cột đích là đường 1/3 **bên phải** | | | |
-| 10.3.3 | Đang hướng dẫn, người quay đầu sang phía kia và giữ | Khoảng 2 s sau cột đích đổi sang bên kia, câu đổi theo | | | |
-| 10.3.4 | Đang hướng dẫn, người quay đầu sang phía kia rồi quay lại ngay | Cột đích không đổi | | | |
-| 10.3.5 | Quay cả người sang ngang (vai nghiêng) | Cột đích chừa chỗ phía người nhìn | | | |
+| 10.3.1 | Người đứng giữa khung, **chỉ quay đầu** sang phải của khung (vai vẫn thẳng), rồi chọn 1/3 | Cột đích là đường 1/3 **bên trái** (chừa chỗ phía người nhìn) |l |l | vẫn còn phân tích sai và chỉ về cột bên phải |
+| 10.3.2 | Như trên, quay đầu sang trái của khung | Cột đích là đường 1/3 **bên phải** |giống trên | | |
+| 10.3.3 | Đang hướng dẫn, người quay đầu sang phía kia và giữ | Khoảng 2 s sau cột đích đổi sang bên kia, câu đổi theo |d |d | với trường hợp đầu quay vai ngang ở trên thì đôi lúc sẽ lỗi, nhưng có vẻ lỗi đó ở chức năng kia|
+| 10.3.4 | Đang hướng dẫn, người quay đầu sang phía kia rồi quay lại ngay | Cột đích không đổi | d| d| như 10.3.3 |
+| 10.3.5 | Quay cả người sang ngang (vai nghiêng) | Cột đích chừa chỗ phía người nhìn |d |d |giống như chỉ quay đầu vai thẳng, đôi lúc sẽ bị xác định sai khi người quay đầu liên tục |
 
 ### 10.4 Bước 2: mắt lên đường 1/3 trên
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.4.1 | Qua bước 1, mắt nằm dưới đường 1/3 trên | Đường ngang 1/3 trên sáng; "Chúc máy xuống để đưa mắt lên đường 1/3"; mũi tên từ chấm mắt **lên** tới đường | | | |
-| 10.4.2 | Mắt nằm trên đường (người sát mép trên) | "Ngửa máy lên …"; mũi tên **xuống** | | | |
-| 10.4.3 | Làm theo tới đích rồi giữ yên | "Đúng rồi, giữ yên máy" → "Đạt: mắt trên đường 1/3" → bước sau | | | |
-| 10.4.4 | Đang làm bước mắt, chúc / ngửa máy làm người lệch nhẹ khỏi cột | Vẫn ở bước mắt (lệch nhẹ không làm vỡ bước cột) | | | |
-| 10.4.5 | Đang làm bước mắt, xoay máy cho người lệch hẳn khỏi cột | Quay lại bước cột | | | |
+| 10.4.1 | Qua bước 1, mắt nằm dưới đường 1/3 trên | Đường ngang 1/3 trên sáng; "Chúc máy xuống để đưa mắt lên đường 1/3"; mũi tên từ chấm mắt **lên** tới đường |d | d| |
+| 10.4.2 | Mắt nằm trên đường (người sát mép trên) | "Ngửa máy lên …"; mũi tên **xuống** |d |d | |
+| 10.4.3 | Làm theo tới đích rồi giữ yên | "Đúng rồi, giữ yên máy" → "Đạt: mắt trên đường 1/3" → bước sau |d |d | |
+| 10.4.4 | Đang làm bước mắt, chúc / ngửa máy làm người lệch nhẹ khỏi cột | Vẫn ở bước mắt (lệch nhẹ không làm vỡ bước cột) |d |d | |
+| 10.4.5 | Đang làm bước mắt, xoay máy cho người lệch hẳn khỏi cột | Quay lại bước cột |d |d | |
 
 ### 10.5 Bước 3: không cắt ngang tay chân
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.5.1 | Qua bước mắt, mép dưới khung cắt ngang đầu gối | "Lùi ra để không cắt ngang tay chân", không có mũi tên | | | |
-| 10.5.2 | Lùi ra cho thấy hết chân, giữ yên | Đạt: rung, viên xanh "Đạt Quy tắc 1/3" khoảng 3 s, hướng dẫn dừng | | | |
-| 10.5.3 | Mép dưới khung ở thắt lưng (nửa người), không qua khớp | Không bị bắt lùi | | | |
+| 10.5.1 | Qua bước mắt, mép dưới khung cắt ngang đầu gối | "Lùi ra để không cắt ngang tay chân", không có mũi tên |d |d | |
+| 10.5.2 | Lùi ra cho thấy hết chân, giữ yên | Đạt: rung, viên xanh "Đạt Quy tắc 1/3" khoảng 3 s, hướng dẫn dừng |d |d | |
+| 10.5.3 | Mép dưới khung ở thắt lưng (nửa người), không qua khớp | Không bị bắt lùi |d |d | |
 
 ### 10.6 Đạt, hướng dẫn lại, dừng
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.6.1 | Sau khi đạt, chạm nút Kiểm tra bố cục | Rung nhẹ, hướng dẫn chạy lại từ bước 1, nút đổi nền xanh | | | |
-| 10.6.2 | Đang hướng dẫn, chạm nút xanh | Dừng, "Đã dừng hướng dẫn"; chạm lại thì hướng dẫn lại | | | |
-| 10.6.3 | Đang hướng dẫn, đứng yên không làm theo | Mỗi khoảng 2 s thêm một chấm và rung; sau chấm thứ 5, vòng quanh nút chạy 10 s rồi dừng với "Đạt: … / Chưa đạt: …" | | | |
-| 10.6.4 | Đang hướng dẫn, che người khoảng 1 s rồi bỏ ra | Câu không đổi (một lượt hụt bị bỏ qua) | | | |
-| 10.6.5 | Đang hướng dẫn, hướng máy đi chỗ khác hẳn | "Hướng máy về phía người để thấy lại người" | | | |
-| 10.6.6 | Đang hướng dẫn, bấm chụp | Chụp ngay, hướng dẫn chạy tiếp | | | |
+| 10.6.1 | Sau khi đạt, chạm nút Kiểm tra bố cục | Rung nhẹ, hướng dẫn chạy lại từ bước 1, nút đổi nền xanh |d |d |Đổi lại thành chia lại các bước, mỗi bước nhắc lại 3 lần. Thêm phần hiển thị để thấy Bước, mỗi bước nhắc lại 3 lần |
+| 10.6.2 | Đang hướng dẫn, chạm nút xanh | Dừng, "Đã dừng hướng dẫn"; chạm lại thì hướng dẫn lại |d |d | |
+| 10.6.3 | Đang hướng dẫn, đứng yên không làm theo | Mỗi khoảng 2 s thêm một chấm và rung; sau chấm thứ 5, vòng quanh nút chạy 10 s rồi dừng với "Đạt: … / Chưa đạt: …" d| d| | |
+| 10.6.4 | Đang hướng dẫn, che người khoảng 1 s rồi bỏ ra | Câu không đổi (một lượt hụt bị bỏ qua) |d |d | |
+| 10.6.5 | Đang hướng dẫn, hướng máy đi chỗ khác hẳn | "Hướng máy về phía người để thấy lại người" |d |d | |
+| 10.6.6 | Đang hướng dẫn, bấm chụp | Chụp ngay, hướng dẫn chạy tiếp |d |d | |
 
 ### 10.7 Camera trước
 
@@ -219,10 +219,76 @@ Thử cả hai lựa chọn Cài đặt → Ảnh camera trước.
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 10.7.1 | Camera trước, 1/3, bạn đứng lệch khỏi giữa | Làm theo câu "Xoay máy sang …" thì bạn dịch về đường sáng; mũi tên chỉ đúng chiều bạn sẽ đi trên khung ngắm | | | |
-| 10.7.2 | Quay đầu sang một bên | Cột đích chừa chỗ phía bạn nhìn, đúng như trên khung ngắm | | | |
-| 10.7.3 | Bước mắt | Ngửa / chúc theo câu thì mắt tiến về đường | | | |
+| 10.7.1 | Camera trước, 1/3, bạn đứng lệch khỏi giữa | Làm theo câu "Xoay máy sang …" thì bạn dịch về đường sáng; mũi tên chỉ đúng chiều bạn sẽ đi trên khung ngắm |d |d | |
+| 10.7.2 | Quay đầu sang một bên | Cột đích chừa chỗ phía bạn nhìn, đúng như trên khung ngắm |d | d| trường hợp này của cam trước có vẻ tốt hơn cam sau |
+| 10.7.3 | Bước mắt | Ngửa / chúc theo câu thì mắt tiến về đường | d| d| |
 
 ### 10.8 Góp ý cho 1/3
+
+-
+
+## 11. Lần 3 — Quy tắc 1/3 sau khi sửa lần 2
+
+Vẫn chỉ thử Quy tắc 1/3. Chạy lại `npx expo start -c` (composition-critic lên v0.7.0).
+
+**Đã sửa theo lần 2:**
+
+- **10.1.1, 10.1.2** (chip "+ Bố cục phụ" che một góc ảnh; mở cả bảng Bố cục là thừa): bỏ chip trên khung ngắm. Bố cục phụ chọn ở **bảng Mở thêm** (nút ⌄ trên thanh trên), hàng mới **Bố cục phụ `[Tắt | Chân trời | Đường dẫn]`**, cạnh Đèn flash và Hẹn giờ: chỉ có bố cục phụ, bố cục chính vẫn bật. Đang bật cả chính và phụ thì nút Bố cục có huy hiệu **"+"**. Nút Bố cục vẫn chạm là tắt cả hai.
+- **10.2.2, 10.2.8** (icon nên có chiều; nêu cả hai cách vì không biết người dùng xoay máy hay bảo người bước; câu chưa gọn, nói trái / phải là được):
+  - viên đưa người sang ngang giờ có **hai dòng ngắn**, mỗi dòng **một mũi tên theo chiều của chính dòng đó**: "**← Xoay máy sang trái**" / "**→ Hoặc người bước sang phải**". Bên đích nằm ở dòng thứ hai và ở đường sáng, bỏ chữ "đường 1/3". "Phải / trái" của người bước là theo khung ngắm;
+  - bước mắt cũng hai dòng: mắt cần lên thì "**↓ Chúc máy xuống**" / "**↓ Hoặc hạ máy xuống**"; mắt cần xuống thì "Ngửa máy lên" / "Hoặc đưa máy lên" (máy thấp xuống thì người trên khung dịch lên).
+- **10.3.1, 10.3.2** (camera sau, người chỉ quay đầu mà cột vẫn sai; camera trước thì tốt hơn): có hai nguyên nhân.
+  - **Người đứng xa, đầu trên ảnh nhỏ**, điểm tai / mũi của khung xương nhiễu. Giờ hướng nhìn đo bằng **lưới điểm mặt** (chóp mũi so với hai mép mặt); app vẫn dò lưới mặt trên vùng đầu phóng to nên dùng được cả khi người đứng xa. Không có mặt thì mới theo tai, rồi theo vai. Claude đo trên máy tính, 157 ảnh người đứng xa thu nhỏ còn 512 px như app: lưới mặt không lần nào ngược chiều với tai, và bắt thêm các ca quay đầu vừa mà tai bỏ sót. Mặt chỉ dò được ở chừng một nửa số ảnh xa, nên người rất xa vẫn có thể sai.
+  - **Luật chốt cột:** lượt nào không đoán được hướng nhìn thì xóa số lượt đang đếm, nên hướng nhìn lúc có lúc không thì cột không bao giờ đổi. Giờ lượt đó không tính và không xóa. Lượt đầu không thấy hướng (chốt theo cột gần nhất) thì lượt đầu tiên thấy hướng là đổi theo ngay.
+- **10.6.1** (chia bước, mỗi bước nhắc 3 lần, cho thấy đang ở bước nào): trên viên có ô nhỏ **"Bước 1/3"** kèm **3 chấm nhắc**. Mỗi bước nhắc tối đa 3 lần, sang bước sau thì đếm lại từ 0; sau lần nhắc thứ 3 còn 10 s rồi dừng. Bước của 1/3: ① người trên cột → ② mắt trên đường 1/3 trên → ③ không cắt tay chân (không thấy mắt thì chỉ 2 bước).
+
+### 11.1 Bố cục phụ trong bảng Mở thêm
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 11.1.1 | Bật Quy tắc 1/3 | Khung ngắm không còn chip nào ở góc | | | |
+| 11.1.2 | Chạm ⌄ trên thanh trên | Bảng thả xuống có 3 hàng: Đèn flash, Hẹn giờ, Bố cục phụ `[Tắt \| Chân trời \| Đường dẫn]`; chữ không bị cắt trên máy của bạn | | | |
+| 11.1.3 | Chọn Chân trời | Rung nhẹ, bảng thu lên, 1/3 vẫn bật, lớp kẻ vẽ cả hai; nút Bố cục có huy hiệu "+"; hướng dẫn chạy lại | | | |
+| 11.1.4 | Mở lại bảng, chọn Tắt ở hàng Bố cục phụ | Bỏ chân trời, 1/3 vẫn bật, huy hiệu "+" mất | | | |
+| 11.1.5 | Chạm nút Bố cục khi đang bật 1/3 + chân trời | Tắt cả hai như trước | | | |
+| 11.1.6 | Cách này có dễ tìm không, có cần lối khác không | Ghi cảm nhận | | | |
+
+### 11.2 Viên hướng dẫn hai dòng (camera sau, người nhìn thẳng)
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 11.2.1 | Người hơi lệch phải, chọn 1/3 | Viên hai dòng: "← Xoay máy sang trái" / "→ Hoặc người bước sang phải"; mũi tên trắng trên khung chỉ sang phải tới đường sáng | | | |
+| 11.2.2 | Người hơi lệch trái | "→ Xoay máy sang phải" / "← Hoặc người bước sang trái" | | | |
+| 11.2.3 | Không xoay máy, bảo người mẫu bước theo dòng thứ hai | Người tiến về đường sáng; tới nơi thì "Đúng rồi, giữ yên máy" như khi xoay máy | | | |
+| 11.2.4 | Bước mắt, mắt dưới đường 1/3 trên | "↓ Chúc máy xuống" / "↓ Hoặc hạ máy xuống"; mũi tên trên khung chỉ lên | | | |
+| 11.2.5 | Hạ máy thấp xuống (không chúc) theo dòng thứ hai | Mắt tiến lên đường 1/3 | | | |
+| 11.2.6 | Bước mắt, mắt trên đường (người sát mép trên) | "↑ Ngửa máy lên" / "↑ Hoặc đưa máy lên" | | | |
+| 11.2.7 | Camera trước, bạn lệch khỏi đường sáng | Hai dòng đúng chiều với khung ngắm soi gương: làm theo dòng nào bạn cũng tiến về đường sáng | | | |
+| 11.2.8 | Hai dòng, mũi tên có đủ rõ và đủ gọn không | Ghi cảm nhận | | | |
+
+### 11.3 Hướng nhìn, camera sau
+
+Thử ở hai khoảng cách: **nửa người** (khoảng 1,5–2 m) và **cả người** (khoảng 3–4 m).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 11.3.1 | Nửa người, đứng giữa khung, **chỉ quay đầu** sang phải của khung (vai thẳng), rồi chọn 1/3 | Đường 1/3 **bên trái** sáng (chừa chỗ phía người nhìn), chậm nhất sau khoảng 1–2 s | | | |
+| 11.3.2 | Như trên, quay đầu sang trái của khung | Đường 1/3 **bên phải** sáng | | | |
+| 11.3.3 | Cả người, lặp lại 11.3.1 | Như 11.3.1. Ghi lại nếu sai: người rất xa có thể không dò được mặt | | | |
+| 11.3.4 | Cả người, lặp lại 11.3.2 | Như 11.3.2 | | | |
+| 11.3.5 | Đang hướng dẫn, người quay đầu sang phía kia và giữ | Khoảng 2 s sau cột đích đổi sang bên kia | | | |
+| 11.3.6 | Đang hướng dẫn, người quay đầu qua lại liên tục | Cột đích không đổi theo từng lần quay (lần 2, 10.3.5: đôi lúc bị xác định sai) | | | |
+
+### 11.4 Bước và nhắc
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 11.4.1 | Bật 1/3, người thấy rõ mắt và chân | Trên viên có ô "Bước 1/3" và 3 chấm mờ | | | |
+| 11.4.2 | Đứng yên không làm theo | Mỗi khoảng 2 s sáng thêm một chấm và rung; sau chấm thứ 3, vòng quanh nút Kiểm tra bố cục chạy 10 s rồi dừng với "Chưa đạt: …" | | | |
+| 11.4.3 | Làm xong bước 1 sau 1–2 lần nhắc | "Đạt: người trên đường 1/3", rồi ô thành "Bước 2/3", 3 chấm về mờ (đếm lại) | | | |
+| 11.4.4 | Làm hết 3 bước | Viên xanh "Đạt Quy tắc 1/3", dừng | | | |
+| 11.4.5 | Sau khi đạt, chạm nút Kiểm tra bố cục | Hướng dẫn chạy lại từ "Bước 1/3". Tôi hiểu mục 10.6.1 là "hiện bước + mỗi bước nhắc 3 lần"; nếu ý bạn là khác (ví dụ chạy lại từ bước đang dở), ghi ở đây | | | |
+
+### 11.5 Góp ý cho 1/3
 
 -

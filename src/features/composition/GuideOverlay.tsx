@@ -1,29 +1,29 @@
 /**
  * Hướng dẫn liên tục trên khung ngắm (Phase 5b, design.md §6.15): khung người, chấm mắt, đường
  * tìm được của lượt gần nhất (giữ tới khi có lượt mới, không nháy), **mũi tên kết quả** từ chỗ
- * người / mắt đang đứng tới đích sáng, viên "hành động + kết quả" và chấm nhắc; viên xanh "Đúng
- * rồi, giữ yên máy" khi vừa tới đích, "Đạt: …" khi qua một bước; viên kết thúc; chip bố cục phụ.
+ * người / mắt đang đứng tới đích sáng, ô "Bước 2/3" với chấm nhắc, viên hướng dẫn; viên xanh "Đúng
+ * rồi, giữ yên máy" khi vừa tới đích, "Đạt: …" khi qua một bước; viên kết thúc.
  *
- * Hướng nằm ở mũi tên trên khung ngắm (người sẽ đi về đâu) và ở câu (máy làm gì); icon của viên chỉ
- * báo kiểu thao tác, không có chiều, để hai chiều không trái nhau (xoay máy sang trái thì người
- * dịch sang phải).
+ * Viên hướng dẫn đưa người / mắt tới đích có hai dòng, mỗi dòng một cách làm với icon mũi tên theo
+ * chiều của chính dòng đó: "← Xoay máy sang trái" / "→ Hoặc người bước sang phải" (phiếu Phase 5b
+ * lần 2, mục 10.2.2).
  */
 import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
   Check,
   ChevronsDown,
   ChevronsUp,
   Footprints,
   type LucideIcon,
-  MoveHorizontal,
-  MoveVertical,
-  Plus,
   RotateCcw,
   RotateCw,
   ScanSearch,
-  X,
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import Svg, { Line, Polygon } from 'react-native-svg';
 
@@ -35,34 +35,45 @@ import { color, compositionUi, motion, radius, size, space, type } from '@/ui/to
 import {
   type Action,
   type Check as GuideCheck,
+  type Dir,
   GUIDE,
   gaveUpLines,
-  guideLine,
+  type GuideLine,
+  guideLines,
   remindersOf,
-  type SceneTechnique,
+  stepOf,
 } from './guidance';
 import { SceneLines } from './SceneLines';
-import { TechniqueIcon } from './TechniqueIcon';
 import type { GuideEnd, GuideView } from './useLiveGuide';
 
+/** Icon của dòng không có chiều. */
 const ICONS: Record<Action, LucideIcon> = {
-  panLeft: MoveHorizontal,
-  panRight: MoveHorizontal,
-  tiltUp: MoveVertical,
-  tiltDown: MoveVertical,
+  panLeft: ArrowLeft,
+  panRight: ArrowRight,
+  tiltUp: ArrowUp,
+  tiltDown: ArrowDown,
   closer: Footprints,
   back: Footprints,
-  stepLeft: Footprints,
-  stepRight: Footprints,
+  stepLeft: ArrowLeft,
+  stepRight: ArrowRight,
   raise: ChevronsUp,
   lower: ChevronsDown,
   rotateCw: RotateCw,
   rotateCcw: RotateCcw,
   find: ScanSearch,
 };
+const DIR_ICONS: Record<Dir, LucideIcon> = {
+  left: ArrowLeft,
+  right: ArrowRight,
+  up: ArrowUp,
+  down: ArrowDown,
+};
 
 const hintTop = (frame: Rect, maxBottom: number) =>
   Math.min(frame.y + frame.height - space[3], maxBottom) - compositionUi.hintH;
+
+/** Khung neo đáy của viên hướng dẫn: viên hai dòng và ô bước mọc lên trên, đáy viên không đổi. */
+const STACK_H = 200;
 
 /** Điểm cuối mũi tên: chiếu chỗ đang đứng lên đích (đường dọc, đường ngang) hoặc chính điểm đích. */
 function arrowEnd(c: GuideCheck): { x: number; y: number } | null {
@@ -188,59 +199,74 @@ export function GuideOverlay({
   const s = view.state;
   const c = s.current;
   const used = remindersOf(s);
+  const at = stepOf(s);
   const flash = usePassedFlash(s.passedAt) && s.justPassed != null;
   // Viên xanh: vừa qua một bước, hoặc đang đúng chờ xác nhận.
   let ok = false;
-  let text: string;
-  let Icon: LucideIcon;
+  let lines: { text: string; Icon: LucideIcon }[];
   let key: string;
   if (flash) {
     ok = true;
-    text = g.passed(g.done[s.justPassed!]);
-    Icon = Check;
+    lines = [{ text: g.passed(g.done[s.justPassed!]), Icon: Check }];
     key = `passed-${s.passedAt}`;
   } else if (c && s.holding) {
     ok = true;
-    text = g.hold;
-    Icon = Check;
+    lines = [{ text: g.hold, Icon: Check }];
     key = `hold-${c.id}`;
+  } else if (c) {
+    const icon = (l: GuideLine): LucideIcon =>
+      l.dir ? DIR_ICONS[l.dir] : c.action ? ICONS[c.action] : Check;
+    const ls = guideLines(c);
+    lines = ls.map((l) => ({ text: l.text, Icon: icon(l) }));
+    key = `${c.id}-${ls.map((l) => l.dir).join('-')}`;
   } else {
-    text = c ? guideLine(c) : t.composition.check.running;
-    Icon = c?.action ? ICONS[c.action] : ScanSearch;
-    key = c?.id ?? 'wait';
+    lines = [{ text: t.composition.check.running, Icon: ScanSearch }];
+    key = 'wait';
   }
+  const two = lines.length > 1;
+  const top = hintTop(frame, maxBottom) + compositionUi.hintH - STACK_H;
   return (
     <>
       <Found frame={frame} view={view} />
-      <View pointerEvents="none" style={[styles.wrap, { top: hintTop(frame, maxBottom) }]}>
+      <View pointerEvents="none" style={[styles.stack, { top }]}>
+        {at && (
+          <View style={styles.step} accessibilityRole="text">
+            <Text style={styles.stepText} maxFontSizeMultiplier={1.3}>
+              {g.step(at.index, at.total)}
+            </Text>
+            <View style={styles.dots}>
+              {Array.from({ length: GUIDE.reminders }, (_, i) => (
+                <View key={i} style={[styles.dot, i < used && styles.dotOn]} />
+              ))}
+            </View>
+          </View>
+        )}
         <Animated.View
           key={key}
           entering={FadeIn.duration(motion.in).easing(ease)}
           exiting={FadeOut.duration(motion.in).easing(ease)}
           accessibilityRole="text"
           accessibilityLiveRegion="polite"
-          style={[styles.pill, ok && styles.pillOk]}
+          accessibilityLabel={lines.map((l) => l.text).join('. ')}
+          style={[styles.pill, two && styles.pillTwo, ok && styles.pillOk]}
         >
-          <Icon
-            size={size.iconSmall}
-            strokeWidth={2.5}
-            color={ok ? color.accentInk : color.camAccent}
-          />
-          <Text
-            style={[styles.text, ok && styles.textOk]}
-            numberOfLines={2}
-            maxFontSizeMultiplier={1.3}
-          >
-            {text}
-          </Text>
+          {lines.map(({ text, Icon }) => (
+            <View key={text} style={styles.line}>
+              <Icon
+                size={size.iconSmall}
+                strokeWidth={2.5}
+                color={ok ? color.accentInk : color.camAccent}
+              />
+              <Text
+                style={[styles.text, ok && styles.textOk]}
+                numberOfLines={two ? 1 : 2}
+                maxFontSizeMultiplier={1.3}
+              >
+                {text}
+              </Text>
+            </View>
+          ))}
         </Animated.View>
-        {used > 0 && !ok && (
-          <View style={styles.dots}>
-            {Array.from({ length: GUIDE.reminders }, (_, i) => (
-              <View key={i} style={[styles.dot, i < used && styles.dotOn]} />
-            ))}
-          </View>
-        )}
       </View>
     </>
   );
@@ -299,43 +325,6 @@ export function GuideEndPill({
   );
 }
 
-/** Chip bố cục phụ đang bật, cạnh nút Bố cục; chạm để bỏ. */
-export function SceneChip({ scene, onRemove }: { scene: SceneTechnique; onRemove: () => void }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t.composition.guide.removeScene(t.composition.names[scene])}
-      hitSlop={6}
-      onPress={onRemove}
-      style={({ pressed }) => [styles.sceneChip, pressed && styles.pressed]}
-    >
-      <TechniqueIcon kind={scene} width={12} height={16} ink={color.camInk} accent={color.camInk} />
-      <Text style={styles.sceneChipText}>{t.composition.guide.short[scene]}</Text>
-      <X size={14} strokeWidth={2.5} color={color.camInk} />
-    </Pressable>
-  );
-}
-
-/**
- * Chip thêm bố cục phụ khi đang bật bố cục chính (chỗ của chip bố cục phụ). Nút Bố cục đang bật
- * thì chạm là tắt nhanh (phiếu Phase 5 lần 7), nên cần lối riêng để mở bảng mà không tắt bố cục
- * chính (phiếu Phase 5b lần 1, mục 1.2).
- */
-export function AddSceneChip({ onPress }: { onPress: () => void }) {
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={t.composition.guide.addSceneLabel}
-      hitSlop={6}
-      onPress={onPress}
-      style={({ pressed }) => [styles.sceneChip, pressed && styles.pressed]}
-    >
-      <Plus size={14} strokeWidth={2.5} color={color.camInk} />
-      <Text style={styles.sceneChipText}>{t.composition.guide.addScene}</Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   abs: { position: 'absolute' },
   box: {
@@ -355,6 +344,25 @@ const styles = StyleSheet.create({
     borderColor: color.camBg,
   },
   wrap: { position: 'absolute', left: space[4], right: space[4], alignItems: 'center' },
+  stack: {
+    position: 'absolute',
+    left: space[4],
+    right: space[4],
+    height: STACK_H,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: space[1],
+  },
+  step: {
+    height: compositionUi.stepChipH,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[2],
+    paddingHorizontal: space[3],
+    borderRadius: compositionUi.stepChipH / 2,
+    backgroundColor: color.camHint,
+  },
+  stepText: { ...type.caption, fontSize: 12, color: color.camInk },
   pill: {
     minHeight: compositionUi.hintH,
     maxWidth: '100%',
@@ -366,12 +374,14 @@ const styles = StyleSheet.create({
     borderRadius: compositionUi.hintH / 2,
     backgroundColor: color.camHint,
   },
+  pillTwo: { flexDirection: 'column', alignItems: 'flex-start', gap: 2, paddingVertical: space[2] },
   pillEnd: { paddingVertical: space[2] },
+  line: { flexDirection: 'row', alignItems: 'center', gap: space[2], flexShrink: 1 },
   pillOk: { backgroundColor: color.camAccent },
   lines: { flexShrink: 1, gap: 2 },
   text: { ...type.label, fontSize: 14, color: color.camInk, flexShrink: 1 },
   textOk: { color: color.accentInk },
-  dots: { flexDirection: 'row', gap: compositionUi.remindDot, marginTop: space[2] },
+  dots: { flexDirection: 'row', gap: compositionUi.remindDot },
   dot: {
     width: compositionUi.remindDot,
     height: compositionUi.remindDot,
@@ -380,15 +390,4 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   dotOn: { opacity: 1 },
-  sceneChip: {
-    height: compositionUi.sceneChipH,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[1],
-    paddingHorizontal: space[2],
-    borderRadius: compositionUi.sceneChipH / 2,
-    backgroundColor: color.camGlass,
-  },
-  sceneChipText: { ...type.caption, fontSize: 13, color: color.camInk },
-  pressed: { opacity: 0.7 },
 });

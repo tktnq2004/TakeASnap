@@ -360,8 +360,8 @@ export const compositionUi = {
   /** Mũi tên kết quả trên khung ngắm: nét, cỡ đầu mũi tên. */
   arrowStroke: 3,
   arrowHead: 14,
-  /** Chip bố cục phụ cạnh nút Bố cục. */
-  sceneChipH: 32,
+  /** Ô "Bước 2/3" (cùng chấm nhắc) trên viên hướng dẫn. */
+  stepChipH: 24,
 } as const;
 
 /** Vuốt từ mép trái để quay lại (màn mở kiểu fullScreenModal). */

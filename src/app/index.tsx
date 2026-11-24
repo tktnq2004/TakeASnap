@@ -63,10 +63,8 @@ import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomChipsWidth, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CheckOverlay } from '@/features/composition/CheckOverlay';
 import {
-  AddSceneChip,
   GuideEndPill,
   GuideOverlay,
-  SceneChip,
 } from '@/features/composition/GuideOverlay';
 import {
   type GuidePlan,
@@ -884,28 +882,6 @@ function CameraBody() {
               maxBottom={hintBottom}
             />
           )}
-          {(scene || technique !== 'off') && (
-            <View style={[styles.sceneChip, { top: barTop + TOP_BAR_H + space[2] }]}>
-              {scene ? (
-                <SceneChip
-                  scene={scene}
-                  onRemove={() => {
-                    haptic.snap();
-                    store().setScene(null);
-                    if (guide.active) guideFor(technique, null);
-                  }}
-                />
-              ) : (
-                <AddSceneChip
-                  onPress={() => {
-                    setToolsOpen(false);
-                    check.cancel();
-                    setCompositionOpen(true);
-                  }}
-                />
-              )}
-            </View>
-          )}
           {offNotice && technique === 'off' && !scene && (
             <HintPill frame={frame} maxBottom={hintBottom} text={t.composition.turnedOff} />
           )}
@@ -1045,6 +1021,13 @@ function CameraBody() {
         open={toolsOpen}
         onToggleOpen={() => setToolsOpen((o) => !o)}
         onSettings={() => router.push('/settings')}
+        onScene={(next) => {
+          setToolsOpen(false);
+          check.cancel();
+          haptic.select();
+          store().setScene(next);
+          guideFor(technique, next);
+        }}
         onComposition={() => {
           setToolsOpen(false);
           check.cancel();
@@ -1193,7 +1176,6 @@ const styles = StyleSheet.create({
   },
   checkOn: { backgroundColor: color.camAccent },
   ring: { position: 'absolute', left: -3, top: -3 },
-  sceneChip: { position: 'absolute', left: SIDE },
   shutterRow: {
     position: 'absolute',
     left: SIDE,

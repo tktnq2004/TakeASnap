@@ -1,6 +1,6 @@
 /**
  * Hướng dẫn liên tục (Phase 5b, business-flow §6.10): từ kết quả phân tích một ảnh chụp lặng ra
- * tiêu chí đang làm và thao tác máy, và luật dừng (5 lần nhắc không tiến bộ + 10 s). Hàm thuần,
+ * tiêu chí đang làm và thao tác máy, và luật dừng (3 lần nhắc không tiến bộ + 10 s). Hàm thuần,
  * test được trong Jest; Camera gọi `measure` mỗi lượt (~1 s) rồi `step`.
  *
  * Toạ độ theo khung ngắm người dùng đang thấy (0..1, gốc trên trái). Camera trước: khung ngắm soi
@@ -123,19 +123,33 @@ export function thirdsColumn(f: PhotoFeatures, x: number): number {
 
 /**
  * Cột 1/3 đã chốt trong một lần hướng dẫn (phiếu Phase 5b lần 1: người đứng giữa khung thì cột gần
- * nhất đổi qua lại theo rung tay, câu nhảy "xoay trái" / "xoay phải"). Chốt ở lượt đầu; chỉ đổi khi
- * thấy rõ người nhìn về phía kia `GUIDE.confirmTurns` lượt liền.
+ * nhất đổi qua lại theo rung tay, câu nhảy "xoay trái" / "xoay phải"). Chốt ở lượt đầu.
+ * - Chốt theo hướng nhìn (`sure`): chỉ đổi khi thấy người nhìn về phía kia `GUIDE.confirmTurns`
+ *   lượt (không tính các lượt không đoán được hướng).
+ * - Chốt theo cột gần nhất (lượt đầu không đoán được hướng): lượt đầu tiên thấy hướng nhìn thì đổi
+ *   theo ngay (phiếu Phase 5b lần 2, mục 10.3.1: chọn 1/3 khi người đã quay đầu mà cột vẫn sai).
+ * Lượt không đoán được hướng không xóa số lượt đang đếm: hướng nhìn của người đứng xa lúc có lúc
+ * không, xóa thì cột không bao giờ đổi.
  */
-export type ColumnLock = { col: number; pending: number | null; count: number };
+export type ColumnLock = { col: number; sure: boolean; pending: number | null; count: number };
+
+const facingColumn = (f: PhotoFeatures) =>
+  f.facing === 'right' ? 1 / 3 : f.facing === 'left' ? 2 / 3 : null;
 
 export function lockColumn(lock: ColumnLock | null, f: PhotoFeatures): ColumnLock {
-  if (!lock) return { col: thirdsColumn(f, personX(f)), pending: null, count: 0 };
-  const want = f.facing === 'right' ? 1 / 3 : f.facing === 'left' ? 2 / 3 : null;
-  if (want == null || want === lock.col) return { ...lock, pending: null, count: 0 };
+  const want = facingColumn(f);
+  if (!lock) {
+    return want == null
+      ? { col: thirdsColumn(f, personX(f)), sure: false, pending: null, count: 0 }
+      : { col: want, sure: true, pending: null, count: 0 };
+  }
+  if (want == null) return lock;
+  if (want === lock.col) return { col: lock.col, sure: true, pending: null, count: 0 };
+  if (!lock.sure) return { col: want, sure: true, pending: null, count: 0 };
   const count = lock.pending === want ? lock.count + 1 : 1;
   return count >= GUIDE.confirmTurns
-    ? { col: want, pending: null, count: 0 }
-    : { col: lock.col, pending: want, count };
+    ? { col: want, sure: true, pending: null, count: 0 }
+    : { ...lock, pending: want, count };
 }
 
 function personX(f: PhotoFeatures): number {
@@ -383,8 +397,11 @@ export function measure(
 // ---- Luật dừng ----
 
 export const GUIDE = {
-  /** Số lần nhắc không tiến bộ của một tiêu chí trước khi đếm lùi. */
-  reminders: 5,
+  /**
+   * Số lần nhắc không tiến bộ của một bước trước khi đếm lùi (phiếu Phase 5b lần 2, mục 10.6.1:
+   * mỗi bước nhắc 3 lần, đếm lại từ đầu khi sang bước khác).
+   */
+  reminders: 3,
   /** Xét tiến bộ (và nhắc nếu không tiến bộ) mỗi chừng này (ms). */
   remindGapMs: 2000,
   /** Sau lần nhắc cuối còn chừng này (ms) rồi dừng. */
@@ -412,10 +429,12 @@ export type GuideState = {
   okRun: Partial<Record<CriterionId, number>>;
   /** Đầu khoảng xét tiến bộ hiện tại (lần đổi tiêu chí hoặc lần xét trước). */
   lastRemindAt: number;
-  /** Hết hạn (ms) sau lần nhắc thứ 5 của tiêu chí đang làm. */
+  /** Hết hạn (ms) sau lần nhắc cuối của tiêu chí đang làm. */
   deadline: number | null;
   /** Tiêu chí đã đạt (đã xác nhận, theo thứ tự), dùng cho viên kết thúc. */
   passed: CriterionId[];
+  /** Các bước của lượt đo gần nhất, theo thứ tự ("Bước 2/3"). */
+  steps: CriterionId[];
   /** Tiêu chí vừa đạt ở lượt này và lúc đạt (viên "Đạt: …" ngắn trước câu sau). */
   justPassed: CriterionId | null;
   passedAt: number;
@@ -445,6 +464,7 @@ export const initialGuide = (): GuideState => ({
   lastRemindAt: -Infinity,
   deadline: null,
   passed: [],
+  steps: [],
   justPassed: null,
   passedAt: -Infinity,
   lost: 0,
@@ -505,6 +525,7 @@ export function step(
     ...s,
     started: true,
     passed,
+    steps: m.kind === 'checks' ? checks.map((c) => c.id) : s.steps,
     okRun,
     lost,
     justPassed: fresh ? prevId : s.justPassed,
@@ -587,17 +608,73 @@ export const remindersOf = (s: GuideState) =>
 
 const G = t.composition.guide;
 
-/** Tiêu chí đưa người sang một cột 1/3: câu nói rõ bên nào (phiếu Phase 5b lần 1, mục 2.9). */
-const SIDED: CriterionId[] = ['thirdsColumn', 'leadThird'];
+/** Chiều của một dòng hướng dẫn (icon mũi tên của dòng). */
+export type Dir = 'left' | 'right' | 'up' | 'down';
+export type GuideLine = { text: string; dir: Dir | null };
 
-/** Câu "hành động + kết quả" của tiêu chí đang làm. */
-export function guideLine(c: Check): string {
-  if (!c.action) return G.done[c.id];
-  const goal =
-    SIDED.includes(c.id) && c.target?.kind === 'vline'
-      ? G.toColumn(c.target.x < 0.5 ? G.left : G.right)
-      : G.goals[c.id];
-  return `${G.actions[c.action]} ${goal}`;
+const ACTION_DIR: Partial<Record<Action, Dir>> = {
+  panLeft: 'left',
+  panRight: 'right',
+  tiltUp: 'up',
+  tiltDown: 'down',
+  stepLeft: 'left',
+  stepRight: 'right',
+  raise: 'up',
+  lower: 'down',
+};
+
+/** Đưa người / nhóm sang ngang: người bước cũng được (dòng "Hoặc người bước sang …"). */
+const PERSON_STEP: Partial<Record<CriterionId, 'person' | 'group'>> = {
+  thirdsColumn: 'person',
+  centerAxis: 'person',
+  leadThird: 'person',
+  groupCenter: 'group',
+};
+/** Đưa mắt lên / xuống: hạ / đưa máy lên cũng được (vật gần dịch ngược chiều máy). */
+const EYE: CriterionId[] = ['thirdsEye', 'centerEye'];
+
+/** Chiều người / mắt phải dịch trên khung ngắm (từ chỗ đang đứng tới đích). */
+function moveDir(c: Check): Dir | null {
+  const a = c.at;
+  const tg = c.target;
+  if (!a || !tg) return null;
+  if (tg.kind === 'vline') return tg.x > a.x ? 'right' : 'left';
+  if (tg.kind === 'hline' || tg.kind === 'point') {
+    if (tg.kind === 'point' && Math.abs(tg.y - a.y) < Math.abs(tg.x - a.x)) return null;
+    return tg.y > a.y ? 'down' : 'up';
+  }
+  return null;
+}
+
+/**
+ * Các dòng của viên hướng dẫn (phiếu Phase 5b lần 2, mục 10.2.2, 10.2.8): đưa người / mắt tới đích
+ * thì hai dòng ngắn, mỗi dòng một cách làm và icon mũi tên có chiều, "Xoay máy sang trái" / "Hoặc
+ * người bước sang phải": không biết người dùng sẽ xoay máy hay bảo người bước. Bên đích nằm ở dòng
+ * thứ hai và ở đường sáng, nên không cần nói "đường 1/3". Tiêu chí khác: một câu "hành động + kết
+ * quả".
+ */
+export function guideLines(c: Check): GuideLine[] {
+  if (!c.action) return [{ text: G.done[c.id], dir: null }];
+  const action: GuideLine = { text: G.actions[c.action], dir: ACTION_DIR[c.action] ?? null };
+  const d = moveDir(c);
+  const who = PERSON_STEP[c.id];
+  if (who && (d === 'left' || d === 'right')) {
+    return [action, { text: G.personStep[who][d], dir: d }];
+  }
+  if (EYE.includes(c.id) && (d === 'up' || d === 'down')) {
+    // Mắt cần lên: hạ máy xuống; mắt cần xuống: đưa máy lên.
+    return d === 'up'
+      ? [action, { text: G.cameraMove.lower, dir: 'down' }]
+      : [action, { text: G.cameraMove.raise, dir: 'up' }];
+  }
+  return [{ ...action, text: `${G.actions[c.action]} ${G.goals[c.id]}` }];
+}
+
+/** Bước đang làm / số bước (bắt đầu từ 1), null khi tiêu chí đang làm không phải một bước. */
+export function stepOf(s: GuideState): { index: number; total: number } | null {
+  if (!s.current) return null;
+  const i = s.steps.indexOf(s.current.id);
+  return i < 0 ? null : { index: i + 1, total: s.steps.length };
 }
 
 /** Viên kết thúc khi dừng giữa chừng: [đã đạt, chưa đạt]. */

@@ -5,13 +5,14 @@ import {
   GUIDE,
   type GuideState,
   gaveUpLines,
-  guideLine,
+  guideLines,
   horizonLine,
   initialGuide,
   lockColumn,
   type Measure,
   measure,
   step,
+  stepOf,
 } from '../guidance';
 import { combinedShape } from '../guides';
 
@@ -58,8 +59,11 @@ describe('measure: tiêu chí theo thứ tự', () => {
     // Người cần dịch sang trái trên khung → xoay máy sang phải.
     expect(c.action).toBe('panRight');
     expect(c.target).toEqual({ kind: 'vline', x: 1 / 3 });
-    // Câu nói rõ bên (phiếu Phase 5b lần 1, mục 2.9).
-    expect(guideLine(c)).toBe('Xoay máy sang phải để đưa người sang đường 1/3 bên trái');
+    // Hai cách làm, mỗi dòng một chiều (phiếu Phase 5b lần 2, mục 10.2.2).
+    expect(guideLines(c)).toEqual([
+      { text: 'Xoay máy sang phải', dir: 'right' },
+      { text: 'Hoặc người bước sang trái', dir: 'left' },
+    ]);
   });
 
   it('camera trước (khung soi gương): xoay ngang đổi chiều', () => {
@@ -74,7 +78,11 @@ describe('measure: tiêu chí theo thứ tự', () => {
     const c = first(measure({ main: 'thirds', scene: null }, f, null, 0, false))!;
     expect(c.id).toBe('thirdsEye');
     expect(c.action).toBe('tiltDown');
-    expect(guideLine(c)).toBe('Chúc máy xuống để đưa mắt lên đường 1/3');
+    // Mắt cần lên: chúc máy, hoặc hạ máy xuống.
+    expect(guideLines(c)).toEqual([
+      { text: 'Chúc máy xuống', dir: 'down' },
+      { text: 'Hoặc hạ máy xuống', dir: 'down' },
+    ]);
   });
 
   it('Ở giữa và Chân trời có máy thẳng đứng đầu (cảm biến)', () => {
@@ -91,7 +99,7 @@ describe('measure: tiêu chí theo thứ tự', () => {
       measure({ main: 'fill', scene: null }, person([0.45, 0.4, 0.55, 0.7]), null, 0, false),
     )!;
     expect(c.id).toBe('fillSize');
-    expect(guideLine(c)).toBe('Tiến lại gần để người lấp đầy khung');
+    expect(guideLines(c)).toEqual([{ text: 'Tiến lại gần để người lấp đầy khung', dir: null }]);
   });
 
   it('cảnh không áp được: không người, không chân trời, không đường dẫn, không nhóm', () => {
@@ -127,7 +135,9 @@ describe('measure: ghép bố cục chính + phụ', () => {
     const m = measure({ main: null, scene: 'horizon' }, f, horizonAt(0.66), 0, false);
     const c = checks(m).find((x) => x.id === 'horizonNeck')!;
     expect(c.ok).toBe(false);
-    expect(guideLine(c)).toBe('Hạ máy xuống để chân trời không cắt cổ');
+    expect(guideLines(c)).toEqual([
+      { text: 'Hạ máy xuống để chân trời không cắt cổ', dir: 'down' },
+    ]);
   });
 
   it('đường dẫn: điểm hội tụ bên phải người → bước sang trái; 1/3 + đường dẫn không lặp cột 1/3', () => {
@@ -172,7 +182,7 @@ describe('step: luật nhắc và dừng', () => {
     expect(s.memo.thirdsColumn!.reminders).toBeLessThan(GUIDE.reminders);
   });
 
-  it('đứng yên: nhắc mỗi 2 s, sau lần thứ 5 còn 10 s rồi dừng, báo phần đã đạt', () => {
+  it('đứng yên: nhắc mỗi 2 s, sau lần thứ 3 còn 10 s rồi dừng, báo phần đã đạt', () => {
     const m = turn(crit('thirdsColumn', 0), crit('thirdsEye', 0.2));
     // Lượt đầu cột đúng nhưng chưa xác nhận: giữ yên; lượt sau mới qua bước.
     let r = run(initialGuide(), m, 0);
@@ -187,9 +197,10 @@ describe('step: luật nhắc và dừng', () => {
     }
     expect(events.filter((e) => e === 'remind')).toHaveLength(GUIDE.reminders);
     expect(events.at(-1)).toBe('gaveUp');
-    // Qua bước cột ở 1 s, rồi 5 lần nhắc cách 2 s (tới 11 s) + 10 s.
+    // Qua bước cột ở 1 s, rồi 3 lần nhắc cách 2 s (tới 7 s) + 10 s.
     expect(events[0]).toBe('passed');
-    expect(now).toBe(21000);
+    expect(now).toBe(17000);
+    expect(stepOf(r.state)).toEqual({ index: 2, total: 2 });
     expect(gaveUpLines(r.state)).toEqual([
       'Đạt: người trên đường 1/3',
       'Chưa đạt: mắt trên đường 1/3',
@@ -283,6 +294,24 @@ describe('lockColumn: cột 1/3 chốt trong một lần hướng dẫn', () => 
     expect(lock.col).toBe(1 / 3);
     lock = lockColumn(lock, left);
     expect(lock.col).toBe(2 / 3);
+  });
+
+  it('lượt không đoán được hướng không xóa số lượt đang đếm', () => {
+    const left = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.4 }, 'left');
+    const none = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.4 });
+    let lock = lockColumn(null, person([0.4, 0.2, 0.6, 0.9], { x: 0.49, y: 0.4 }, 'right'));
+    lock = lockColumn(lock, left);
+    lock = lockColumn(lock, none);
+    expect(lock.col).toBe(1 / 3);
+    lock = lockColumn(lock, left);
+    expect(lock.col).toBe(2 / 3);
+  });
+
+  it('chốt theo cột gần nhất: lượt đầu thấy hướng nhìn thì đổi ngay (mục 10.3.1)', () => {
+    let lock = lockColumn(null, person([0.42, 0.2, 0.6, 0.9], { x: 0.53, y: 0.4 }));
+    expect(lock).toMatchObject({ col: 2 / 3, sure: false });
+    lock = lockColumn(lock, person([0.42, 0.2, 0.6, 0.9], { x: 0.53, y: 0.4 }, 'right'));
+    expect(lock).toMatchObject({ col: 1 / 3, sure: true });
   });
 
   it('measure dùng cột đã chốt', () => {

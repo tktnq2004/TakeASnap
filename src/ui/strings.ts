@@ -186,10 +186,15 @@ export const t = {
         horizonSeen: 'thấy chân trời',
         leadSeen: 'thấy đường dẫn',
       },
-      /** Cột 1/3 có bên: "để đưa người sang đường 1/3 bên phải". */
-      toColumn: (side: string) => `để đưa người sang đường 1/3 bên ${side}`,
-      left: 'trái',
-      right: 'phải',
+      /** Dòng thứ hai của viên: cách làm khác khi đưa người / nhóm sang ngang (theo khung ngắm). */
+      personStep: {
+        person: { left: 'Hoặc người bước sang trái', right: 'Hoặc người bước sang phải' },
+        group: { left: 'Hoặc cả nhóm bước sang trái', right: 'Hoặc cả nhóm bước sang phải' },
+      },
+      /** Dòng thứ hai khi đưa mắt lên / xuống. */
+      cameraMove: { raise: 'Hoặc đưa máy lên', lower: 'Hoặc hạ máy xuống' },
+      /** Ô bước trên viên hướng dẫn. */
+      step: (i: number, n: number) => `Bước ${i}/${n}`,
       /** Tiêu chí đang làm vừa đúng, đợi lượt sau xác nhận. */
       hold: 'Đúng rồi, giữ yên máy',
       reached: (names: string) => `Đạt ${names}`,
@@ -205,11 +210,8 @@ export const t = {
       stop: 'Dừng hướng dẫn',
       /** Nút Kiểm tra bố cục khi không hướng dẫn: chạy lại hướng dẫn của bố cục đang bật. */
       restart: 'Hướng dẫn lại bố cục',
-      /** Chip bố cục phụ dưới thanh trên. */
-      removeScene: (name: string) => `Bỏ ${name}`,
-      /** Chip thêm bố cục phụ khi đang bật bố cục chính (mở bảng Bố cục). */
-      addScene: 'Bố cục phụ',
-      addSceneLabel: 'Thêm bố cục phụ',
+      /** Hàng bố cục phụ trong bảng Mở thêm của thanh trên. */
+      sceneRow: 'Bố cục phụ',
       short: { horizon: 'Chân trời', lead: 'Đường dẫn' },
     },
     hints: {
