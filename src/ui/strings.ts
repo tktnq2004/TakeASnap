@@ -186,26 +186,21 @@ export const t = {
         horizonSeen: 'thấy chân trời',
         leadSeen: 'thấy đường dẫn',
       },
-      /** Dòng thứ hai của viên: cách làm khác khi đưa người / nhóm sang ngang (theo khung ngắm). */
-      personStep: {
-        person: { left: 'Hoặc người bước sang trái', right: 'Hoặc người bước sang phải' },
-        group: { left: 'Hoặc cả nhóm bước sang trái', right: 'Hoặc cả nhóm bước sang phải' },
-      },
-      /** Dòng thứ hai khi đưa mắt lên / xuống. */
-      cameraMove: { raise: 'Hoặc đưa máy lên', lower: 'Hoặc hạ máy xuống' },
+      /** Cách làm thứ hai, cùng chiều, sau dấu "/": "Xoay máy sang trái / bước sang trái". */
+      orStep: { left: 'bước sang trái', right: 'bước sang phải' },
+      orCamera: { raise: 'đưa máy lên', lower: 'hạ máy xuống' },
+      /** Chưa thấy / mất cảnh giữa chừng. */
+      find: {
+        person: 'Hướng máy về phía người',
+        horizonSeen: 'Hướng máy về phía đường chân trời',
+        leadSeen: 'Hướng máy về phía đường dẫn',
+      } as Partial<Record<string, string>>,
       /** Ô bước trên viên hướng dẫn. */
       step: (i: number, n: number) => `Bước ${i}/${n}`,
-      /** Tiêu chí đang làm vừa đúng, đợi lượt sau xác nhận. */
+      /** Chấm người đã tới đích, đợi máy yên để chụp kiểm tra. */
       hold: 'Đúng rồi, giữ yên máy',
       reached: (names: string) => `Đạt ${names}`,
       passed: (items: string) => `Đạt: ${items}`,
-      failed: (item: string) => `Chưa đạt: ${item}`,
-      missing: {
-        person: 'Cảnh này không thấy người',
-        horizon: 'Cảnh này không thấy đường chân trời',
-        lead: 'Cảnh này không thấy đường dẫn',
-        group: 'Cảnh này chưa thấy nhóm người',
-      },
       stopped: 'Đã dừng hướng dẫn',
       stop: 'Dừng hướng dẫn',
       /** Nút Kiểm tra bố cục khi không hướng dẫn: chạy lại hướng dẫn của bố cục đang bật. */

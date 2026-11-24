@@ -21,7 +21,6 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   type SharedValue,
-  useAnimatedProps,
   useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
@@ -30,7 +29,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { downloadPack, isPackReady } from '@/engine/models/modelStore';
@@ -62,10 +60,7 @@ import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomChipsWidth, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CheckOverlay } from '@/features/composition/CheckOverlay';
-import {
-  GuideEndPill,
-  GuideOverlay,
-} from '@/features/composition/GuideOverlay';
+import { GuideEndPill, GuideOverlay } from '@/features/composition/GuideOverlay';
 import {
   type GuidePlan,
   isGuidedMain,
@@ -79,6 +74,7 @@ import type { Pt } from '@/features/composition/guides';
 import type { TechniqueId } from '@/features/composition/techniques';
 import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '@/features/composition/snap';
 import { CHECKABLE, useLayoutCheck } from '@/features/composition/useLayoutCheck';
+import { lensOf } from '@/features/composition/track';
 import { useLiveGuide } from '@/features/composition/useLiveGuide';
 import { getPose } from '@/features/pose/repository';
 import type { Pose } from '@/features/pose/types';
@@ -527,6 +523,8 @@ function CameraBody() {
       front: facing === 'front',
       flip: facing === 'front' && !frontMirror,
       sky: isPackReady(SKY_PACK),
+      lens: lensOf(frame, preview, facing === 'front'),
+      zoom: factor.get(),
     };
   });
   const countdownRef = useRef<number | null>(null);
@@ -864,7 +862,13 @@ function CameraBody() {
           )}
 
           {guide.view ? (
-            <GuideOverlay frame={frame} view={guide.view} maxBottom={hintBottom} />
+            <GuideOverlay
+              frame={frame}
+              view={guide.view}
+              track={guide.track}
+              zoom={factor}
+              maxBottom={hintBottom}
+            />
           ) : guide.end ? (
             <GuideEndPill frame={frame} end={guide.end} maxBottom={hintBottom} />
           ) : check.result ? (
@@ -954,9 +958,6 @@ function CameraBody() {
             onPress={onCheck}
             style={[styles.check, guide.active && styles.checkOn]}
           >
-            {guide.view?.state.deadline != null && (
-              <GraceRing deadline={guide.view.state.deadline} />
-            )}
             {guide.active ? (
               <ScanSearch size={size.icon} strokeWidth={2} color={color.accentInk} />
             ) : check.busy || downloading ? (
@@ -1096,40 +1097,6 @@ function FrameMask({ frame, root }: { frame: Rect; root: { width: number; height
   );
 }
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const RING = size.iconButton + 6;
-const RING_R = (RING - 2) / 2;
-const RING_C = 2 * Math.PI * RING_R;
-
-/**
- * Vòng quanh nút Kiểm tra bố cục trong 10 s cuối (sau lần nhắc thứ 5, design.md §6.15): giảm dần
- * tới lúc hướng dẫn dừng.
- */
-function GraceRing({ deadline }: { deadline: number }) {
-  const p = useSharedValue(1);
-  useEffect(() => {
-    const left = Math.max(0, deadline - Date.now());
-    p.set(Math.min(1, left / compositionUi.guideGraceMs));
-    p.set(withTiming(0, { duration: left }));
-  }, [deadline, p]);
-  const props = useAnimatedProps(() => ({ strokeDashoffset: RING_C * (1 - p.get()) }));
-  return (
-    <Svg width={RING} height={RING} style={styles.ring} pointerEvents="none">
-      <AnimatedCircle
-        cx={RING / 2}
-        cy={RING / 2}
-        r={RING_R}
-        stroke={color.camInk}
-        strokeWidth={2}
-        fill="none"
-        strokeDasharray={[RING_C, RING_C]}
-        animatedProps={props}
-        transform={`rotate(-90 ${RING / 2} ${RING / 2})`}
-      />
-    </Svg>
-  );
-}
-
 const TRASH_LABEL_H = 28;
 
 /** Vùng xóa (design.md §6.3): ngón tay vào thì vòng đỏ, nền đỏ nhạt và phóng nhẹ. */
@@ -1175,7 +1142,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkOn: { backgroundColor: color.camAccent },
-  ring: { position: 'absolute', left: -3, top: -3 },
   shutterRow: {
     position: 'absolute',
     left: SIDE,

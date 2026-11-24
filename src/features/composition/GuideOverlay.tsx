@@ -1,12 +1,9 @@
 /**
- * Hướng dẫn liên tục trên khung ngắm (Phase 5b, design.md §6.15): khung người, chấm mắt, đường
- * tìm được của lượt gần nhất (giữ tới khi có lượt mới, không nháy), **mũi tên kết quả** từ chỗ
- * người / mắt đang đứng tới đích sáng, ô "Bước 2/3" với chấm nhắc, viên hướng dẫn; viên xanh "Đúng
- * rồi, giữ yên máy" khi vừa tới đích, "Đạt: …" khi qua một bước; viên kết thúc.
- *
- * Viên hướng dẫn đưa người / mắt tới đích có hai dòng, mỗi dòng một cách làm với icon mũi tên theo
- * chiều của chính dòng đó: "← Xoay máy sang trái" / "→ Hoặc người bước sang phải" (phiếu Phase 5b
- * lần 2, mục 10.2.2).
+ * Hướng dẫn liên tục trên khung ngắm (Phase 5b, design.md §6.15): **chấm người** (trắng), **chấm
+ * đích** (`camAccent`) trên đường sáng và **mũi tên** từ chấm người tới chấm đích, chạy theo máy
+ * xoay ngay trên UI thread (phiếu Phase 5b lần 3, mục 11.5; `track.ts`); ô "Bước 2/3" với chấm
+ * nhắc; viên hướng dẫn một dòng; viên xanh "Đúng rồi, giữ yên máy" khi chấm người tới đích (đang
+ * đợi máy yên để chụp kiểm tra), "Đạt: …" khi qua một bước; viên kết thúc.
  */
 import {
   ArrowDown,
@@ -24,7 +21,16 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  FadeOut,
+  SensorType,
+  type SharedValue,
+  useAnimatedProps,
+  useAnimatedSensor,
+  useAnimatedStyle,
+  useFrameCallback,
+} from 'react-native-reanimated';
 import Svg, { Line, Polygon } from 'react-native-svg';
 
 import type { Rect } from '@/features/camera/frame';
@@ -32,21 +38,12 @@ import { ease } from '@/ui/easing';
 import { t } from '@/ui/strings';
 import { color, compositionUi, motion, radius, size, space, type } from '@/ui/tokens';
 
-import {
-  type Action,
-  type Check as GuideCheck,
-  type Dir,
-  GUIDE,
-  gaveUpLines,
-  type GuideLine,
-  guideLines,
-  remindersOf,
-  stepOf,
-} from './guidance';
+import { type Action, type Dir, GUIDE, guideLine, remindersOf, stepOf } from './guidance';
 import { SceneLines } from './SceneLines';
-import type { GuideEnd, GuideView } from './useLiveGuide';
+import { type Live, trackFrame } from './track';
+import type { GuideEnd, GuideTrack, GuideView } from './useLiveGuide';
 
-/** Icon của dòng không có chiều. */
+/** Icon của viên theo thao tác, khi viên không có chiều riêng. */
 const ICONS: Record<Action, LucideIcon> = {
   panLeft: ArrowLeft,
   panRight: ArrowRight,
@@ -69,109 +66,142 @@ const DIR_ICONS: Record<Dir, LucideIcon> = {
   down: ArrowDown,
 };
 
+const AnimatedLine = Animated.createAnimatedComponent(Line);
+const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
+
 const hintTop = (frame: Rect, maxBottom: number) =>
   Math.min(frame.y + frame.height - space[3], maxBottom) - compositionUi.hintH;
 
-/** Khung neo đáy của viên hướng dẫn: viên hai dòng và ô bước mọc lên trên, đáy viên không đổi. */
-const STACK_H = 200;
+/** Khung neo đáy của viên hướng dẫn: ô bước mọc lên trên, đáy viên không đổi. */
+const STACK_H = 120;
 
-/** Điểm cuối mũi tên: chiếu chỗ đang đứng lên đích (đường dọc, đường ngang) hoặc chính điểm đích. */
-function arrowEnd(c: GuideCheck): { x: number; y: number } | null {
-  const a = c.at;
-  const tg = c.target;
-  if (!a || !tg) return null;
-  if (tg.kind === 'vline') return { x: tg.x, y: a.y };
-  if (tg.kind === 'hline') return { x: a.x, y: tg.y };
-  if (tg.kind === 'point') return { x: tg.x, y: tg.y };
+/**
+ * Đọc con quay, mỗi khung hình tính chấm người theo máy xoay (`trackFrame`). Chỉ mount khi đang
+ * hướng dẫn: con quay chỉ chạy lúc đó.
+ */
+function MotionTracker({ track, zoom }: { track: GuideTrack; zoom: SharedValue<number> }) {
+  const gyro = useAnimatedSensor(SensorType.GYROSCOPE, { interval: 'auto' });
+  const { live, anchor, epoch } = track;
+  useFrameCallback((f) => {
+    'worklet';
+    const dt = f.timeSincePreviousFrame;
+    if (dt == null) return;
+    live.set(trackFrame(live.get(), gyro.sensor.get(), dt, epoch.get(), anchor.get(), zoom.get()));
+  });
   return null;
 }
 
-/** Mũi tên kết quả: người / mắt / chân trời sẽ đi từ đây tới đích sáng. */
-function ResultArrow({ c, width, height }: { c: GuideCheck; width: number; height: number }) {
-  const end = arrowEnd(c);
-  if (!c.at || !end) return null;
-  const x1 = c.at.x * width;
-  const y1 = c.at.y * height;
-  const x2 = end.x * width;
-  const y2 = end.y * height;
-  const len = Math.hypot(x2 - x1, y2 - y1);
+const clamp01 = (v: number) => {
+  'worklet';
+  return Math.min(1, Math.max(0, v));
+};
+
+/** Mũi tên từ chấm người tới chấm đích (px), null khi không vẽ. */
+function arrowOf(l: Live, on: boolean, W: number, H: number) {
+  'worklet';
+  if (!on || l.reached) return null;
+  const x0 = clamp01(l.px) * W;
+  const y0 = clamp01(l.py) * H;
+  const x1 = clamp01(l.tx) * W;
+  const y1 = clamp01(l.ty) * H;
+  const len = Math.hypot(x1 - x0, y1 - y0);
+  const r = compositionUi.liveDot / 2 + 2;
   const head = compositionUi.arrowHead;
-  if (len < head * 1.5) return null;
-  const ux = (x2 - x1) / len;
-  const uy = (y2 - y1) / len;
-  // Thân dừng ở gốc đầu mũi tên; đầu là tam giác nhọn chạm đích.
-  const bx = x2 - ux * head;
-  const by = y2 - uy * head;
+  if (len < r * 2 + head * 1.5) return null;
+  const ux = (x1 - x0) / len;
+  const uy = (y1 - y0) / len;
+  // Đầu nhọn chạm mép chấm đích; thân từ mép chấm người tới gốc đầu mũi tên.
+  const tx = x1 - ux * r;
+  const ty = y1 - uy * r;
+  const bx = tx - ux * head;
+  const by = ty - uy * head;
   const w = head * 0.6;
-  const pts = `${x2},${y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`;
-  const s = compositionUi.arrowStroke;
-  return (
-    <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
-      {/* Viền tối để mũi tên trắng vẫn thấy trên nền sáng. */}
-      <Line
-        x1={x1}
-        y1={y1}
-        x2={bx}
-        y2={by}
-        stroke={color.camBg}
-        strokeOpacity={0.45}
-        strokeWidth={s + 3}
-        strokeLinecap="round"
-      />
-      <Polygon
-        points={pts}
-        fill={color.camBg}
-        fillOpacity={0.45}
-        stroke={color.camBg}
-        strokeOpacity={0.45}
-        strokeWidth={3}
-        strokeLinejoin="round"
-      />
-      <Line
-        x1={x1}
-        y1={y1}
-        x2={bx}
-        y2={by}
-        stroke={color.camInk}
-        strokeWidth={s}
-        strokeLinecap="round"
-      />
-      <Polygon points={pts} fill={color.camInk} />
-    </Svg>
-  );
+  return {
+    x1: x0 + ux * r,
+    y1: y0 + uy * r,
+    x2: bx,
+    y2: by,
+    points: `${tx},${ty} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`,
+  };
 }
 
-/** Khung người, chấm mắt, đường tìm được của lượt gần nhất (đã theo khung ngắm), mũi tên. */
-function Found({ frame, view }: { frame: Rect; view: GuideView }) {
-  const snap = view.snap;
-  if (!snap) return null;
-  const f = snap.features;
-  const b = f.people[f.main]?.box;
-  const W = frame.width;
-  const H = frame.height;
-  const E = compositionUi.checkEye;
-  const c = view.state.current;
+/** Chấm người, chấm đích, mũi tên: đọc `live` trên UI thread, không qua React. */
+function LiveMarks({ track, width, height }: { track: GuideTrack; width: number; height: number }) {
+  const { live, anchor } = track;
+  const D = compositionUi.liveDot;
+  const on = () => {
+    'worklet';
+    const a = anchor.get();
+    return a != null && live.get().for === a.id;
+  };
+  const person = useAnimatedStyle(() => {
+    const l = live.get();
+    return {
+      opacity: on() ? 1 : 0,
+      transform: [
+        { translateX: clamp01(l.px) * width - D / 2 },
+        { translateY: clamp01(l.py) * height - D / 2 },
+      ],
+    };
+  });
+  const target = useAnimatedStyle(() => {
+    const l = live.get();
+    return {
+      opacity: on() ? 1 : 0,
+      transform: [
+        { translateX: clamp01(l.tx) * width - D / 2 },
+        { translateY: clamp01(l.ty) * height - D / 2 },
+      ],
+    };
+  });
+  const lineProps = () => {
+    'worklet';
+    const a = arrowOf(live.get(), on(), width, height);
+    return a
+      ? { x1: a.x1, y1: a.y1, x2: a.x2, y2: a.y2, opacity: 1 }
+      : { x1: 0, y1: 0, x2: 0, y2: 0, opacity: 0 };
+  };
+  const headProps = () => {
+    'worklet';
+    const a = arrowOf(live.get(), on(), width, height);
+    return a ? { points: a.points, opacity: 1 } : { points: '0,0 0,0 0,0', opacity: 0 };
+  };
+  const halo = useAnimatedProps(lineProps);
+  const line = useAnimatedProps(lineProps);
+  const headHalo = useAnimatedProps(headProps);
+  const head = useAnimatedProps(headProps);
+  const s = compositionUi.arrowStroke;
   return (
-    <View
-      pointerEvents="none"
-      style={[styles.abs, { left: frame.x, top: frame.y, width: W, height: H }]}
-    >
-      {view.plan.scene && (
-        <SceneLines width={W} height={H} technique={view.plan.scene} scene={snap.scene} />
-      )}
-      {b && (
-        <View
-          style={[
-            styles.box,
-            { left: b[0] * W, top: b[1] * H, width: (b[2] - b[0]) * W, height: (b[3] - b[1]) * H },
-          ]}
+    <>
+      <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
+        {/* Viền tối để mũi tên trắng vẫn thấy trên nền sáng. */}
+        <AnimatedLine
+          animatedProps={halo}
+          stroke={color.camBg}
+          strokeOpacity={0.45}
+          strokeWidth={s + 3}
+          strokeLinecap="round"
         />
-      )}
-      {f.eye && (
-        <View style={[styles.eye, { left: f.eye.x * W - E / 2, top: f.eye.y * H - E / 2 }]} />
-      )}
-      {c && !view.state.holding && <ResultArrow c={c} width={W} height={H} />}
-    </View>
+        <AnimatedPolygon
+          animatedProps={headHalo}
+          fill={color.camBg}
+          fillOpacity={0.45}
+          stroke={color.camBg}
+          strokeOpacity={0.45}
+          strokeWidth={3}
+          strokeLinejoin="round"
+        />
+        <AnimatedLine
+          animatedProps={line}
+          stroke={color.camInk}
+          strokeWidth={s}
+          strokeLinecap="round"
+        />
+        <AnimatedPolygon animatedProps={head} fill={color.camInk} />
+      </Svg>
+      <Animated.View style={[styles.dot, styles.dotTarget, target]} />
+      <Animated.View style={[styles.dot, styles.dotPerson, person]} />
+    </>
   );
 }
 
@@ -189,10 +219,15 @@ function usePassedFlash(passedAt: number) {
 export function GuideOverlay({
   frame,
   view,
+  track,
+  zoom,
   maxBottom,
 }: {
   frame: Rect;
   view: GuideView;
+  track: GuideTrack;
+  /** Zoom lúc này (góc nhìn thu hẹp thì chấm chạy nhanh hơn khi xoay máy). */
+  zoom: SharedValue<number>;
   maxBottom: number;
 }) {
   const g = t.composition.guide;
@@ -201,33 +236,46 @@ export function GuideOverlay({
   const used = remindersOf(s);
   const at = stepOf(s);
   const flash = usePassedFlash(s.passedAt) && s.justPassed != null;
-  // Viên xanh: vừa qua một bước, hoặc đang đúng chờ xác nhận.
+  // Viên xanh: vừa qua một bước, hoặc chấm người đã tới đích (đợi máy yên để chụp kiểm tra).
   let ok = false;
-  let lines: { text: string; Icon: LucideIcon }[];
+  let text: string;
+  let Icon: LucideIcon;
   let key: string;
   if (flash) {
     ok = true;
-    lines = [{ text: g.passed(g.done[s.justPassed!]), Icon: Check }];
+    text = g.passed(g.done[s.justPassed!]);
+    Icon = Check;
     key = `passed-${s.passedAt}`;
-  } else if (c && s.holding) {
+  } else if (c && view.hold) {
     ok = true;
-    lines = [{ text: g.hold, Icon: Check }];
+    text = g.hold;
+    Icon = Check;
     key = `hold-${c.id}`;
   } else if (c) {
-    const icon = (l: GuideLine): LucideIcon =>
-      l.dir ? DIR_ICONS[l.dir] : c.action ? ICONS[c.action] : Check;
-    const ls = guideLines(c);
-    lines = ls.map((l) => ({ text: l.text, Icon: icon(l) }));
-    key = `${c.id}-${ls.map((l) => l.dir).join('-')}`;
+    const l = guideLine(c, view.front);
+    text = l.text;
+    Icon = l.dir ? DIR_ICONS[l.dir] : c.action ? ICONS[c.action] : Check;
+    key = `${c.id}-${l.dir}`;
   } else {
-    lines = [{ text: t.composition.check.running, Icon: ScanSearch }];
+    text = t.composition.check.running;
+    Icon = ScanSearch;
     key = 'wait';
   }
-  const two = lines.length > 1;
   const top = hintTop(frame, maxBottom) + compositionUi.hintH - STACK_H;
+  const W = frame.width;
+  const H = frame.height;
   return (
     <>
-      <Found frame={frame} view={view} />
+      <MotionTracker track={track} zoom={zoom} />
+      <View
+        pointerEvents="none"
+        style={[styles.abs, { left: frame.x, top: frame.y, width: W, height: H }]}
+      >
+        {view.plan.scene && view.snap && (
+          <SceneLines width={W} height={H} technique={view.plan.scene} scene={view.snap.scene} />
+        )}
+        <LiveMarks track={track} width={W} height={H} />
+      </View>
       <View pointerEvents="none" style={[styles.stack, { top }]}>
         {at && (
           <View style={styles.step} accessibilityRole="text">
@@ -236,7 +284,7 @@ export function GuideOverlay({
             </Text>
             <View style={styles.dots}>
               {Array.from({ length: GUIDE.reminders }, (_, i) => (
-                <View key={i} style={[styles.dot, i < used && styles.dotOn]} />
+                <View key={i} style={[styles.remind, i < used && styles.remindOn]} />
               ))}
             </View>
           </View>
@@ -247,32 +295,27 @@ export function GuideOverlay({
           exiting={FadeOut.duration(motion.in).easing(ease)}
           accessibilityRole="text"
           accessibilityLiveRegion="polite"
-          accessibilityLabel={lines.map((l) => l.text).join('. ')}
-          style={[styles.pill, two && styles.pillTwo, ok && styles.pillOk]}
+          style={[styles.pill, ok && styles.pillOk]}
         >
-          {lines.map(({ text, Icon }) => (
-            <View key={text} style={styles.line}>
-              <Icon
-                size={size.iconSmall}
-                strokeWidth={2.5}
-                color={ok ? color.accentInk : color.camAccent}
-              />
-              <Text
-                style={[styles.text, ok && styles.textOk]}
-                numberOfLines={two ? 1 : 2}
-                maxFontSizeMultiplier={1.3}
-              >
-                {text}
-              </Text>
-            </View>
-          ))}
+          <Icon
+            size={size.iconSmall}
+            strokeWidth={2.5}
+            color={ok ? color.accentInk : color.camAccent}
+          />
+          <Text
+            style={[styles.text, ok && styles.textOk]}
+            numberOfLines={2}
+            maxFontSizeMultiplier={1.3}
+          >
+            {text}
+          </Text>
         </Animated.View>
       </View>
     </>
   );
 }
 
-/** Viên kết thúc: đạt, dừng giữa chừng (đã đạt / chưa đạt), cảnh không áp được, đã dừng. */
+/** Viên kết thúc: đạt, hoặc người dùng đã dừng. */
 export function GuideEndPill({
   frame,
   end,
@@ -283,20 +326,13 @@ export function GuideEndPill({
   maxBottom: number;
 }) {
   const g = t.composition.guide;
-  let ok = false;
-  let lines: string[];
-  if ('stopped' in end) lines = [g.stopped];
-  else if (end.state.status === 'reached') {
-    ok = true;
+  const ok = !('stopped' in end);
+  let text: string = g.stopped;
+  if (!('stopped' in end)) {
     const names = [end.plan.main, end.plan.scene]
       .filter((x) => x != null)
       .map((x) => t.composition.names[x]);
-    lines = [g.reached(names.join(' + '))];
-  } else if (end.state.status === 'notApplicable') {
-    lines = [g.missing[end.state.missing ?? 'person']];
-  } else {
-    const [passed, failed] = gaveUpLines(end.state);
-    lines = passed ? [passed, failed] : [failed];
+    text = g.reached(names.join(' + '));
   }
   return (
     <View pointerEvents="none" style={[styles.wrap, { top: hintTop(frame, maxBottom) }]}>
@@ -308,18 +344,13 @@ export function GuideEndPill({
         style={[styles.pill, styles.pillEnd, ok && styles.pillOk]}
       >
         {ok && <Check size={size.iconSmall} strokeWidth={2.5} color={color.accentInk} />}
-        <View style={styles.lines}>
-          {lines.map((l) => (
-            <Text
-              key={l}
-              style={[styles.text, ok && styles.textOk]}
-              numberOfLines={2}
-              maxFontSizeMultiplier={1.3}
-            >
-              {l}
-            </Text>
-          ))}
-        </View>
+        <Text
+          style={[styles.text, ok && styles.textOk]}
+          numberOfLines={2}
+          maxFontSizeMultiplier={1.3}
+        >
+          {text}
+        </Text>
       </Animated.View>
     </View>
   );
@@ -327,22 +358,18 @@ export function GuideEndPill({
 
 const styles = StyleSheet.create({
   abs: { position: 'absolute' },
-  box: {
+  dot: {
     position: 'absolute',
-    borderWidth: 1,
-    borderColor: color.camInk,
-    borderRadius: radius.sm,
-    opacity: 0.7,
-  },
-  eye: {
-    position: 'absolute',
-    width: compositionUi.checkEye,
-    height: compositionUi.checkEye,
+    left: 0,
+    top: 0,
+    width: compositionUi.liveDot,
+    height: compositionUi.liveDot,
     borderRadius: radius.full,
-    backgroundColor: color.camInk,
     borderWidth: 2,
     borderColor: color.camBg,
   },
+  dotPerson: { backgroundColor: color.camInk },
+  dotTarget: { backgroundColor: color.camAccent },
   wrap: { position: 'absolute', left: space[4], right: space[4], alignItems: 'center' },
   stack: {
     position: 'absolute',
@@ -374,20 +401,17 @@ const styles = StyleSheet.create({
     borderRadius: compositionUi.hintH / 2,
     backgroundColor: color.camHint,
   },
-  pillTwo: { flexDirection: 'column', alignItems: 'flex-start', gap: 2, paddingVertical: space[2] },
   pillEnd: { paddingVertical: space[2] },
-  line: { flexDirection: 'row', alignItems: 'center', gap: space[2], flexShrink: 1 },
   pillOk: { backgroundColor: color.camAccent },
-  lines: { flexShrink: 1, gap: 2 },
   text: { ...type.label, fontSize: 14, color: color.camInk, flexShrink: 1 },
   textOk: { color: color.accentInk },
   dots: { flexDirection: 'row', gap: compositionUi.remindDot },
-  dot: {
+  remind: {
     width: compositionUi.remindDot,
     height: compositionUi.remindDot,
     borderRadius: compositionUi.remindDot / 2,
     backgroundColor: color.camInk,
     opacity: 0.3,
   },
-  dotOn: { opacity: 1 },
+  remindOn: { opacity: 1 },
 });

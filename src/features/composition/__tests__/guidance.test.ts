@@ -4,15 +4,16 @@ import {
   type Check,
   GUIDE,
   type GuideState,
-  gaveUpLines,
-  guideLines,
+  guideLine,
   horizonLine,
   initialGuide,
   lockColumn,
   type Measure,
   measure,
   step,
+  stepLive,
   stepOf,
+  trackAxis,
 } from '../guidance';
 import { combinedShape } from '../guides';
 
@@ -59,18 +60,19 @@ describe('measure: tiêu chí theo thứ tự', () => {
     // Người cần dịch sang trái trên khung → xoay máy sang phải.
     expect(c.action).toBe('panRight');
     expect(c.target).toEqual({ kind: 'vline', x: 1 / 3 });
-    // Hai cách làm, mỗi dòng một chiều (phiếu Phase 5b lần 2, mục 10.2.2).
-    expect(guideLines(c)).toEqual([
-      { text: 'Xoay máy sang phải', dir: 'right' },
-      { text: 'Hoặc người bước sang trái', dir: 'left' },
-    ]);
+    // Một dòng, chỉ bảo người chụp: xoay máy hay bước, cùng chiều (phiếu lần 3, mục 11.2.1, 11.2.8).
+    expect(guideLine(c, false)).toEqual({
+      text: 'Xoay máy sang phải / bước sang phải',
+      dir: 'right',
+    });
+    expect(trackAxis(c)).toBe('x');
   });
 
-  it('camera trước (khung soi gương): xoay ngang đổi chiều', () => {
+  it('camera trước (khung soi gương): xoay ngang đổi chiều, không nói bước', () => {
     const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.45 }, 'right');
-    expect(first(measure({ main: 'thirds', scene: null }, f, null, 0, true))!.action).toBe(
-      'panLeft',
-    );
+    const c = first(measure({ main: 'thirds', scene: null }, f, null, 0, true))!;
+    expect(c.action).toBe('panLeft');
+    expect(guideLine(c, true)).toEqual({ text: 'Xoay máy sang trái', dir: 'left' });
   });
 
   it('1/3: cột đạt thì sang mắt; mắt thấp → chúc máy xuống', () => {
@@ -79,10 +81,8 @@ describe('measure: tiêu chí theo thứ tự', () => {
     expect(c.id).toBe('thirdsEye');
     expect(c.action).toBe('tiltDown');
     // Mắt cần lên: chúc máy, hoặc hạ máy xuống.
-    expect(guideLines(c)).toEqual([
-      { text: 'Chúc máy xuống', dir: 'down' },
-      { text: 'Hoặc hạ máy xuống', dir: 'down' },
-    ]);
+    expect(guideLine(c, false)).toEqual({ text: 'Chúc máy xuống / hạ máy xuống', dir: 'down' });
+    expect(trackAxis(c)).toBe('y');
   });
 
   it('Ở giữa và Chân trời có máy thẳng đứng đầu (cảm biến)', () => {
@@ -99,7 +99,9 @@ describe('measure: tiêu chí theo thứ tự', () => {
       measure({ main: 'fill', scene: null }, person([0.45, 0.4, 0.55, 0.7]), null, 0, false),
     )!;
     expect(c.id).toBe('fillSize');
-    expect(guideLines(c)).toEqual([{ text: 'Tiến lại gần để người lấp đầy khung', dir: null }]);
+    expect(guideLine(c, false)).toEqual({ text: 'Tiến lại gần để người lấp đầy khung', dir: null });
+    // Không theo được bằng máy xoay: chụp lại theo nhịp.
+    expect(trackAxis(c)).toBeNull();
   });
 
   it('cảnh không áp được: không người, không chân trời, không đường dẫn, không nhóm', () => {
@@ -135,9 +137,10 @@ describe('measure: ghép bố cục chính + phụ', () => {
     const m = measure({ main: null, scene: 'horizon' }, f, horizonAt(0.66), 0, false);
     const c = checks(m).find((x) => x.id === 'horizonNeck')!;
     expect(c.ok).toBe(false);
-    expect(guideLines(c)).toEqual([
-      { text: 'Hạ máy xuống để chân trời không cắt cổ', dir: 'down' },
-    ]);
+    expect(guideLine(c, false)).toEqual({
+      text: 'Hạ máy xuống để chân trời không cắt cổ',
+      dir: 'down',
+    });
   });
 
   it('đường dẫn: điểm hội tụ bên phải người → bước sang trái; 1/3 + đường dẫn không lặp cột 1/3', () => {
@@ -162,14 +165,17 @@ const crit = (id: Check['id'], error: number): Check => ({
 });
 const turn = (...cs: Check[]): Measure => ({ kind: 'checks', checks: cs });
 
-describe('step: luật nhắc và dừng', () => {
+describe('step: luật nhắc', () => {
   const fail = (error: number, id: Check['id'] = 'thirdsColumn'): Measure => turn(crit(id, error));
   const run = (s: GuideState, m: Measure, now: number) => step(s, m, now);
 
-  it('lượt đầu cảnh không áp được → dừng ngay', () => {
+  it('lượt đầu chưa thấy cảnh: không dừng, bảo hướng máy về phía người / chân trời', () => {
     const r = run(initialGuide(), { kind: 'noHorizon' }, 0);
-    expect(r.event).toBe('notApplicable');
-    expect(r.state.missing).toBe('horizon');
+    expect(r.state.status).toBe('running');
+    expect(r.state.current!.id).toBe('horizonSeen');
+    expect(guideLine(r.state.current!, false).text).toBe('Hướng máy về phía đường chân trời');
+    const p = run(initialGuide(), { kind: 'noPerson' }, 0).state.current!;
+    expect(guideLine(p, false).text).toBe('Hướng máy về phía người');
   });
 
   it('đang tiến bộ thì không bị nhắc', () => {
@@ -182,29 +188,42 @@ describe('step: luật nhắc và dừng', () => {
     expect(s.memo.thirdsColumn!.reminders).toBeLessThan(GUIDE.reminders);
   });
 
-  it('đứng yên: nhắc mỗi 2 s, sau lần thứ 3 còn 10 s rồi dừng, báo phần đã đạt', () => {
+  it('đứng yên: nhắc mỗi 2 s, tối đa 3 lần mỗi bước, không tự dừng', () => {
     const m = turn(crit('thirdsColumn', 0), crit('thirdsEye', 0.2));
-    // Lượt đầu cột đúng nhưng chưa xác nhận: giữ yên; lượt sau mới qua bước.
+    // Một ảnh kiểm tra đúng là qua bước cột.
     let r = run(initialGuide(), m, 0);
-    expect(r.state.current!.id).toBe('thirdsColumn');
-    expect(r.state.holding).toBe(true);
+    expect(r.state.current!.id).toBe('thirdsEye');
+    expect(r.state.passed).toEqual(['thirdsColumn']);
     const events: string[] = [];
-    let now = 0;
-    while (r.state.status === 'running' && now < 60000) {
-      now += 1000;
+    for (let now = 1000; now <= 60000; now += 1000) {
       r = run(r.state, m, now);
       if (r.event) events.push(r.event);
     }
-    expect(events.filter((e) => e === 'remind')).toHaveLength(GUIDE.reminders);
-    expect(events.at(-1)).toBe('gaveUp');
-    // Qua bước cột ở 1 s, rồi 3 lần nhắc cách 2 s (tới 7 s) + 10 s.
-    expect(events[0]).toBe('passed');
-    expect(now).toBe(17000);
+    expect(events).toEqual(['remind', 'remind', 'remind']);
+    expect(r.state.status).toBe('running');
     expect(stepOf(r.state)).toEqual({ index: 2, total: 2 });
-    expect(gaveUpLines(r.state)).toEqual([
-      'Đạt: người trên đường 1/3',
-      'Chưa đạt: mắt trên đường 1/3',
-    ]);
+  });
+
+  it('giữa hai ảnh: lệch đoán theo máy xoay; nhỏ dần thì không nhắc, đứng yên thì nhắc', () => {
+    let s = run(initialGuide(), fail(0.3), 0).state;
+    for (let now = 500; now <= 6000; now += 500) {
+      const r = stepLive(s, 0.3 - now / 30000, false, now);
+      expect(r.event).toBeNull();
+      s = r.state;
+    }
+    // Không làm theo: nhắc ở mỗi khoảng 2 s, tối đa 3 lần.
+    const events: string[] = [];
+    for (let now = 6500; now <= 30000; now += 500) {
+      const r = stepLive(s, 0.1, false, now);
+      s = r.state;
+      if (r.event) events.push(r.event);
+    }
+    expect(events).toHaveLength(GUIDE.reminders);
+    // Chấm người tới đích (đợi chụp kiểm tra): không nhắc, chưa qua bước.
+    const held = stepLive(s, 0.01, true, 31000);
+    expect(held.event).toBeNull();
+    expect(held.state.passed).toEqual([]);
+    expect(held.state.lastRemindAt).toBe(31000);
   });
 
   it('đạt hết → reached; tiêu chí trước vỡ thì quay lại tiêu chí đó', () => {
@@ -216,30 +235,17 @@ describe('step: luật nhắc và dừng', () => {
     expect(r.event).toBe('reached');
   });
 
-  it('đúng một lượt rồi lệch lại: chưa qua bước, không nhảy tiêu chí', () => {
+  it('ảnh kiểm tra đúng: qua bước, báo "Đạt", sang tiêu chí sau', () => {
     let r = run(initialGuide(), turn(crit('thirdsColumn', 0.2), crit('thirdsEye', 0.2)), 0);
     r = run(r.state, turn(crit('thirdsColumn', 0.03), crit('thirdsEye', 0.2)), 1000);
-    expect(r.state.current!.id).toBe('thirdsColumn');
-    expect(r.state.holding).toBe(true);
-    r = run(r.state, turn(crit('thirdsColumn', 0.07), crit('thirdsEye', 0.2)), 2000);
-    expect(r.state.current!.id).toBe('thirdsColumn');
-    expect(r.state.holding).toBe(false);
-    expect(r.state.passed).toEqual([]);
-  });
-
-  it('đúng hai lượt liền: qua bước, báo "Đạt", sang tiêu chí sau', () => {
-    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.2), crit('thirdsEye', 0.2)), 0);
-    r = run(r.state, turn(crit('thirdsColumn', 0.03), crit('thirdsEye', 0.2)), 1000);
-    r = run(r.state, turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 2000);
     expect(r.event).toBe('passed');
     expect(r.state.justPassed).toBe('thirdsColumn');
-    expect(r.state.passedAt).toBe(2000);
+    expect(r.state.passedAt).toBe(1000);
     expect(r.state.current!.id).toBe('thirdsEye');
   });
 
   it('bước đã qua chỉ vỡ khi lệch quá 1,5 lần ngưỡng (rung tay không làm vỡ)', () => {
     let r = run(initialGuide(), turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 0);
-    r = run(r.state, turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 1000);
     expect(r.state.passed).toEqual(['thirdsColumn']);
     // 0,07 > ngưỡng 0,05 nhưng ≤ 0,075: vẫn giữ bước cột.
     r = run(r.state, turn(crit('thirdsColumn', 0.07), crit('thirdsEye', 0.2)), 2000);
@@ -249,10 +255,8 @@ describe('step: luật nhắc và dừng', () => {
     expect(r.state.current!.id).toBe('thirdsColumn');
   });
 
-  it('đạt hết phải giữ hai lượt mới dừng', () => {
-    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.01)), 0);
-    expect(r.state.status).toBe('running');
-    r = run(r.state, turn(crit('thirdsColumn', 0.01)), 1000);
+  it('ảnh kiểm tra đạt hết thì dừng', () => {
+    const r = run(initialGuide(), turn(crit('thirdsColumn', 0.01)), 0);
     expect(r.event).toBe('reached');
   });
 
@@ -266,15 +270,12 @@ describe('step: luật nhắc và dừng', () => {
     expect(r.state.lost).toBe(0);
   });
 
-  it('mất người giữa chừng: không tiến bộ được, bị nhắc rồi dừng', () => {
+  it('mất người giữa chừng: bảo hướng máy về phía người, nhắc 3 lần, không tự dừng', () => {
     let r = run(initialGuide(), fail(0.2), 0);
-    let now = 0;
-    while (r.state.status === 'running' && now < 60000) {
-      now += 1000;
-      r = run(r.state, { kind: 'noPerson' }, now);
-    }
-    expect(r.state.status).toBe('gaveUp');
+    for (let now = 1000; now <= 60000; now += 1000) r = run(r.state, { kind: 'noPerson' }, now);
+    expect(r.state.status).toBe('running');
     expect(r.state.current!.id).toBe('person');
+    expect(r.state.memo.person!.reminders).toBe(GUIDE.reminders);
   });
 });
 

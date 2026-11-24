@@ -3,8 +3,9 @@
  * (0,0 = góc trên trái). Hàm thuần.
  *
  * Phase 5 chưa phân tích ảnh camera: chấm đích bám theo POSE đang đặt trên khung (giao điểm TRÊN
- * gần mắt người mẫu nhất). Chưa có pose thì hiện hai giao điểm trên để người dùng tự chọn. Chỉ giao
- * điểm trên, vì nhận xét chấm mắt theo đường 1/3 trên (phiếu phase5a 1.5).
+ * gần mắt người mẫu nhất). Chưa có pose thì không có chấm (phiếu Phase 5b lần 3, mục 11.5: bỏ hai
+ * chấm ở hai giao điểm trên). Chỉ giao điểm trên, vì nhận xét chấm mắt theo đường 1/3 trên (phiếu
+ * phase5a 1.5).
  */
 import type { TechniqueId } from './techniques';
 
@@ -18,15 +19,13 @@ export type GuideShape = {
   accentH: number[];
   /** Chấm đích (vòng + chấm). */
   target: Pt | null;
-  /** Các điểm có thể đặt người khi chưa biết người ở đâu (chấm nhỏ). */
-  points: Pt[];
   /** Đường chéo nét đứt (đường dẫn): từ `from` tới `to`. */
   diagonals: { from: Pt; to: Pt }[];
 };
 
 const THIRDS = [1 / 3, 2 / 3];
 const QUARTERS = [1 / 4, 1 / 2, 3 / 4];
-const EMPTY: GuideShape = { v: [], h: [], accentH: [], target: null, points: [], diagonals: [] };
+const EMPTY: GuideShape = { v: [], h: [], accentH: [], target: null, diagonals: [] };
 
 /** Bốn giao điểm 1/3. */
 export const INTERSECTIONS: Pt[] = THIRDS.flatMap((y) => THIRDS.map((x) => ({ x, y })));
@@ -54,9 +53,7 @@ export function guideShape(t: TechniqueId, anchor: Pt | null = null): GuideShape
     case 'grid4':
       return { ...EMPTY, v: QUARTERS, h: QUARTERS };
     case 'thirds':
-      return anchor
-        ? { ...EMPTY, v: THIRDS, h: THIRDS, target: nearest(UPPER, anchor) }
-        : { ...EMPTY, v: THIRDS, h: THIRDS, points: UPPER };
+      return { ...EMPTY, v: THIRDS, h: THIRDS, target: anchor ? nearest(UPPER, anchor) : null };
     case 'center':
       return { ...EMPTY, v: [0.5], target: { x: 0.5, y: 1 / 3 } };
     case 'horizon':
@@ -93,14 +90,12 @@ export function combinedShape(
   if (!scene) return a;
   const b = guideShape(scene, anchor);
   const uniq = (xs: number[]) => [...new Set(xs)].sort((p, q) => p - q);
-  const hasMain = main !== 'off';
   return {
     v: uniq([...a.v, ...b.v]),
     // Đường đã tô màu nhấn thì không vẽ lại thành đường kẻ thường.
     h: uniq([...a.h, ...b.h]).filter((y) => !b.accentH.includes(y)),
     accentH: b.accentH,
     target: a.target ?? b.target,
-    points: hasMain && a.target ? [] : a.points.length ? a.points : b.points,
     diagonals: b.diagonals.map((d) => (a.target ? { ...d, to: a.target } : d)),
   };
 }
