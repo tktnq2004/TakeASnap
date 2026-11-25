@@ -360,5 +360,5 @@ Bạn nhờ thử thêm các ca của 1/3 trước khi qua bố cục khác. Cla
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 12.5.1 | Camera trước, bạn lệch khỏi đường sáng (thử lại 12.1.5) | "Đưa/xoay máy qua trái để người đứng cột phải" khi cần sang cột phải (và ngược lại); đưa máy theo câu thì bạn tiến về đường sáng | | | |
-| 12.5.2 | Camera sau, xoay quá tay cho người ra sát mép khung (mặt ra ngoài một nửa) | Câu vẫn bảo đưa người về phía trong, không đổi sang chiều ngược lại | | | |
+| 12.5.1 | Camera trước, bạn lệch khỏi đường sáng (thử lại 12.1.5) | "Đưa/xoay máy qua trái để người đứng cột phải" khi cần sang cột phải (và ngược lại); đưa máy theo câu thì bạn tiến về đường sáng |d |d | sửa là xoay máy thôi, đưa máy thì bị đổi background |
+| 12.5.2 | Camera sau, xoay quá tay cho người ra sát mép khung (mặt ra ngoài một nửa) | Câu vẫn bảo đưa người về phía trong, không đổi sang chiều ngược lại |d |d | |

@@ -356,7 +356,7 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 
 - App tự chụp lặng và phân tích khoảng 1 lần / giây.
 - Làm **từng tiêu chí theo thứ tự** (mỗi tiêu chí là một **bước**, trên viên có "Bước 2/3"); không có số độ, số cm.
-- **Đưa người / mắt tới đích: một dòng, chỉ bảo người chụp** (phiếu Phase 5b lần 3, mục 11.5): gộp hai cách làm cùng chiều của người chụp, một mũi tên, rồi **tên đường đích**: "← Đi/xoay máy qua trái để người đứng cột phải" (camera sau: bước sang trái hay xoay máy sang trái thì người trên khung đều dịch sang phải); mắt: "↓ Chúc/hạ máy xuống để mắt người trên cột trên", "↑ Ngửa/nâng máy lên để mắt người trên cột trên". Gọi đường kẻ là **cột trái / phải / trên / dưới** theo khung ngắm, không nói "1/3". Camera trước: "Đưa/xoay máy qua trái để người đứng cột phải", **cùng chiều** camera sau (phiếu lần 4, mục 12.1.5: khung soi gương, đưa máy qua trái thì người dịch sang phải). Không bảo người mẫu di chuyển. Tiêu chí khác: một câu "hành động + kết quả": "Tiến lại gần để người lấp đầy khung", "Bước sang phải để đường đi dẫn tới người".
+- **Đưa người / mắt tới đích: một dòng, chỉ bảo người chụp** (phiếu Phase 5b lần 3, mục 11.5): gộp hai cách làm cùng chiều của người chụp, một mũi tên, rồi **tên đường đích**: "← Đi/xoay máy qua trái để người đứng cột phải" (camera sau: bước sang trái hay xoay máy sang trái thì người trên khung đều dịch sang phải); mắt: "↓ Chúc/hạ máy xuống để mắt người trên cột trên", "↑ Ngửa/nâng máy lên để mắt người trên cột trên". Gọi đường kẻ là **cột trái / phải / trên / dưới** theo khung ngắm, không nói "1/3". Camera trước: "Xoay máy qua trái để người đứng cột phải", **cùng chiều** camera sau (phiếu lần 4, mục 12.1.5), chỉ nói xoay: đưa máy ngang thì nền sau lưng người tự chụp đổi theo (mục 12.5.1). Không bảo người mẫu di chuyển. Tiêu chí khác: một câu "hành động + kết quả": "Tiến lại gần để người lấp đầy khung", "Bước sang phải để đường đi dẫn tới người".
 - **Đích sáng trên khung ngắm:** đường hoặc điểm cần đưa người, mắt, chân trời tới được tô sáng. Khung ngắm chạy realtime nên người dùng tự thấy lúc tới; lần phân tích chỉ để xác nhận rồi chuyển tiêu chí. Không dùng con quay để đo góc.
 - **Mũi tên kết quả trên khung ngắm:** từ chỗ người / mắt đang đứng tới đích sáng, cho thấy người sẽ đi về đâu; câu nói máy làm gì. Tới đích: viên xanh "Đúng rồi, giữ yên máy".
 - **Không nhảy bước** (phiếu Phase 5b lần 1: câu đổi trước khi kịp làm): một tiêu chí chỉ tính đạt khi đúng **2 lượt liền**; qua bước thì viên xanh "Đạt: <tiêu chí>" khoảng 1 s rồi mới tới câu sau. Mất người một lượt (dò hụt) thì bỏ qua lượt đó.
@@ -379,7 +379,7 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 | Lệch | Câu hướng dẫn (ví dụ) |
 |---|---|
 | Máy nghiêng | "Xoay máy cho thẳng" (cảm biến, tức thì) |
-| Người lệch ngang | "Đi/xoay máy qua trái để người đứng cột phải" (muốn người dịch sang phải thì đi hoặc xoay máy qua trái; camera trước: "Đưa/xoay máy qua trái", cùng chiều) |
+| Người lệch ngang | "Đi/xoay máy qua trái để người đứng cột phải" (muốn người dịch sang phải thì đi hoặc xoay máy qua trái; camera trước: "Xoay máy qua trái", cùng chiều, chỉ xoay) |
 | Mắt lệch dọc | "Chúc/hạ máy xuống để mắt người trên cột trên" (mắt cần lên); "Ngửa/nâng máy lên để mắt người trên cột trên" (mắt cần xuống) |
 | Chân trời lệch dọc | "Ngửa máy lên để chân trời nằm trên đường xanh" / "Chúc máy xuống …" |
 | Người quá nhỏ, quá to | "Tiến lại gần để người lấp đầy khung" / "Lùi ra để thấy cả nhóm" |

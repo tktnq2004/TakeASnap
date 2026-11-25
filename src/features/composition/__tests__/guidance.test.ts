@@ -66,7 +66,7 @@ describe('measure: tiêu chí theo thứ tự', () => {
     ]);
     // Camera trước: chỉ xoay máy.
     expect(guideLines(c, true)).toEqual([
-      { text: 'Đưa/xoay máy qua phải để người đứng cột trái', dir: 'right' },
+      { text: 'Xoay máy qua phải để người đứng cột trái', dir: 'right' },
     ]);
   });
 
