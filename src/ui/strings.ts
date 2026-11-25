@@ -93,7 +93,7 @@ export const t = {
     },
     /** Dòng hướng dẫn hiện vài giây khi vừa chọn kỹ thuật (chưa có phân tích người). */
     intro: {
-      thirds: 'Đặt mắt người lên một chấm xanh',
+      thirds: 'Đặt người lên cột trái hoặc cột phải',
       center: 'Đưa người vào trục giữa',
       fill: 'Tiến lại gần để người lấp đầy khung',
       horizon: 'Đặt chỗ trời gặp biển hoặc đất trùng đường xanh trên hoặc dưới',
@@ -149,11 +149,11 @@ export const t = {
       },
       goals: {
         level: 'cho máy thẳng',
-        thirdsColumn: 'để đưa người vào cột 1/3',
-        thirdsEye: 'để đưa mắt lên đường 1/3',
+        thirdsColumn: 'để người đứng đúng cột',
+        thirdsEye: 'để mắt người trên cột trên',
         noJointCut: 'để không cắt ngang tay chân',
         centerAxis: 'để đưa người vào giữa',
-        centerEye: 'để đưa mắt lên chấm xanh',
+        centerEye: 'để mắt người trên cột trên',
         fillSize: 'để người lấp đầy khung',
         fillHead: 'để không cắt đỉnh đầu',
         groupInFrame: 'để cả nhóm vào khung',
@@ -161,7 +161,7 @@ export const t = {
         horizonThird: 'để chân trời nằm trên đường xanh',
         horizonNeck: 'để chân trời không cắt cổ',
         leadToPerson: 'để đường dẫn tới người',
-        leadThird: 'để đưa người vào cột 1/3',
+        leadThird: 'để người đứng đúng cột',
         person: 'để thấy lại người',
         horizonSeen: 'để thấy lại chân trời',
         leadSeen: 'để thấy lại đường dẫn',
@@ -169,11 +169,11 @@ export const t = {
       /** Tiêu chí đã đạt / chưa đạt ở viên kết thúc. */
       done: {
         level: 'máy thẳng',
-        thirdsColumn: 'người trên đường 1/3',
-        thirdsEye: 'mắt trên đường 1/3',
+        thirdsColumn: 'người đứng đúng cột',
+        thirdsEye: 'mắt người trên cột trên',
         noJointCut: 'không cắt ngang tay chân',
         centerAxis: 'người ở giữa',
-        centerEye: 'mắt ở 1/3 trên',
+        centerEye: 'mắt người trên cột trên',
         fillSize: 'người lấp đầy khung',
         fillHead: 'không cắt đỉnh đầu',
         groupInFrame: 'cả nhóm trong khung',
@@ -181,18 +181,26 @@ export const t = {
         horizonThird: 'chân trời trên đường 1/3',
         horizonNeck: 'chân trời không cắt cổ',
         leadToPerson: 'đường dẫn tới người',
-        leadThird: 'người trên đường 1/3',
+        leadThird: 'người đứng đúng cột',
         person: 'thấy người',
         horizonSeen: 'thấy chân trời',
         leadSeen: 'thấy đường dẫn',
       },
-      /** Dòng thứ hai của viên: cách làm khác khi đưa người / nhóm sang ngang (theo khung ngắm). */
-      personStep: {
-        person: { left: 'Hoặc người bước sang trái', right: 'Hoặc người bước sang phải' },
-        group: { left: 'Hoặc cả nhóm bước sang trái', right: 'Hoặc cả nhóm bước sang phải' },
+      /**
+       * Viên một dòng (phiếu Phase 5b lần 3, mục 11.5): hai cách làm cùng chiều của người chụp +
+       * tên đường đích. Camera sau: đi (bước) hay xoay máy; camera trước: chỉ xoay máy.
+       */
+      move: { left: 'Đi/xoay máy qua trái', right: 'Đi/xoay máy qua phải' },
+      turn: { left: 'Xoay máy qua trái', right: 'Xoay máy qua phải' },
+      tilt: { up: 'Ngửa/nâng máy lên', down: 'Chúc/hạ máy xuống' },
+      to: {
+        left: 'để người đứng cột trái',
+        right: 'để người đứng cột phải',
+        center: 'để người đứng giữa',
+        group: 'để nhóm đứng giữa',
+        eyeUpper: 'để mắt người trên cột trên',
+        eyeLower: 'để mắt người trên cột dưới',
       },
-      /** Dòng thứ hai khi đưa mắt lên / xuống. */
-      cameraMove: { raise: 'Hoặc đưa máy lên', lower: 'Hoặc hạ máy xuống' },
       /** Ô bước trên viên hướng dẫn. */
       step: (i: number, n: number) => `Bước ${i}/${n}`,
       /** Tiêu chí đang làm vừa đúng, đợi lượt sau xác nhận. */

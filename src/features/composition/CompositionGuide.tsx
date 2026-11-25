@@ -33,13 +33,6 @@ export function CompositionGuide({
   const { v, h } = g;
   const W = frame.width;
   const H = frame.height;
-  const T = compositionUi.target;
-  const P = compositionUi.point;
-  // Mắt người mẫu đã nằm trong vòng đích thì ẩn vòng; lệch ra mới hiện lại (phiếu Phase 5 lần 4).
-  const reached =
-    g.target != null &&
-    anchor != null &&
-    Math.hypot((anchor.x - g.target.x) * W, (anchor.y - g.target.y) * H) <= T / 2;
 
   return (
     <View
@@ -77,47 +70,17 @@ export function CompositionGuide({
           ))}
         </Svg>
       )}
-      {g.points.map((p) => (
-        <View
-          key={`p${p.x}${p.y}`}
-          style={[styles.point, { left: p.x * W - P / 2, top: p.y * H - P / 2 }]}
-        />
-      ))}
+      {/* Không vẽ chấm xanh nào (phiếu Phase 5b lần 3, mục 11.5: bỏ ở mọi bố cục). */}
       {focus && <Focus target={focus} width={W} height={H} />}
-      {g.target && !reached && focus?.kind !== 'point' && (
-        <View
-          style={[styles.target, { left: g.target.x * W - T / 2, top: g.target.y * H - T / 2 }]}
-        >
-          <View style={styles.targetDot} />
-        </View>
-      )}
     </View>
   );
 }
 
-/** Đích sáng (design.md §6.15, Hướng dẫn liên tục): đường hoặc vòng `camAccent` đậm. */
+/** Đích sáng (design.md §6.15, Hướng dẫn liên tục): đường `camAccent` đậm; điểm thì không vẽ. */
 function Focus({ target, width, height }: { target: Target; width: number; height: number }) {
-  const T = compositionUi.target;
-  switch (target.kind) {
-    case 'vline':
-      return <View style={[styles.focusV, { left: target.x * width }]} />;
-    case 'hline':
-      return <View style={[styles.focusH, { top: target.y * height }]} />;
-    case 'point':
-      return (
-        <View
-          style={[
-            styles.target,
-            styles.focusRing,
-            { left: target.x * width - T / 2, top: target.y * height - T / 2 },
-          ]}
-        >
-          <View style={styles.targetDot} />
-        </View>
-      );
-    default:
-      return null;
-  }
+  if (target.kind === 'vline') return <View style={[styles.focusV, { left: target.x * width }]} />;
+  if (target.kind === 'hline') return <View style={[styles.focusH, { top: target.y * height }]} />;
+  return null;
 }
 
 const GRID_THICK = gridLine.width + gridLine.halo * 2;
@@ -163,31 +126,6 @@ const styles = StyleSheet.create({
     right: 0,
     height: compositionUi.focusStroke,
     marginTop: -compositionUi.focusStroke / 2,
-    backgroundColor: color.camAccent,
-  },
-  focusRing: { borderWidth: compositionUi.focusStroke },
-  target: {
-    position: 'absolute',
-    width: compositionUi.target,
-    height: compositionUi.target,
-    borderRadius: compositionUi.target / 2,
-    borderWidth: compositionUi.targetStroke,
-    borderColor: color.camAccent,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  point: {
-    position: 'absolute',
-    width: compositionUi.point,
-    height: compositionUi.point,
-    borderRadius: compositionUi.point / 2,
-    borderWidth: compositionUi.targetStroke,
-    borderColor: color.camAccent,
-  },
-  targetDot: {
-    width: compositionUi.targetDot,
-    height: compositionUi.targetDot,
-    borderRadius: compositionUi.targetDot / 2,
     backgroundColor: color.camAccent,
   },
 });

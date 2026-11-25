@@ -22,12 +22,15 @@ import { frameToPhotoCrop, type Rect } from '@/features/camera/frame';
 import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
 import { compositionUi } from '@/ui/tokens';
 
+import { headYaw } from './guidance';
 import { sceneFor } from './scene';
 
 export type Snapshot =
   | {
       kind: 'ok';
       features: PhotoFeatures;
+      /** Độ quay đầu của người chính theo lưới mặt (`headYaw`), null khi không có mặt. */
+      yaw: number | null;
       /** Chân trời, đường dẫn tìm được; null khi trang không trả ảnh xám. */
       scene: Scene | null;
       /** Thời gian dò đường trên máy (ms), để đo cổng Phase 5a (≤ 300 ms). */
@@ -102,6 +105,7 @@ export function useSnapshot() {
     return {
       kind: 'ok',
       features,
+      yaw: headYaw(features, a.faceEyes),
       scene: found?.scene ?? null,
       sceneMs: found?.ms ?? null,
       sky: { skyMs: a.skyMs, skyLoadMs: a.skyLoadMs, skyState: a.skyState, skyError: a.skyError },

@@ -133,14 +133,53 @@ export function thirdsColumn(f: PhotoFeatures, x: number): number {
  */
 export type ColumnLock = { col: number; sure: boolean; pending: number | null; count: number };
 
-const facingColumn = (f: PhotoFeatures) =>
-  f.facing === 'right' ? 1 / 3 : f.facing === 'left' ? 2 / 3 : null;
+/**
+ * Độ quay đầu của người chính theo lưới mặt (`faceEyes[i][2]`, > 0: mũi lệch sang phải ảnh): mặt
+ * trong khung người chính, gần mắt nhất. Null khi không có mặt.
+ */
+export function headYaw(f: PhotoFeatures, faces: number[][] | null | undefined): number | null {
+  const p = f.people[f.main];
+  if (!p || !faces?.length) return null;
+  const [x0, y0, x1, y1] = p.box;
+  const at = f.eye ?? { x: (x0 + x1) / 2, y: y0 };
+  let best: number[] | null = null;
+  for (const e of faces) {
+    if (e.length < 3 || e[0]! < x0 || e[0]! > x1 || e[1]! < y0 || e[1]! > y1) continue;
+    if (
+      !best ||
+      Math.hypot(e[0]! - at.x, e[1]! - at.y) < Math.hypot(best[0]! - at.x, best[1]! - at.y)
+    ) {
+      best = e;
+    }
+  }
+  return best ? best[2]! : null;
+}
 
-export function lockColumn(lock: ColumnLock | null, f: PhotoFeatures): ColumnLock {
-  const want = facingColumn(f);
+/**
+ * Hướng nhìn để chọn cột 1/3: theo độ quay đầu của lưới mặt với ngưỡng thấp hơn ngưỡng "đang quay
+ * đầu" của nhận xét (phiếu Phase 5b lần 3, mục 11.3.1–11.3.4: người chỉ quay đầu vừa phải thì bị
+ * coi là nhìn thẳng, app chọn cột gần người nhất, nên khi người đứng gần cột phía mình nhìn thì app
+ * chọn đúng cột đó). Không có mặt: theo khung xương (`f.facing`).
+ */
+export function leanOf(f: PhotoFeatures, yaw: number | null): 'left' | 'right' | null {
+  if (yaw == null) return f.facing;
+  if (Math.abs(yaw) < GUIDE.leanTurn) return null;
+  return yaw > 0 ? 'right' : 'left';
+}
+
+const leanColumn = (lean: 'left' | 'right' | null) =>
+  lean === 'right' ? 1 / 3 : lean === 'left' ? 2 / 3 : null;
+
+/** `yaw`: độ quay đầu của người chính (`headYaw`, đã lật theo khung ngắm), null khi không có mặt. */
+export function lockColumn(
+  lock: ColumnLock | null,
+  f: PhotoFeatures,
+  yaw: number | null = null,
+): ColumnLock {
+  const want = leanColumn(leanOf(f, yaw));
   if (!lock) {
     return want == null
-      ? { col: thirdsColumn(f, personX(f)), sure: false, pending: null, count: 0 }
+      ? { col: personX(f) < 0.5 ? 1 / 3 : 2 / 3, sure: false, pending: null, count: 0 }
       : { col: want, sure: true, pending: null, count: 0 };
   }
   if (want == null) return lock;
@@ -244,7 +283,7 @@ function mainChecks(
             Math.abs(dy),
             RULE.eyeBand,
             tilt(dy),
-            { kind: 'point', x: 0.5, y: 1 / 3 },
+            { kind: 'hline', y: 1 / 3 },
             f.eye,
           ),
         );
@@ -411,6 +450,12 @@ export const GUIDE = {
    * mắn làm câu nhảy sang tiêu chí sau trước khi người dùng kịp làm). Cũng là số lượt để đổi cột.
    */
   confirmTurns: 2,
+  /**
+   * Độ quay đầu (lưới mặt) từ chừng này là đã quay để chọn cột 1/3; thấp hơn `FACE_TURN` 0,15 của
+   * nhận xét (phiếu Phase 5b lần 3, mục 11.3). Nhìn thẳng mà lệch nhẹ qua ngưỡng thì cột chọn theo
+   * phía đó, vẫn là một bố cục đúng.
+   */
+  leanTurn: 0.07,
   /** Tiêu chí đã đạt chỉ tính là vỡ khi lệch quá ngưỡng × chừng này (rung tay không làm vỡ). */
   holdBand: 1.5,
   /** Mất người / mất đường chừng này lượt liền mới tính là mất (một lượt dò hụt thì bỏ qua). */
@@ -447,13 +492,7 @@ export type GuideState = {
 };
 
 export type GuideEvent =
-  | 'instruct'
-  | 'passed'
-  | 'remind'
-  | 'reached'
-  | 'gaveUp'
-  | 'notApplicable'
-  | null;
+  'instruct' | 'passed' | 'remind' | 'reached' | 'gaveUp' | 'notApplicable' | null;
 
 export const initialGuide = (): GuideState => ({
   status: 'running',
@@ -501,9 +540,15 @@ export function step(
     if (lost < GUIDE.lostTurns) return { state: { ...s, lost }, event: null };
     // Mất thật: một tiêu chí giả không bao giờ tiến bộ (bị nhắc rồi dừng).
     checks = [
-      ...s.passed.map(
-        (p): Check => ({ id: p, ok: true, error: 0, band: 0, action: null, target: null, at: null }),
-      ),
+      ...s.passed.map((p): Check => ({
+        id: p,
+        ok: true,
+        error: 0,
+        band: 0,
+        action: null,
+        target: null,
+        at: null,
+      })),
       { id, ok: false, error: 1, band: 0, action: 'find', target: null, at: null },
     ];
   }
@@ -623,51 +668,38 @@ const ACTION_DIR: Partial<Record<Action, Dir>> = {
   lower: 'down',
 };
 
-/** Đưa người / nhóm sang ngang: người bước cũng được (dòng "Hoặc người bước sang …"). */
-const PERSON_STEP: Partial<Record<CriterionId, 'person' | 'group'>> = {
-  thirdsColumn: 'person',
-  centerAxis: 'person',
-  leadThird: 'person',
-  groupCenter: 'group',
-};
-/** Đưa mắt lên / xuống: hạ / đưa máy lên cũng được (vật gần dịch ngược chiều máy). */
+/** Đưa người / nhóm sang ngang: xoay máy hay người chụp bước ngang đều được. */
+const SIDEWAYS: CriterionId[] = ['thirdsColumn', 'centerAxis', 'groupCenter', 'leadThird'];
+/** Đưa mắt lên / xuống: chúc / ngửa máy hay hạ / nâng máy đều được (vật gần dịch ngược chiều máy). */
 const EYE: CriterionId[] = ['thirdsEye', 'centerEye'];
 
-/** Chiều người / mắt phải dịch trên khung ngắm (từ chỗ đang đứng tới đích). */
-function moveDir(c: Check): Dir | null {
-  const a = c.at;
+/** Kết quả theo tên đường đích (phiếu Phase 5b lần 3, mục 11.5: nói rõ cột trái / phải / trên / dưới). */
+function goalOf(c: Check): string {
   const tg = c.target;
-  if (!a || !tg) return null;
-  if (tg.kind === 'vline') return tg.x > a.x ? 'right' : 'left';
-  if (tg.kind === 'hline' || tg.kind === 'point') {
-    if (tg.kind === 'point' && Math.abs(tg.y - a.y) < Math.abs(tg.x - a.x)) return null;
-    return tg.y > a.y ? 'down' : 'up';
-  }
-  return null;
+  if (c.id === 'centerAxis') return G.to.center;
+  if (c.id === 'groupCenter') return G.to.group;
+  if (tg?.kind === 'vline') return tg.x < 0.5 ? G.to.left : G.to.right;
+  if (tg?.kind === 'hline') return tg.y < 0.5 ? G.to.eyeUpper : G.to.eyeLower;
+  return G.goals[c.id];
 }
 
 /**
- * Các dòng của viên hướng dẫn (phiếu Phase 5b lần 2, mục 10.2.2, 10.2.8): đưa người / mắt tới đích
- * thì hai dòng ngắn, mỗi dòng một cách làm và icon mũi tên có chiều, "Xoay máy sang trái" / "Hoặc
- * người bước sang phải": không biết người dùng sẽ xoay máy hay bảo người bước. Bên đích nằm ở dòng
- * thứ hai và ở đường sáng, nên không cần nói "đường 1/3". Tiêu chí khác: một câu "hành động + kết
- * quả".
+ * Viên hướng dẫn: **một dòng**, chỉ bảo người chụp (phiếu Phase 5b lần 3, mục 11.2.1, 11.2.8,
+ * 11.5): gộp hai cách làm cùng chiều của người chụp, một mũi tên, rồi tên đường đích: "Đi/xoay máy
+ * qua trái để người đứng cột phải" (camera sau: bước sang trái hay xoay máy sang trái thì người trên
+ * khung đều dịch sang phải), "Chúc/hạ máy xuống để mắt người trên cột trên". Camera trước chỉ nói
+ * xoay máy (bước ngang thì người cầm máy đi theo máy). Tiêu chí khác: một câu "hành động + kết quả".
  */
-export function guideLines(c: Check): GuideLine[] {
+export function guideLines(c: Check, front = false): GuideLine[] {
   if (!c.action) return [{ text: G.done[c.id], dir: null }];
-  const action: GuideLine = { text: G.actions[c.action], dir: ACTION_DIR[c.action] ?? null };
-  const d = moveDir(c);
-  const who = PERSON_STEP[c.id];
-  if (who && (d === 'left' || d === 'right')) {
-    return [action, { text: G.personStep[who][d], dir: d }];
+  const dir = ACTION_DIR[c.action] ?? null;
+  if (SIDEWAYS.includes(c.id) && (dir === 'left' || dir === 'right')) {
+    return [{ text: `${front ? G.turn[dir] : G.move[dir]} ${goalOf(c)}`, dir }];
   }
-  if (EYE.includes(c.id) && (d === 'up' || d === 'down')) {
-    // Mắt cần lên: hạ máy xuống; mắt cần xuống: đưa máy lên.
-    return d === 'up'
-      ? [action, { text: G.cameraMove.lower, dir: 'down' }]
-      : [action, { text: G.cameraMove.raise, dir: 'up' }];
+  if (EYE.includes(c.id) && (dir === 'up' || dir === 'down')) {
+    return [{ text: `${G.tilt[dir]} ${goalOf(c)}`, dir }];
   }
-  return [{ ...action, text: `${G.actions[c.action]} ${G.goals[c.id]}` }];
+  return [{ text: `${G.actions[c.action]} ${G.goals[c.id]}`, dir }];
 }
 
 /** Bước đang làm / số bước (bắt đầu từ 1), null khi tiêu chí đang làm không phải một bước. */

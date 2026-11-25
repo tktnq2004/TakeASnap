@@ -50,6 +50,8 @@ export type GuideView = {
   state: GuideState;
   /** Kết quả lượt gần nhất, theo khung ngắm (để vẽ khung người, chấm mắt, đường tìm được). */
   snap: Extract<Snapshot, { kind: 'ok' }> | null;
+  /** Camera trước (viên chỉ nói xoay máy). */
+  front: boolean;
 };
 
 /** Viên kết thúc. */
@@ -108,9 +110,14 @@ export function useLiveGuide(getContext: () => GuideContext) {
           let snap = s.kind === 'ok' ? s : null;
           if (snap && c.flip) {
             const r = flipX(snap.features, snap.scene);
-            snap = { ...snap, features: r.f, scene: r.scene };
+            snap = {
+              ...snap,
+              features: r.f,
+              scene: r.scene,
+              yaw: snap.yaw == null ? null : -snap.yaw,
+            };
           }
-          if (snap) lock = lockColumn(lock, snap.features);
+          if (snap) lock = lockColumn(lock, snap.features, snap.yaw);
           const m: Measure = measure(
             plan,
             snap?.features ?? null,
@@ -126,7 +133,7 @@ export function useLiveGuide(getContext: () => GuideContext) {
             haptic.select();
           } else if (r.event === 'remind') haptic.remind();
           else if (r.event === 'reached') haptic.levelReached();
-          setView({ plan, state, snap });
+          setView({ plan, state, snap, front: c.front });
           if (state.status !== 'running') {
             token.current++;
             setView(null);
@@ -145,7 +152,7 @@ export function useLiveGuide(getContext: () => GuideContext) {
     const my = ++token.current;
     if (endTimer.current) clearTimeout(endTimer.current);
     setEnd(null);
-    setView({ plan, state: initialGuide(), snap: null });
+    setView({ plan, state: initialGuide(), snap: null, front: ctxRef.current().front });
     loop(my, plan);
   };
 

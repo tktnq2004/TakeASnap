@@ -216,7 +216,7 @@ export function GuideOverlay({
   } else if (c) {
     const icon = (l: GuideLine): LucideIcon =>
       l.dir ? DIR_ICONS[l.dir] : c.action ? ICONS[c.action] : Check;
-    const ls = guideLines(c);
+    const ls = guideLines(c, view.front);
     lines = ls.map((l) => ({ text: l.text, Icon: icon(l) }));
     key = `${c.id}-${ls.map((l) => l.dir).join('-')}`;
   } else {

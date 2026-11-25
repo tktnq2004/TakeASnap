@@ -8,6 +8,7 @@ import {
   guideLines,
   horizonLine,
   initialGuide,
+  headYaw,
   lockColumn,
   type Measure,
   measure,
@@ -59,10 +60,13 @@ describe('measure: tiêu chí theo thứ tự', () => {
     // Người cần dịch sang trái trên khung → xoay máy sang phải.
     expect(c.action).toBe('panRight');
     expect(c.target).toEqual({ kind: 'vline', x: 1 / 3 });
-    // Hai cách làm, mỗi dòng một chiều (phiếu Phase 5b lần 2, mục 10.2.2).
+    // Một dòng, chỉ bảo người chụp, nói rõ cột (phiếu Phase 5b lần 3, mục 11.5).
     expect(guideLines(c)).toEqual([
-      { text: 'Xoay máy sang phải', dir: 'right' },
-      { text: 'Hoặc người bước sang trái', dir: 'left' },
+      { text: 'Đi/xoay máy qua phải để người đứng cột trái', dir: 'right' },
+    ]);
+    // Camera trước: chỉ xoay máy.
+    expect(guideLines(c, true)).toEqual([
+      { text: 'Xoay máy qua phải để người đứng cột trái', dir: 'right' },
     ]);
   });
 
@@ -80,8 +84,7 @@ describe('measure: tiêu chí theo thứ tự', () => {
     expect(c.action).toBe('tiltDown');
     // Mắt cần lên: chúc máy, hoặc hạ máy xuống.
     expect(guideLines(c)).toEqual([
-      { text: 'Chúc máy xuống', dir: 'down' },
-      { text: 'Hoặc hạ máy xuống', dir: 'down' },
+      { text: 'Chúc/hạ máy xuống để mắt người trên cột trên', dir: 'down' },
     ]);
   });
 
@@ -202,8 +205,8 @@ describe('step: luật nhắc và dừng', () => {
     expect(now).toBe(17000);
     expect(stepOf(r.state)).toEqual({ index: 2, total: 2 });
     expect(gaveUpLines(r.state)).toEqual([
-      'Đạt: người trên đường 1/3',
-      'Chưa đạt: mắt trên đường 1/3',
+      'Đạt: người đứng đúng cột',
+      'Chưa đạt: mắt người trên cột trên',
     ]);
   });
 
@@ -312,6 +315,30 @@ describe('lockColumn: cột 1/3 chốt trong một lần hướng dẫn', () => 
     expect(lock).toMatchObject({ col: 2 / 3, sure: false });
     lock = lockColumn(lock, person([0.42, 0.2, 0.6, 0.9], { x: 0.53, y: 0.4 }, 'right'));
     expect(lock).toMatchObject({ col: 1 / 3, sure: true });
+  });
+
+  it('quay đầu vừa phải (dưới ngưỡng nhận xét) vẫn chọn cột theo hướng nhìn (mục 11.3)', () => {
+    // Người đứng gần cột phải, quay đầu sang phải nhẹ: khung xương coi là nhìn thẳng.
+    const f = person([0.55, 0.2, 0.72, 0.9], { x: 0.64, y: 0.4 });
+    expect(lockColumn(null, f).col).toBe(2 / 3);
+    expect(lockColumn(null, f, 0.1)).toMatchObject({ col: 1 / 3, sure: true });
+    expect(lockColumn(null, f, -0.1).col).toBe(2 / 3);
+    // Nhìn thẳng thật: cột gần nhất, chưa chốt.
+    expect(lockColumn(null, f, 0.02)).toMatchObject({ col: 2 / 3, sure: false });
+  });
+
+  it('headYaw: mặt trong khung người chính, gần mắt nhất', () => {
+    const f = person([0.3, 0.2, 0.6, 0.9], { x: 0.45, y: 0.3 });
+    expect(
+      headYaw(f, [
+        [0.8, 0.3, -0.4],
+        [0.46, 0.31, 0.12],
+        [0.4, 0.6, -0.2],
+      ]),
+    ).toBe(0.12);
+    expect(headYaw(f, [[0.8, 0.3, 0.3]])).toBeNull();
+    expect(headYaw(f, [[0.45, 0.3]])).toBeNull();
+    expect(headYaw(f, null)).toBeNull();
   });
 
   it('measure dùng cột đã chốt', () => {
