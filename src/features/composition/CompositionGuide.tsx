@@ -1,11 +1,10 @@
 import { StyleSheet, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 
 import type { Rect } from '@/features/camera/frame';
 import { color, compositionUi, gridLine } from '@/ui/tokens';
 
 import type { Target } from './guidance';
-import { combinedShape, type Pt } from './guides';
+import { guideShape, type Pt } from './guides';
 import type { TechniqueId } from './techniques';
 
 /**
@@ -16,20 +15,18 @@ import type { TechniqueId } from './techniques';
 export function CompositionGuide({
   frame,
   technique,
-  scene = null,
   anchor,
   focus = null,
 }: {
   frame: Rect;
   technique: TechniqueId;
-  scene?: TechniqueId | null;
   /** Mắt người mẫu của pose trên khung (0..1), null khi chưa có pose. */
   anchor: Pt | null;
   /** Đích sáng của tiêu chí đang hướng dẫn (Phase 5b). */
   focus?: Target | null;
 }) {
-  if (technique === 'off' && !scene) return null;
-  const g = combinedShape(technique, scene, anchor);
+  if (technique === 'off') return null;
+  const g = guideShape(technique, anchor);
   const { v, h } = g;
   const W = frame.width;
   const H = frame.height;
@@ -53,23 +50,6 @@ export function CompositionGuide({
           <View style={styles.halo} />
         </View>
       ))}
-      {g.accentH.map((f) => (
-        <View key={`a${f}`} style={[styles.accentH, { top: `${f * 100}%` }]} />
-      ))}
-      {g.diagonals.length > 0 && (
-        <Svg style={StyleSheet.absoluteFill} width={W} height={H}>
-          {g.diagonals.map((d, i) => (
-            <Path
-              key={i}
-              d={`M${d.from.x * W} ${d.from.y * H}L${d.to.x * W} ${d.to.y * H}`}
-              stroke={color.camAccent}
-              strokeOpacity={0.85}
-              strokeWidth={compositionUi.accentStroke}
-              strokeDasharray={[...compositionUi.leadDash]}
-            />
-          ))}
-        </Svg>
-      )}
       {/* Không vẽ chấm xanh nào (phiếu Phase 5b lần 3, mục 11.5: bỏ ở mọi bố cục). */}
       {focus && <Focus target={focus} width={W} height={H} />}
     </View>
@@ -104,14 +84,6 @@ const styles = StyleSheet.create({
   },
   halo: { flexBasis: gridLine.halo, backgroundColor: color.guideHalo },
   stroke: { flexBasis: gridLine.width, backgroundColor: color.guide },
-  accentH: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: compositionUi.accentStroke,
-    marginTop: -compositionUi.accentStroke / 2,
-    backgroundColor: color.camAccent,
-  },
   focusV: {
     position: 'absolute',
     top: 0,

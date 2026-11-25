@@ -7,7 +7,7 @@
  * gương; đưa / xoay máy qua trái thì người dịch sang phải trên khung, cùng chiều camera sau (phiếu
  * Phase 5b lần 4, mục 12.1.5).
  */
-import { J, type PhotoFeatures, RULE, type Scene, visible } from 'composition-critic';
+import { J, type PhotoFeatures, RULE, visible } from 'composition-critic';
 
 import { t } from '@/ui/strings';
 import { compositionUi } from '@/ui/tokens';
@@ -17,15 +17,10 @@ import type { TechniqueId } from './techniques';
 
 /** Bố cục chính có hướng dẫn liên tục (Góc thấp, Selfie chạy theo cảm biến). */
 export type GuidedMain = 'thirds' | 'center' | 'fill' | 'group';
-/** Bố cục phụ, theo cảnh. */
-export type SceneTechnique = 'horizon' | 'lead';
 
 export const GUIDED_MAIN: readonly TechniqueId[] = ['thirds', 'center', 'fill', 'group'];
-export const SCENE_TECHNIQUES: readonly TechniqueId[] = ['horizon', 'lead'];
 export const isGuidedMain = (t: TechniqueId | null): t is GuidedMain =>
   !!t && GUIDED_MAIN.includes(t);
-export const isSceneTechnique = (t: TechniqueId | null): t is SceneTechnique =>
-  !!t && SCENE_TECHNIQUES.includes(t);
 
 export type CriterionId =
   | 'level'
@@ -38,14 +33,8 @@ export type CriterionId =
   | 'fillHead'
   | 'groupInFrame'
   | 'groupCenter'
-  | 'horizonThird'
-  | 'horizonNeck'
-  | 'leadToPerson'
-  | 'leadThird'
-  /** Giả: mất người / mất đường giữa chừng (không tiến bộ được, nên bị nhắc rồi dừng). */
-  | 'person'
-  | 'horizonSeen'
-  | 'leadSeen';
+  /** Giả: mất người giữa chừng (không tiến bộ được, nên bị nhắc rồi dừng). */
+  | 'person';
 
 export type Action =
   | 'panLeft'
@@ -54,10 +43,6 @@ export type Action =
   | 'tiltDown'
   | 'closer'
   | 'back'
-  | 'stepLeft'
-  | 'stepRight'
-  | 'raise'
-  | 'lower'
   | 'rotateCw'
   | 'rotateCcw'
   | 'find';
@@ -85,13 +70,9 @@ export type Check = {
 
 /** Một lượt đo: các tiêu chí theo thứ tự, hoặc cảnh không áp được. */
 export type Measure =
-  | { kind: 'checks'; checks: Check[] }
-  | { kind: 'noPerson' }
-  | { kind: 'noHorizon' }
-  | { kind: 'noLead' }
-  | { kind: 'noGroup' };
+  { kind: 'checks'; checks: Check[] } | { kind: 'noPerson' } | { kind: 'noGroup' };
 
-export type GuidePlan = { main: GuidedMain | null; scene: SceneTechnique | null };
+export type GuidePlan = { main: GuidedMain };
 
 /** Tiến bộ khi khoảng lệch nhỏ hơn mức tốt nhất của tiêu chí ít nhất chừng này (lọc rung tay). */
 export const PROGRESS_EPS = 0.015;
@@ -355,94 +336,10 @@ function mainChecks(
   }
 }
 
-/**
- * Đường 1/3 cho chân trời: không trùng chỗ mắt người (mắt đã ở đường 1/3 trên thì chân trời ở
- * đường dưới), còn lại đường gần nhất.
- */
-export function horizonLine(f: PhotoFeatures, y: number): number {
-  if (f.eye && Math.abs(f.eye.y - 1 / 3) <= RULE.eyeBand * 1.5) return 2 / 3;
-  if (f.eye && Math.abs(f.eye.y - 2 / 3) <= RULE.eyeBand * 1.5) return 1 / 3;
-  return Math.abs(y - 1 / 3) <= Math.abs(y - 2 / 3) ? 1 / 3 : 2 / 3;
-}
-
-function horizonChecks(f: PhotoFeatures, h: NonNullable<Scene['horizon']>): Check[] {
-  const line = horizonLine(f, h.y);
-  // Mũi tên dọc ở phía không có người.
-  const ax = personX(f) < 0.5 ? 0.75 : 0.25;
-  const out = [
-    check(
-      'horizonThird',
-      Math.abs(line - h.y),
-      RULE.horizonBand,
-      tilt(line - h.y),
-      { kind: 'hline', y: line },
-      { x: ax, y: h.y },
-    ),
-  ];
-  if (f.eye) {
-    const j = f.joints;
-    const shoulders = j
-      ? [j[J.shoulderL], j[J.shoulderR]].filter((q) => visible(q)).map((q) => q!.y)
-      : [];
-    const neck = shoulders.length ? Math.max(...shoulders) : f.eye.y + 0.08;
-    const top = f.eye.y - 0.02;
-    // Lệch: khoảng phải hạ chân trời xuống dưới vai (hạ máy làm chân trời đi qua người thấp hơn).
-    const err = h.y >= top && h.y <= neck ? neck - h.y + 0.01 : 0;
-    out.push(check('horizonNeck', err, 0, 'lower', { kind: 'hline', y: line }));
-  }
-  return out;
-}
-
-function leadChecks(
-  f: PhotoFeatures,
-  v: NonNullable<Scene['vanishing']>,
-  front: boolean,
-  col: number | undefined,
-): Check[] {
-  const p = f.people[f.main]!;
-  const [x0, y0, x1, y1] = p.box;
-  const pt = v.point;
-  const inBox =
-    pt.x >= x0 - RULE.leadPad &&
-    pt.x <= x1 + RULE.leadPad &&
-    pt.y >= y0 - RULE.leadPad &&
-    pt.y <= y1;
-  const nearEye = f.eye ? Math.hypot(pt.x - f.eye.x, pt.y - f.eye.y) <= RULE.leadEye : false;
-  const x = personX(f);
-  // Bước ngang: vật gần dịch ngược chiều bước, điểm hội tụ ở xa đứng yên. Điểm hội tụ bên phải
-  // người → bước sang trái để người dịch sang phải tới điểm đó.
-  const out = [
-    check(
-      'leadToPerson',
-      inBox || nearEye ? 0 : Math.abs(pt.x - x),
-      0,
-      pt.x > x ? 'stepLeft' : 'stepRight',
-      { kind: 'point', x: pt.x, y: pt.y },
-      personAt(f),
-    ),
-  ];
-  const c = col ?? thirdsColumn(f, x);
-  out.push(
-    check(
-      'leadThird',
-      Math.abs(c - x),
-      RULE.verticalBand,
-      pan(c - x),
-      { kind: 'vline', x: c },
-      personAt(f),
-    ),
-  );
-  return out;
-}
-
-/**
- * Đo một lượt. Thứ tự: máy thẳng (khi có bố cục cần thẳng) → bố cục chính → bố cục phụ; tiêu chí
- * trùng (đường dẫn ② "người ở 1/3" khi bố cục chính là 1/3) chỉ giữ lần đầu.
- */
+/** Đo một lượt. Thứ tự: máy thẳng (Ở giữa) → các tiêu chí của bố cục. */
 export function measure(
   plan: GuidePlan,
   f: PhotoFeatures | null,
-  scene: Scene | null,
   rollDeg: number,
   front: boolean,
   /** Cột 1/3 đã chốt (`lockColumn`); không có thì chọn theo lượt này. */
@@ -451,22 +348,15 @@ export function measure(
   if (!f || f.main < 0 || !f.people[f.main]) return { kind: 'noPerson' };
   if (plan.main === 'group' && f.people.length < 2 && f.heads.length < 2)
     return { kind: 'noGroup' };
-  if (plan.scene === 'horizon' && !scene?.horizon) return { kind: 'noHorizon' };
-  if (plan.scene === 'lead' && !scene?.vanishing) return { kind: 'noLead' };
 
   const checks: Check[] = [];
-  if (plan.main === 'center' || plan.scene === 'horizon') {
+  if (plan.main === 'center') {
     const r = Math.abs(rollDeg);
     checks.push(
       check('level', r, SENSOR.levelIn, rollDeg > 0 ? 'rotateCcw' : 'rotateCw', { kind: 'frame' }),
     );
   }
-  if (plan.main) checks.push(...mainChecks(plan.main, f, front, col));
-  if (plan.scene === 'horizon') checks.push(...horizonChecks(f, scene!.horizon!));
-  if (plan.scene === 'lead') {
-    const lead = leadChecks(f, scene!.vanishing!, front, col);
-    checks.push(...(plan.main === 'thirds' ? lead.filter((c) => c.id !== 'leadThird') : lead));
-  }
+  checks.push(...mainChecks(plan.main, f, front, col));
   return { kind: 'checks', checks };
 }
 
@@ -523,7 +413,7 @@ export type GuideState = {
   /** Số lượt mất người / mất đường liền. */
   lost: number;
   /** Cảnh không áp được (lượt đầu). */
-  missing: 'person' | 'horizon' | 'lead' | 'group' | null;
+  missing: 'person' | 'group' | null;
   /** Lượt đầu đã qua (cảnh áp được). */
   started: boolean;
 };
@@ -550,8 +440,6 @@ export const initialGuide = (): GuideState => ({
 
 const MISSING = {
   noPerson: ['person', 'person'],
-  noHorizon: ['horizon', 'horizonSeen'],
-  noLead: ['lead', 'leadSeen'],
   noGroup: ['group', 'person'],
 } as const;
 
@@ -699,14 +587,10 @@ const ACTION_DIR: Partial<Record<Action, Dir>> = {
   panRight: 'right',
   tiltUp: 'up',
   tiltDown: 'down',
-  stepLeft: 'left',
-  stepRight: 'right',
-  raise: 'up',
-  lower: 'down',
 };
 
 /** Đưa người / nhóm sang ngang: xoay máy hay người chụp bước ngang đều được. */
-const SIDEWAYS: CriterionId[] = ['thirdsColumn', 'centerAxis', 'groupCenter', 'leadThird'];
+const SIDEWAYS: CriterionId[] = ['thirdsColumn', 'centerAxis', 'groupCenter'];
 /** Đưa mắt lên / xuống: chúc / ngửa máy hay hạ / nâng máy đều được (vật gần dịch ngược chiều máy). */
 const EYE: CriterionId[] = ['thirdsEye', 'centerEye'];
 
@@ -759,42 +643,14 @@ export function gaveUpLines(s: GuideState): [string | null, string] {
  * Lật ngang kết quả phân tích (ảnh không lật như khung ngắm: camera trước, tắt Lưu soi gương),
  * để đo theo đúng hình người dùng đang thấy.
  */
-export function flipX(
-  f: PhotoFeatures,
-  scene: Scene | null,
-): { f: PhotoFeatures; scene: Scene | null } {
+export function flipX(f: PhotoFeatures): PhotoFeatures {
   const fx = (x: number) => 1 - x;
-  const flipped: PhotoFeatures = {
+  return {
     ...f,
     people: f.people.map((p) => ({ ...p, box: [fx(p.box[2]), p.box[1], fx(p.box[0]), p.box[3]] })),
     eye: f.eye ? { ...f.eye, x: fx(f.eye.x) } : null,
     joints: f.joints ? f.joints.map((j) => ({ ...j, x: fx(j.x) })) : null,
     facing: f.facing === 'left' ? 'right' : f.facing === 'right' ? 'left' : null,
     heads: f.heads.map((h) => ({ ...h, x: fx(h.x) })),
-  };
-  if (!scene) return { f: flipped, scene };
-  const seg = <S extends { a: { x: number; y: number }; b: { x: number; y: number } }>(
-    s: S,
-  ): S => ({
-    ...s,
-    a: { ...s.a, x: fx(s.a.x) },
-    b: { ...s.b, x: fx(s.b.x) },
-  });
-  return {
-    f: flipped,
-    scene: {
-      ...scene,
-      horizon: scene.horizon
-        ? { ...scene.horizon, angle: -scene.horizon.angle, seg: seg(scene.horizon.seg) }
-        : null,
-      vanishing: scene.vanishing
-        ? {
-            point: { ...scene.vanishing.point, x: fx(scene.vanishing.point.x) },
-            lines: scene.vanishing.lines.map(seg),
-          }
-        : null,
-      pole: scene.pole ? seg(scene.pole) : null,
-      segments: scene.segments.map(seg),
-    },
   };
 }

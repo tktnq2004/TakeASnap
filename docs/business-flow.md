@@ -233,7 +233,7 @@ Nguyên tắc: quy tắc bố cục là **gợi ý, không phải luật**. Nghi
 
 Chỉ những kỹ thuật dùng được trên điện thoại và có người trong ảnh. 19 kỹ thuật: 12 có hướng dẫn trên camera (10 kỹ thuật đánh số + nhóm người + lấp đầy khung), đường dẫn có lớp kẻ, 6 chỉ có thẻ học. Phiếu Phase 5 lần 8 thêm lấp đầy khung, cân bằng, sự lặp lại và mở rộng hậu cảnh, chiều sâu, điểm nhìn theo bảng 12 nguyên tắc người dùng gửi (composition.md §7). Góc thấp, selfie, khoảng cách – ống kính và ánh sáng không hẳn là quy tắc bố cục mà là mẹo chụp người bằng điện thoại; giữ lại vì giúp ảnh có người đẹp hơn.
 
-Đường chân trời và đường dẫn chia hai mức: **đơn giản** ở Phase 5 (lớp kẻ để người dùng tự xếp cảnh theo, app không dò cảnh), **nâng cao** ở Phase 5a (app dò đường thẳng trong ảnh, §6.9).
+**Đường chân trời và đường dẫn đã bỏ khỏi Camera (2026-11-26, người dùng chốt: tiêu chí không tốt thì bỏ hẳn, không làm tiếp).** Bộ dò chân trời / đường dẫn (Phase 5a) và bộ tìm trời không còn trong app; hai kỹ thuật chỉ còn thẻ học (§6.6, không có nút Chụp thử). Phần Phase 5 / 5a / 5b về hai kỹ thuật này dưới đây giữ lại làm lịch sử.
 
 | # | Kỹ thuật | App kiểm tra | Gợi ý ví dụ | Nguồn dữ liệu |
 |---|---|---|---|---|
@@ -243,21 +243,20 @@ Chỉ những kỹ thuật dùng được trên điện thoại và có người
 | 4 | Khoảng phía nhìn | Phía người đang nhìn / đi tới còn chỗ | "Chừa chỗ phía người đang nhìn" | Hướng mặt, vai |
 | 5 | Không sát mép | Người không chạm mép khung | "Người đang sát mép trái" | Khung người |
 | 6 | Cỡ cảnh, không cắt khớp | Mép khung không đi qua cổ, khuỷu, cổ tay, gối, cổ chân | "Đang cắt ngang gối, lùi ra hoặc cắt ở đùi" | 33 khớp |
-| 7 | Máy thẳng, đường chân trời (đơn giản) | Máy không nghiêng trái / phải; lớp kẻ hai đường ngang 1/3 để tự đặt chân trời lên một đường | "Nghiêng 3°" | Cảm biến |
+| 7 | Máy thẳng | Máy không nghiêng trái / phải (thước cân bằng; bước đầu của Ở giữa). Lớp kẻ chân trời đã bỏ (2026-11-26) | "Nghiêng 3°" | Cảm biến |
 | 8 | Góc thấp kéo chân | Máy hạ thấp, ngửa lên, thấy cả chân | "Hạ máy ngang hông, ngửa lên nhẹ" | Cảm biến, khớp, zoom |
 | 9 | Selfie | Camera trước cao hơn mắt một chút | "Giơ máy cao hơn mắt một chút" | Cảm biến, camera trước |
 | 10 | Khoảng cách, ống kính | Mặt quá to khi đang ở 0,5× / 1× | "Đứng xa ra và dùng 2× để mặt không méo" | Cỡ mặt, zoom |
 | + | Nhóm người | Các đầu không cùng một độ cao | "Cho một người ngồi xuống hoặc đứng lên bậc" | Đỉnh đầu từng người |
 | + | Lấp đầy khung | Người cao từ 70% khung hoặc chiếm từ 30% diện tích | "Tiến lại gần để người lấp đầy khung"; nhận xét có khung cắt ôm sát người | Khung người |
-| + | Đường dẫn (đơn giản) | Không dò cảnh: lớp kẻ hai đường chéo hội tụ về một giao điểm 1/3 để người dùng tự xếp đường đi, hàng rào, cầu thang dẫn tới người; người ở điểm hội tụ thì đạt như quy tắc 1/3 | "Đưa người vào điểm hội tụ" | Mắt, khung người |
 
-**Chỉ có thẻ học, chưa tự phát hiện:** hậu cảnh gọn (vật "mọc" sau đầu, chân trời cắt cổ: tự phát hiện ở Phase 5a), khung trong khung, tiền cảnh và chiều sâu, ánh sáng, cân bằng (cần nhận ra vật khác ngoài người), sự lặp lại (cần dò mẫu lặp).
+**Chỉ có thẻ học, chưa tự phát hiện:** đường chân trời và đường dẫn (bỏ khỏi Camera 2026-11-26), hậu cảnh gọn (vật "mọc" sau đầu, chân trời cắt cổ), khung trong khung, tiền cảnh và chiều sâu, ánh sáng, cân bằng (cần nhận ra vật khác ngoài người), sự lặp lại (cần dò mẫu lặp).
 
 ### 6.3 Luồng chính
 
 ```mermaid
 flowchart TD
-    CAM[Camera] -- "Nút Bố cục" --> PICK[Chọn bố cục chính + bố cục phụ<br/>tắt · lưới 3×3 / 4×4 · 1/3 · giữa · chân trời · đường dẫn · góc thấp · selfie · nhóm]
+    CAM[Camera] -- "Nút Bố cục" --> PICK[Chọn bố cục<br/>tắt · lưới 3×3 / 4×4 · 1/3 · giữa · lấp đầy · góc thấp · selfie · nhóm]
     POSE[Chọn pose mẫu] -- "kỹ thuật gắn với pose" --> PICK
     PICK --> GUIDE[Lớp bố cục trên khung ngắm<br/>đường kẻ + chấm đích]
     GUIDE --> SENSE{Kỹ thuật cần<br/>phân tích người?}
@@ -297,24 +296,26 @@ flowchart TD
 ### 6.6 Thẻ học
 
 - Mỗi kỹ thuật (16) một thẻ: tên, một hình đúng và một hình sai cạnh nhau có lớp bố cục (Phase 5: hình vẽ đơn giản; ảnh thật thay sau), 2–3 câu (là gì, khi nào dùng, khi nào nên phá lệ), nút **Chụp thử** mở Camera với kỹ thuật đó bật sẵn.
-- Thẻ của kỹ thuật chưa tự phát hiện vẫn có nút Chụp thử, mở Camera với lưới phù hợp.
+- Thẻ của kỹ thuật chưa tự phát hiện vẫn có nút Chụp thử, mở Camera với lưới phù hợp. Riêng thẻ máy thẳng / chân trời và thẻ đường dẫn không có nút Chụp thử (hai bố cục đã bỏ khỏi Camera, 2026-11-26).
 - Chỗ đặt: tab thứ ba "Bố cục" trong Thư viện, sau "Pose mẫu" và "Pose của bạn"; bảng Bố cục trên Camera có lối "Học các kỹ thuật" mở thẳng tab này (design §6.15).
 
 ### 6.7 Đi cùng pose
 
 - Chọn pose **không** tự bật kỹ thuật (bỏ sau phiếu Phase 5 lần 1: không cần thiết); người dùng tự chọn trong bảng Bố cục.
-- Phase 5 chưa phân tích ảnh camera: chấm đích 1/3 và điểm hội tụ của đường dẫn đặt ở giao điểm trên gần mắt người mẫu của pose nhất; chưa có pose thì hiện hai giao điểm trên. Chỉ giao điểm trên vì nhận xét Quy tắc 1/3 chấm mắt theo đường 1/3 trên.
-- Thả pose trên khung ngắm thì mắt người mẫu dính theo kỹ thuật đang chọn (rung nhẹ khi dính): 1/3 và đường dẫn chỉ dính vào **giao điểm** khi mắt ở gần (không dính riêng một đường); đặt ở giữa dính trục dọc giữa.
+- Phase 5 chưa phân tích ảnh camera: chấm đích 1/3 đặt ở giao điểm trên gần mắt người mẫu của pose nhất; chưa có pose thì hiện hai giao điểm trên. Chỉ giao điểm trên vì nhận xét Quy tắc 1/3 chấm mắt theo đường 1/3 trên.
+- Thả pose trên khung ngắm thì mắt người mẫu dính theo kỹ thuật đang chọn (rung nhẹ khi dính): 1/3 chỉ dính vào **giao điểm** khi mắt ở gần (không dính riêng một đường); đặt ở giữa dính trục dọc giữa.
 - Pose của bạn (tạo từ ảnh) không gắn kỹ thuật; app gợi ý theo cỡ cảnh của pose.
 
 ### 6.8 Giới hạn của bản v1
 
 - Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
 - App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
-- Phase 5: người dùng tự chọn kỹ thuật; đường chân trời và đường dẫn chỉ có lớp kẻ, app không dò cảnh. Dò đường thẳng trong ảnh là Phase 5a (§6.9), tự đoán kỹ thuật bằng model là Phase 5b (§6.10); mỗi phần có cổng quyết định riêng, không đạt thì giữ bản Phase 5.
+- Người dùng tự chọn kỹ thuật. App không dò cảnh (đường chân trời, đường dẫn đã bỏ 2026-11-26); tự đoán kỹ thuật bằng model (Phase 5b) không đạt cổng.
 - Lúc ngắm có gợi ý từ cảm biến; phân tích người lúc ngắm khi chạm **Kiểm tra bố cục** (Phase 5a, §6.4) và trong **hướng dẫn liên tục có giới hạn** (Phase 5b, §6.10); không bao giờ chạy nền không giới hạn.
 
-### 6.9 Dò đường chân trời và đường dẫn (Phase 5a)
+### 6.9 Dò đường chân trời và đường dẫn (Phase 5a, đã bỏ 2026-11-26)
+
+**Đã bỏ khỏi app** cùng bố cục phụ (§6.10). Mục này giữ lại làm lịch sử.
 
 Nâng bản đơn giản của Phase 5 (lớp kẻ cố định) thành app tự tìm đường trong ảnh. Không đạt cổng quyết định ở roadmap Phase 5a thì giữ lớp kẻ cố định.
 
@@ -338,33 +339,27 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 - **Kết quả (2026-11-22): không đạt cổng** (hai vòng, lựa chọn đầu đúng ~60% trên ảnh người duyệt), nên app không có dòng Tự chọn và không có dòng gợi ý kỹ thuật sau khi chụp. Mục này giữ lại để ghi ý định ban đầu.
 - **Vòng 3:** thay "Tự chọn" bằng **gợi ý 2 kỹ thuật**. Đo trên 213 ảnh người dùng gán mù: 73,2% ảnh có gợi ý hợp (tính cả "Khác"), **trượt cổng 75%** 1,8 điểm; hơn luật hình học 6 điểm. Chỉ gợi ý kỹ thuật (bỏ "Khác", cách app dùng): 84,8% trên 171 ảnh người dùng thấy có kỹ thuật hợp. **Người dùng quyết định vẫn đưa vào dạng thử nghiệm (2026-11-23)**, ghi rõ là trượt cổng.
 
-**Đổi hướng (2026-11-23, người dùng chốt; thay luồng "gợi ý 2 kỹ thuật" vừa ghi).** Gợi ý cả 1/3, Ở giữa, Lấp đầy không giúp được nhiều: chọn giữa chúng một phần là sở thích, và ảnh không nói được nên chọn cái nào. Cái người mới chụp thật sự thiếu là **nhận ra cảnh có gì để dùng** (chân trời, đường dẫn) và **biết di chuyển máy thế nào** để đạt bố cục. Nên bố cục chia hai loại:
+**Đổi hướng (2026-11-23, người dùng chốt; thay luồng "gợi ý 2 kỹ thuật" vừa ghi).** Gợi ý cả 1/3, Ở giữa, Lấp đầy không giúp được nhiều: chọn giữa chúng một phần là sở thích, và ảnh không nói được nên chọn cái nào. Cái người mới chụp thật sự thiếu là **biết di chuyển máy thế nào** để đạt bố cục.
 
-| Loại | Bố cục | Ai chọn |
-|---|---|---|
-| **Bố cục chính**: xoay quanh người, giúp ảnh đúng và đẹp | 1/3, Ở giữa, Lấp đầy khung, Nhóm người, Góc thấp, Selfie | Người dùng tự chọn trong bảng Bố cục; app không gợi ý |
-| **Bố cục phụ**: dựa vào cảnh, cần kinh nghiệm mới nhận ra, giúp người nổi bật hơn | Đường chân trời, Đường dẫn (sau này có thể thêm khung trong khung, đối xứng, khoảng trống, tiền cảnh) | Người dùng tự chọn trong bảng Bố cục (nhóm riêng); app không gợi ý (xem dưới) |
+**Bỏ bố cục phụ (2026-11-26, người dùng chốt).** Ngày 2026-11-23 app có thêm **bố cục phụ** theo cảnh (Đường chân trời, Đường dẫn), bật cùng bố cục chính, dùng bộ dò Phase 5a và bộ tìm trời. Người dùng bỏ hẳn với tiêu chí: **không tốt thì bỏ luôn, không làm tiếp** (bộ dò một mình chỉ đúng ~25% chân trời, điểm hội tụ gần như ngẫu nhiên). App chỉ còn **một bố cục** mỗi lúc; bảng Bố cục một nhóm; bảng Mở thêm không còn hàng Bố cục phụ; gói trời đã tải ở máy cũ tự xóa khi mở app.
 
-- Bật **cùng lúc** một bố cục chính và một bố cục phụ (ví dụ 1/3 + Đường chân trời). Bố cục phụ bật được một mình (bố cục chính Tắt hoặc Lưới).
-- **Cảnh áp được bố cục phụ** khi có người trong khung và bộ dò Phase 5a (§6.9) tìm thấy đường: chân trời (model trời + đường thẳng), đường dẫn (các đường hội tụ). Muốn hướng dẫn tới một đường thì phải biết đường đó nằm đâu, nên hướng dẫn dùng bộ dò.
-- **Không có gợi ý bố cục phụ** (người dùng chốt 2026-11-23 sau khi đo, [phase5b-data.md](phase5b-data.md)): bộ dò một mình báo chân trời ở nhiều đường phố, mái nhà, hàng cây (~25% đúng), điểm hội tụ gần như ngẫu nhiên. Lọc thêm bằng model vòng 3 thì chân trời đúng ~60%, nhưng chỉ còn gợi ý được một bố cục (Đường chân trời) mà phải thêm gói tải ~4,4 MB, repo model công khai và chế độ tự gợi ý khi máy đứng yên: không đáng để thành một tính năng lớn. Gợi ý làm lại khi có bộ dò tốt hơn và nhiều bố cục phụ hơn.
-- "AI" của tính năng: các model trên máy **nhìn cảnh** (tách người, khung xương, mặt, mắt, vùng trời, đường thẳng); **bộ quy tắc hình học** dịch kết quả nhìn được thành thao tác. Không dùng model học để chọn thao tác: không có dữ liệu, và phép tính chính xác hơn, giải thích được.
 
-**Bắt đầu hướng dẫn:** chọn bố cục chính (1/3, Ở giữa, Lấp đầy, Nhóm) hoặc bố cục phụ trong bảng Bố cục → **hướng dẫn liên tục** bắt đầu (cần bộ tách người; chưa có thì chỉ bật lớp kẻ như Phase 5). Ảnh đầu tiên kiểm tra cảnh **áp được** không (bảng dưới); không thì báo ngay một dòng (ví dụ "Cảnh này không thấy đường chân trời") rồi dừng, lớp kẻ giữ nguyên. Góc thấp, Selfie chạy theo cảm biến như Phase 5, không cần hướng dẫn liên tục. **Nút Kiểm tra bố cục** (hiện khi đang bật bố cục có nhận xét, chính hoặc phụ): đang hướng dẫn thì là nút dừng; không hướng dẫn thì là phím tắt **chạy lại hướng dẫn** của bố cục đang bật (phiếu Phase 5b lần 1: đạt rồi muốn hướng dẫn lại không phải tắt bố cục rồi bật lại); Góc thấp, Selfie: kiểm tra một ảnh như Phase 5a.
+- "AI" của tính năng: các model trên máy **nhìn người** (tách người, khung xương, mặt, mắt); **bộ quy tắc hình học** dịch kết quả nhìn được thành thao tác. Không dùng model học để chọn thao tác: không có dữ liệu, và phép tính chính xác hơn, giải thích được.
+
+**Bắt đầu hướng dẫn:** chọn bố cục (1/3, Ở giữa, Lấp đầy, Nhóm) trong bảng Bố cục → **hướng dẫn liên tục** bắt đầu (cần bộ tách người; chưa có thì chỉ bật lớp kẻ như Phase 5). Ảnh đầu tiên kiểm tra cảnh **áp được** không (bảng dưới); không thì báo ngay một dòng (ví dụ "Cảnh này không thấy người") rồi dừng, lớp kẻ giữ nguyên. Góc thấp, Selfie chạy theo cảm biến như Phase 5, không cần hướng dẫn liên tục. **Nút Kiểm tra bố cục** (hiện khi đang bật bố cục có nhận xét): đang hướng dẫn thì là nút dừng; không hướng dẫn thì là phím tắt **chạy lại hướng dẫn** của bố cục đang bật (phiếu Phase 5b lần 1: đạt rồi muốn hướng dẫn lại không phải tắt bố cục rồi bật lại); Góc thấp, Selfie: kiểm tra một ảnh như Phase 5a.
 
 **Hướng dẫn liên tục:**
 
 - App tự chụp lặng và phân tích khoảng 1 lần / giây.
 - Làm **từng tiêu chí theo thứ tự** (mỗi tiêu chí là một **bước**, trên viên có "Bước 2/3"); không có số độ, số cm.
-- **Đưa người / mắt tới đích: một dòng, chỉ bảo người chụp** (phiếu Phase 5b lần 3, mục 11.5): gộp hai cách làm cùng chiều của người chụp, một mũi tên, rồi **tên đường đích**: "← Đi/xoay máy qua trái để người đứng cột phải" (camera sau: bước sang trái hay xoay máy sang trái thì người trên khung đều dịch sang phải); mắt: "↓ Chúc/hạ máy xuống để mắt người trên cột trên", "↑ Ngửa/nâng máy lên để mắt người trên cột trên". Gọi đường kẻ là **cột trái / phải / trên / dưới** theo khung ngắm, không nói "1/3". Camera trước: "Xoay máy qua trái để người đứng cột phải", **cùng chiều** camera sau (phiếu lần 4, mục 12.1.5), chỉ nói xoay: đưa máy ngang thì nền sau lưng người tự chụp đổi theo (mục 12.5.1). Không bảo người mẫu di chuyển. Tiêu chí khác: một câu "hành động + kết quả": "Tiến lại gần để người lấp đầy khung", "Bước sang phải để đường đi dẫn tới người".
-- **Đích sáng trên khung ngắm:** đường hoặc điểm cần đưa người, mắt, chân trời tới được tô sáng. Khung ngắm chạy realtime nên người dùng tự thấy lúc tới; lần phân tích chỉ để xác nhận rồi chuyển tiêu chí. Không dùng con quay để đo góc.
+- **Đưa người / mắt tới đích: một dòng, chỉ bảo người chụp** (phiếu Phase 5b lần 3, mục 11.5): gộp hai cách làm cùng chiều của người chụp, một mũi tên, rồi **tên đường đích**: "← Đi/xoay máy qua trái để người đứng cột phải" (camera sau: bước sang trái hay xoay máy sang trái thì người trên khung đều dịch sang phải); mắt: "↓ Chúc/hạ máy xuống để mắt người trên cột trên", "↑ Ngửa/nâng máy lên để mắt người trên cột trên". Gọi đường kẻ là **cột trái / phải / trên / dưới** theo khung ngắm, không nói "1/3". Camera trước: "Xoay máy qua trái để người đứng cột phải", **cùng chiều** camera sau (phiếu lần 4, mục 12.1.5), chỉ nói xoay: đưa máy ngang thì nền sau lưng người tự chụp đổi theo (mục 12.5.1). Không bảo người mẫu di chuyển. Tiêu chí khác: một câu "hành động + kết quả": "Tiến lại gần để người lấp đầy khung".
+- **Đích sáng trên khung ngắm:** đường cần đưa người, mắt tới được tô sáng. Khung ngắm chạy realtime nên người dùng tự thấy lúc tới; lần phân tích chỉ để xác nhận rồi chuyển tiêu chí. Không dùng con quay để đo góc.
 - **Mũi tên kết quả trên khung ngắm:** từ chỗ người / mắt đang đứng tới đích sáng, cho thấy người sẽ đi về đâu; câu nói máy làm gì. Tới đích: viên xanh "Đúng rồi, giữ yên máy".
 - **Không nhảy bước** (phiếu Phase 5b lần 1: câu đổi trước khi kịp làm): một tiêu chí chỉ tính đạt khi đúng **2 lượt liền**; qua bước thì viên xanh "Đạt: <tiêu chí>" khoảng 1 s rồi mới tới câu sau. Mất người một lượt (dò hụt) thì bỏ qua lượt đó.
 - **Tiêu chí đã đạt vẫn được giữ:** làm tiêu chí sau mà tiêu chí trước vỡ (tiến lại gần làm người lệch ngang) thì quay lại tiêu chí đó. Chỉ tính là vỡ khi lệch quá 1,5 lần ngưỡng, nên rung tay không làm câu nhảy qua lại.
 - **1/3: cột đích chốt ở lượt đầu** (phía người đang nhìn, nhìn thẳng thì cột gần nhất). Chốt theo hướng nhìn thì chỉ đổi khi thấy người nhìn về phía kia 2 lượt (lượt không đoán được hướng không tính, không xóa số đếm); chốt theo cột gần nhất thì lượt đầu tiên thấy hướng nhìn là đổi theo (phiếu Phase 5b lần 2, mục 10.3.1).
 - **Hướng nhìn** (composition-critic v0.7.0): có mặt của người chính thì theo **lưới điểm mặt** (chóp mũi so với hai mép mặt; lưới mặt dò trên vùng đầu phóng to nên đo được cả người đứng xa, phiếu lần 2 mục 10.3: camera sau, người xa, tai của khung xương nhiễu); không có mặt thì theo đầu của khung xương (mũi so với hai tai), không thấy tai thì theo vai. Đo trên máy tính: 157 ảnh người đứng xa thu về 512 px, lưới mặt không lần nào ngược chiều với tai; bộ đo luật nhận xét (cùng dữ liệu) nhận ra "thiếu chỗ phía người nhìn" 79% → 93%, không dòng nào tệ đi.
-- Máy thẳng (cảm biến) trước, rồi tiêu chí của bố cục chính, rồi của bố cục phụ. **Bố cục phụ đi theo bố cục chính:** với 1/3, mắt đã ở đường 1/3 trên thì chân trời đặt ở đường 1/3 dưới và không cắt qua đầu, cổ.
-- Người chụp di chuyển máy là cách chính; với vị trí ngang của người, dòng thứ hai cho cách người mẫu bước (người dùng chọn cách nào cũng được).
+- Máy thẳng (cảm biến) trước (Ở giữa), rồi các tiêu chí của bố cục.
 - Chỉ chữ và chỉ dẫn trên màn hình, không đọc thành tiếng.
 
 | Bố cục | Áp được khi | Tiêu chí theo thứ tự |
@@ -373,20 +368,15 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 | Ở giữa | Có 1 người | ① máy thẳng → ② người trên trục giữa (trung bình giữa hai mắt và giữa khung người, như nhận xét sau khi chụp; khung người bị mép trái / phải cắt thì theo mắt) → ③ mắt ở 1/3 trên |
 | Lấp đầy khung | Có 1 người | ① người cao gần hết khung → ② không cắt cằm, đỉnh đầu |
 | Nhóm người | Có nhóm người (luật Nhóm của Phase 5) | ① cả nhóm trong khung, không ai sát mép → ② nhóm ở giữa |
-| Đường chân trời (phụ) | Có người và tìm thấy chân trời | ① máy thẳng → ② chân trời trên một đường 1/3 → ③ không cắt cổ |
-| Đường dẫn (phụ) | Có người và tìm thấy đường hội tụ | ① điểm hội tụ gần người → ② người ở 1/3 |
 
 | Lệch | Câu hướng dẫn (ví dụ) |
 |---|---|
 | Máy nghiêng | "Xoay máy cho thẳng" (cảm biến, tức thì) |
 | Người lệch ngang | "Đi/xoay máy qua trái để người đứng cột phải" (muốn người dịch sang phải thì đi hoặc xoay máy qua trái; camera trước: "Xoay máy qua trái", cùng chiều, chỉ xoay) |
 | Mắt lệch dọc | "Chúc/hạ máy xuống để mắt người trên cột trên" (mắt cần lên); "Ngửa/nâng máy lên để mắt người trên cột trên" (mắt cần xuống) |
-| Chân trời lệch dọc | "Ngửa máy lên để chân trời nằm trên đường xanh" / "Chúc máy xuống …" |
 | Người quá nhỏ, quá to | "Tiến lại gần để người lấp đầy khung" / "Lùi ra để thấy cả nhóm" |
 | Mắt ra khỏi mép trên (ngửa / chúc quá tay) | Bước mắt vẫn còn: "Ngửa/nâng máy lên để mắt người trên cột trên", không báo Đạt (1/3 và Ở giữa). Không thấy mắt vì người quay lưng (đầu vẫn trong khung) thì bỏ bước mắt |
 | Người to hơn khung, đầu đã ra ngoài (khung người chạm cả hai mép, không thấy mắt, mũi, vai) | Không biết người đứng đâu: "Lùi ra …" thay cho câu ngang (1/3 và Ở giữa) |
-| Đường dẫn không tới người | "Bước sang trái để đường đi dẫn tới người" |
-| Chân trời cắt cổ | "Hạ máy xuống để chân trời không cắt cổ" / "Nâng máy lên …" |
 
 **Dừng:**
 
@@ -396,7 +386,7 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 - Người dùng chạm nút đang hướng dẫn, tắt hoặc đổi bố cục, đổi camera, rời Camera: dừng.
 - Bấm chụp lúc đang hướng dẫn thì chụp ngay; hướng dẫn chạy tiếp sau khi chụp.
 
-Model và ảnh ở trên máy (BR-03). Nhận xét sau khi chụp (§6.5) chấm theo cả bố cục chính và bố cục phụ đang bật.
+Model và ảnh ở trên máy (BR-03). Nhận xét sau khi chụp (§6.5) chấm theo bố cục đang bật.
 
 ---
 
@@ -450,7 +440,7 @@ Mở bằng nút bánh răng trên Camera (thay cho màn thử nghiệm hiện t
 | BR-01 | Ảnh chụp ở chức năng 1 **không bao giờ** kèm overlay. Overlay chỉ để hướng dẫn |
 | BR-02 | Ảnh lưu vào album "SnapShot" đúng tỉ lệ khung đang chọn. Vùng ảnh lưu trùng đúng vùng thấy trên khung ngắm |
 | BR-03 | Mọi xử lý ảnh (tách người, phân tích bố cục) chạy **hoàn toàn trên máy**. Ảnh không bao giờ được gửi đi. Kết nối mạng duy nhất là tải bộ tách người (BR-13) |
-| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu, hoặc khi gợi ý bố cục cần phân tích người lần đầu (dùng chung gói này); gói `sky` (tìm vùng trời cho chân trời, ~3,9 MB, Phase 5a) khi bấm Kiểm tra bố cục ở Đường chân trời lần đầu (hỏi trước, có thể bỏ qua); gói `composition` (model tự chọn kỹ thuật, ~5 MB, Phase 5b) khi dùng Tự chọn lần đầu. Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
+| BR-13 | Bộ tách người được tải **một lần** khi dùng chức năng lần đầu: gói pose (~42 MB) khi tạo pose từ ảnh lần đầu, hoặc khi gợi ý bố cục cần phân tích người lần đầu (dùng chung gói này); gói `sky` (tìm vùng trời cho chân trời, ~3,9 MB, Phase 5a) đã bỏ 2026-11-26 (máy cũ tự xóa khi mở app); gói `composition` (model tự chọn kỹ thuật, ~5 MB, Phase 5b) khi dùng Tự chọn lần đầu. Tải xong thì lưu vĩnh viễn và chạy offline. Pose mẫu đã tách sẵn nên không cần tải |
 | BR-04 | Bố cục chỉ là gợi ý: không chặn nút chụp, không chấm ảnh "đúng / sai". Ảnh lưu **không bao giờ** kèm lớp bố cục (như BR-01) |
 | BR-05 | Mỗi lúc chỉ một gợi ý trên khung ngắm; gợi ý chỉ hiện khi tình trạng giữ ổn định khoảng 0,5 s |
 | BR-06 | Một pose phải có ít nhất một vùng người chiếm từ 2% diện tích ảnh trở lên. Nhỏ hơn thì báo "Người trong ảnh quá nhỏ" |

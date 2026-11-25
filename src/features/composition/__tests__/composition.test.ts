@@ -7,9 +7,12 @@ const G = 9.81;
 const rad = (d: number) => (d * Math.PI) / 180;
 
 describe('techniques', () => {
-  it('11 dòng: Tắt, Lưới 3×3, Lưới 4×4 rồi các kỹ thuật (có Lấp đầy khung)', () => {
-    expect(TECHNIQUES).toHaveLength(11);
+  it('9 dòng: Tắt, Lưới 3×3, Lưới 4×4 rồi các kỹ thuật (có Lấp đầy khung)', () => {
+    expect(TECHNIQUES).toHaveLength(9);
     expect(TECHNIQUES).toContain('fill');
+    // Đường chân trời, Đường dẫn đã bỏ (2026-11-26).
+    expect(isTechnique('horizon')).toBe(false);
+    expect(isTechnique('lead')).toBe(false);
     expect(TECHNIQUES.slice(0, 3)).toEqual(['off', 'grid', 'grid4']);
     expect(isTechnique('thirds')).toBe(true);
     expect(isTechnique('3')).toBe(false);
@@ -19,7 +22,7 @@ describe('techniques', () => {
 describe('guideShape', () => {
   it('Tắt không vẽ gì', () => {
     const g = guideShape('off');
-    expect(g.v.length + g.h.length + g.accentH.length + g.diagonals.length).toBe(0);
+    expect(g.v.length + g.h.length + g.points.length).toBe(0);
     expect(g.target).toBeNull();
   });
 
@@ -44,17 +47,6 @@ describe('guideShape', () => {
     // Mắt pose ở dưới vẫn chỉ về đường 1/3 trên, khớp nhận xét.
     expect(guideShape('thirds', { x: 0.2, y: 0.8 }).target).toEqual({ x: 1 / 3, y: 1 / 3 });
     expect(guideShape('thirds', { x: 0.2, y: 0.8 }).points).toEqual([]);
-  });
-
-  it('Chân trời tô cả hai đường 1/3, Đường dẫn có hai đường chéo về đích', () => {
-    expect(guideShape('horizon').accentH).toEqual([1 / 3, 2 / 3]);
-    expect(guideShape('horizon').h).toEqual([]);
-    const lead = guideShape('lead');
-    expect(lead.diagonals).toHaveLength(2);
-    for (const d of lead.diagonals) expect(d.to).toEqual({ x: 1 / 3, y: 1 / 3 });
-    // Pose ở bên phải, dưới: vẫn chụm về giao điểm TRÊN gần nhất.
-    const right = guideShape('lead', { x: 0.8, y: 0.8 });
-    for (const d of right.diagonals) expect(d.to).toEqual({ x: 2 / 3, y: 1 / 3 });
   });
 });
 
@@ -88,10 +80,6 @@ describe('sensorHint', () => {
     expect(sensorHint('thirds', 2, 0, false, null)).toBeNull();
     expect(sensorHint('thirds', 2, 0, false, 'level')).toBe('level');
     expect(sensorHint('thirds', SENSOR.levelOut - 0.1, 0, false, 'level')).toBeNull();
-  });
-
-  it('Chân trời: máy thẳng là đạt', () => {
-    expect(sensorHint('horizon', 0.5, 0, false, null)).toBe('levelOk');
   });
 
   it('Góc thấp: chưa ngửa → hạ máy; ngửa vừa → đạt; quá → ngửa ít lại', () => {

@@ -6,15 +6,18 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { migrate } from '@/db/migrations';
+import { deleteRetiredPacks } from '@/engine/models/modelStore';
 import { SegmenterProvider } from '@/engine/segmentation/SegmenterProvider';
 import { color } from '@/ui/tokens';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({ Nunito_600SemiBold, Nunito_700Bold, Nunito_800ExtraBold });
+  useEffect(deleteRetiredPacks, []);
 
   if (!fontsLoaded) return <View style={styles.root} />;
 

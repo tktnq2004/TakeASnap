@@ -1,7 +1,6 @@
 import {
   ChevronDown,
   Grid3x3,
-  Layers,
   type LucideIcon,
   Ruler,
   Settings,
@@ -20,7 +19,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import type { SceneTechnique } from '@/features/composition/guidance';
 import { TechniqueIcon } from '@/features/composition/TechniqueIcon';
 import type { TechniqueId } from '@/features/composition/techniques';
 import { PressableScale } from '@/ui/components';
@@ -37,8 +35,6 @@ type Props = {
   onSettings: () => void;
   /** Mở bảng Bố cục (design.md §6.15). */
   onComposition: () => void;
-  /** Chọn bố cục phụ ở bảng Mở thêm (null: tắt). */
-  onScene: (scene: SceneTechnique | null) => void;
 };
 
 /** Chiều cao thanh trên (không tính vùng an toàn). */
@@ -47,23 +43,12 @@ export const TOP_BAR_H = size.iconButton + 8;
 /**
  * Thanh trên của Camera (design.md §6.1, §6.15): cụm kính Đèn flash · Hẹn giờ · Bố cục ·
  * Thước cân bằng · Tỉ lệ · Mở thêm bên trái, Cài đặt bên phải. Chạm nút trên thanh để đổi nhanh;
- * Bố cục mở bảng kéo lên; Mở thêm thả xuống bảng chọn thẳng giá trị cho Đèn flash, Hẹn giờ, Bố
- * cục phụ (phiếu Phase 5b lần 2, mục 10.1: chip bố cục phụ trên khung ngắm che một góc ảnh).
+ * Bố cục mở bảng kéo lên; Mở thêm thả xuống bảng chọn thẳng giá trị cho Đèn flash, Hẹn giờ.
  */
-export function CameraTopBar({
-  top,
-  open,
-  onToggleOpen,
-  onSettings,
-  onComposition,
-  onScene,
-}: Props) {
+export function CameraTopBar({ top, open, onToggleOpen, onSettings, onComposition }: Props) {
   const flash = useCameraStore((s) => s.flash);
   const timer = useCameraStore((s) => s.timer);
-  const main = useCameraStore((s) => s.technique);
-  const scene = useCameraStore((s) => s.scene);
-  // Chỉ bật bố cục phụ (Phase 5b): nút vẽ bố cục phụ; có bố cục chính thì nút vẽ bố cục chính.
-  const technique: TechniqueId = main === 'off' && scene ? scene : main;
+  const technique = useCameraStore((s) => s.technique);
   const level = useCameraStore((s) => s.level);
   const aspect = useCameraStore((s) => s.aspect);
   const store = useCameraStore.getState;
@@ -114,15 +99,7 @@ export function CameraTopBar({
             label={compositionLabel}
             onPress={onComposition}
             active={technique !== 'off'}
-            badge={
-              main !== 'off' && scene
-                ? '+'
-                : technique === 'grid'
-                  ? '3'
-                  : technique === 'grid4'
-                    ? '4'
-                    : undefined
-            }
+            badge={technique === 'grid' ? '3' : technique === 'grid4' ? '4' : undefined}
           >
             {!isGrid(technique) && (
               <TechniqueIcon
@@ -163,12 +140,7 @@ export function CameraTopBar({
         </PressableScale>
       </View>
 
-      <ToolsPanel
-        top={top + TOP_BAR_H + space[1]}
-        open={open}
-        progress={progress}
-        onScene={onScene}
-      />
+      <ToolsPanel top={top + TOP_BAR_H + space[1]} open={open} progress={progress} />
     </>
   );
 }
@@ -193,13 +165,6 @@ const FLASH_OPTIONS: { key: FlashMode; label: string }[] = [
   { key: 'on', label: t.camera.onShort },
 ];
 
-type SceneKey = SceneTechnique | 'off';
-const SCENE_OPTIONS: { key: SceneKey; label: string }[] = [
-  { key: 'off', label: t.camera.offShort },
-  { key: 'horizon', label: t.composition.guide.short.horizon },
-  { key: 'lead', label: t.composition.guide.short.lead },
-];
-
 const TIMER_OPTIONS: { key: TimerSec; label: string }[] = [
   { key: 0, label: t.camera.offShort },
   { key: 3, label: '3 s' },
@@ -214,16 +179,13 @@ function ToolsPanel({
   top,
   open,
   progress,
-  onScene,
 }: {
   top: number;
   open: boolean;
   progress: SharedValue<number>;
-  onScene: (scene: SceneTechnique | null) => void;
 }) {
   const flash = useCameraStore((s) => s.flash);
   const timer = useCameraStore((s) => s.timer);
-  const scene = useCameraStore((s) => s.scene);
   const store = useCameraStore.getState;
   const [contentH, setContentH] = useState(0);
 
@@ -261,14 +223,6 @@ function ToolsPanel({
           value={timer}
           onChange={store().setTimer}
         />
-        <PanelRow
-          icon={Layers}
-          label={t.composition.guide.sceneRow}
-          options={SCENE_OPTIONS}
-          value={scene ?? 'off'}
-          onChange={(k) => onScene(k === 'off' ? null : k)}
-          compact
-        />
       </Animated.View>
     </Animated.View>
   );
@@ -281,15 +235,12 @@ function PanelRow<K extends string | number>({
   options,
   value,
   onChange,
-  compact,
 }: {
   icon: LucideIcon;
   label: string;
   options: { key: K; label: string }[];
   value: K;
   onChange: (k: K) => void;
-  /** Ô chọn hẹp hơn (nhãn dài, máy hẹp). */
-  compact?: boolean;
 }) {
   return (
     <View style={styles.row}>
@@ -307,7 +258,7 @@ function PanelRow<K extends string | number>({
               accessibilityState={{ selected: on }}
               accessibilityLabel={`${label} ${o.label}`}
               onPress={() => onChange(o.key)}
-              style={[styles.segCell, compact && styles.segCellCompact, on && styles.segOn]}
+              style={[styles.segCell, on && styles.segOn]}
             >
               <Text style={[type.caption, on ? styles.ink : styles.muted]}>{o.label}</Text>
             </Pressable>
@@ -445,6 +396,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     justifyContent: 'center',
   },
-  segCellCompact: { paddingHorizontal: 8 },
   segOn: { backgroundColor: color.accent },
 });

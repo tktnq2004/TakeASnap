@@ -14,8 +14,6 @@ import {
   ArrowRight,
   ArrowUp,
   Check,
-  ChevronsDown,
-  ChevronsUp,
   Footprints,
   type LucideIcon,
   RotateCcw,
@@ -43,7 +41,6 @@ import {
   remindersOf,
   stepOf,
 } from './guidance';
-import { SceneLines } from './SceneLines';
 import type { GuideEnd, GuideView } from './useLiveGuide';
 
 /** Icon của dòng không có chiều. */
@@ -54,10 +51,6 @@ const ICONS: Record<Action, LucideIcon> = {
   tiltDown: ArrowDown,
   closer: Footprints,
   back: Footprints,
-  stepLeft: ArrowLeft,
-  stepRight: ArrowRight,
-  raise: ChevronsUp,
-  lower: ChevronsDown,
   rotateCw: RotateCw,
   rotateCcw: RotateCcw,
   find: ScanSearch,
@@ -141,7 +134,7 @@ function ResultArrow({ c, width, height }: { c: GuideCheck; width: number; heigh
   );
 }
 
-/** Khung người, chấm mắt, đường tìm được của lượt gần nhất (đã theo khung ngắm), mũi tên. */
+/** Khung người, chấm mắt của lượt gần nhất (đã theo khung ngắm), mũi tên. */
 function Found({ frame, view }: { frame: Rect; view: GuideView }) {
   const snap = view.snap;
   if (!snap) return null;
@@ -156,9 +149,6 @@ function Found({ frame, view }: { frame: Rect; view: GuideView }) {
       pointerEvents="none"
       style={[styles.abs, { left: frame.x, top: frame.y, width: W, height: H }]}
     >
-      {view.plan.scene && (
-        <SceneLines width={W} height={H} technique={view.plan.scene} scene={snap.scene} />
-      )}
       {b && (
         <View
           style={[
@@ -288,10 +278,7 @@ export function GuideEndPill({
   if ('stopped' in end) lines = [g.stopped];
   else if (end.state.status === 'reached') {
     ok = true;
-    const names = [end.plan.main, end.plan.scene]
-      .filter((x) => x != null)
-      .map((x) => t.composition.names[x]);
-    lines = [g.reached(names.join(' + '))];
+    lines = [g.reached(t.composition.names[end.plan.main])];
   } else if (end.state.status === 'notApplicable') {
     lines = [g.missing[end.state.missing ?? 'person']];
   } else {

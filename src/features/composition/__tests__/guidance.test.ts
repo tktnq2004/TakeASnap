@@ -1,4 +1,4 @@
-import type { PhotoFeatures, Scene } from 'composition-critic';
+import type { PhotoFeatures } from 'composition-critic';
 
 import {
   type Check,
@@ -6,7 +6,6 @@ import {
   type GuideState,
   gaveUpLines,
   guideLines,
-  horizonLine,
   initialGuide,
   headYaw,
   lockColumn,
@@ -15,7 +14,6 @@ import {
   step,
   stepOf,
 } from '../guidance';
-import { combinedShape } from '../guides';
 
 /** Một người, khung [x0, y0, x1, y1], mắt tuỳ chọn. */
 const person = (
@@ -32,28 +30,13 @@ const person = (
   heads: [],
 });
 
-const horizonAt = (y: number) =>
-  ({
-    horizon: { y, angle: 0, seg: {} },
-    vanishing: null,
-    pole: null,
-    segments: [],
-  }) as unknown as Scene;
-const vanishingAt = (x: number, y: number) =>
-  ({
-    horizon: null,
-    vanishing: { point: { x, y }, lines: [] },
-    pole: null,
-    segments: [],
-  }) as unknown as Scene;
-
 const checks = (m: Measure): Check[] => (m.kind === 'checks' ? m.checks : []);
 const first = (m: Measure) => checks(m).find((c) => !c.ok) ?? null;
 
 describe('measure: tiêu chí theo thứ tự', () => {
   it('1/3: cột trước, rồi mắt; người ở giữa nhìn sang phải → cột trái, xoay máy sang phải', () => {
     const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.45 }, 'right');
-    const m = measure({ main: 'thirds', scene: null }, f, null, 0, false);
+    const m = measure({ main: 'thirds' }, f, 0, false);
     expect(checks(m).map((c) => c.id)).toEqual(['thirdsColumn', 'thirdsEye', 'noJointCut']);
     const c = first(m)!;
     expect(c.id).toBe('thirdsColumn');
@@ -73,14 +56,12 @@ describe('measure: tiêu chí theo thứ tự', () => {
   it('camera trước (khung soi gương): cùng chiều camera sau (phiếu lần 4, mục 12.1.5)', () => {
     // Người cần sang cột trái → đưa máy qua phải, như camera sau.
     const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.45 }, 'right');
-    expect(first(measure({ main: 'thirds', scene: null }, f, null, 0, true))!.action).toBe(
-      'panRight',
-    );
+    expect(first(measure({ main: 'thirds' }, f, 0, true))!.action).toBe('panRight');
   });
 
   it('1/3: cột đạt thì sang mắt; mắt thấp → chúc máy xuống', () => {
     const f = person([0.25, 0.3, 0.42, 0.95], { x: 1 / 3, y: 0.5 });
-    const c = first(measure({ main: 'thirds', scene: null }, f, null, 0, false))!;
+    const c = first(measure({ main: 'thirds' }, f, 0, false))!;
     expect(c.id).toBe('thirdsEye');
     expect(c.action).toBe('tiltDown');
     // Mắt cần lên: chúc máy, hoặc hạ máy xuống.
@@ -89,19 +70,17 @@ describe('measure: tiêu chí theo thứ tự', () => {
     ]);
   });
 
-  it('Ở giữa và Chân trời có máy thẳng đứng đầu (cảm biến)', () => {
+  it('Ở giữa có máy thẳng đứng đầu (cảm biến)', () => {
     const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 1 / 3 });
-    const m = measure({ main: 'center', scene: null }, f, null, 6, false);
+    const m = measure({ main: 'center' }, f, 6, false);
     expect(first(m)!.id).toBe('level');
-    expect(
-      checks(measure({ main: 'center', scene: null }, f, null, 1, false)).every((c) => c.ok),
-    ).toBe(true);
+    expect(checks(measure({ main: 'center' }, f, 1, false)).every((c) => c.ok)).toBe(true);
   });
 
   it('Ở giữa: khung người bị mép phải cắt → theo mắt, không lấy trung bình với khung bị cắt', () => {
     // Trung bình mắt 0,62 và giữa khung 0,51 là 0,565 (lọt ngưỡng 0,07) nhưng mặt lệch 0,12.
     const f = person([0.02, 0.2, 1, 0.9], { x: 0.62, y: 1 / 3 });
-    const c = first(measure({ main: 'center', scene: null }, f, null, 0, false))!;
+    const c = first(measure({ main: 'center' }, f, 0, false))!;
     expect(c.id).toBe('centerAxis');
     expect(c.error).toBeCloseTo(0.12);
     expect(c.action).toBe('panRight');
@@ -109,7 +88,7 @@ describe('measure: tiêu chí theo thứ tự', () => {
 
   it('mắt ra khỏi mép trên: bước mắt vẫn còn, bảo ngửa máy lên (không báo Đạt)', () => {
     const f = person([0.4, 0, 0.6, 0.9]);
-    const m = measure({ main: 'center', scene: null }, f, null, 0, false);
+    const m = measure({ main: 'center' }, f, 0, false);
     const c = first(m)!;
     expect(c.id).toBe('centerEye');
     expect(c.action).toBe('tiltUp');
@@ -118,71 +97,28 @@ describe('measure: tiêu chí theo thứ tự', () => {
     ]);
     // Người quay lưng (không thấy mắt, đầu trong khung): bỏ bước mắt như trước.
     const back = person([0.4, 0.2, 0.6, 0.9]);
-    expect(checks(measure({ main: 'center', scene: null }, back, null, 0, false)).map((x) => x.id))
-      .toEqual(['level', 'centerAxis']);
+    expect(checks(measure({ main: 'center' }, back, 0, false)).map((x) => x.id)).toEqual([
+      'level',
+      'centerAxis',
+    ]);
   });
 
   it('người to hơn khung, không thấy đầu: không biết người ở đâu → lùi ra', () => {
     const f = person([0, 0.2, 1, 0.9]);
-    expect(first(measure({ main: 'center', scene: null }, f, null, 0, false))!.action).toBe('back');
-    expect(first(measure({ main: 'thirds', scene: null }, f, null, 0, false, 1 / 3))!.action).toBe(
-      'back',
-    );
+    expect(first(measure({ main: 'center' }, f, 0, false))!.action).toBe('back');
+    expect(first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!.action).toBe('back');
   });
 
   it('Lấp đầy: người nhỏ → tiến lại gần', () => {
-    const c = first(
-      measure({ main: 'fill', scene: null }, person([0.45, 0.4, 0.55, 0.7]), null, 0, false),
-    )!;
+    const c = first(measure({ main: 'fill' }, person([0.45, 0.4, 0.55, 0.7]), 0, false))!;
     expect(c.id).toBe('fillSize');
     expect(guideLines(c)).toEqual([{ text: 'Tiến lại gần để người lấp đầy khung', dir: null }]);
   });
 
-  it('cảnh không áp được: không người, không chân trời, không đường dẫn, không nhóm', () => {
-    expect(measure({ main: 'thirds', scene: null }, null, null, 0, false).kind).toBe('noPerson');
+  it('cảnh không áp được: không người, không nhóm', () => {
+    expect(measure({ main: 'thirds' }, null, 0, false).kind).toBe('noPerson');
     const f = person([0.3, 0.2, 0.5, 0.9]);
-    expect(measure({ main: null, scene: 'horizon' }, f, null, 0, false).kind).toBe('noHorizon');
-    expect(measure({ main: null, scene: 'lead' }, f, horizonAt(0.5), 0, false).kind).toBe('noLead');
-    expect(measure({ main: 'group', scene: null }, f, null, 0, false).kind).toBe('noGroup');
-  });
-});
-
-describe('measure: ghép bố cục chính + phụ', () => {
-  it('1/3 + chân trời: chính trước phụ; mắt ở 1/3 trên thì chân trời về đường dưới', () => {
-    const f = person([0.25, 0.25, 0.42, 0.95], { x: 1 / 3, y: 1 / 3 });
-    expect(horizonLine(f, 0.4)).toBe(2 / 3);
-    const m = measure({ main: 'thirds', scene: 'horizon' }, f, horizonAt(0.5), 0, false);
-    expect(checks(m).map((c) => c.id)).toEqual([
-      'level',
-      'thirdsColumn',
-      'thirdsEye',
-      'noJointCut',
-      'horizonThird',
-      'horizonNeck',
-    ]);
-    const c = first(m)!;
-    expect(c.id).toBe('horizonThird');
-    // Chân trời cần dịch xuống (0,5 → 2/3) → ngửa máy lên.
-    expect(c.action).toBe('tiltUp');
-  });
-
-  it('chân trời cắt cổ → hạ máy xuống', () => {
-    const f = person([0.25, 0.25, 0.42, 0.95], { x: 1 / 3, y: 0.62 });
-    const m = measure({ main: null, scene: 'horizon' }, f, horizonAt(0.66), 0, false);
-    const c = checks(m).find((x) => x.id === 'horizonNeck')!;
-    expect(c.ok).toBe(false);
-    expect(guideLines(c)).toEqual([
-      { text: 'Hạ máy xuống để chân trời không cắt cổ', dir: 'down' },
-    ]);
-  });
-
-  it('đường dẫn: điểm hội tụ bên phải người → bước sang trái; 1/3 + đường dẫn không lặp cột 1/3', () => {
-    const f = person([0.1, 0.3, 0.2, 0.9], { x: 0.15, y: 0.35 });
-    const lead = measure({ main: null, scene: 'lead' }, f, vanishingAt(0.7, 0.4), 0, false);
-    expect(first(lead)!.id).toBe('leadToPerson');
-    expect(first(lead)!.action).toBe('stepLeft');
-    const both = measure({ main: 'thirds', scene: 'lead' }, f, vanishingAt(0.7, 0.4), 0, false);
-    expect(checks(both).map((c) => c.id)).not.toContain('leadThird');
+    expect(measure({ main: 'group' }, f, 0, false).kind).toBe('noGroup');
   });
 });
 
@@ -203,9 +139,9 @@ describe('step: luật nhắc và dừng', () => {
   const run = (s: GuideState, m: Measure, now: number) => step(s, m, now);
 
   it('lượt đầu cảnh không áp được → dừng ngay', () => {
-    const r = run(initialGuide(), { kind: 'noHorizon' }, 0);
+    const r = run(initialGuide(), { kind: 'noGroup' }, 0);
     expect(r.event).toBe('notApplicable');
-    expect(r.state.missing).toBe('horizon');
+    expect(r.state.missing).toBe('group');
   });
 
   it('đang tiến bộ thì không bị nhắc', () => {
@@ -378,30 +314,16 @@ describe('lockColumn: cột 1/3 chốt trong một lần hướng dẫn', () => 
     // Khung người rộng chạm mép trái (người đang ra khỏi khung bên trái): giữa khung là 0,4 nhưng
     // người thật ở mép trái → vẫn bảo đưa người sang phải tới cột trái.
     const f = person([0, 0.2, 0.8, 0.9]);
-    const c = first(measure({ main: 'thirds', scene: null }, f, null, 0, false, 1 / 3))!;
+    const c = first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!;
     expect(c.action).toBe('panLeft');
     expect(c.error).toBeCloseTo(1 / 3);
   });
 
   it('measure dùng cột đã chốt', () => {
     const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.55, y: 0.4 });
-    const c = first(measure({ main: 'thirds', scene: null }, f, null, 0, false, 1 / 3))!;
+    const c = first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!;
     expect(c.target).toEqual({ kind: 'vline', x: 1 / 3 });
     expect(c.action).toBe('panRight');
     expect(c.at).toEqual({ x: 0.55, y: 0.4 });
-  });
-});
-
-describe('combinedShape: lớp kẻ bố cục chính + phụ', () => {
-  it('1/3 + chân trời: lưới 3×3, hai đường ngang tô màu nhấn, không vẽ trùng', () => {
-    const g = combinedShape('thirds', 'horizon', { x: 0.3, y: 0.3 });
-    expect(g.v).toEqual([1 / 3, 2 / 3]);
-    expect(g.h).toEqual([]);
-    expect(g.accentH).toEqual([1 / 3, 2 / 3]);
-    expect(g.target).toEqual({ x: 1 / 3, y: 1 / 3 });
-  });
-
-  it('chỉ bố cục phụ (chính Tắt) vẫn vẽ', () => {
-    expect(combinedShape('off', 'lead').diagonals).toHaveLength(2);
   });
 });

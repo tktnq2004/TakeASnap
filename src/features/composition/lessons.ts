@@ -80,8 +80,11 @@ export type Lesson = {
   id: LessonId;
   /** Có hướng dẫn trên Camera ở bản hiện tại (dòng trong bảng Bố cục). */
   onCamera: boolean;
-  /** Kỹ thuật bật khi bấm Chụp thử. Thẻ chỉ đọc mở lưới 3×3. */
-  tryTechnique: TechniqueId;
+  /**
+   * Kỹ thuật bật khi bấm Chụp thử. Thẻ chỉ đọc mở lưới 3×3. Null: không có nút Chụp thử (bài về
+   * chân trời, đường dẫn: hai bố cục đã bỏ khỏi Camera).
+   */
+  tryTechnique: TechniqueId | null;
   /** Nguồn (lấy từ docs/composition.md). */
   sources: readonly Source[];
   wrong: Scene;
@@ -172,8 +175,8 @@ export const LESSONS: readonly Lesson[] = [
   },
   {
     id: 'level',
-    onCamera: true,
-    tryTechnique: 'horizon',
+    onCamera: false,
+    tryTechnique: null,
     sources: [
       {
         title: "In portrait photography, beware lines intersecting your subject's head",
@@ -240,8 +243,8 @@ export const LESSONS: readonly Lesson[] = [
   },
   {
     id: 'lead',
-    onCamera: true,
-    tryTechnique: 'lead',
+    onCamera: false,
+    tryTechnique: null,
     sources: [{ title: '30 photography composition techniques', by: 'Imaginated' }],
     wrong: {
       lines: [

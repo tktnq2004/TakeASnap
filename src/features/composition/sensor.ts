@@ -76,7 +76,6 @@ export function sensorHint(
     if (pitchDeg < SENSOR.selfieMin - ok * m) return 'selfieDown';
     return 'selfieOk';
   }
-  if (tech === 'horizon') return 'levelOk';
   return null;
 }
 

@@ -44,16 +44,6 @@ const ASSET_CHUNK = 1024 * 1024;
 
 export type MaskGrid = { width: number; height: number; base64: string };
 
-/** Phần trời trong kết quả `run` khi có `skySide` (Phase 5a). */
-export type SkyResult = {
-  /** Mặt nạ trời Uint8 (1 = trời). */
-  sky?: MaskGrid;
-  skyMs?: number;
-  skyLoadMs?: number;
-  skyBackend?: string;
-  skyError?: string;
-};
-
 /**
  * `mode`: 'cdn' (spike, nạp model từ CDN) hoặc 'local' (app gửi gói model trong máy bằng
  * `sendAsset`, chạy offline — BR-13).
@@ -108,25 +98,19 @@ export function useWebSegmenter(mode: 'cdn' | 'local' = 'cdn') {
 
   /**
    * Tách người: mask PNG cùng kích thước ảnh vào. `gridSide`: trả thêm lưới alpha (Uint8, cạnh
-   * dài ≤ gridSide) để dò viền mà không phải giải mã PNG. `graySide`: trả thêm ảnh xám (Uint8,
-   * cạnh dài ≤ graySide) cho bộ dò đường thẳng (Phase 5a). `skySide`: chạy thêm model trời ở
-   * cạnh dài này (gói trời phải gửi vào trang trước).
+   * dài ≤ gridSide) để dò viền mà không phải giải mã PNG.
    */
   const run = async (
     model: SegmentModelId,
     base64: string,
     gridSide?: number,
-    graySide?: number,
-    skySide?: number,
-  ): Promise<WebSegmentResult & { grid?: MaskGrid; gray?: MaskGrid } & SkyResult> =>
+  ): Promise<WebSegmentResult & { grid?: MaskGrid }> =>
     (await request({
       type: 'segment',
       model,
       base64,
       gridSide,
-      graySide,
-      skySide,
-    })) as unknown as WebSegmentResult & { grid?: MaskGrid; gray?: MaskGrid } & SkyResult;
+    })) as unknown as WebSegmentResult & { grid?: MaskGrid };
 
   /** Gửi một file của gói model vào trang, từng khúc, chờ trang nhận xong từng khúc. */
   const sendAsset = async (name: string, mime: string, base64: string) => {

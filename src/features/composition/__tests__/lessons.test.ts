@@ -18,8 +18,8 @@ describe('lessons', () => {
 
   it('Chụp thử mở một kỹ thuật có trong bảng Bố cục; thẻ chỉ đọc mở lưới 3×3', () => {
     for (const l of LESSONS) {
-      expect(isTechnique(l.tryTechnique)).toBe(true);
-      if (!l.onCamera) expect(['grid', 'thirds']).toContain(l.tryTechnique);
+      if (l.tryTechnique != null) expect(isTechnique(l.tryTechnique)).toBe(true);
+      if (!l.onCamera) expect(['grid', 'thirds', null]).toContain(l.tryTechnique);
     }
   });
 
@@ -35,7 +35,9 @@ describe('lessons', () => {
   });
 
   it('thẻ có trên Camera bật đúng kỹ thuật của nó', () => {
-    expect(lessonById('level')?.tryTechnique).toBe('horizon');
+    // Chân trời, đường dẫn đã bỏ khỏi Camera: bài giữ, không có nút Chụp thử.
+    expect(lessonById('level')?.tryTechnique).toBeNull();
+    expect(lessonById('lead')?.tryTechnique).toBeNull();
     expect(lessonById('selfie')?.tryTechnique).toBe('selfie');
     expect(lessonById('fill')?.tryTechnique).toBe('fill');
     expect(lessonById('balance')?.onCamera).toBe(false);

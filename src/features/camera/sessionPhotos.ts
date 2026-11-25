@@ -4,7 +4,6 @@
  */
 import { create } from 'zustand';
 
-import type { SceneTechnique } from '@/features/composition/guidance';
 import type { TechniqueId } from '@/features/composition/techniques';
 
 export type SessionPhoto = {
@@ -16,8 +15,6 @@ export type SessionPhoto = {
   height: number;
   /** Kỹ thuật bố cục lúc bấm chụp, cho nhận xét sau khi chụp (business-flow §6.5). */
   technique: TechniqueId;
-  /** Bố cục phụ lúc bấm chụp (Phase 5b), nhận xét chung với bố cục chính. */
-  scene?: SceneTechnique | null;
   takenAt: number;
 };
 

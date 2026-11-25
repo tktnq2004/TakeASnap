@@ -9,6 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCameraStore } from '@/features/camera/cameraStore';
 import { LessonDiagram } from '@/features/composition/LessonDiagram';
 import { lessonById } from '@/features/composition/lessons';
+import type { TechniqueId } from '@/features/composition/techniques';
 import { useEdgeSwipeBack } from '@/gestures/useEdgeSwipeBack';
 import { useGoBack } from '@/lib/useGoBack';
 import { Button, EmptyState, FlowHeader } from '@/ui/components';
@@ -39,8 +40,9 @@ export default function LessonScreen() {
   const item = t.lessons.items[lesson.id];
   const imgW = (width - size.edge * 2 - GAP) / 2;
 
-  const tryIt = () => {
-    useCameraStore.getState().setTechnique(lesson.tryTechnique);
+  const tryTechnique = lesson.tryTechnique;
+  const tryIt = (k: TechniqueId) => {
+    useCameraStore.getState().setTechnique(k);
     // Về thẳng Camera: đóng thẻ học và Thư viện.
     router.dismissAll();
   };
@@ -57,9 +59,7 @@ export default function LessonScreen() {
       <Animated.View style={[styles.root, { paddingTop: insets.top }, swipe.style]}>
         <StatusBar style="light" />
         <FlowHeader title={t.lessons.tab} onBack={goBack} />
-        <ScrollView
-          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 96 }]}
-        >
+        <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 96 }]}>
           <Text accessibilityRole="header" style={[type.title, styles.ink, styles.title]}>
             {item.name}
           </Text>
@@ -101,9 +101,16 @@ export default function LessonScreen() {
             ))}
           </View>
         </ScrollView>
-        <View style={[styles.bottom, { bottom: insets.bottom + space[4] }]}>
-          <Button label={t.lessons.tryIt} icon={Camera} onPress={tryIt} fullWidth />
-        </View>
+        {tryTechnique && (
+          <View style={[styles.bottom, { bottom: insets.bottom + space[4] }]}>
+            <Button
+              label={t.lessons.tryIt}
+              icon={Camera}
+              onPress={() => tryIt(tryTechnique)}
+              fullWidth
+            />
+          </View>
+        )}
       </Animated.View>
     </GestureDetector>
   );

@@ -66,26 +66,6 @@ export function TechniqueIcon({
         </>
       );
       break;
-    case 'horizon':
-      body = (
-        <>
-          <Path d={`M1 ${H / 3}H${W - 1}`} {...line} />
-          <Path d={`M1 ${(2 * H) / 3}H${W - 1}`} stroke={accent} strokeWidth={2} />
-        </>
-      );
-      break;
-    case 'lead':
-      body = (
-        <>
-          <Path
-            d={`M3 ${H - 3}L${W / 3} ${H / 3}M${W - 3} ${H - 3}L${W / 3} ${H / 3}`}
-            stroke={accent}
-            strokeWidth={1.5}
-          />
-          <Circle cx={W / 3} cy={H / 3} r={2.5} fill={accent} />
-        </>
-      );
-      break;
     case 'fill':
       // Đầu và vai to chiếm gần hết khung.
       body = (

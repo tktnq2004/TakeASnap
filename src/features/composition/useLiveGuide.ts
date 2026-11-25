@@ -41,8 +41,6 @@ export type GuideContext = {
   front: boolean;
   /** Ảnh không lật như khung ngắm (camera trước, tắt Lưu soi gương). */
   flip: boolean;
-  /** Có gói trời. */
-  sky: boolean;
 };
 
 export type GuideView = {
@@ -99,9 +97,7 @@ export function useLiveGuide(getContext: () => GuideContext) {
       if (c.cam && c.free) {
         let s: Snapshot | null = null;
         try {
-          s = await snapshot.take(c.cam, c.frame, c.preview, {
-            sky: plan.scene === 'horizon' && c.sky,
-          });
+          s = await snapshot.take(c.cam, c.frame, c.preview);
         } catch {
           // Camera bận (vừa bấm chụp) hoặc trang lỗi: bỏ lượt này.
         }
@@ -109,23 +105,14 @@ export function useLiveGuide(getContext: () => GuideContext) {
         if (s) {
           let snap = s.kind === 'ok' ? s : null;
           if (snap && c.flip) {
-            const r = flipX(snap.features, snap.scene);
             snap = {
               ...snap,
-              features: r.f,
-              scene: r.scene,
+              features: flipX(snap.features),
               yaw: snap.yaw == null ? null : -snap.yaw,
             };
           }
           if (snap) lock = lockColumn(lock, snap.features, snap.yaw);
-          const m: Measure = measure(
-            plan,
-            snap?.features ?? null,
-            snap?.scene ?? null,
-            rollDeg(),
-            c.front,
-            lock?.col,
-          );
+          const m: Measure = measure(plan, snap?.features ?? null, rollDeg(), c.front, lock?.col);
           const r = step(state, m, Date.now());
           state = r.state;
           if (r.event === 'passed') haptic.levelReached();

@@ -319,9 +319,6 @@ export const compositionUi = {
   /** Các giao điểm 1/3 khi chưa có pose: vòng nhỏ. */
   point: 14,
   targetStroke: 2,
-  /** Nét đậm của đường chân trời / đường dẫn. */
-  accentStroke: 2,
-  leadDash: [8, 6],
   /** Viên gợi ý. */
   hintH: 38,
   /** Tình trạng giữ yên chừng này mới hiện gợi ý (business-flow §6.4). */

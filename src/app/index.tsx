@@ -34,7 +34,7 @@ import Svg, { Circle } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { downloadPack, isPackReady } from '@/engine/models/modelStore';
-import { POSE_PACK, packBytes, SKY_PACK } from '@/engine/models/packs';
+import { POSE_PACK, packBytes } from '@/engine/models/packs';
 import { CameraLayer, ULTRA_WIDE_LENS } from '@/features/camera/CameraLayer';
 import {
   clearPlacement,
@@ -62,16 +62,8 @@ import { trashTransform } from '@/features/camera/trash';
 import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomChipsWidth, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CheckOverlay } from '@/features/composition/CheckOverlay';
-import {
-  GuideEndPill,
-  GuideOverlay,
-} from '@/features/composition/GuideOverlay';
-import {
-  type GuidePlan,
-  isGuidedMain,
-  isSceneTechnique,
-  type SceneTechnique,
-} from '@/features/composition/guidance';
+import { GuideEndPill, GuideOverlay } from '@/features/composition/GuideOverlay';
+import { isGuidedMain } from '@/features/composition/guidance';
 import { CompositionGuide } from '@/features/composition/CompositionGuide';
 import { CompositionHint, HintPill } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
@@ -139,7 +131,6 @@ function CameraBody() {
 
   const flash = useCameraStore((s) => s.flash);
   const technique = useCameraStore((s) => s.technique);
-  const scene = useCameraStore((s) => s.scene);
   const levelOn = useCameraStore((s) => s.level);
   const timer = useCameraStore((s) => s.timer);
   const aspect = useCameraStore((s) => s.aspect);
@@ -190,10 +181,8 @@ function CameraBody() {
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Kiểm tra bố cục (Phase 5a): chụp lặng một ảnh khi chạm, nhận xét trên khung ngắm.
   const check = useLayoutCheck();
-  /** Nút Kiểm tra hiện khi đang bật bố cục có nhận xét (chính hoặc phụ). */
-  const checkable = CHECKABLE(technique) || scene != null;
-  /** Kỹ thuật cho gợi ý cảm biến, dính pose: bố cục chính, chưa có thì bố cục phụ. */
-  const layerTechnique: TechniqueId = technique === 'off' && scene ? scene : technique;
+  /** Nút Kiểm tra hiện khi đang bật bố cục có nhận xét. */
+  const checkable = CHECKABLE(technique);
 
   // ---- Bố cục (design.md §6.1): thanh trên, khung ngắm, zoom, hàng chụp ----
   const barTop = insets.top + space[2];
@@ -294,7 +283,7 @@ function CameraBody() {
 
   const snapPose = (p: Placement): Placement | null => {
     if (!poseEye || !poseBox) return null;
-    const targets = snapTargets(layerTechnique, frame);
+    const targets = snapTargets(technique, frame);
     if (targets.points.length === 0 && targets.v.length === 0) return null;
     const a = anchorOnFrame(poseEye, poseBox, p, mirrored);
     return snapPlacement(p, a, targets, compositionUi.snapPointRadius, compositionUi.snapRadius);
@@ -457,8 +446,6 @@ function CameraBody() {
       { ...frame, x: frame.x - preview.x, y: frame.y - preview.y },
       { width: preview.width, height: preview.height },
       technique,
-      scene,
-      isPackReady(SKY_PACK),
     );
   };
 
@@ -477,22 +464,6 @@ function CameraBody() {
     then();
   };
 
-  /**
-   * Đường chân trời: có gói trời thì tìm chân trời đúng hơn (Phase 5a). Chưa có thì hỏi tải, hoặc
-   * kiểm tra ngay chỉ bằng đường thẳng.
-   */
-  const checkWithSky = () => {
-    if (scene !== 'horizon' || isPackReady(SKY_PACK)) {
-      startCheck();
-      return;
-    }
-    const c = t.composition.check;
-    Alert.alert(c.needSkyTitle, c.needSky(mbOf(SKY_PACK)), [
-      { text: c.skipSky, style: 'cancel', onPress: startCheck },
-      { text: c.downloadSky, onPress: () => fetchPack(SKY_PACK, c.downloadSkyFailed, startCheck) },
-    ]);
-  };
-
   const onCheck = () => {
     // Đang hướng dẫn liên tục: nút là nút dừng (design.md §6.15).
     if (guide.active) {
@@ -503,7 +474,7 @@ function CameraBody() {
     if (check.busy || downloading) return;
     // Bố cục có hướng dẫn: nút là phím tắt chạy lại hướng dẫn (phiếu Phase 5b lần 1: đạt rồi muốn
     // hướng dẫn lại thì không phải tắt bố cục rồi bật lại). Góc thấp, Selfie: kiểm tra một ảnh.
-    const run = guided ? restartGuide : checkWithSky;
+    const run = guided ? restartGuide : startCheck;
     if (isPackReady(POSE_PACK)) {
       run();
       return;
@@ -526,7 +497,6 @@ function CameraBody() {
       preview: { width: preview.width, height: preview.height },
       front: facing === 'front',
       flip: facing === 'front' && !frontMirror,
-      sky: isPackReady(SKY_PACK),
     };
   });
   const countdownRef = useRef<number | null>(null);
@@ -535,22 +505,21 @@ function CameraBody() {
   }, [countdown]);
 
   /** Bắt đầu (hoặc dừng) hướng dẫn cho bố cục vừa chọn. Chưa có bộ tách người: chỉ lớp kẻ. */
-  const guideFor = (main: TechniqueId, sc: SceneTechnique | null) => {
-    const plan: GuidePlan = { main: isGuidedMain(main) ? main : null, scene: sc };
-    if ((!plan.main && !plan.scene) || !isPackReady(POSE_PACK)) {
+  const guideFor = (main: TechniqueId) => {
+    if (!isGuidedMain(main) || !isPackReady(POSE_PACK)) {
       guide.stop();
       return;
     }
     check.cancel();
-    guide.start(plan);
+    guide.start({ main });
   };
 
-  /** Bố cục đang bật có hướng dẫn liên tục (chính 1/3, Ở giữa, Lấp đầy, Nhóm, hoặc bố cục phụ). */
-  const guided = isGuidedMain(technique) || scene != null;
+  /** Bố cục đang bật có hướng dẫn liên tục (1/3, Ở giữa, Lấp đầy, Nhóm). */
+  const guided = isGuidedMain(technique);
   /** Nút Kiểm tra bố cục khi không hướng dẫn: chạy lại hướng dẫn của bố cục đang bật. */
   const restartGuide = () => {
     haptic.select();
-    guideFor(technique, scene);
+    guideFor(technique);
   };
 
   // Rời Camera: dừng hướng dẫn (bản mới nhất của stop qua ref).
@@ -611,7 +580,6 @@ function CameraBody() {
       frame: Rect;
       preview: { width: number; height: number };
       technique: TechniqueId;
-      scene: SceneTechnique | null;
     }[],
     saving: false,
     /** Ảnh mới nhất đã lưu trong đợt chụp này, sẽ bay vào ô. */
@@ -652,9 +620,7 @@ function CameraBody() {
         const out = await cropToFrame(job.pic, job.frame, job.preview);
         if (out.uri !== job.pic.uri) deleteTemp(job.pic.uri);
         const assetId = await saveToAlbum(out.uri);
-        useSessionPhotos
-          .getState()
-          .add({ ...out, assetId, technique: job.technique, scene: job.scene });
+        useSessionPhotos.getState().add({ ...out, assetId, technique: job.technique });
         b.last = out.uri;
       } catch (e) {
         if (e instanceof PhotoPermissionError) {
@@ -699,7 +665,6 @@ function CameraBody() {
           preview: { width: preview.width, height: preview.height },
           // Kỹ thuật lúc bấm, không phải lúc lưu xong (chụp liên tục rồi đổi kỹ thuật).
           technique: useCameraStore.getState().technique,
-          scene: useCameraStore.getState().scene,
         });
         saveQueue();
       } catch {
@@ -823,7 +788,6 @@ function CameraBody() {
           <CompositionGuide
             frame={frame}
             technique={technique}
-            scene={scene}
             anchor={anchorN}
             focus={guide.view?.state.current?.target ?? null}
           />
@@ -877,12 +841,12 @@ function CameraBody() {
           ) : (
             <CompositionHint
               frame={frame}
-              technique={layerTechnique}
+              technique={technique}
               front={facing === 'front'}
               maxBottom={hintBottom}
             />
           )}
-          {offNotice && technique === 'off' && !scene && (
+          {offNotice && technique === 'off' && (
             <HintPill frame={frame} maxBottom={hintBottom} text={t.composition.turnedOff} />
           )}
 
@@ -1021,18 +985,11 @@ function CameraBody() {
         open={toolsOpen}
         onToggleOpen={() => setToolsOpen((o) => !o)}
         onSettings={() => router.push('/settings')}
-        onScene={(next) => {
-          setToolsOpen(false);
-          check.cancel();
-          haptic.select();
-          store().setScene(next);
-          guideFor(technique, next);
-        }}
         onComposition={() => {
           setToolsOpen(false);
           check.cancel();
           // Đang bật: chạm là tắt nhanh; đang tắt: mở bảng chọn (phiếu Phase 5 lần 7).
-          if (technique !== 'off' || scene) {
+          if (technique !== 'off') {
             store().clearComposition();
             guide.stop();
             haptic.snap();
@@ -1046,20 +1003,12 @@ function CameraBody() {
       <CompositionSheet
         open={compositionOpen}
         value={technique}
-        scene={scene}
         bottomInset={insets.bottom}
         onChange={(k) => {
           check.cancel();
           setCompositionOpen(false);
-          // Dòng bố cục phụ đang bật: chạm lại để bỏ (Phase 5b).
-          if (isSceneTechnique(k)) {
-            const next = scene === k ? null : k;
-            store().setScene(next);
-            guideFor(technique, next);
-          } else {
-            store().setTechnique(k);
-            guideFor(k, scene);
-          }
+          store().setTechnique(k);
+          guideFor(k);
         }}
         onClose={() => setCompositionOpen(false)}
         onLearn={() => {

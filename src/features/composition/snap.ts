@@ -76,7 +76,6 @@ export function snapTargets(t: TechniqueId, frame: { width: number; height: numb
   switch (t) {
     // 1/3: chỉ hai giao điểm trên, khớp chấm đích và nhận xét (phiếu phase5a 1.5).
     case 'thirds':
-    case 'lead':
       return { points: [-w / 6, w / 6].map((x) => ({ x, y: -h / 6 })), v: [] };
     case 'center':
       return { points: [{ x: 0, y: -h / 6 }], v: [0] };

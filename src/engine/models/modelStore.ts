@@ -106,6 +106,24 @@ export function deletePack(pack: ModelPack): void {
   if (dir.exists) dir.delete();
 }
 
+/**
+ * Gói đã bỏ khỏi app mà máy cũ có thể còn giữ: gói trời (~3,9 MB) của Đường chân trời, bỏ cùng
+ * bố cục phụ (2026-11-26).
+ */
+const RETIRED_PACKS = ['sky'];
+
+/** Xóa gói đã bỏ còn nằm trong máy. Gọi một lần khi mở app. */
+export function deleteRetiredPacks(): void {
+  for (const id of RETIRED_PACKS) {
+    try {
+      const dir = new Directory(Paths.document, 'models', id);
+      if (dir.exists) dir.delete();
+    } catch {
+      // Xóa hụt thì lần mở sau thử lại.
+    }
+  }
+}
+
 /** Đọc một file của gói thành base64 (để gửi vào WebView). */
 export function readPackFileBase64(pack: ModelPack, name: string): Promise<string> {
   return packFile(pack, name).base64();

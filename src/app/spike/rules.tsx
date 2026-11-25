@@ -23,8 +23,11 @@ import { color, radius, size, space, type } from '@/ui/tokens';
  * Paths.document/spike-rules/, không rời máy. Xóa cùng màn spike khi xong Phase 5.
  */
 
-type Tech = Extract<TechniqueId, 'thirds' | 'center' | 'fill' | 'group' | 'low' | 'selfie' | 'lead' | 'grid'>;
-const TECHS: Tech[] = ['thirds', 'center', 'fill', 'group', 'low', 'selfie', 'lead', 'grid'];
+type Tech = Extract<
+  TechniqueId,
+  'thirds' | 'center' | 'fill' | 'group' | 'low' | 'selfie' | 'grid'
+>;
+const TECHS: Tech[] = ['thirds', 'center', 'fill', 'group', 'low', 'selfie', 'grid'];
 
 type Verdict = 'right' | 'wrong';
 type Key = NoteId | 'crop';
@@ -312,7 +315,11 @@ function Row({ k, v, strong }: { k: string; v: string; strong?: boolean }) {
 
 function TechChips({ value, onChange }: { value: Tech; onChange: (t: Tech) => void }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.chips}
+    >
       {TECHS.map((k) => {
         const on = k === value;
         return (
@@ -380,7 +387,12 @@ function ItemCard({
             <View
               style={[
                 styles.box,
-                { left: box[0] * w, top: box[1] * h, width: (box[2] - box[0]) * w, height: (box[3] - box[1]) * h },
+                {
+                  left: box[0] * w,
+                  top: box[1] * h,
+                  width: (box[2] - box[0]) * w,
+                  height: (box[3] - box[1]) * h,
+                },
               ]}
             />
           )}
@@ -420,7 +432,11 @@ function ItemCard({
         />
       ))}
       {review?.crop && (
-        <Judge label={t.spike.rulesCrop} value={item.verdicts.crop} onChange={(v) => onJudge('crop', v)} />
+        <Judge
+          label={t.spike.rulesCrop}
+          value={item.verdicts.crop}
+          onChange={(v) => onJudge('crop', v)}
+        />
       )}
       {(item.status === 'done' || item.status === 'none') && (
         <Pressable

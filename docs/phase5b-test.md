@@ -365,7 +365,7 @@ Bạn nhờ thử thêm các ca của 1/3 trước khi qua bố cục khác. Cla
 
 ## 13. Lần 5 — Ở giữa (2026-11-25)
 
-Chỉ thử **Ở giữa** (bố cục chính, không bật bố cục phụ). Chạy lại `npx expo start -c`. Bước: ① máy thẳng → ② người trên trục giữa → ③ mắt trên đường ngang trên. Chỗ ngang của người là trung bình giữa hai mắt và giữa thân, giống nhận xét sau khi chụp.
+Chỉ thử **Ở giữa**. Bố cục phụ (Đường chân trời, Đường dẫn) đã bỏ hẳn (2026-11-26): bảng Bố cục còn một danh sách, bảng Mở thêm còn Đèn flash và Hẹn giờ. Chạy lại `npx expo start -c`. Bước: ① máy thẳng → ② người trên trục giữa → ③ mắt trên đường ngang trên. Chỗ ngang của người là trung bình giữa hai mắt và giữa thân, giống nhận xét sau khi chụp.
 
 **Kết quả 1/3 lần 4 (12.5):** đạt cả hai dòng. Theo ghi chú 12.5.1, camera trước giờ chỉ nói "**Xoay máy qua …**" (đưa máy thì nền sau lưng đổi).
 

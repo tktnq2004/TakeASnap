@@ -13,7 +13,6 @@ import { ease } from '@/ui/easing';
 import { t } from '@/ui/strings';
 import { color, compositionUi, motion, radius, size, space, type } from '@/ui/tokens';
 
-import { SceneLines } from './SceneLines';
 import type { CheckResult } from './useLayoutCheck';
 
 export function CheckOverlay({
@@ -33,7 +32,7 @@ export function CheckOverlay({
   let eye: { x: number; y: number } | null = null;
   let text: string;
   let ok = false;
-  /** Dòng nhỏ chỉ bản dev hiện (đo cổng Phase 5a, tìm lỗi model trời). */
+  /** Dòng nhỏ chỉ bản dev hiện (lý do lỗi). */
   const dev: string[] = [];
   if (result.kind === 'review') {
     const f = result.features;
@@ -44,19 +43,10 @@ export function CheckOverlay({
       box = [Math.min(x0, x1), b[1], Math.max(x0, x1), b[3]];
     }
     if (f.eye) eye = { x: fx(f.eye.x), y: f.eye.y };
-    const c = t.composition.check;
-    if (result.sceneMs != null) dev.push(c.devSceneMs(Math.round(result.sceneMs)));
-    const sk = result.sky;
-    if (sk.skyError) dev.push(c.devSkyError(sk.skyError));
-    else if (sk.skyState === 'noPack') dev.push(c.devSkyNoPack);
-    else if (sk.skyMs != null)
-      dev.push(c.devSkyMs(Math.round(sk.skyMs), Math.round(sk.skyLoadMs ?? 0)));
     if (result.note) text = t.review.notes[result.note.id];
     else {
       ok = true;
-      text = t.composition.check.ok(
-        result.techniques.map((x) => t.composition.names[x]).join(' + '),
-      );
+      text = t.composition.check.ok(t.composition.names[result.technique]);
     }
   } else if (result.kind === 'none') text = t.composition.check.noPerson;
   else {
@@ -80,19 +70,6 @@ export function CheckOverlay({
           { left: frame.x, top: frame.y, width: frame.width, height: frame.height },
         ]}
       >
-        {result.kind === 'review' &&
-          result.techniques
-            .filter((x) => x === 'horizon' || x === 'lead')
-            .map((x) => (
-              <SceneLines
-                key={x}
-                width={frame.width}
-                height={frame.height}
-                technique={x}
-                scene={result.scene}
-                flip={flip}
-              />
-            ))}
         {box && (
           <View
             style={[

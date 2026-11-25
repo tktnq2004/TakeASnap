@@ -62,9 +62,6 @@ export const t = {
     turnOff: (name: string) => `Tắt bố cục ${name}`,
     turnedOff: 'Đã tắt bố cục',
     learn: 'Học các kỹ thuật',
-    /** Hai nhóm của bảng Bố cục (Phase 5b). */
-    groupMain: 'Bố cục chính',
-    groupScene: 'Bố cục phụ, theo cảnh',
     names: {
       off: 'Tắt',
       grid: 'Lưới 3×3',
@@ -72,8 +69,6 @@ export const t = {
       thirds: 'Quy tắc 1/3',
       center: 'Đặt ở giữa',
       fill: 'Lấp đầy khung',
-      horizon: 'Đường chân trời',
-      lead: 'Đường dẫn',
       low: 'Góc thấp',
       selfie: 'Selfie',
       group: 'Nhóm người',
@@ -85,8 +80,6 @@ export const t = {
       thirds: 'Mắt trên đường 1/3',
       center: 'Người ở trục giữa',
       fill: 'Người chiếm gần hết khung',
-      horizon: 'Chân trời trên một đường 1/3',
-      lead: 'Đường đi dẫn tới người',
       low: 'Kéo dài chân',
       selfie: 'Máy cao hơn mắt',
       group: 'Đầu so le, xếp tam giác',
@@ -96,8 +89,6 @@ export const t = {
       thirds: 'Đặt người lên cột trái hoặc cột phải',
       center: 'Đưa người vào trục giữa',
       fill: 'Tiến lại gần để người lấp đầy khung',
-      horizon: 'Đặt chỗ trời gặp biển hoặc đất trùng đường xanh trên hoặc dưới',
-      lead: 'Xếp đường đi theo hai nét đứt',
       group: 'Cho các đầu cao thấp khác nhau',
     },
     /** Nút Kiểm tra bố cục cạnh cụm zoom (Phase 5a, business-flow §6.4). */
@@ -107,25 +98,13 @@ export const t = {
       ok: (name: string) => `Đạt ${name}`,
       noPerson: 'Không thấy người, tiến lại gần hoặc zoom vào',
       failed: 'Chưa kiểm tra được, thử lại',
-      /** Chỉ hiện trong bản dev: đo cổng Phase 5a. */
-      devSceneMs: (ms: number) => `Dò đường ${ms} ms`,
-      devSkyMs: (ms: number, loadMs: number) =>
-        loadMs > 0 ? `Trời ${ms} ms, nạp model ${loadMs} ms` : `Trời ${ms} ms`,
-      devSkyNoPack: 'Trời: chưa có gói',
-      devSkyError: (msg: string) => `Trời lỗi: ${msg}`,
+      /** Chỉ hiện trong bản dev. */
       devError: (msg: string) => `Lỗi: ${msg}`,
       needPackTitle: 'Tải bộ tách người',
       needPack: (mb: string) =>
         `Kiểm tra bố cục cần bộ tách người (${mb} MB), tải một lần rồi dùng không cần mạng.`,
       download: 'Tải bộ tách người',
       downloadFailed: 'Chưa tải được bộ tách người. Kiểm tra mạng rồi thử lại.',
-      /** Gói trời (Phase 5a): Đường chân trời tìm vùng trời để dò chân trời. */
-      needSkyTitle: 'Tải bộ tìm trời',
-      needSky: (mb: string) =>
-        `Đường chân trời cần bộ tìm trời (${mb} MB) để tìm đúng chân trời, tải một lần rồi dùng không cần mạng.`,
-      downloadSky: 'Tải bộ tìm trời',
-      skipSky: 'Kiểm tra bố cục ngay',
-      downloadSkyFailed: 'Chưa tải được bộ tìm trời. Kiểm tra mạng rồi thử lại.',
     },
     /**
      * Hướng dẫn liên tục (Phase 5b, business-flow §6.10): mỗi câu là hành động + kết quả, không có
@@ -139,10 +118,6 @@ export const t = {
         tiltDown: 'Chúc máy xuống',
         closer: 'Tiến lại gần',
         back: 'Lùi ra',
-        stepLeft: 'Bước sang trái',
-        stepRight: 'Bước sang phải',
-        raise: 'Nâng máy lên',
-        lower: 'Hạ máy xuống',
         rotateCw: 'Xoay máy theo chiều kim đồng hồ',
         rotateCcw: 'Xoay máy ngược chiều kim đồng hồ',
         find: 'Hướng máy về phía người',
@@ -158,13 +133,7 @@ export const t = {
         fillHead: 'để không cắt đỉnh đầu',
         groupInFrame: 'để cả nhóm vào khung',
         groupCenter: 'để nhóm vào giữa',
-        horizonThird: 'để chân trời nằm trên đường xanh',
-        horizonNeck: 'để chân trời không cắt cổ',
-        leadToPerson: 'để đường dẫn tới người',
-        leadThird: 'để người đứng đúng cột',
         person: 'để thấy lại người',
-        horizonSeen: 'để thấy lại chân trời',
-        leadSeen: 'để thấy lại đường dẫn',
       },
       /** Tiêu chí đã đạt / chưa đạt ở viên kết thúc. */
       done: {
@@ -178,13 +147,7 @@ export const t = {
         fillHead: 'không cắt đỉnh đầu',
         groupInFrame: 'cả nhóm trong khung',
         groupCenter: 'nhóm ở giữa',
-        horizonThird: 'chân trời trên đường 1/3',
-        horizonNeck: 'chân trời không cắt cổ',
-        leadToPerson: 'đường dẫn tới người',
-        leadThird: 'người đứng đúng cột',
         person: 'thấy người',
-        horizonSeen: 'thấy chân trời',
-        leadSeen: 'thấy đường dẫn',
       },
       /**
        * Viên một dòng (phiếu Phase 5b lần 3, mục 11.5): hai cách làm cùng chiều của người chụp +
@@ -210,17 +173,12 @@ export const t = {
       failed: (item: string) => `Chưa đạt: ${item}`,
       missing: {
         person: 'Cảnh này không thấy người',
-        horizon: 'Cảnh này không thấy đường chân trời',
-        lead: 'Cảnh này không thấy đường dẫn',
         group: 'Cảnh này chưa thấy nhóm người',
       },
       stopped: 'Đã dừng hướng dẫn',
       stop: 'Dừng hướng dẫn',
       /** Nút Kiểm tra bố cục khi không hướng dẫn: chạy lại hướng dẫn của bố cục đang bật. */
       restart: 'Hướng dẫn lại bố cục',
-      /** Hàng bố cục phụ trong bảng Mở thêm của thanh trên. */
-      sceneRow: 'Bố cục phụ',
-      short: { horizon: 'Chân trời', lead: 'Đường dẫn' },
     },
     hints: {
       level: (deg: number) => `Máy nghiêng ${deg}°, xoay cho thẳng`,
