@@ -199,6 +199,16 @@ export function lockColumn(
  * thử trên ảnh thật, người chụp làm ngược: câu đổi chiều sai khi mắt ra khỏi khung).
  */
 function personX(f: PhotoFeatures): number {
+  const [x0, , x1] = f.people[f.main]!.box;
+  return seenX(f) ?? (x0 + x1) / 2;
+}
+
+/**
+ * Như `personX`, nhưng null khi không biết người ở đâu: không thấy mắt, mũi, vai mà khung người
+ * chạm cả hai mép (người to hơn khung, đầu đã ra ngoài). Lúc đó giữa khung người luôn là giữa
+ * khung, nên bước ngang báo Đạt sai (chạy thử Ở giữa, người chụp làm ngược).
+ */
+function seenX(f: PhotoFeatures): number | null {
   if (f.eye) return f.eye.x;
   const j = f.joints;
   const nose = j?.[J.nose];
@@ -210,11 +220,60 @@ function personX(f: PhotoFeatures): number {
   const atLeft = x0 <= EDGE;
   const atRight = x1 >= 1 - EDGE;
   if (atLeft !== atRight) return atLeft ? x0 : x1;
-  return (x0 + x1) / 2;
+  return atLeft ? null : (x0 + x1) / 2;
 }
 
 /** Khung người cách mép khung ngắm dưới chừng này là chạm mép. */
 const EDGE = 0.01;
+
+/** Khung người chạm đúng một mép trái / phải (người đang ra khỏi khung theo chiều ngang). */
+function cutSide(f: PhotoFeatures): boolean {
+  const [x0, , x1] = f.people[f.main]!.box;
+  return x0 <= EDGE !== x1 >= 1 - EDGE;
+}
+
+/**
+ * Chỗ ngang của người cho Ở giữa: trung bình giữa hai mắt và giữa khung người (người nghiêng đầu
+ * vẫn cân). Khung người bị mép cắt hoặc không thấy mắt: theo `personX`, vì giữa khung người lúc
+ * đó lệch vào trong (chạy thử Ở giữa trên ảnh thật, người chụp làm ngược: báo Đạt khi người đã ra
+ * sát mép).
+ */
+function centerX(f: PhotoFeatures): number | null {
+  const [x0, , x1] = f.people[f.main]!.box;
+  return f.eye && !cutSide(f) ? (f.eye.x + (x0 + x1) / 2) / 2 : seenX(f);
+}
+
+/**
+ * Bước ngang đưa người tới đường `x`. Không biết người ở đâu (`seenX` null): chưa đạt, bảo lùi ra
+ * cho thấy lại đầu người.
+ */
+function sideCheck(
+  id: CriterionId,
+  f: PhotoFeatures,
+  at: number | null,
+  x: number,
+  band: number,
+): Check {
+  const target: Target = { kind: 'vline', x };
+  if (at == null) return check(id, 1, band, 'back', target, null);
+  return check(id, Math.abs(x - at), band, pan(x - at), target, { x: at, y: personAt(f).y });
+}
+
+/**
+ * Mắt lên đường 1/3 trên. Không thấy mắt mà khung người chạm mép trên: mắt đã ra khỏi khung phía
+ * trên (ngửa / chúc máy quá tay), bước mắt vẫn còn và bảo ngửa máy lên, không bỏ bước (chạy thử
+ * trên ảnh thật: bước mắt biến mất nên báo Đạt khi mắt đã ra khỏi khung). Không thấy mắt vì người
+ * quay lưng thì bỏ bước như trước.
+ */
+function eyeCheck(id: 'thirdsEye' | 'centerEye', f: PhotoFeatures): Check | null {
+  if (f.eye) {
+    const dy = 1 / 3 - f.eye.y;
+    return check(id, Math.abs(dy), RULE.eyeBand, tilt(dy), { kind: 'hline', y: 1 / 3 }, f.eye);
+  }
+  const [, y0] = f.people[f.main]!.box;
+  if (y0 > EDGE) return null;
+  return check(id, 1 / 3 + RULE.eyeBand, RULE.eyeBand, 'tiltUp', { kind: 'hline', y: 1 / 3 }, null);
+}
 
 /** Cắt ngang khớp: mép dưới qua gối / cổ chân, mép trái phải qua khuỷu / cổ tay → lùi ra. */
 function jointCut(f: PhotoFeatures): Check {
@@ -252,62 +311,20 @@ function mainChecks(
   col: number | undefined,
 ): Check[] {
   const p = f.people[f.main]!;
-  const [x0, y0, x1, y1] = p.box;
+  const [, y0, , y1] = p.box;
   switch (m) {
     case 'thirds': {
-      const x = personX(f);
-      const c = col ?? thirdsColumn(f, x);
-      const out = [
-        check(
-          'thirdsColumn',
-          Math.abs(c - x),
-          RULE.verticalBand,
-          pan(c - x),
-          { kind: 'vline', x: c },
-          personAt(f),
-        ),
-      ];
-      if (f.eye) {
-        const dy = 1 / 3 - f.eye.y;
-        out.push(
-          check(
-            'thirdsEye',
-            Math.abs(dy),
-            RULE.eyeBand,
-            tilt(dy),
-            { kind: 'hline', y: 1 / 3 },
-            f.eye,
-          ),
-        );
-      }
+      const c = col ?? thirdsColumn(f, personX(f));
+      const out = [sideCheck('thirdsColumn', f, seenX(f), c, RULE.verticalBand)];
+      const eye = eyeCheck('thirdsEye', f);
+      if (eye) out.push(eye);
       out.push(jointCut(f));
       return out;
     }
     case 'center': {
-      const mid = f.eye ? (f.eye.x + (x0 + x1) / 2) / 2 : (x0 + x1) / 2;
-      const out = [
-        check(
-          'centerAxis',
-          Math.abs(0.5 - mid),
-          RULE.centerBand,
-          pan(0.5 - mid),
-          { kind: 'vline', x: 0.5 },
-          { x: mid, y: f.eye?.y ?? (y0 + y1) / 2 },
-        ),
-      ];
-      if (f.eye) {
-        const dy = 1 / 3 - f.eye.y;
-        out.push(
-          check(
-            'centerEye',
-            Math.abs(dy),
-            RULE.eyeBand,
-            tilt(dy),
-            { kind: 'hline', y: 1 / 3 },
-            f.eye,
-          ),
-        );
-      }
+      const out = [sideCheck('centerAxis', f, centerX(f), 0.5, RULE.centerBand)];
+      const eye = eyeCheck('centerEye', f);
+      if (eye) out.push(eye);
       return out;
     }
     case 'fill': {

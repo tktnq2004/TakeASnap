@@ -98,6 +98,38 @@ describe('measure: tiêu chí theo thứ tự', () => {
     ).toBe(true);
   });
 
+  it('Ở giữa: khung người bị mép phải cắt → theo mắt, không lấy trung bình với khung bị cắt', () => {
+    // Trung bình mắt 0,62 và giữa khung 0,51 là 0,565 (lọt ngưỡng 0,07) nhưng mặt lệch 0,12.
+    const f = person([0.02, 0.2, 1, 0.9], { x: 0.62, y: 1 / 3 });
+    const c = first(measure({ main: 'center', scene: null }, f, null, 0, false))!;
+    expect(c.id).toBe('centerAxis');
+    expect(c.error).toBeCloseTo(0.12);
+    expect(c.action).toBe('panRight');
+  });
+
+  it('mắt ra khỏi mép trên: bước mắt vẫn còn, bảo ngửa máy lên (không báo Đạt)', () => {
+    const f = person([0.4, 0, 0.6, 0.9]);
+    const m = measure({ main: 'center', scene: null }, f, null, 0, false);
+    const c = first(m)!;
+    expect(c.id).toBe('centerEye');
+    expect(c.action).toBe('tiltUp');
+    expect(guideLines(c)).toEqual([
+      { text: 'Ngửa/nâng máy lên để mắt người trên cột trên', dir: 'up' },
+    ]);
+    // Người quay lưng (không thấy mắt, đầu trong khung): bỏ bước mắt như trước.
+    const back = person([0.4, 0.2, 0.6, 0.9]);
+    expect(checks(measure({ main: 'center', scene: null }, back, null, 0, false)).map((x) => x.id))
+      .toEqual(['level', 'centerAxis']);
+  });
+
+  it('người to hơn khung, không thấy đầu: không biết người ở đâu → lùi ra', () => {
+    const f = person([0, 0.2, 1, 0.9]);
+    expect(first(measure({ main: 'center', scene: null }, f, null, 0, false))!.action).toBe('back');
+    expect(first(measure({ main: 'thirds', scene: null }, f, null, 0, false, 1 / 3))!.action).toBe(
+      'back',
+    );
+  });
+
   it('Lấp đầy: người nhỏ → tiến lại gần', () => {
     const c = first(
       measure({ main: 'fill', scene: null }, person([0.45, 0.4, 0.55, 0.7]), null, 0, false),

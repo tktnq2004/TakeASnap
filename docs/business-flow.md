@@ -370,7 +370,7 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 | Bố cục | Áp được khi | Tiêu chí theo thứ tự |
 |---|---|---|
 | 1/3 | Có 1 người | ① người trên cột 1/3 (phía người đang nhìn còn chỗ) → ② mắt trên đường 1/3 trên → ③ không cắt khớp |
-| Ở giữa | Có 1 người | ① máy thẳng → ② người trên trục giữa → ③ mắt ở 1/3 trên |
+| Ở giữa | Có 1 người | ① máy thẳng → ② người trên trục giữa (trung bình giữa hai mắt và giữa khung người, như nhận xét sau khi chụp; khung người bị mép trái / phải cắt thì theo mắt) → ③ mắt ở 1/3 trên |
 | Lấp đầy khung | Có 1 người | ① người cao gần hết khung → ② không cắt cằm, đỉnh đầu |
 | Nhóm người | Có nhóm người (luật Nhóm của Phase 5) | ① cả nhóm trong khung, không ai sát mép → ② nhóm ở giữa |
 | Đường chân trời (phụ) | Có người và tìm thấy chân trời | ① máy thẳng → ② chân trời trên một đường 1/3 → ③ không cắt cổ |
@@ -383,6 +383,8 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 | Mắt lệch dọc | "Chúc/hạ máy xuống để mắt người trên cột trên" (mắt cần lên); "Ngửa/nâng máy lên để mắt người trên cột trên" (mắt cần xuống) |
 | Chân trời lệch dọc | "Ngửa máy lên để chân trời nằm trên đường xanh" / "Chúc máy xuống …" |
 | Người quá nhỏ, quá to | "Tiến lại gần để người lấp đầy khung" / "Lùi ra để thấy cả nhóm" |
+| Mắt ra khỏi mép trên (ngửa / chúc quá tay) | Bước mắt vẫn còn: "Ngửa/nâng máy lên để mắt người trên cột trên", không báo Đạt (1/3 và Ở giữa). Không thấy mắt vì người quay lưng (đầu vẫn trong khung) thì bỏ bước mắt |
+| Người to hơn khung, đầu đã ra ngoài (khung người chạm cả hai mép, không thấy mắt, mũi, vai) | Không biết người đứng đâu: "Lùi ra …" thay cho câu ngang (1/3 và Ở giữa) |
 | Đường dẫn không tới người | "Bước sang trái để đường đi dẫn tới người" |
 | Chân trời cắt cổ | "Hạ máy xuống để chân trời không cắt cổ" / "Nâng máy lên …" |
 

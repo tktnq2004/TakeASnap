@@ -362,3 +362,58 @@ Bạn nhờ thử thêm các ca của 1/3 trước khi qua bố cục khác. Cla
 |---|---|---|---|---|---|
 | 12.5.1 | Camera trước, bạn lệch khỏi đường sáng (thử lại 12.1.5) | "Đưa/xoay máy qua trái để người đứng cột phải" khi cần sang cột phải (và ngược lại); đưa máy theo câu thì bạn tiến về đường sáng |d |d | sửa là xoay máy thôi, đưa máy thì bị đổi background |
 | 12.5.2 | Camera sau, xoay quá tay cho người ra sát mép khung (mặt ra ngoài một nửa) | Câu vẫn bảo đưa người về phía trong, không đổi sang chiều ngược lại |d |d | |
+
+## 13. Lần 5 — Ở giữa (2026-11-25)
+
+Chỉ thử **Ở giữa** (bố cục chính, không bật bố cục phụ). Chạy lại `npx expo start -c`. Bước: ① máy thẳng → ② người trên trục giữa → ③ mắt trên đường ngang trên. Chỗ ngang của người là trung bình giữa hai mắt và giữa thân, giống nhận xét sau khi chụp.
+
+**Kết quả 1/3 lần 4 (12.5):** đạt cả hai dòng. Theo ghi chú 12.5.1, camera trước giờ chỉ nói "**Xoay máy qua …**" (đưa máy thì nền sau lưng đổi).
+
+**Claude chạy thử Ở giữa trên máy tính trước** (cùng cách mục 12.5, thêm máy nghiêng ngẫu nhiên tới ±8°; mỗi kiểu người chụp khoảng 18.500 lần, camera sau và trước):
+
+| Người chụp ảo | Kết quả |
+|---|---|
+| Làm theo, tay yên | Mọi lần chạy tới "Đạt" (trung vị 7 s, 90% dưới 12 s); không lần nào câu đổi chiều |
+| Làm theo, rung tay | Như trên (trung vị 7–8 s) |
+| Làm theo nhanh, quá tay | Trung vị 5 s. Ở bước máy thẳng, xoay quá tay thì câu bảo xoay lại chiều kia, đúng |
+| Đứng yên | Tự dừng sau chừng 18 s |
+| Làm ngược | Nhắc rồi tự dừng; sau khi sửa không còn lần nào báo Đạt khi mặt đã ra khỏi khung (trước khi sửa: khoảng 500 lần) |
+
+**Đã sửa sau khi chạy thử** (dùng chung cho 1/3):
+
+- **Người ra sát mép trái / phải:** giữa khung người lúc đó bị mép cắt nên lệch vào trong; trung bình với mắt làm app tưởng người đã ở giữa. Giờ khung người bị mép cắt thì app theo mắt. Kể cả người làm theo đúng: số lần báo Đạt khi mặt còn lệch giữa hơn 0,15 khung giảm từ 230 xuống 67 (67 lần còn lại xem 13.2.4).
+- **Mắt ra khỏi mép trên** (ngửa / chúc quá tay): bước mắt biến mất nên app báo Đạt. Giờ bước mắt vẫn còn và bảo "Ngửa/nâng máy lên …". Người quay lưng (không thấy mắt nhưng đầu còn trong khung) thì vẫn bỏ bước mắt như trước.
+- **Người to hơn khung, đầu đã ra ngoài:** app không biết người ở đâu, trước báo Đạt; giờ bảo "**Lùi ra …**".
+
+### 13.1 Các bước (camera sau)
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 13.1.1 | Chọn Ở giữa, cầm máy nghiêng chừng 10° | "Bước 1/3"; "Xoay máy theo chiều kim đồng hồ cho máy thẳng" (hoặc ngược chiều); xoay thẳng thì "Đạt: máy thẳng" rồi sang bước sau | | | |
+| 13.1.2 | Người đứng lệch trái khung | Đường dọc giữa sáng; "← Đi/xoay máy qua trái để người đứng giữa"; làm theo thì người tiến về đường sáng | | | |
+| 13.1.3 | Người đứng lệch phải khung | "→ Đi/xoay máy qua phải để người đứng giữa" | | | |
+| 13.1.4 | Mắt người thấp hơn đường ngang trên | Đường ngang trên sáng; "↓ Chúc/hạ máy xuống để mắt người trên cột trên" | | | |
+| 13.1.5 | Mắt người cao hơn đường ngang trên | "↑ Ngửa/nâng máy lên để mắt người trên cột trên" | | | |
+| 13.1.6 | Làm theo hết các bước | Viên "Đạt"; chụp, nhận xét sau khi chụp nói người ở đúng trục giữa | | | |
+
+### 13.2 Ca khó (sau khi chạy thử)
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 13.2.1 | Đang ở bước mắt, chúc máy quá tay cho mặt ra khỏi mép trên | Câu vẫn "↑ Ngửa/nâng máy lên …", **không** báo Đạt | | | |
+| 13.2.2 | Người đứng sát mép, nửa thân ra ngoài khung, mặt vẫn thấy | Câu đưa người vào giữa theo mặt; không báo Đạt khi mặt còn lệch rõ | | | |
+| 13.2.3 | Đứng rất gần, người to hơn khung, quay cho mặt ra ngoài | "Lùi ra để đưa người vào giữa" | | | |
+| 13.2.4 | Người dang một tay sang bên (hoặc cầm vật to một bên), thân ở giữa | App lấy trung bình mặt và thân nên có thể Đạt khi mặt lệch giữa một chút. Bạn thấy ảnh như vậy có còn là "ở giữa" không? Ghi ý ở cột Ghi chú | | | |
+| 13.2.5 | Ở bước máy thẳng, xoay nhanh qua lại | Câu đổi chiều theo máy, không kẹt, thẳng thì qua bước | | | |
+| 13.2.6 | Người quay lưng | Không có bước mắt; chỉ máy thẳng và trục giữa | | | |
+
+### 13.3 Camera trước
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 13.3.1 | Camera trước, bạn lệch trái / phải khung | "Xoay máy qua trái để người đứng giữa" khi cần sang phải (và ngược lại), cùng chiều camera sau; xoay theo thì bạn tiến về đường sáng | | | |
+| 13.3.2 | Camera trước, mắt lệch đường ngang trên | Câu ngửa / chúc đúng chiều | | | |
+
+### 13.4 Góp ý cho Ở giữa
+
+-
