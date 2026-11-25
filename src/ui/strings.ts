@@ -191,7 +191,7 @@ export const t = {
        * tên đường đích. Camera sau: đi (bước) hay xoay máy; camera trước: chỉ xoay máy.
        */
       move: { left: 'Đi/xoay máy qua trái', right: 'Đi/xoay máy qua phải' },
-      turn: { left: 'Xoay máy qua trái', right: 'Xoay máy qua phải' },
+      turn: { left: 'Đưa/xoay máy qua trái', right: 'Đưa/xoay máy qua phải' },
       tilt: { up: 'Ngửa/nâng máy lên', down: 'Chúc/hạ máy xuống' },
       to: {
         left: 'để người đứng cột trái',

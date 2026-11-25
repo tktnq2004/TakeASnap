@@ -588,7 +588,8 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 - [x] Dọn phần model chọn kỹ thuật không còn dùng: script huấn luyện ở app; `technique.ts`, lệnh `embed`, model MobileNetV3 ở composition-critic (v0.6.0). composition-critic giữ là repo riêng (lõi phân tích, bộ đo, MCP server)
 - [x] Phiếu lần 2 (chỉ 1/3): sửa hướng nhìn camera sau (lưới điểm mặt, composition-critic v0.7.0; luật chốt cột không xóa số đếm ở lượt không đoán được hướng), viên hai dòng có mũi tên theo chiều ("Xoay máy sang trái" / "Hoặc người bước sang phải"), ô "Bước 2/3", mỗi bước nhắc 3 lần, bố cục phụ chuyển từ chip trên khung ngắm vào bảng Mở thêm
 - [x] Phiếu lần 3 (chỉ 1/3): bỏ chấm xanh ở mọi bố cục; viên một dòng chỉ bảo người chụp, gọi cột trái / phải / trên / dưới ("Đi/xoay máy qua trái để người đứng cột phải"); chọn cột theo hướng nhìn với ngưỡng quay đầu thấp hơn (`GUIDE.leanTurn` 0,07, lưới mặt). Đã thử chấm chạy theo con quay + cảm biến gia tốc giữa hai ảnh rồi bỏ (người dùng thấy không ổn: chỉ đo đúng khi xoay máy, không đo được khi đi)
-- [ ] Thử từng bố cục chính một (phiếu lần 4: 1/3 sau khi sửa; rồi Ở giữa, Lấp đầy, Nhóm, bố cục phụ)
+- [x] Phiếu lần 4 (chỉ 1/3, đạt trừ camera trước): camera trước cùng chiều camera sau, "Đưa/xoay máy qua …"; Claude chạy thử 1/3 trên 2.202 ảnh một người (người chụp ảo làm theo / rung tay / quá tay / đứng yên / làm ngược, camera sau và trước): không đổi chiều, không đổi cột khi làm theo; sửa chỗ đứng của người khi mắt ra khỏi khung
+- [ ] Thử từng bố cục chính một (phiếu lần 5: Ở giữa; rồi Lấp đầy, Nhóm, bố cục phụ)
 - [ ] Đo thời gian mỗi lượt, độ nóng, pin trên iPhone, Android; phiếu `phase5b-test.md`
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)

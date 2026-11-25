@@ -4,8 +4,8 @@
  * test được trong Jest; Camera gọi `measure` mỗi lượt (~1 s) rồi `step`.
  *
  * Toạ độ theo khung ngắm người dùng đang thấy (0..1, gốc trên trái). Camera trước: khung ngắm soi
- * gương, nên xoay máy ngang ngược chiều so với camera sau (bước ngang thì không đổi, vì vật gần
- * dịch so với điểm hội tụ ở xa theo cùng một chiều trên khung soi gương).
+ * gương; đưa / xoay máy qua trái thì người dịch sang phải trên khung, cùng chiều camera sau (phiếu
+ * Phase 5b lần 4, mục 12.1.5).
  */
 import { J, type PhotoFeatures, RULE, type Scene, visible } from 'composition-critic';
 
@@ -96,9 +96,10 @@ export type GuidePlan = { main: GuidedMain | null; scene: SceneTechnique | null 
 /** Tiến bộ khi khoảng lệch nhỏ hơn mức tốt nhất của tiêu chí ít nhất chừng này (lọc rung tay). */
 export const PROGRESS_EPS = 0.015;
 
-const pan = (dx: number, front: boolean): Action =>
-  // dx > 0: người cần dịch sang phải trên khung → xoay máy sang trái (camera sau).
-  dx > 0 !== front ? 'panLeft' : 'panRight';
+const pan = (dx: number): Action =>
+  // dx > 0: người cần dịch sang phải trên khung → đi / xoay máy sang trái. Camera trước cũng vậy
+  // (phiếu Phase 5b lần 4, mục 12.1.5: khung soi gương, đưa máy qua trái thì người dịch sang phải).
+  dx > 0 ? 'panLeft' : 'panRight';
 /** dy > 0: vật cần dịch xuống trên khung → ngửa máy lên. */
 const tilt = (dy: number): Action => (dy > 0 ? 'tiltUp' : 'tiltDown');
 
@@ -191,10 +192,29 @@ export function lockColumn(
     : { ...lock, pending: want, count };
 }
 
+/**
+ * Chỗ ngang của người chính: giữa hai mắt; không thấy mắt thì mũi, rồi giữa hai vai của khung
+ * xương; không có thì giữa khung người. Khung người chạm mép khung ngắm mà không thấy đầu (người
+ * đang ra khỏi khung): coi như đứng ở mép đó, vì giữa khung người lúc này nằm lệch vào trong (chạy
+ * thử trên ảnh thật, người chụp làm ngược: câu đổi chiều sai khi mắt ra khỏi khung).
+ */
 function personX(f: PhotoFeatures): number {
-  const p = f.people[f.main]!;
-  return f.eye?.x ?? (p.box[0] + p.box[2]) / 2;
+  if (f.eye) return f.eye.x;
+  const j = f.joints;
+  const nose = j?.[J.nose];
+  if (nose && visible(nose)) return nose.x;
+  const sl = j?.[J.shoulderL];
+  const sr = j?.[J.shoulderR];
+  if (sl && sr && visible(sl) && visible(sr)) return (sl.x + sr.x) / 2;
+  const [x0, , x1] = f.people[f.main]!.box;
+  const atLeft = x0 <= EDGE;
+  const atRight = x1 >= 1 - EDGE;
+  if (atLeft !== atRight) return atLeft ? x0 : x1;
+  return (x0 + x1) / 2;
 }
+
+/** Khung người cách mép khung ngắm dưới chừng này là chạm mép. */
+const EDGE = 0.01;
 
 /** Cắt ngang khớp: mép dưới qua gối / cổ chân, mép trái phải qua khuỷu / cổ tay → lùi ra. */
 function jointCut(f: PhotoFeatures): Check {
@@ -242,7 +262,7 @@ function mainChecks(
           'thirdsColumn',
           Math.abs(c - x),
           RULE.verticalBand,
-          pan(c - x, front),
+          pan(c - x),
           { kind: 'vline', x: c },
           personAt(f),
         ),
@@ -270,7 +290,7 @@ function mainChecks(
           'centerAxis',
           Math.abs(0.5 - mid),
           RULE.centerBand,
-          pan(0.5 - mid, front),
+          pan(0.5 - mid),
           { kind: 'vline', x: 0.5 },
           { x: mid, y: f.eye?.y ?? (y0 + y1) / 2 },
         ),
@@ -309,7 +329,7 @@ function mainChecks(
           'groupCenter',
           Math.abs(0.5 - mid),
           RULE.centerBand,
-          pan(0.5 - mid, front),
+          pan(0.5 - mid),
           { kind: 'vline', x: 0.5 },
           { x: mid, y: 0.5 },
         ),
@@ -390,7 +410,7 @@ function leadChecks(
       'leadThird',
       Math.abs(c - x),
       RULE.verticalBand,
-      pan(c - x, front),
+      pan(c - x),
       { kind: 'vline', x: c },
       personAt(f),
     ),

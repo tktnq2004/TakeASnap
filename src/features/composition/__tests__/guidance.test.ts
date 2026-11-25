@@ -66,14 +66,15 @@ describe('measure: tiêu chí theo thứ tự', () => {
     ]);
     // Camera trước: chỉ xoay máy.
     expect(guideLines(c, true)).toEqual([
-      { text: 'Xoay máy qua phải để người đứng cột trái', dir: 'right' },
+      { text: 'Đưa/xoay máy qua phải để người đứng cột trái', dir: 'right' },
     ]);
   });
 
-  it('camera trước (khung soi gương): xoay ngang đổi chiều', () => {
+  it('camera trước (khung soi gương): cùng chiều camera sau (phiếu lần 4, mục 12.1.5)', () => {
+    // Người cần sang cột trái → đưa máy qua phải, như camera sau.
     const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.45 }, 'right');
     expect(first(measure({ main: 'thirds', scene: null }, f, null, 0, true))!.action).toBe(
-      'panLeft',
+      'panRight',
     );
   });
 
@@ -339,6 +340,15 @@ describe('lockColumn: cột 1/3 chốt trong một lần hướng dẫn', () => 
     expect(headYaw(f, [[0.8, 0.3, 0.3]])).toBeNull();
     expect(headYaw(f, [[0.45, 0.3]])).toBeNull();
     expect(headYaw(f, null)).toBeNull();
+  });
+
+  it('người ra sát mép, không thấy đầu: coi như ở mép đó, không lấy giữa khung người', () => {
+    // Khung người rộng chạm mép trái (người đang ra khỏi khung bên trái): giữa khung là 0,4 nhưng
+    // người thật ở mép trái → vẫn bảo đưa người sang phải tới cột trái.
+    const f = person([0, 0.2, 0.8, 0.9]);
+    const c = first(measure({ main: 'thirds', scene: null }, f, null, 0, false, 1 / 3))!;
+    expect(c.action).toBe('panLeft');
+    expect(c.error).toBeCloseTo(1 / 3);
   });
 
   it('measure dùng cột đã chốt', () => {

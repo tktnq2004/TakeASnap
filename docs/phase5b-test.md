@@ -310,22 +310,22 @@ Vẫn chỉ thử Quy tắc 1/3. Chạy lại `npx expo start -c`. Cách chấm 
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 12.1.1 | Người nhìn thẳng, đứng hơi lệch phải giữa khung, chọn 1/3 | Một dòng: "→ Đi/xoay máy qua phải để người đứng cột trái" hoặc "← Đi/xoay máy qua trái để người đứng cột phải" (theo cột sáng); mũi tên trắng trên khung chỉ tới đường sáng | | | |
-| 12.1.2 | Làm theo bằng cách **bước** (không xoay máy) | Người tiến về đường sáng; tới nơi thì "Đúng rồi, giữ yên máy", rồi "Đạt: người đứng đúng cột" | | | |
-| 12.1.3 | Bước mắt, mắt dưới đường ngang trên | "↓ Chúc/hạ máy xuống để mắt người trên cột trên" | | | |
-| 12.1.4 | Bước mắt, mắt trên đường (người sát mép trên) | "↑ Ngửa/nâng máy lên để mắt người trên cột trên" | | | |
-| 12.1.5 | Camera trước, bạn lệch khỏi đường sáng | "Xoay máy qua …" (không có "Đi/"); xoay theo thì bạn tiến về đường sáng | | | |
-| 12.1.6 | Câu có vừa một dòng trên máy bạn, có rõ không | Ghi cảm nhận | | | |
+| 12.1.1 | Người nhìn thẳng, đứng hơi lệch phải giữa khung, chọn 1/3 | Một dòng: "→ Đi/xoay máy qua phải để người đứng cột trái" hoặc "← Đi/xoay máy qua trái để người đứng cột phải" (theo cột sáng); mũi tên trắng trên khung chỉ tới đường sáng |d |d | |
+| 12.1.2 | Làm theo bằng cách **bước** (không xoay máy) | Người tiến về đường sáng; tới nơi thì "Đúng rồi, giữ yên máy", rồi "Đạt: người đứng đúng cột" |d |d | |
+| 12.1.3 | Bước mắt, mắt dưới đường ngang trên | "↓ Chúc/hạ máy xuống để mắt người trên cột trên" | d|d | |
+| 12.1.4 | Bước mắt, mắt trên đường (người sát mép trên) | "↑ Ngửa/nâng máy lên để mắt người trên cột trên" |d | d| |
+| 12.1.5 | Camera trước, bạn lệch khỏi đường sáng | "Xoay máy qua …" (không có "Đi/"); xoay theo thì bạn tiến về đường sáng | l| l| camera trước phải ngược lại với camera sau có nghĩa là muốn cột phải thì phải đưa máy qua trái. Vẫn có thể Đưa/Xoay máy qua trái thay cho Xoay/Đi|
+| 12.1.6 | Câu có vừa một dòng trên máy bạn, có rõ không | Ghi cảm nhận |d |d | tốt |
 
 ### 12.2 Không còn chấm xanh
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 12.2.1 | Bật 1/3, chưa đặt pose | Chỉ có lưới, không có vòng xanh ở giao điểm | | | |
-| 12.2.2 | Bật 1/3, đặt pose | Không có vòng xanh ở giao điểm gần mắt; thả pose gần giao điểm vẫn dính (rung nhẹ) | | | |
-| 12.2.3 | Bật Ở giữa | Chỉ có trục dọc giữa, không có chấm | | | |
-| 12.2.4 | Bật Đường dẫn | Hai nét đứt vẫn hội tụ ở giao điểm trên, không có vòng xanh ở đó | | | |
-| 12.2.5 | Đang hướng dẫn 1/3 | Đích chỉ là đường sáng (cột, rồi đường ngang trên), không có vòng | | | |
+| 12.2.1 | Bật 1/3, chưa đặt pose | Chỉ có lưới, không có vòng xanh ở giao điểm |d |d | |
+| 12.2.2 | Bật 1/3, đặt pose | Không có vòng xanh ở giao điểm gần mắt; thả pose gần giao điểm vẫn dính (rung nhẹ) |d |d | |
+| 12.2.3 | Bật Ở giữa | Chỉ có trục dọc giữa, không có chấm |d |d | |
+| 12.2.4 | Bật Đường dẫn | Hai nét đứt vẫn hội tụ ở giao điểm trên, không có vòng xanh ở đó |d |d | |
+| 12.2.5 | Đang hướng dẫn 1/3 | Đích chỉ là đường sáng (cột, rồi đường ngang trên), không có vòng |d  |d | |
 
 ### 12.3 Hướng nhìn (camera sau)
 
@@ -333,13 +333,32 @@ Như lần 3: nửa người (khoảng 1,5–2 m) và cả người. "Phải / t
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 12.3.1 | Nửa người, đứng giữa khung, **chỉ quay đầu** sang phải của khung, rồi chọn 1/3 | Đường **bên trái** sáng (chừa chỗ phía người nhìn) | | | |
-| 12.3.2 | Như trên, quay đầu sang trái | Đường **bên phải** sáng | | | |
-| 12.3.3 | Nửa người, đứng **gần cột phải**, quay đầu sang phải, rồi chọn 1/3 (ca lần 3 bị sai) | Vẫn là đường **bên trái** sáng, viên bảo đưa người sang cột trái | | | |
-| 12.3.4 | Cả người, lặp lại 12.3.1 và 12.3.3 | Như trên; người xa có thể không dò được mặt, ghi lại nếu sai | | | |
-| 12.3.5 | Nếu sai: **ngay khi chọn 1/3** (chưa xoay máy) đường nào sáng | Ghi "trái" / "phải" và người đang quay đầu về phía nào | | | |
-| 12.3.6 | Nếu sai: lúc đầu đúng, rồi **trong lúc đưa người tới cột** thì cột sáng có đổi sang bên kia không | Ghi có / không, đổi lúc người còn cách cột bao xa | | | |
+| 12.3.1 | Nửa người, đứng giữa khung, **chỉ quay đầu** sang phải của khung, rồi chọn 1/3 | Đường **bên trái** sáng (chừa chỗ phía người nhìn) |d |d | đã tốt hơn |
+| 12.3.2 | Như trên, quay đầu sang trái | Đường **bên phải** sáng |d | d| |
+| 12.3.3 | Nửa người, đứng **gần cột phải**, quay đầu sang phải, rồi chọn 1/3 (ca lần 3 bị sai) | Vẫn là đường **bên trái** sáng, viên bảo đưa người sang cột trái |d |d | |
+| 12.3.4 | Cả người, lặp lại 12.3.1 và 12.3.3 | Như trên; người xa có thể không dò được mặt, ghi lại nếu sai |d |d | |
+| 12.3.5 | Nếu sai: **ngay khi chọn 1/3** (chưa xoay máy) đường nào sáng | Ghi "trái" / "phải" và người đang quay đầu về phía nào |d |d | |
+| 12.3.6 | Nếu sai: lúc đầu đúng, rồi **trong lúc đưa người tới cột** thì cột sáng có đổi sang bên kia không | Ghi có / không, đổi lúc người còn cách cột bao xa |d |d | |
 
 ### 12.4 Góp ý cho 1/3
 
 -
+
+### 12.5 Claude thử thêm trên máy tính (2026-11-25)
+
+Bạn nhờ thử thêm các ca của 1/3 trước khi qua bố cục khác. Claude không có điện thoại, nên chạy thử **logic hướng dẫn** trên ảnh thật: 2.202 ảnh một người trong bộ ảnh mẫu (đặc trưng đã phân tích sẵn, không chạy lại model). Khung ngắm là một ô cắt dọc 3:4 trên ảnh; người đặt ở 5 chỗ ngang khung (0,2 … 0,8); mỗi giây app "chụp", đo, ra câu; một người chụp ảo làm theo câu bằng cách dời ô cắt (xoay / đi ngang, ngửa / chúc) hoặc phóng ô cắt (lùi ra). Chạy cả camera sau và camera trước (khung soi gương). Mỗi kiểu người chụp khoảng 18.500 lần chạy. Các lần ô cắt chạm mép ảnh gốc (ảnh không đủ rộng để đi tiếp) không tính.
+
+| Người chụp ảo | Kết quả |
+|---|---|
+| Làm theo, tay yên (mỗi giây dời 3% khung) | Mọi lần chạy đều tới "Đạt 1/3" (trừ 2 lần trên một ảnh lạ: người nằm chéo chiếm cả bề ngang, không có mặt). Trung vị 5 s, 90% dưới 15 s. Không lần nào câu đổi chiều giữa chừng, không lần nào đổi cột. Camera trước và sau như nhau. |
+| Làm theo, rung tay (±1,2% khung mỗi giây) | Như trên; không đổi chiều, không đổi cột, không qua bước sai |
+| Làm theo nhanh, dễ quá tay (9% khung mỗi giây) | Tới Đạt nhanh hơn (trung vị 4 s); không lần nào câu đảo qua lại |
+| Đứng yên | Ca đã đúng sẵn thì Đạt ngay; còn lại tự dừng sau 17 s (3 lần nhắc + 10 s), báo phần đã đạt |
+| Làm ngược | Nhắc, rồi tự dừng sau chừng 17 s. **Thấy lỗi:** khi người ra tới mép khung, mắt ra ngoài, app lấy giữa khung người (đã bị mép cắt, nằm lệch vào trong) làm chỗ đứng, nên câu đổi sang chiều ngược lại. **Đã sửa:** không thấy mắt thì lấy mũi, rồi giữa hai vai; khung người chạm một mép mà không thấy đầu thì coi như người ở mép đó. Còn chừng 1,6% lần chạy đảo chiều, ở ảnh người to hơn cả khung (chạm cả hai mép) khi đã bị đẩy ra sát mép; chỉ gặp khi làm ngược, nên để lại. |
+
+**Chưa thử được trên máy tính:** hướng nhìn thật trên điện thoại (bộ ảnh mẫu không có câu trả lời đúng về hướng nhìn; lần 4 bạn đã thử đạt), ảnh nhiều người (người chính có thể đổi giữa hai lần chụp), độ trễ và nóng máy.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 12.5.1 | Camera trước, bạn lệch khỏi đường sáng (thử lại 12.1.5) | "Đưa/xoay máy qua trái để người đứng cột phải" khi cần sang cột phải (và ngược lại); đưa máy theo câu thì bạn tiến về đường sáng | | | |
+| 12.5.2 | Camera sau, xoay quá tay cho người ra sát mép khung (mặt ra ngoài một nửa) | Câu vẫn bảo đưa người về phía trong, không đổi sang chiều ngược lại | | | |
