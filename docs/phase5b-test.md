@@ -464,11 +464,13 @@ Chỉ thử **Ở giữa**. Chạy lại `npx expo start -c` (app dùng composit
 
 ## 15. Lần 7 — Ở giữa: người quay lưng, chấm đích đỏ (2026-11-26)
 
-Chạy lại `npx expo start -c`.
+Cài lại gói rồi chạy (`npm install`, `npx expo start -c`): app dùng composition-critic v0.9.0.
+
+**Cập nhật sau ảnh thác nước bạn gửi** (người quay lưng, dang tay): Claude chạy model thật trên 238 khung cắt của ảnh (34 vị trí ngang × 7 vị trí dọc). Trục giữa tốt: lệch giảm đều, bằng 0 đúng lúc người ở giữa. Nhưng cách đoán mắt từ tai **không ổn** với người quay lưng: khoảng 60% khung không có tai / mắt, phần còn lại khung xương nhìn từ sau lưng lấy nhầm **bàn tay** dang ra làm tai / mắt (mắt đoán ở 0,8 khung, đầu thật ở 0,4), câu ngửa / chúc đổi qua lại. Đã đổi sang **lấy đầu trên mặt nạ người** (đỉnh đầu + 0,62 bề ngang đầu; đo trên 364 khung ảnh một người có mặt: lệch mắt thật trung vị 0,019, 80% dưới 0,061 khung). Mắt / tai của khung xương chỉ dùng khi nằm gần mốc đầu (cao hơn tới 0,12, thấp hơn tới 0,05). Bộ dò mặt thấy mặt thì vẫn dùng mắt như trước. Trên ảnh thác nước: độ cao mắt đoán gần như không đổi khi dời ngang và khớp đầu thật (0,40 / 0,32 / 0,24 / 0,16 so với 0,42 / 0,33 / 0,25 / 0,17); người chụp ảo làm theo tới Đạt 177 / 182 lần, không lần nào đổi chiều (5 lần còn lại xuất phát ở mép ảnh, người gần như ra khỏi khung). Ca còn yếu: mặt nghiêng, tóc xoã dày, bộ dò mặt hụt và khung xương không có: mốc đầu đoán thấp hơn mắt chừng 0,1 (ảnh lần 5).
 
 **Đã sửa theo lần 6:**
 
-- **14.2.4, người quay lưng:** không thấy mắt thì app **đoán độ cao mắt từ tai** (khung xương vẫn thấy tai khi người quay lưng). Claude đo trên 2.436 ảnh thấy cả mắt lẫn hai tai: tai thấp hơn mắt trung vị 0,009 chiều cao ảnh; trừ đi thì 90% ảnh lệch dưới 0,027, nhỏ hơn nhiều so với ngưỡng bước mắt 0,07. Thử đoán từ vai thì lệch tới 0,086 nên không dùng. Không thấy cả tai thì vẫn bỏ bước mắt. Bộ ảnh mẫu gần như không có người quay lưng (35 ảnh không thấy mắt), nên chưa đo được trên ảnh quay lưng thật: cần bạn thử.
+- **14.2.4, người quay lưng (bản đầu, đã thay, xem trên):** không thấy mắt thì app **đoán độ cao mắt từ tai** (khung xương vẫn thấy tai khi người quay lưng). Claude đo trên 2.436 ảnh thấy cả mắt lẫn hai tai: tai thấp hơn mắt trung vị 0,009 chiều cao ảnh; trừ đi thì 90% ảnh lệch dưới 0,027, nhỏ hơn nhiều so với ngưỡng bước mắt 0,07. Thử đoán từ vai thì lệch tới 0,086 nên không dùng. Không thấy cả tai thì vẫn bỏ bước mắt. Bộ ảnh mẫu gần như không có người quay lưng (35 ảnh không thấy mắt), nên chưa đo được trên ảnh quay lưng thật: cần bạn thử.
 - **14.4, chấm đích đỏ:** chấm tròn đỏ viền trắng trên đường sáng, đúng chỗ người / mắt cần tới (đầu mũi tên).
 - **14.3.2, camera trước ra ảnh vai trở lên:** xem trả lời trong tin nhắn; app không đổi.
 
@@ -477,6 +479,8 @@ Chạy lại `npx expo start -c`.
 | 15.1 | Người quay lưng, đầu thấp hơn đường ngang trên | Có bước mắt: "↓ Chúc/hạ máy xuống …"; làm theo thì đỉnh tai tới gần đường sáng rồi Đạt | | | |
 | 15.2 | Người quay lưng, đầu cao hơn đường ngang trên | "↑ Ngửa/nâng máy lên …", như trên | | | |
 | 15.3 | Người quay nghiêng / quay lưng xoay qua lại | Bước mắt không nhảy, không tự Đạt | | | |
+| 15.3b | Người quay lưng dang hai tay (như ảnh thác nước) | Câu ngửa / chúc theo đầu, không theo tay; không đổi chiều qua lại | | | |
+| 15.3c | Người mặt nghiêng, tóc xoã dày, giơ tay sát đầu (như ảnh lần 5) | Bước mắt không nhảy; ghi lại nếu Đạt khi mắt còn lệch đường sáng rõ | | | |
 | 15.4 | Chấm đích đỏ khi đưa người vào trục giữa | Chấm đỏ nằm trên đường dọc sáng, ngang chỗ người; mũi tên trắng chỉ tới chấm | | | |
 | 15.5 | Chấm đích đỏ ở bước mắt | Chấm đỏ trên đường ngang sáng, thẳng chỗ mắt | | | |
 | 15.6 | Chấm đích đỏ ở 1/3 | Như trên, ở cột trái / phải và đường ngang trên | | | |

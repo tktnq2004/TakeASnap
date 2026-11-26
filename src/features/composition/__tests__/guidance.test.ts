@@ -140,6 +140,29 @@ describe('measure: tiêu chí theo thứ tự', () => {
     expect(c.at!.x).toBeCloseTo(0.5);
   });
 
+  it('không thấy mặt: lấy mốc đầu trên mặt nạ, bỏ mắt khung xương nằm ở bàn tay (lần 7)', () => {
+    const f = person([0.2, 0.25, 0.8, 1], { x: 0.3, y: 0.8 }); // khung xương lấy nhầm bàn tay
+    f.people[0]!.headY = 0.42;
+    f.people[0]!.cx = 0.5;
+    const back = { ...f, faceSeen: false };
+    const c = checks(measure({ main: 'center' }, back, 0, false)).find(
+      (x) => x.id === 'centerEye',
+    )!;
+    expect(c.at).toEqual({ x: 0.5, y: 0.42 });
+    // Mắt khung xương cao hơn mốc đầu một chút (tóc làm mốc đầu thấp): tin mắt đó.
+    const near = { ...back, eye: { x: 0.52, y: 0.34 } };
+    const n = checks(measure({ main: 'center' }, near, 0, false)).find(
+      (x) => x.id === 'centerEye',
+    )!;
+    expect(n.at).toEqual({ x: 0.52, y: 0.34 });
+    // Bộ dò mặt thấy mặt: dùng mắt như cũ.
+    const seen = { ...f, eye: { x: 0.5, y: 0.5 }, faceSeen: true };
+    const s = checks(measure({ main: 'center' }, seen, 0, false)).find(
+      (x) => x.id === 'centerEye',
+    )!;
+    expect(s.at).toEqual({ x: 0.5, y: 0.5 });
+  });
+
   it('1/3: người to hơn khung, không thấy đầu: không biết người ở đâu → lùi ra', () => {
     const f = person([0, 0.2, 1, 0.9]);
     expect(first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!.action).toBe('back');

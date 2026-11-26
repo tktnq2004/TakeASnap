@@ -248,7 +248,7 @@ function eyeCheck(id: 'thirdsEye' | 'centerEye', f: PhotoFeatures): Check | null
   // khung xương đặt "mắt" ở bàn tay cuối khung): coi như không thấy mắt. Không lấy hẹp hơn: người
   // giơ tay cao thì khung người bắt đầu từ bàn tay, mắt nằm khá thấp trong khung. Lượt đó không đo
   // bước mắt (không suy ra "mắt ra mép trên").
-  const eye = f.eye ?? earLevel(f);
+  const eye = eyeLevel(f);
   if (eye) {
     if (eye.y > y0 + EYE_LOW * (y1 - y0)) return null;
     const dy = 1 / 3 - eye.y;
@@ -257,6 +257,34 @@ function eyeCheck(id: 'thirdsEye' | 'centerEye', f: PhotoFeatures): Check | null
   if (y0 > EDGE) return null;
   return check(id, 1 / 3 + RULE.eyeBand, RULE.eyeBand, 'tiltUp', { kind: 'hline', y: 1 / 3 }, null);
 }
+
+/**
+ * Chỗ mắt của người chính cho bước mắt.
+ * - Bộ dò mặt thấy mặt: mắt đó (tin được).
+ * - Không thấy mặt (người quay lưng, đứng xa): mắt / tai của khung xương chỉ là đoán, nhìn từ sau
+ *   lưng còn lấy nhầm bàn tay dang ra (chạy thử trên ảnh người dùng gửi, phiếu Phase 5b lần 7).
+ *   Lấy **đầu** trên mặt nạ người làm mốc (`PersonBox.headY`, composition-critic v0.9.0: lệch mắt
+ *   thật trung vị 0,019, 80% dưới 0,061 khung); mắt / tai của khung xương nằm gần mốc đó thì dùng
+ *   cho chính xác hơn, xa thì bỏ.
+ * - Dữ liệu cũ không có mốc đầu: như trước (mắt, rồi tai).
+ */
+function eyeLevel(f: PhotoFeatures): { x: number; y: number } | null {
+  const p = f.people[f.main]!;
+  const guesses = [f.eye, earLevel(f)].filter((g) => g != null);
+  if (f.eye && f.faceSeen !== false) return f.eye;
+  if (p.headY == null) return guesses[0] ?? null;
+  const near = guesses.find((g) => g.y - p.headY! >= -HEAD_ABOVE && g.y - p.headY! <= HEAD_AGREE);
+  return near ?? { x: centerOf(p), y: p.headY };
+}
+
+/**
+ * Mắt / tai của khung xương thấp hơn mốc đầu quá `HEAD_AGREE` hay cao hơn quá `HEAD_ABOVE` (phần
+ * chiều cao khung) là bắt nhầm. Lệch về phía trên được nhiều hơn: mốc đầu hay đoán thấp khi tóc
+ * xoã / tay giơ sát đầu làm đầu rộng ra (ảnh người dùng gửi lần 5: mốc đầu 0,30, mắt thật 0,21),
+ * còn khung xương bắt nhầm bàn tay thì luôn nằm dưới đầu (ảnh lần 7).
+ */
+const HEAD_AGREE = 0.05;
+const HEAD_ABOVE = 0.12;
 
 /**
  * Độ cao mắt đoán từ tai khi không thấy mắt (người quay lưng, phiếu Phase 5b lần 6, mục 14.2.4:
