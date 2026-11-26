@@ -60,6 +60,7 @@ describe('luật không tím (design.md §2.7)', () => {
     color.camBg,
     color.camAccent,
     color.camWarn,
+    color.camTarget,
   ];
   const all = [...solid, ...poseColors.map((c) => c.value)];
 

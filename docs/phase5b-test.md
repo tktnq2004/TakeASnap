@@ -434,30 +434,53 @@ Chỉ thử **Ở giữa**. Chạy lại `npx expo start -c` (app dùng composit
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 14.1.1 | Chọn Ở giữa, cầm máy nghiêng chừng 10° | "Nghiêng máy sang trái / phải cho máy thẳng" đúng chiều; thẳng thì "Đạt: máy thẳng" | | | |
-| 14.1.2 | Thử lại với ảnh bạn gửi lần 5 (người giơ tay, mặt nghiêng) | Câu chỉ một chiều, dời theo thì tới "Đạt", không đổi trái / phải liên tục | | | |
-| 14.1.3 | Người giơ tay một bên hoặc váy / tóc xoè một bên, người thật | Như trên; lúc Đạt thì đầu và thân trông ở giữa | | | |
-| 14.1.4 | Mắt người thấp hơn đường ngang trên rõ | "↓ Chúc/hạ máy xuống …"; **không** tự Đạt khi chưa di chuyển; đưa mắt tới đường sáng thì Đạt | | | |
-| 14.1.5 | Mắt người cao hơn đường ngang trên rõ | "↑ Ngửa/nâng máy lên …", như trên | | | |
-| 14.1.6 | Mắt người chỉ lệch đường sáng một chút | Vẫn nói thao tác tới khi mắt nằm gần hẳn đường sáng | | | |
-| 14.1.7 | Người quay mặt nghiêng (thấy một bên mặt) | Bước mắt không tự biến mất rồi báo Đạt | | | |
+| 14.1.1 | Chọn Ở giữa, cầm máy nghiêng chừng 10° | "Nghiêng máy sang trái / phải cho máy thẳng" đúng chiều; thẳng thì "Đạt: máy thẳng" | d| d| |
+| 14.1.2 | Thử lại với ảnh bạn gửi lần 5 (người giơ tay, mặt nghiêng) | Câu chỉ một chiều, dời theo thì tới "Đạt", không đổi trái / phải liên tục |d |d | |
+| 14.1.3 | Người giơ tay một bên hoặc váy / tóc xoè một bên, người thật | Như trên; lúc Đạt thì đầu và thân trông ở giữa |d |d| |
+| 14.1.4 | Mắt người thấp hơn đường ngang trên rõ | "↓ Chúc/hạ máy xuống …"; **không** tự Đạt khi chưa di chuyển; đưa mắt tới đường sáng thì Đạt |d |d | |
+| 14.1.5 | Mắt người cao hơn đường ngang trên rõ | "↑ Ngửa/nâng máy lên …", như trên |d |d | |
+| 14.1.6 | Mắt người chỉ lệch đường sáng một chút | Vẫn nói thao tác tới khi mắt nằm gần hẳn đường sáng |d |d | |
+| 14.1.7 | Người quay mặt nghiêng (thấy một bên mặt) | Bước mắt không tự biến mất rồi báo Đạt |d |d | |
 
 ### 14.2 Ca khó (lần 5 còn trống)
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 14.2.1 | Đang ở bước mắt, chúc máy quá tay cho mặt ra khỏi mép trên | Câu vẫn "↑ Ngửa/nâng máy lên …", không báo Đạt | | | |
-| 14.2.2 | Người đứng sát mép, nửa thân ra ngoài khung | Câu đưa người vào giữa đúng chiều | | | |
-| 14.2.3 | Đứng rất gần, người to hơn khung | Lúc Đạt thì đầu ở giữa khung | | | |
-| 14.2.4 | Người quay lưng | Không có bước mắt; chỉ máy thẳng và trục giữa | | | |
+| 14.2.1 | Đang ở bước mắt, chúc máy quá tay cho mặt ra khỏi mép trên | Câu vẫn "↑ Ngửa/nâng máy lên …", không báo Đạt |d |d | |
+| 14.2.2 | Người đứng sát mép, nửa thân ra ngoài khung | Câu đưa người vào giữa đúng chiều |d | d| |
+| 14.2.3 | Đứng rất gần, người to hơn khung | Lúc Đạt thì đầu ở giữa khung |d |d | |
+| 14.2.4 | Người quay lưng | Không có bước mắt; chỉ máy thẳng và trục giữa |l |l | không bắt được mắt người chính xác, ca khó nếu không thấy mắt căn nhắc lấy đầu hoặc nghiên cứu tìm cách giải quyết |
 
 ### 14.3 Camera trước
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 14.3.1 | Camera trước, bạn lệch trái / phải khung | "Xoay máy qua … để người đứng giữa", cùng chiều camera sau; xoay theo thì bạn tiến về đường sáng | | | |
-| 14.3.2 | Camera trước, mắt lệch đường ngang trên | Câu ngửa / chúc đúng chiều, không tự Đạt | | | |
+| 14.3.1 | Camera trước, bạn lệch trái / phải khung | "Xoay máy qua … để người đứng giữa", cùng chiều camera sau; xoay theo thì bạn tiến về đường sáng |d |d | |
+| 14.3.2 | Camera trước, mắt lệch đường ngang trên | Câu ngửa / chúc đúng chiều, không tự Đạt |d |d | việc chụp theo hướng dẫn này sẽ luôn luôn ra ảnh người lấy vai  như chụp chân dung và gần gần giống lắp đầy khung ( nó có đang đúng với mục đích của bố cục ở giữa khi sử dụng cam trước chưa) |
 
 ### 14.4 Góp ý cho Ở giữa
+
+- Hãy để chấm đích màu đỏ cho nổi bật dễ thấy 
+
+## 15. Lần 7 — Ở giữa: người quay lưng, chấm đích đỏ (2026-11-26)
+
+Chạy lại `npx expo start -c`.
+
+**Đã sửa theo lần 6:**
+
+- **14.2.4, người quay lưng:** không thấy mắt thì app **đoán độ cao mắt từ tai** (khung xương vẫn thấy tai khi người quay lưng). Claude đo trên 2.436 ảnh thấy cả mắt lẫn hai tai: tai thấp hơn mắt trung vị 0,009 chiều cao ảnh; trừ đi thì 90% ảnh lệch dưới 0,027, nhỏ hơn nhiều so với ngưỡng bước mắt 0,07. Thử đoán từ vai thì lệch tới 0,086 nên không dùng. Không thấy cả tai thì vẫn bỏ bước mắt. Bộ ảnh mẫu gần như không có người quay lưng (35 ảnh không thấy mắt), nên chưa đo được trên ảnh quay lưng thật: cần bạn thử.
+- **14.4, chấm đích đỏ:** chấm tròn đỏ viền trắng trên đường sáng, đúng chỗ người / mắt cần tới (đầu mũi tên).
+- **14.3.2, camera trước ra ảnh vai trở lên:** xem trả lời trong tin nhắn; app không đổi.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 15.1 | Người quay lưng, đầu thấp hơn đường ngang trên | Có bước mắt: "↓ Chúc/hạ máy xuống …"; làm theo thì đỉnh tai tới gần đường sáng rồi Đạt | | | |
+| 15.2 | Người quay lưng, đầu cao hơn đường ngang trên | "↑ Ngửa/nâng máy lên …", như trên | | | |
+| 15.3 | Người quay nghiêng / quay lưng xoay qua lại | Bước mắt không nhảy, không tự Đạt | | | |
+| 15.4 | Chấm đích đỏ khi đưa người vào trục giữa | Chấm đỏ nằm trên đường dọc sáng, ngang chỗ người; mũi tên trắng chỉ tới chấm | | | |
+| 15.5 | Chấm đích đỏ ở bước mắt | Chấm đỏ trên đường ngang sáng, thẳng chỗ mắt | | | |
+| 15.6 | Chấm đích đỏ ở 1/3 | Như trên, ở cột trái / phải và đường ngang trên | | | |
+
+### 15.7 Góp ý
 
 -

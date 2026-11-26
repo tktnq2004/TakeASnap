@@ -1,4 +1,4 @@
-import type { PhotoFeatures } from 'composition-critic';
+import { J, type PhotoFeatures } from 'composition-critic';
 
 import {
   type Check,
@@ -123,6 +123,21 @@ describe('measure: tiêu chí theo thứ tự', () => {
       'level',
       'centerAxis',
     ]);
+  });
+
+  it('người quay lưng: không thấy mắt thì đoán độ cao mắt từ tai (mục 14.2.4)', () => {
+    const f = person([0.4, 0.2, 0.6, 1]);
+    const joints = Array.from({ length: 33 }, () => ({ x: 0, y: 0, v: 0 }));
+    joints[J.earL] = { x: 0.47, y: 0.459, v: 0.9 };
+    joints[J.earR] = { x: 0.53, y: 0.459, v: 0.9 };
+    const back = { ...f, joints };
+    const c = checks(measure({ main: 'center' }, back, 0, false)).find(
+      (x) => x.id === 'centerEye',
+    )!;
+    // Mắt đoán ở 0,45: thấp hơn đường trên 0,117 → chúc máy xuống.
+    expect(c.error).toBeCloseTo(0.45 - 1 / 3, 3);
+    expect(c.action).toBe('tiltDown');
+    expect(c.at!.x).toBeCloseTo(0.5);
   });
 
   it('1/3: người to hơn khung, không thấy đầu: không biết người ở đâu → lùi ra', () => {

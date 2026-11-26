@@ -52,6 +52,8 @@ export const color = {
   /** Cùng màu nhấn với các màn khác (B2). */
   camAccent: '#8AB4F8',
   camWarn: '#FACC15',
+  /** Chấm đích của hướng dẫn liên tục: đỏ cho nổi trên khung ngắm (phiếu Phase 5b lần 6, 14.4). */
+  camTarget: '#FF3B30',
   /** Nền viên gợi ý bố cục dưới khung ngắm (design.md §6.15). */
   camHint: 'rgba(5,7,13,0.72)',
   /** Lưới và mốc thước trên khung ngắm. */
@@ -313,12 +315,12 @@ export const cameraUi = {
 export const compositionUi = {
   /** Các dòng nhận xét hiện lần lượt, mỗi dòng sau dòng trước chừng này (ms). */
   noteStagger: 60,
-  /** Vòng chấm đích và chấm giữa. */
-  target: 34,
-  targetDot: 8,
-  /** Các giao điểm 1/3 khi chưa có pose: vòng nhỏ. */
-  point: 14,
-  targetStroke: 2,
+  /**
+   * Chấm đích đỏ của hướng dẫn liên tục: chỗ người / mắt cần tới trên đường sáng (phiếu Phase 5b
+   * lần 6, mục 14.4), viền trắng để thấy trên nền đỏ.
+   */
+  targetDot: 16,
+  targetRing: 2,
   /** Viên gợi ý. */
   hintH: 38,
   /** Tình trạng giữ yên chừng này mới hiện gợi ý (business-flow §6.4). */

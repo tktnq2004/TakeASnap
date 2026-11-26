@@ -79,7 +79,17 @@ function arrowEnd(c: GuideCheck): { x: number; y: number } | null {
   return null;
 }
 
-/** Mũi tên kết quả: người / mắt / chân trời sẽ đi từ đây tới đích sáng. */
+/** Chấm đích đỏ: chỗ trên đường sáng mà người / mắt cần tới (phiếu Phase 5b lần 6, mục 14.4). */
+function TargetDot({ c, width, height }: { c: GuideCheck; width: number; height: number }) {
+  const end = arrowEnd(c);
+  if (!end) return null;
+  const D = compositionUi.targetDot;
+  return (
+    <View style={[styles.target, { left: end.x * width - D / 2, top: end.y * height - D / 2 }]} />
+  );
+}
+
+/** Mũi tên kết quả: người / mắt sẽ đi từ đây tới đích sáng. */
 function ResultArrow({ c, width, height }: { c: GuideCheck; width: number; height: number }) {
   const end = arrowEnd(c);
   if (!c.at || !end) return null;
@@ -161,6 +171,7 @@ function Found({ frame, view }: { frame: Rect; view: GuideView }) {
         <View style={[styles.eye, { left: f.eye.x * W - E / 2, top: f.eye.y * H - E / 2 }]} />
       )}
       {c && !view.state.holding && <ResultArrow c={c} width={W} height={H} />}
+      {c && <TargetDot c={c} width={W} height={H} />}
     </View>
   );
 }
@@ -320,6 +331,15 @@ const styles = StyleSheet.create({
     borderColor: color.camInk,
     borderRadius: radius.sm,
     opacity: 0.7,
+  },
+  target: {
+    position: 'absolute',
+    width: compositionUi.targetDot,
+    height: compositionUi.targetDot,
+    borderRadius: radius.full,
+    backgroundColor: color.camTarget,
+    borderWidth: compositionUi.targetRing,
+    borderColor: color.camInk,
   },
   eye: {
     position: 'absolute',

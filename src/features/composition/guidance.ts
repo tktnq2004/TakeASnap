@@ -248,14 +248,33 @@ function eyeCheck(id: 'thirdsEye' | 'centerEye', f: PhotoFeatures): Check | null
   // khung xương đặt "mắt" ở bàn tay cuối khung): coi như không thấy mắt. Không lấy hẹp hơn: người
   // giơ tay cao thì khung người bắt đầu từ bàn tay, mắt nằm khá thấp trong khung. Lượt đó không đo
   // bước mắt (không suy ra "mắt ra mép trên").
-  if (f.eye) {
-    if (f.eye.y > y0 + EYE_LOW * (y1 - y0)) return null;
-    const dy = 1 / 3 - f.eye.y;
-    return check(id, Math.abs(dy), RULE.eyeBand, tilt(dy), { kind: 'hline', y: 1 / 3 }, f.eye);
+  const eye = f.eye ?? earLevel(f);
+  if (eye) {
+    if (eye.y > y0 + EYE_LOW * (y1 - y0)) return null;
+    const dy = 1 / 3 - eye.y;
+    return check(id, Math.abs(dy), RULE.eyeBand, tilt(dy), { kind: 'hline', y: 1 / 3 }, eye);
   }
   if (y0 > EDGE) return null;
   return check(id, 1 / 3 + RULE.eyeBand, RULE.eyeBand, 'tiltUp', { kind: 'hline', y: 1 / 3 }, null);
 }
+
+/**
+ * Độ cao mắt đoán từ tai khi không thấy mắt (người quay lưng, phiếu Phase 5b lần 6, mục 14.2.4:
+ * "không thấy mắt thì lấy đầu"). Đo trên 2.436 ảnh thấy cả mắt lẫn hai tai: tai thấp hơn mắt
+ * trung vị 0,009 chiều cao ảnh, sau khi trừ đi thì 90% lệch dưới 0,027 (ngưỡng bước mắt 0,07).
+ * Đoán từ vai thì lệch tới 0,086 nên không dùng.
+ */
+function earLevel(f: PhotoFeatures): { x: number; y: number } | null {
+  const j = f.joints;
+  const ears = [j?.[J.earL], j?.[J.earR]].filter((q) => visible(q)).map((q) => q!);
+  if (!ears.length) return null;
+  const x = ears.reduce((s, q) => s + q.x, 0) / ears.length;
+  const y = ears.reduce((s, q) => s + q.y, 0) / ears.length;
+  return { x, y: y - EAR_BELOW_EYE };
+}
+
+/** Tai thấp hơn mắt chừng này (phần chiều cao ảnh, trung vị đo trên bộ ảnh mẫu). */
+const EAR_BELOW_EYE = 0.009;
 
 /** Mắt thấp hơn chừng này chiều cao khung người (tính từ đỉnh) là bắt nhầm. */
 const EYE_LOW = 0.75;
