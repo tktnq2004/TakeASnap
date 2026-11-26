@@ -118,8 +118,9 @@ export const t = {
         tiltDown: 'Chúc máy xuống',
         closer: 'Tiến lại gần',
         back: 'Lùi ra',
-        rotateCw: 'Xoay máy theo chiều kim đồng hồ',
-        rotateCcw: 'Xoay máy ngược chiều kim đồng hồ',
+        // Phiếu Phase 5b lần 5, mục 13.1.1: nói nghiêng trái / phải cho dễ hiểu.
+        rotateCw: 'Nghiêng máy sang phải',
+        rotateCcw: 'Nghiêng máy sang trái',
         find: 'Hướng máy về phía người',
       },
       goals: {

@@ -6,6 +6,7 @@ import {
   type GuideState,
   gaveUpLines,
   guideLines,
+  flipX,
   initialGuide,
   headYaw,
   lockColumn,
@@ -77,13 +78,34 @@ describe('measure: tiêu chí theo thứ tự', () => {
     expect(checks(measure({ main: 'center' }, f, 1, false)).every((c) => c.ok)).toBe(true);
   });
 
-  it('Ở giữa: khung người bị mép phải cắt → theo mắt, không lấy trung bình với khung bị cắt', () => {
-    // Trung bình mắt 0,62 và giữa khung 0,51 là 0,565 (lọt ngưỡng 0,07) nhưng mặt lệch 0,12.
-    const f = person([0.02, 0.2, 1, 0.9], { x: 0.62, y: 1 / 3 });
+  it('Ở giữa theo trọng tâm vùng người, không theo mắt hay giữa khung (mục 13.4)', () => {
+    // Người giơ tay trái, mặt nghiêng: khung 0,2–0,9 (giữa 0,55), mắt 0,6, trọng tâm 0,62.
+    const f = person([0.2, 0.2, 0.9, 1], { x: 0.6, y: 1 / 3 });
+    f.people[0]!.cx = 0.62;
     const c = first(measure({ main: 'center' }, f, 0, false))!;
     expect(c.id).toBe('centerAxis');
     expect(c.error).toBeCloseTo(0.12);
+    // Người cần sang trái → xoay máy qua phải.
     expect(c.action).toBe('panRight');
+    // Không thấy mặt: vẫn đo như vậy (không nhảy).
+    const noFace = { ...f, eye: null };
+    expect(first(measure({ main: 'center' }, noFace, 0, false))!.error).toBeCloseTo(0.12);
+    // Camera trước: trọng tâm lật theo khung.
+    expect(flipX(f).people[0]!.cx).toBeCloseTo(0.38);
+  });
+
+  it('bước chỉ qua khi vào sâu trong ngưỡng; sát mép ngưỡng vẫn nói thao tác', () => {
+    // Mắt lệch 0,06 (ngưỡng 0,07, vào sâu 0,049): đúng theo ngưỡng nhưng vẫn nói chúc máy.
+    const m = measure(
+      { main: 'thirds' },
+      person([0.25, 0.3, 0.42, 0.95], { x: 1 / 3, y: 0.393 }),
+      0,
+      false,
+    );
+    const c = checks(m).find((x) => x.id === 'thirdsEye')!;
+    expect(c.ok).toBe(true);
+    expect(c.id).toBe('thirdsEye');
+    expect(c.action).toBe('tiltDown');
   });
 
   it('mắt ra khỏi mép trên: bước mắt vẫn còn, bảo ngửa máy lên (không báo Đạt)', () => {
@@ -103,9 +125,8 @@ describe('measure: tiêu chí theo thứ tự', () => {
     ]);
   });
 
-  it('người to hơn khung, không thấy đầu: không biết người ở đâu → lùi ra', () => {
+  it('1/3: người to hơn khung, không thấy đầu: không biết người ở đâu → lùi ra', () => {
     const f = person([0, 0.2, 1, 0.9]);
-    expect(first(measure({ main: 'center' }, f, 0, false))!.action).toBe('back');
     expect(first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!.action).toBe('back');
   });
 
@@ -184,7 +205,23 @@ describe('step: luật nhắc và dừng', () => {
     r = run(r.state, fail(0.2, 'thirdsColumn'), 1000);
     expect(r.event).toBe('instruct');
     expect(r.state.current!.id).toBe('thirdsColumn');
-    r = run(r.state, { kind: 'checks', checks: [] }, 2000);
+  });
+
+  it('tiêu chí đang làm không đo được lượt này: giữ, không báo Đạt (mục 13.1.4)', () => {
+    const both = (eye: number | null) =>
+      turn(crit('thirdsColumn', 0), ...(eye == null ? [] : [crit('thirdsEye', eye)]));
+    let r = run(initialGuide(), both(0.2), 0);
+    r = run(r.state, both(0.2), 1000);
+    expect(r.state.current!.id).toBe('thirdsEye');
+    // Mắt không thấy hai lượt liền: bước mắt giữ nguyên, ô bước không đổi.
+    r = run(r.state, both(null), 2000);
+    r = run(r.state, both(null), 3000);
+    expect(r.state.status).toBe('running');
+    expect(r.state.current!.id).toBe('thirdsEye');
+    expect(r.state.steps).toEqual(['thirdsColumn', 'thirdsEye']);
+    // Thấy lại và đúng hai lượt: đạt.
+    r = run(r.state, both(0.01), 4000);
+    r = run(r.state, both(0.01), 5000);
     expect(r.event).toBe('reached');
   });
 

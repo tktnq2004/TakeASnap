@@ -7,7 +7,7 @@
  * gương; đưa / xoay máy qua trái thì người dịch sang phải trên khung, cùng chiều camera sau (phiếu
  * Phase 5b lần 4, mục 12.1.5).
  */
-import { J, type PhotoFeatures, RULE, visible } from 'composition-critic';
+import { centerOf, J, type PhotoFeatures, RULE, visible } from 'composition-critic';
 
 import { t } from '@/ui/strings';
 import { compositionUi } from '@/ui/tokens';
@@ -93,7 +93,10 @@ const check = (
   at: { x: number; y: number } | null = null,
 ): Check => {
   const ok = error <= band;
-  return { id, ok, error, band, action: ok ? null : action, target, at };
+  // Lệch còn gần mép ngưỡng: vẫn nói thao tác, vì bước chỉ qua khi vào sâu trong ngưỡng
+  // (`enterOf`).
+  const quiet = error <= band * enterOf(id);
+  return { id, ok, error, band, action: quiet ? null : action, target, at };
 };
 
 /** Cột 1/3 cho người chính: chừa chỗ phía người nhìn, nhìn thẳng thì cột gần nhất. */
@@ -207,21 +210,14 @@ function seenX(f: PhotoFeatures): number | null {
 /** Khung người cách mép khung ngắm dưới chừng này là chạm mép. */
 const EDGE = 0.01;
 
-/** Khung người chạm đúng một mép trái / phải (người đang ra khỏi khung theo chiều ngang). */
-function cutSide(f: PhotoFeatures): boolean {
-  const [x0, , x1] = f.people[f.main]!.box;
-  return x0 <= EDGE !== x1 >= 1 - EDGE;
-}
-
 /**
- * Chỗ ngang của người cho Ở giữa: trung bình giữa hai mắt và giữa khung người (người nghiêng đầu
- * vẫn cân). Khung người bị mép cắt hoặc không thấy mắt: theo `personX`, vì giữa khung người lúc
- * đó lệch vào trong (chạy thử Ở giữa trên ảnh thật, người chụp làm ngược: báo Đạt khi người đã ra
- * sát mép).
+ * Chỗ ngang của người cho Ở giữa: trọng tâm vùng người (`centerOf`, như nhận xét sau khi chụp).
+ * Phiếu Phase 5b lần 5, mục 13.4: với người không đối xứng (giơ tay, tóc, váy một bên, mặt nghiêng)
+ * trung bình mắt + giữa khung nhảy giữa các lượt (bộ dò mặt lúc thấy lúc không, tóc chạm mép làm
+ * tưởng người đang ra khỏi khung) nên câu đổi trái / phải liên tục. Vùng người ổn định hơn nhiều.
  */
-function centerX(f: PhotoFeatures): number | null {
-  const [x0, , x1] = f.people[f.main]!.box;
-  return f.eye && !cutSide(f) ? (f.eye.x + (x0 + x1) / 2) / 2 : seenX(f);
+function centerX(f: PhotoFeatures): number {
+  return centerOf(f.people[f.main]!);
 }
 
 /**
@@ -247,14 +243,22 @@ function sideCheck(
  * quay lưng thì bỏ bước như trước.
  */
 function eyeCheck(id: 'thirdsEye' | 'centerEye', f: PhotoFeatures): Check | null {
+  const [, y0, , y1] = f.people[f.main]!.box;
+  // Mắt ở phần dưới khung người là bắt nhầm (chạy thử trên ảnh người dùng gửi, phiếu Phase 5b lần 5:
+  // khung xương đặt "mắt" ở bàn tay cuối khung): coi như không thấy mắt. Không lấy hẹp hơn: người
+  // giơ tay cao thì khung người bắt đầu từ bàn tay, mắt nằm khá thấp trong khung. Lượt đó không đo
+  // bước mắt (không suy ra "mắt ra mép trên").
   if (f.eye) {
+    if (f.eye.y > y0 + EYE_LOW * (y1 - y0)) return null;
     const dy = 1 / 3 - f.eye.y;
     return check(id, Math.abs(dy), RULE.eyeBand, tilt(dy), { kind: 'hline', y: 1 / 3 }, f.eye);
   }
-  const [, y0] = f.people[f.main]!.box;
   if (y0 > EDGE) return null;
   return check(id, 1 / 3 + RULE.eyeBand, RULE.eyeBand, 'tiltUp', { kind: 'hline', y: 1 / 3 }, null);
 }
+
+/** Mắt thấp hơn chừng này chiều cao khung người (tính từ đỉnh) là bắt nhầm. */
+const EYE_LOW = 0.75;
 
 /** Cắt ngang khớp: mép dưới qua gối / cổ chân, mép trái phải qua khuỷu / cổ tay → lùi ra. */
 function jointCut(f: PhotoFeatures): Check {
@@ -385,6 +389,12 @@ export const GUIDE = {
   leanTurn: 0.07,
   /** Tiêu chí đã đạt chỉ tính là vỡ khi lệch quá ngưỡng × chừng này (rung tay không làm vỡ). */
   holdBand: 1.5,
+  /**
+   * Tiêu chí chưa đạt chỉ tính là đúng khi lệch dưới ngưỡng × chừng này (phiếu Phase 5b lần 5, mục
+   * 13.1.4–13.1.5: mắt nằm sát ngưỡng thì rung tay một lượt đã cho qua, vừa nói chưa kịp làm đã
+   * báo Đạt).
+   */
+  enterBand: 0.8,
   /** Mất người / mất đường chừng này lượt liền mới tính là mất (một lượt dò hụt thì bỏ qua). */
   lostTurns: 2,
 } as const;
@@ -443,6 +453,50 @@ const MISSING = {
   noGroup: ['group', 'person'],
 } as const;
 
+/**
+ * Phần ngưỡng một tiêu chí chưa đạt phải vào tới mới tính là đúng: `GUIDE.enterBand` với tiêu chí
+ * đo trên ảnh (rung số giữa các lượt); máy thẳng đọc cảm biến, không rung, dùng cả ngưỡng (chạy thử:
+ * xoay nhanh thì quá tay qua lại quanh ngưỡng hẹp, kẹt ở bước máy thẳng).
+ */
+function enterOf(id: CriterionId): number {
+  return id === 'level' ? 1 : GUIDE.enterBand;
+}
+
+/** Thứ tự tiêu chí trong một lượt đo (`measure` luôn đo theo thứ tự này). */
+const ORDER: CriterionId[] = [
+  'level',
+  'thirdsColumn',
+  'thirdsEye',
+  'noJointCut',
+  'centerAxis',
+  'centerEye',
+  'fillSize',
+  'fillHead',
+  'groupInFrame',
+  'groupCenter',
+  'person',
+];
+
+/**
+ * Tiêu chí lượt trước có mà lượt này không đo được (mắt lúc thấy lúc không: mặt nghiêng, người
+ * đứng xa): đã đạt thì giữ là đạt; đang làm thì giữ kết quả cũ, chưa đạt (phiếu Phase 5b lần 5,
+ * mục 13.1.4: bước mắt biến mất nên app báo Đạt khi chưa kịp làm). Chưa tới lượt thì bỏ như trước.
+ */
+function fillMissing(s: GuideState, checks: Check[]): Check[] {
+  const have = new Set(checks.map((c) => c.id));
+  const extra: Check[] = [];
+  for (const id of s.steps) {
+    if (have.has(id)) continue;
+    if (s.passed.includes(id)) {
+      extra.push({ id, ok: true, error: 0, band: 0, action: null, target: null, at: null });
+    } else if (s.current?.id === id) {
+      extra.push({ ...s.current, ok: false });
+    }
+  }
+  if (!extra.length) return checks;
+  return [...checks, ...extra].sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
+}
+
 /** Một lượt: cập nhật trạng thái theo kết quả đo lúc `now` (ms). */
 export function step(
   s: GuideState,
@@ -453,7 +507,7 @@ export function step(
 
   let checks: Check[];
   let lost = 0;
-  if (m.kind === 'checks') checks = m.checks;
+  if (m.kind === 'checks') checks = fillMissing(s, m.checks);
   else {
     const [missing, id] = MISSING[m.kind];
     // Lượt đầu: cảnh không áp được thì dừng ngay.
@@ -480,7 +534,8 @@ export function step(
 
   // Đúng lượt này: trong ngưỡng, hoặc đã đạt trước đó và chưa lệch quá ngưỡng × holdBand.
   const was = new Set(s.passed);
-  const good = (c: Check) => c.ok || (was.has(c.id) && c.error <= c.band * GUIDE.holdBand);
+  const good = (c: Check) =>
+    was.has(c.id) ? c.error <= c.band * GUIDE.holdBand : c.ok && c.error <= c.band * enterOf(c.id);
   const okRun: GuideState['okRun'] = {};
   for (const c of checks) okRun[c.id] = good(c) ? (s.okRun[c.id] ?? 0) + 1 : 0;
   const confirmed = (c: Check) =>
@@ -647,7 +702,11 @@ export function flipX(f: PhotoFeatures): PhotoFeatures {
   const fx = (x: number) => 1 - x;
   return {
     ...f,
-    people: f.people.map((p) => ({ ...p, box: [fx(p.box[2]), p.box[1], fx(p.box[0]), p.box[3]] })),
+    people: f.people.map((p) => ({
+      ...p,
+      box: [fx(p.box[2]), p.box[1], fx(p.box[0]), p.box[3]],
+      ...(p.cx == null ? {} : { cx: fx(p.cx) }),
+    })),
     eye: f.eye ? { ...f.eye, x: fx(f.eye.x) } : null,
     joints: f.joints ? f.joints.map((j) => ({ ...j, x: fx(j.x) })) : null,
     facing: f.facing === 'left' ? 'right' : f.facing === 'right' ? 'left' : null,

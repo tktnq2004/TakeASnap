@@ -389,12 +389,12 @@ Chỉ thử **Ở giữa**. Bố cục phụ (Đường chân trời, Đường 
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 13.1.1 | Chọn Ở giữa, cầm máy nghiêng chừng 10° | "Bước 1/3"; "Xoay máy theo chiều kim đồng hồ cho máy thẳng" (hoặc ngược chiều); xoay thẳng thì "Đạt: máy thẳng" rồi sang bước sau | | | |
-| 13.1.2 | Người đứng lệch trái khung | Đường dọc giữa sáng; "← Đi/xoay máy qua trái để người đứng giữa"; làm theo thì người tiến về đường sáng | | | |
-| 13.1.3 | Người đứng lệch phải khung | "→ Đi/xoay máy qua phải để người đứng giữa" | | | |
-| 13.1.4 | Mắt người thấp hơn đường ngang trên | Đường ngang trên sáng; "↓ Chúc/hạ máy xuống để mắt người trên cột trên" | | | |
-| 13.1.5 | Mắt người cao hơn đường ngang trên | "↑ Ngửa/nâng máy lên để mắt người trên cột trên" | | | |
-| 13.1.6 | Làm theo hết các bước | Viên "Đạt"; chụp, nhận xét sau khi chụp nói người ở đúng trục giữa | | | |
+| 13.1.1 | Chọn Ở giữa, cầm máy nghiêng chừng 10° | "Bước 1/3"; "Xoay máy theo chiều kim đồng hồ cho máy thẳng" (hoặc ngược chiều); xoay thẳng thì "Đạt: máy thẳng" rồi sang bước sau |d |d | nghiêng trái hoặc nghiêng phải cho dễ hiểu |
+| 13.1.2 | Người đứng lệch trái khung | Đường dọc giữa sáng; "← Đi/xoay máy qua trái để người đứng giữa"; làm theo thì người tiến về đường sáng |d |d | |
+| 13.1.3 | Người đứng lệch phải khung | "→ Đi/xoay máy qua phải để người đứng giữa" | d| d| |
+| 13.1.4 | Mắt người thấp hơn đường ngang trên | Đường ngang trên sáng; "↓ Chúc/hạ máy xuống để mắt người trên cột trên" |l |l | chưa nhạy, vừa thông báo chưa kịp di chuyển thì tự báo đạt |
+| 13.1.5 | Mắt người cao hơn đường ngang trên | "↑ Ngửa/nâng máy lên để mắt người trên cột trên" |l |l | như trên |
+| 13.1.6 | Làm theo hết các bước | Viên "Đạt"; chụp, nhận xét sau khi chụp nói người ở đúng trục giữa |d |d | |
 
 ### 13.2 Ca khó (sau khi chạy thử)
 
@@ -415,5 +415,49 @@ Chỉ thử **Ở giữa**. Bố cục phụ (Đường chân trời, Đường 
 | 13.3.2 | Camera trước, mắt lệch đường ngang trên | Câu ngửa / chúc đúng chiều | | | |
 
 ### 13.4 Góp ý cho Ở giữa
+
+- Vãn còn quá lỗi với ảnh tôi test, đã gửi kèm, không tính được ở giữa như thế nào khi người không dối xứng, nền bị gợi ý xoay trái xoay phải liên tục mà không tìm được điểm đạt.
+
+## 14. Lần 6 — Ở giữa sau khi sửa (2026-11-26)
+
+Chỉ thử **Ở giữa**. Chạy lại `npx expo start -c` (app dùng composition-critic v0.8.0 nên cần cài lại gói: `npm install` trước). Các dòng 13.2, 13.3 lần trước còn trống: gộp vào dưới đây.
+
+**Đã sửa theo lần 5:**
+
+- **13.4, trục giữa nhảy trái / phải với người không đối xứng:** Claude chạy model thật (cùng trang MediaPipe với app, ảnh 512 px như lượt chụp lặng) trên 28 khung cắt dọc 3:4 của ảnh bạn gửi. Thấy hai nguyên nhân: mặt nghiêng nên bộ dò mặt lúc thấy lúc không (có khung còn bắt nhầm "mắt" ở bàn tay cuối khung), và khi không thấy mặt, tóc / váy chạm mép khung làm app tưởng người đang ra khỏi khung, độ lệch nhảy từ 0,16 lên 0,5. Giờ chỗ người tính theo **trọng tâm phần trên vùng người** (đầu, vai, ngực, lấy từ mặt nạ tách người), không cần thấy mặt. Trên 28 khung đó độ lệch giảm đều khi dời máy (0,19 → 0,17 → … → 0,01) và thấp nhất đúng lúc mặt ở giữa. Nhận xét sau khi chụp dùng cùng cách tính.
+- **13.1.4–13.1.5, bước mắt tự Đạt khi chưa kịp làm:** hai nguyên nhân. Mắt lúc thấy lúc không thì bước mắt biến mất, app coi như xong: giờ bước đang làm giữ kết quả cũ. Mắt nằm sát ngưỡng thì rung tay một lượt đã lọt: giờ phải vào sâu trong ngưỡng (0,7) mới tính là đúng, còn ở mép ngưỡng thì vẫn nói thao tác. Áp dụng cho mọi bố cục (cả 1/3), trừ máy thẳng.
+- **13.1.1:** "Nghiêng máy sang trái cho máy thẳng" / "Nghiêng máy sang phải cho máy thẳng" thay cho chiều kim đồng hồ.
+
+**Chạy thử trên máy tính sau khi sửa** (cùng cách mục 12.5, 2.202 ảnh, camera sau và trước): người chụp ảo làm theo (tay yên, rung tay, quá tay) tới Đạt ở mọi lần chạy cả 1/3 lẫn Ở giữa, không lần nào câu đổi chiều hay đổi cột; Ở giữa trung vị 6 s, 1/3 trung vị 7–8 s (lâu hơn trước 2–3 s vì phải vào sâu trong ngưỡng). Bộ ảnh này chưa có mặt nạ người nên phần trọng tâm chỉ thử được trên ảnh bạn gửi.
+
+### 14.1 Các bước (camera sau)
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 14.1.1 | Chọn Ở giữa, cầm máy nghiêng chừng 10° | "Nghiêng máy sang trái / phải cho máy thẳng" đúng chiều; thẳng thì "Đạt: máy thẳng" | | | |
+| 14.1.2 | Thử lại với ảnh bạn gửi lần 5 (người giơ tay, mặt nghiêng) | Câu chỉ một chiều, dời theo thì tới "Đạt", không đổi trái / phải liên tục | | | |
+| 14.1.3 | Người giơ tay một bên hoặc váy / tóc xoè một bên, người thật | Như trên; lúc Đạt thì đầu và thân trông ở giữa | | | |
+| 14.1.4 | Mắt người thấp hơn đường ngang trên rõ | "↓ Chúc/hạ máy xuống …"; **không** tự Đạt khi chưa di chuyển; đưa mắt tới đường sáng thì Đạt | | | |
+| 14.1.5 | Mắt người cao hơn đường ngang trên rõ | "↑ Ngửa/nâng máy lên …", như trên | | | |
+| 14.1.6 | Mắt người chỉ lệch đường sáng một chút | Vẫn nói thao tác tới khi mắt nằm gần hẳn đường sáng | | | |
+| 14.1.7 | Người quay mặt nghiêng (thấy một bên mặt) | Bước mắt không tự biến mất rồi báo Đạt | | | |
+
+### 14.2 Ca khó (lần 5 còn trống)
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 14.2.1 | Đang ở bước mắt, chúc máy quá tay cho mặt ra khỏi mép trên | Câu vẫn "↑ Ngửa/nâng máy lên …", không báo Đạt | | | |
+| 14.2.2 | Người đứng sát mép, nửa thân ra ngoài khung | Câu đưa người vào giữa đúng chiều | | | |
+| 14.2.3 | Đứng rất gần, người to hơn khung | Lúc Đạt thì đầu ở giữa khung | | | |
+| 14.2.4 | Người quay lưng | Không có bước mắt; chỉ máy thẳng và trục giữa | | | |
+
+### 14.3 Camera trước
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 14.3.1 | Camera trước, bạn lệch trái / phải khung | "Xoay máy qua … để người đứng giữa", cùng chiều camera sau; xoay theo thì bạn tiến về đường sáng | | | |
+| 14.3.2 | Camera trước, mắt lệch đường ngang trên | Câu ngửa / chúc đúng chiều, không tự Đạt | | | |
+
+### 14.4 Góp ý cho Ở giữa
 
 -

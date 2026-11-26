@@ -592,7 +592,8 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 - [x] Thử lại 1/3 (mục 12.5): camera trước đạt, quá tay ra sát mép đạt; camera trước chỉ nói "Xoay máy qua …" (đưa máy thì đổi nền)
 - [x] Claude chạy thử Ở giữa trên 2.202 ảnh một người (cùng cách 1/3, thêm máy nghiêng): sửa ba chỗ báo Đạt sai (khung người bị mép cắt kéo chỗ người vào trong; mắt ra khỏi mép trên thì bước mắt biến mất; người to hơn khung không thấy đầu), dùng chung cho 1/3
 - [x] Bỏ bố cục phụ (2026-11-26, người dùng chốt: tiêu chí không tốt thì bỏ hẳn, không làm tiếp): Đường chân trời, Đường dẫn ra khỏi Camera (bảng Bố cục, hàng Mở thêm, hướng dẫn, Kiểm tra bố cục, nhận xét sau khi chụp), bỏ bộ dò đường trong app, bộ tìm trời và gói `sky` (máy cũ tự xóa khi mở app); thẻ học chân trời / đường dẫn giữ, không có nút Chụp thử
-- [ ] Thử từng bố cục một (phiếu lần 5: Ở giữa; rồi Lấp đầy, Nhóm)
+- [x] Phiếu lần 5 (Ở giữa): trục giữa nhảy trái / phải với người không đối xứng, bước mắt tự Đạt. Sửa: trục giữa theo trọng tâm phần trên vùng người (composition-critic v0.8.0, nhận xét sau khi chụp dùng chung); bước chỉ qua khi vào sâu 0,7 ngưỡng; tiêu chí đang làm không đo được thì giữ; bỏ mắt bắt nhầm; máy thẳng nói "Nghiêng máy sang trái / phải". Claude chạy model thật trên 28 khung cắt ảnh người dùng gửi: độ lệch giảm đều khi dời máy
+- [ ] Thử từng bố cục một (phiếu lần 6: Ở giữa sau khi sửa; rồi Lấp đầy, Nhóm)
 - [ ] Đo thời gian mỗi lượt, độ nóng, pin trên iPhone, Android; phiếu `phase5b-test.md`
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
