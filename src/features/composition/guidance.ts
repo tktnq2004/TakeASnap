@@ -25,10 +25,8 @@ export const isGuidedMain = (t: TechniqueId | null): t is GuidedMain =>
 export type CriterionId =
   | 'level'
   | 'thirdsColumn'
-  | 'thirdsEye'
   | 'noJointCut'
   | 'centerAxis'
-  | 'centerEye'
   | 'fillSize'
   | 'fillHead'
   | 'groupInFrame'
@@ -81,8 +79,6 @@ const pan = (dx: number): Action =>
   // dx > 0: người cần dịch sang phải trên khung → đi / xoay máy sang trái. Camera trước cũng vậy
   // (phiếu Phase 5b lần 4, mục 12.1.5: khung soi gương, đưa máy qua trái thì người dịch sang phải).
   dx > 0 ? 'panLeft' : 'panRight';
-/** dy > 0: vật cần dịch xuống trên khung → ngửa máy lên. */
-const tilt = (dy: number): Action => (dy > 0 ? 'tiltUp' : 'tiltDown');
 
 const check = (
   id: CriterionId,
@@ -236,77 +232,6 @@ function sideCheck(
   return check(id, Math.abs(x - at), band, pan(x - at), target, { x: at, y: personAt(f).y });
 }
 
-/**
- * Mắt lên đường 1/3 trên. Không thấy mắt mà khung người chạm mép trên: mắt đã ra khỏi khung phía
- * trên (ngửa / chúc máy quá tay), bước mắt vẫn còn và bảo ngửa máy lên, không bỏ bước (chạy thử
- * trên ảnh thật: bước mắt biến mất nên báo Đạt khi mắt đã ra khỏi khung). Không thấy mắt vì người
- * quay lưng thì bỏ bước như trước.
- */
-function eyeCheck(id: 'thirdsEye' | 'centerEye', f: PhotoFeatures): Check | null {
-  const [, y0, , y1] = f.people[f.main]!.box;
-  // Mắt ở phần dưới khung người là bắt nhầm (chạy thử trên ảnh người dùng gửi, phiếu Phase 5b lần 5:
-  // khung xương đặt "mắt" ở bàn tay cuối khung): coi như không thấy mắt. Không lấy hẹp hơn: người
-  // giơ tay cao thì khung người bắt đầu từ bàn tay, mắt nằm khá thấp trong khung. Lượt đó không đo
-  // bước mắt (không suy ra "mắt ra mép trên").
-  const eye = eyeLevel(f);
-  if (eye) {
-    if (eye.y > y0 + EYE_LOW * (y1 - y0)) return null;
-    const dy = 1 / 3 - eye.y;
-    return check(id, Math.abs(dy), RULE.eyeBand, tilt(dy), { kind: 'hline', y: 1 / 3 }, eye);
-  }
-  if (y0 > EDGE) return null;
-  return check(id, 1 / 3 + RULE.eyeBand, RULE.eyeBand, 'tiltUp', { kind: 'hline', y: 1 / 3 }, null);
-}
-
-/**
- * Chỗ mắt của người chính cho bước mắt.
- * - Bộ dò mặt thấy mặt: mắt đó (tin được).
- * - Không thấy mặt (người quay lưng, đứng xa): mắt / tai của khung xương chỉ là đoán, nhìn từ sau
- *   lưng còn lấy nhầm bàn tay dang ra (chạy thử trên ảnh người dùng gửi, phiếu Phase 5b lần 7).
- *   Lấy **đầu** trên mặt nạ người làm mốc (`PersonBox.headY`, composition-critic v0.9.0: lệch mắt
- *   thật trung vị 0,019, 80% dưới 0,061 khung); mắt / tai của khung xương nằm gần mốc đó thì dùng
- *   cho chính xác hơn, xa thì bỏ.
- * - Dữ liệu cũ không có mốc đầu: như trước (mắt, rồi tai).
- */
-function eyeLevel(f: PhotoFeatures): { x: number; y: number } | null {
-  const p = f.people[f.main]!;
-  const guesses = [f.eye, earLevel(f)].filter((g) => g != null);
-  if (f.eye && f.faceSeen !== false) return f.eye;
-  if (p.headY == null) return guesses[0] ?? null;
-  const near = guesses.find((g) => g.y - p.headY! >= -HEAD_ABOVE && g.y - p.headY! <= HEAD_AGREE);
-  return near ?? { x: centerOf(p), y: p.headY };
-}
-
-/**
- * Mắt / tai của khung xương thấp hơn mốc đầu quá `HEAD_AGREE` hay cao hơn quá `HEAD_ABOVE` (phần
- * chiều cao khung) là bắt nhầm. Lệch về phía trên được nhiều hơn: mốc đầu hay đoán thấp khi tóc
- * xoã / tay giơ sát đầu làm đầu rộng ra (ảnh người dùng gửi lần 5: mốc đầu 0,30, mắt thật 0,21),
- * còn khung xương bắt nhầm bàn tay thì luôn nằm dưới đầu (ảnh lần 7).
- */
-const HEAD_AGREE = 0.05;
-const HEAD_ABOVE = 0.12;
-
-/**
- * Độ cao mắt đoán từ tai khi không thấy mắt (người quay lưng, phiếu Phase 5b lần 6, mục 14.2.4:
- * "không thấy mắt thì lấy đầu"). Đo trên 2.436 ảnh thấy cả mắt lẫn hai tai: tai thấp hơn mắt
- * trung vị 0,009 chiều cao ảnh, sau khi trừ đi thì 90% lệch dưới 0,027 (ngưỡng bước mắt 0,07).
- * Đoán từ vai thì lệch tới 0,086 nên không dùng.
- */
-function earLevel(f: PhotoFeatures): { x: number; y: number } | null {
-  const j = f.joints;
-  const ears = [j?.[J.earL], j?.[J.earR]].filter((q) => visible(q)).map((q) => q!);
-  if (!ears.length) return null;
-  const x = ears.reduce((s, q) => s + q.x, 0) / ears.length;
-  const y = ears.reduce((s, q) => s + q.y, 0) / ears.length;
-  return { x, y: y - EAR_BELOW_EYE };
-}
-
-/** Tai thấp hơn mắt chừng này (phần chiều cao ảnh, trung vị đo trên bộ ảnh mẫu). */
-const EAR_BELOW_EYE = 0.009;
-
-/** Mắt thấp hơn chừng này chiều cao khung người (tính từ đỉnh) là bắt nhầm. */
-const EYE_LOW = 0.75;
-
 /** Cắt ngang khớp: mép dưới qua gối / cổ chân, mép trái phải qua khuỷu / cổ tay → lùi ra. */
 function jointCut(f: PhotoFeatures): Check {
   const j = f.joints;
@@ -347,17 +272,13 @@ function mainChecks(
   switch (m) {
     case 'thirds': {
       const c = col ?? thirdsColumn(f, personX(f));
-      const out = [sideCheck('thirdsColumn', f, seenX(f), c, RULE.verticalBand)];
-      const eye = eyeCheck('thirdsEye', f);
-      if (eye) out.push(eye);
-      out.push(jointCut(f));
-      return out;
+      // Chỉ tiêu chí cốt lõi (phiếu Phase 5b lần 7, mục 15.7): người trên cột, không cắt khớp. Mắt
+      // ở đâu tuỳ cỡ cảnh (chụp cận mắt quanh đường trên; toàn thân, người ngồi thì thấp hơn).
+      return [sideCheck('thirdsColumn', f, seenX(f), c, RULE.verticalBand), jointCut(f)];
     }
     case 'center': {
-      const out = [sideCheck('centerAxis', f, centerX(f), 0.5, RULE.centerBand)];
-      const eye = eyeCheck('centerEye', f);
-      if (eye) out.push(eye);
-      return out;
+      // Máy thẳng (ở `measure`) và trục giữa chia đôi người: hai bên cân (mục 15.7).
+      return [sideCheck('centerAxis', f, centerX(f), 0.5, RULE.centerBand)];
     }
     case 'fill': {
       const short = Math.min(RULE.fillHeight - (y1 - y0), RULE.fillArea - p.area);
@@ -513,10 +434,8 @@ function enterOf(id: CriterionId): number {
 const ORDER: CriterionId[] = [
   'level',
   'thirdsColumn',
-  'thirdsEye',
   'noJointCut',
   'centerAxis',
-  'centerEye',
   'fillSize',
   'fillHead',
   'groupInFrame',
@@ -693,8 +612,6 @@ const ACTION_DIR: Partial<Record<Action, Dir>> = {
 
 /** Đưa người / nhóm sang ngang: xoay máy hay người chụp bước ngang đều được. */
 const SIDEWAYS: CriterionId[] = ['thirdsColumn', 'centerAxis', 'groupCenter'];
-/** Đưa mắt lên / xuống: chúc / ngửa máy hay hạ / nâng máy đều được (vật gần dịch ngược chiều máy). */
-const EYE: CriterionId[] = ['thirdsEye', 'centerEye'];
 
 /** Kết quả theo tên đường đích (phiếu Phase 5b lần 3, mục 11.5: nói rõ cột trái / phải / trên / dưới). */
 function goalOf(c: Check): string {
@@ -702,7 +619,6 @@ function goalOf(c: Check): string {
   if (c.id === 'centerAxis') return G.to.center;
   if (c.id === 'groupCenter') return G.to.group;
   if (tg?.kind === 'vline') return tg.x < 0.5 ? G.to.left : G.to.right;
-  if (tg?.kind === 'hline') return tg.y < 0.5 ? G.to.eyeUpper : G.to.eyeLower;
   return G.goals[c.id];
 }
 
@@ -710,7 +626,7 @@ function goalOf(c: Check): string {
  * Viên hướng dẫn: **một dòng**, chỉ bảo người chụp (phiếu Phase 5b lần 3, mục 11.2.1, 11.2.8,
  * 11.5): gộp hai cách làm cùng chiều của người chụp, một mũi tên, rồi tên đường đích: "Đi/xoay máy
  * qua trái để người đứng cột phải" (camera sau: bước sang trái hay xoay máy sang trái thì người trên
- * khung đều dịch sang phải), "Chúc/hạ máy xuống để mắt người trên cột trên". Camera trước chỉ nói
+ * khung đều dịch sang phải). Camera trước chỉ nói
  * xoay máy (bước ngang thì người cầm máy đi theo máy). Tiêu chí khác: một câu "hành động + kết quả".
  */
 export function guideLines(c: Check, front = false): GuideLine[] {
@@ -718,9 +634,6 @@ export function guideLines(c: Check, front = false): GuideLine[] {
   const dir = ACTION_DIR[c.action] ?? null;
   if (SIDEWAYS.includes(c.id) && (dir === 'left' || dir === 'right')) {
     return [{ text: `${front ? G.turn[dir] : G.move[dir]} ${goalOf(c)}`, dir }];
-  }
-  if (EYE.includes(c.id) && (dir === 'up' || dir === 'down')) {
-    return [{ text: `${G.tilt[dir]} ${goalOf(c)}`, dir }];
   }
   return [{ text: `${G.actions[c.action]} ${G.goals[c.id]}`, dir }];
 }

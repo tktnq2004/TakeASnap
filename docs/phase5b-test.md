@@ -476,15 +476,15 @@ Cài lại gói rồi chạy (`npm install`, `npx expo start -c`): app dùng com
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 15.1 | Người quay lưng, đầu thấp hơn đường ngang trên | Có bước mắt: "↓ Chúc/hạ máy xuống …"; làm theo thì đỉnh tai tới gần đường sáng rồi Đạt | | | |
-| 15.2 | Người quay lưng, đầu cao hơn đường ngang trên | "↑ Ngửa/nâng máy lên …", như trên | | | |
-| 15.3 | Người quay nghiêng / quay lưng xoay qua lại | Bước mắt không nhảy, không tự Đạt | | | |
-| 15.3b | Người quay lưng dang hai tay (như ảnh thác nước) | Câu ngửa / chúc theo đầu, không theo tay; không đổi chiều qua lại | | | |
-| 15.3c | Người mặt nghiêng, tóc xoã dày, giơ tay sát đầu (như ảnh lần 5) | Bước mắt không nhảy; ghi lại nếu Đạt khi mắt còn lệch đường sáng rõ | | | |
-| 15.4 | Chấm đích đỏ khi đưa người vào trục giữa | Chấm đỏ nằm trên đường dọc sáng, ngang chỗ người; mũi tên trắng chỉ tới chấm | | | |
-| 15.5 | Chấm đích đỏ ở bước mắt | Chấm đỏ trên đường ngang sáng, thẳng chỗ mắt | | | |
-| 15.6 | Chấm đích đỏ ở 1/3 | Như trên, ở cột trái / phải và đường ngang trên | | | |
+| 15.1 | Người quay lưng, đầu thấp hơn đường ngang trên | Có bước mắt: "↓ Chúc/hạ máy xuống …"; làm theo thì đỉnh tai tới gần đường sáng rồi Đạt |d |d | |
+| 15.2 | Người quay lưng, đầu cao hơn đường ngang trên | "↑ Ngửa/nâng máy lên …", như trên |d |d | |
+| 15.3 | Người quay nghiêng / quay lưng xoay qua lại | Bước mắt không nhảy, không tự Đạt |d |d | |
+| 15.3b | Người quay lưng dang hai tay (như ảnh thác nước) | Câu ngửa / chúc theo đầu, không theo tay; không đổi chiều qua lại |d |d | |
+| 15.3c | Người mặt nghiêng, tóc xoã dày, giơ tay sát đầu (như ảnh lần 5) | Bước mắt không nhảy; ghi lại nếu Đạt khi mắt còn lệch đường sáng rõ |d |d | |
+| 15.4 | Chấm đích đỏ khi đưa người vào trục giữa | Chấm đỏ nằm trên đường dọc sáng, ngang chỗ người; mũi tên trắng chỉ tới chấm |d |d | |
+| 15.5 | Chấm đích đỏ ở bước mắt | Chấm đỏ trên đường ngang sáng, thẳng chỗ mắt |d |d | |
+| 15.6 | Chấm đích đỏ ở 1/3 | Như trên, ở cột trái / phải và đường ngang trên |d |d | |
 
 ### 15.7 Góp ý
-
--
+- Có lẻ chụp ở giữa chỉ cần máy thẳng và trục giữa chia đôi đúng khung người để cho bức ảnh cân bằng 2 bên là được, còn mắt ở đâu còn tùy thuộc vào người dùng muốn lấy bao nhiêu background ở phía sau, vì có những ảnh (kể cả 1/3) đầu người có thể nằm dưới lưới trên ( không quá xa), và trường hợp khác nữa là người ngồi thì đầu có thể nằm xung quanh lưới dưới. Vì vậy đúng những tiêu chí quan trọng là được. Suy nghĩ về vấn đè này, đọc lại các tài liệu vè chụp ảnh, vì nó liên quan gần như nhiều bố cục và các thẻ học
+- Chấm và mũi tên luôn nhảy không đều và không đúng. Tôi biết đây là hạn chế của việc phải chụp ảnh liên tục để xét và làm điểm đích - mũi tên -> nhưng nó cũng tạo ra cảm giác app rất dở, không thật sự làm được tính năng này cần nghĩ ra cách để hướng dẫn tốt, mượt mà hơn, có thể xử lí ở fe càng tốt vì nó sẽ realtime và người dùng dễ canh chỉnh hơn

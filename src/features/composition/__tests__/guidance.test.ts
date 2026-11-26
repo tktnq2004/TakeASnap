@@ -1,4 +1,4 @@
-import { J, type PhotoFeatures } from 'composition-critic';
+import type { PhotoFeatures } from 'composition-critic';
 
 import {
   type Check,
@@ -35,10 +35,10 @@ const checks = (m: Measure): Check[] => (m.kind === 'checks' ? m.checks : []);
 const first = (m: Measure) => checks(m).find((c) => !c.ok) ?? null;
 
 describe('measure: tiêu chí theo thứ tự', () => {
-  it('1/3: cột trước, rồi mắt; người ở giữa nhìn sang phải → cột trái, xoay máy sang phải', () => {
+  it('1/3: chỉ cột và cắt khớp; người ở giữa nhìn sang phải → cột trái, xoay máy sang phải', () => {
     const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.45 }, 'right');
     const m = measure({ main: 'thirds' }, f, 0, false);
-    expect(checks(m).map((c) => c.id)).toEqual(['thirdsColumn', 'thirdsEye', 'noJointCut']);
+    expect(checks(m).map((c) => c.id)).toEqual(['thirdsColumn', 'noJointCut']);
     const c = first(m)!;
     expect(c.id).toBe('thirdsColumn');
     // Người cần dịch sang trái trên khung → xoay máy sang phải.
@@ -60,22 +60,17 @@ describe('measure: tiêu chí theo thứ tự', () => {
     expect(first(measure({ main: 'thirds' }, f, 0, true))!.action).toBe('panRight');
   });
 
-  it('1/3: cột đạt thì sang mắt; mắt thấp → chúc máy xuống', () => {
-    const f = person([0.25, 0.3, 0.42, 0.95], { x: 1 / 3, y: 0.5 });
-    const c = first(measure({ main: 'thirds' }, f, 0, false))!;
-    expect(c.id).toBe('thirdsEye');
-    expect(c.action).toBe('tiltDown');
-    // Mắt cần lên: chúc máy, hoặc hạ máy xuống.
-    expect(guideLines(c)).toEqual([
-      { text: 'Chúc/hạ máy xuống để mắt người trên cột trên', dir: 'down' },
-    ]);
-  });
-
   it('Ở giữa có máy thẳng đứng đầu (cảm biến)', () => {
     const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 1 / 3 });
     const m = measure({ main: 'center' }, f, 6, false);
     expect(first(m)!.id).toBe('level');
     expect(checks(measure({ main: 'center' }, f, 1, false)).every((c) => c.ok)).toBe(true);
+    // Chỉ máy thẳng và trục giữa (phiếu lần 7, mục 15.7): mắt ở đâu cũng được.
+    const low = person([0.4, 0.5, 0.6, 1], { x: 0.5, y: 0.6 });
+    expect(checks(measure({ main: 'center' }, low, 0, false)).map((c) => c.id)).toEqual([
+      'level',
+      'centerAxis',
+    ]);
   });
 
   it('Ở giữa theo trọng tâm vùng người, không theo mắt hay giữa khung (mục 13.4)', () => {
@@ -95,72 +90,11 @@ describe('measure: tiêu chí theo thứ tự', () => {
   });
 
   it('bước chỉ qua khi vào sâu trong ngưỡng; sát mép ngưỡng vẫn nói thao tác', () => {
-    // Mắt lệch 0,06 (ngưỡng 0,07, vào sâu 0,049): đúng theo ngưỡng nhưng vẫn nói chúc máy.
-    const m = measure(
-      { main: 'thirds' },
-      person([0.25, 0.3, 0.42, 0.95], { x: 1 / 3, y: 0.393 }),
-      0,
-      false,
-    );
-    const c = checks(m).find((x) => x.id === 'thirdsEye')!;
+    // Người lệch trục 0,06 (ngưỡng 0,07, vào sâu 0,049): đúng theo ngưỡng nhưng vẫn nói xoay máy.
+    const m = measure({ main: 'center' }, person([0.46, 0.2, 0.66, 0.9]), 0, false);
+    const c = checks(m).find((x) => x.id === 'centerAxis')!;
     expect(c.ok).toBe(true);
-    expect(c.id).toBe('thirdsEye');
-    expect(c.action).toBe('tiltDown');
-  });
-
-  it('mắt ra khỏi mép trên: bước mắt vẫn còn, bảo ngửa máy lên (không báo Đạt)', () => {
-    const f = person([0.4, 0, 0.6, 0.9]);
-    const m = measure({ main: 'center' }, f, 0, false);
-    const c = first(m)!;
-    expect(c.id).toBe('centerEye');
-    expect(c.action).toBe('tiltUp');
-    expect(guideLines(c)).toEqual([
-      { text: 'Ngửa/nâng máy lên để mắt người trên cột trên', dir: 'up' },
-    ]);
-    // Người quay lưng (không thấy mắt, đầu trong khung): bỏ bước mắt như trước.
-    const back = person([0.4, 0.2, 0.6, 0.9]);
-    expect(checks(measure({ main: 'center' }, back, 0, false)).map((x) => x.id)).toEqual([
-      'level',
-      'centerAxis',
-    ]);
-  });
-
-  it('người quay lưng: không thấy mắt thì đoán độ cao mắt từ tai (mục 14.2.4)', () => {
-    const f = person([0.4, 0.2, 0.6, 1]);
-    const joints = Array.from({ length: 33 }, () => ({ x: 0, y: 0, v: 0 }));
-    joints[J.earL] = { x: 0.47, y: 0.459, v: 0.9 };
-    joints[J.earR] = { x: 0.53, y: 0.459, v: 0.9 };
-    const back = { ...f, joints };
-    const c = checks(measure({ main: 'center' }, back, 0, false)).find(
-      (x) => x.id === 'centerEye',
-    )!;
-    // Mắt đoán ở 0,45: thấp hơn đường trên 0,117 → chúc máy xuống.
-    expect(c.error).toBeCloseTo(0.45 - 1 / 3, 3);
-    expect(c.action).toBe('tiltDown');
-    expect(c.at!.x).toBeCloseTo(0.5);
-  });
-
-  it('không thấy mặt: lấy mốc đầu trên mặt nạ, bỏ mắt khung xương nằm ở bàn tay (lần 7)', () => {
-    const f = person([0.2, 0.25, 0.8, 1], { x: 0.3, y: 0.8 }); // khung xương lấy nhầm bàn tay
-    f.people[0]!.headY = 0.42;
-    f.people[0]!.cx = 0.5;
-    const back = { ...f, faceSeen: false };
-    const c = checks(measure({ main: 'center' }, back, 0, false)).find(
-      (x) => x.id === 'centerEye',
-    )!;
-    expect(c.at).toEqual({ x: 0.5, y: 0.42 });
-    // Mắt khung xương cao hơn mốc đầu một chút (tóc làm mốc đầu thấp): tin mắt đó.
-    const near = { ...back, eye: { x: 0.52, y: 0.34 } };
-    const n = checks(measure({ main: 'center' }, near, 0, false)).find(
-      (x) => x.id === 'centerEye',
-    )!;
-    expect(n.at).toEqual({ x: 0.52, y: 0.34 });
-    // Bộ dò mặt thấy mặt: dùng mắt như cũ.
-    const seen = { ...f, eye: { x: 0.5, y: 0.5 }, faceSeen: true };
-    const s = checks(measure({ main: 'center' }, seen, 0, false)).find(
-      (x) => x.id === 'centerEye',
-    )!;
-    expect(s.at).toEqual({ x: 0.5, y: 0.5 });
+    expect(c.action).toBe('panRight');
   });
 
   it('1/3: người to hơn khung, không thấy đầu: không biết người ở đâu → lùi ra', () => {
@@ -214,7 +148,7 @@ describe('step: luật nhắc và dừng', () => {
   });
 
   it('đứng yên: nhắc mỗi 2 s, sau lần thứ 3 còn 10 s rồi dừng, báo phần đã đạt', () => {
-    const m = turn(crit('thirdsColumn', 0), crit('thirdsEye', 0.2));
+    const m = turn(crit('thirdsColumn', 0), crit('noJointCut', 0.2));
     // Lượt đầu cột đúng nhưng chưa xác nhận: giữ yên; lượt sau mới qua bước.
     let r = run(initialGuide(), m, 0);
     expect(r.state.current!.id).toBe('thirdsColumn');
@@ -234,12 +168,12 @@ describe('step: luật nhắc và dừng', () => {
     expect(stepOf(r.state)).toEqual({ index: 2, total: 2 });
     expect(gaveUpLines(r.state)).toEqual([
       'Đạt: người đứng đúng cột',
-      'Chưa đạt: mắt người trên cột trên',
+      'Chưa đạt: không cắt ngang tay chân',
     ]);
   });
 
   it('đạt hết → reached; tiêu chí trước vỡ thì quay lại tiêu chí đó', () => {
-    let r = run(initialGuide(), fail(0.2, 'thirdsEye'), 0);
+    let r = run(initialGuide(), fail(0.2, 'noJointCut'), 0);
     r = run(r.state, fail(0.2, 'thirdsColumn'), 1000);
     expect(r.event).toBe('instruct');
     expect(r.state.current!.id).toBe('thirdsColumn');
@@ -247,16 +181,16 @@ describe('step: luật nhắc và dừng', () => {
 
   it('tiêu chí đang làm không đo được lượt này: giữ, không báo Đạt (mục 13.1.4)', () => {
     const both = (eye: number | null) =>
-      turn(crit('thirdsColumn', 0), ...(eye == null ? [] : [crit('thirdsEye', eye)]));
+      turn(crit('thirdsColumn', 0), ...(eye == null ? [] : [crit('noJointCut', eye)]));
     let r = run(initialGuide(), both(0.2), 0);
     r = run(r.state, both(0.2), 1000);
-    expect(r.state.current!.id).toBe('thirdsEye');
+    expect(r.state.current!.id).toBe('noJointCut');
     // Mắt không thấy hai lượt liền: bước mắt giữ nguyên, ô bước không đổi.
     r = run(r.state, both(null), 2000);
     r = run(r.state, both(null), 3000);
     expect(r.state.status).toBe('running');
-    expect(r.state.current!.id).toBe('thirdsEye');
-    expect(r.state.steps).toEqual(['thirdsColumn', 'thirdsEye']);
+    expect(r.state.current!.id).toBe('noJointCut');
+    expect(r.state.steps).toEqual(['thirdsColumn', 'noJointCut']);
     // Thấy lại và đúng hai lượt: đạt.
     r = run(r.state, both(0.01), 4000);
     r = run(r.state, both(0.01), 5000);
@@ -264,35 +198,35 @@ describe('step: luật nhắc và dừng', () => {
   });
 
   it('đúng một lượt rồi lệch lại: chưa qua bước, không nhảy tiêu chí', () => {
-    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.2), crit('thirdsEye', 0.2)), 0);
-    r = run(r.state, turn(crit('thirdsColumn', 0.03), crit('thirdsEye', 0.2)), 1000);
+    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.2), crit('noJointCut', 0.2)), 0);
+    r = run(r.state, turn(crit('thirdsColumn', 0.03), crit('noJointCut', 0.2)), 1000);
     expect(r.state.current!.id).toBe('thirdsColumn');
     expect(r.state.holding).toBe(true);
-    r = run(r.state, turn(crit('thirdsColumn', 0.07), crit('thirdsEye', 0.2)), 2000);
+    r = run(r.state, turn(crit('thirdsColumn', 0.07), crit('noJointCut', 0.2)), 2000);
     expect(r.state.current!.id).toBe('thirdsColumn');
     expect(r.state.holding).toBe(false);
     expect(r.state.passed).toEqual([]);
   });
 
   it('đúng hai lượt liền: qua bước, báo "Đạt", sang tiêu chí sau', () => {
-    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.2), crit('thirdsEye', 0.2)), 0);
-    r = run(r.state, turn(crit('thirdsColumn', 0.03), crit('thirdsEye', 0.2)), 1000);
-    r = run(r.state, turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 2000);
+    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.2), crit('noJointCut', 0.2)), 0);
+    r = run(r.state, turn(crit('thirdsColumn', 0.03), crit('noJointCut', 0.2)), 1000);
+    r = run(r.state, turn(crit('thirdsColumn', 0.02), crit('noJointCut', 0.2)), 2000);
     expect(r.event).toBe('passed');
     expect(r.state.justPassed).toBe('thirdsColumn');
     expect(r.state.passedAt).toBe(2000);
-    expect(r.state.current!.id).toBe('thirdsEye');
+    expect(r.state.current!.id).toBe('noJointCut');
   });
 
   it('bước đã qua chỉ vỡ khi lệch quá 1,5 lần ngưỡng (rung tay không làm vỡ)', () => {
-    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 0);
-    r = run(r.state, turn(crit('thirdsColumn', 0.02), crit('thirdsEye', 0.2)), 1000);
+    let r = run(initialGuide(), turn(crit('thirdsColumn', 0.02), crit('noJointCut', 0.2)), 0);
+    r = run(r.state, turn(crit('thirdsColumn', 0.02), crit('noJointCut', 0.2)), 1000);
     expect(r.state.passed).toEqual(['thirdsColumn']);
     // 0,07 > ngưỡng 0,05 nhưng ≤ 0,075: vẫn giữ bước cột.
-    r = run(r.state, turn(crit('thirdsColumn', 0.07), crit('thirdsEye', 0.2)), 2000);
-    expect(r.state.current!.id).toBe('thirdsEye');
+    r = run(r.state, turn(crit('thirdsColumn', 0.07), crit('noJointCut', 0.2)), 2000);
+    expect(r.state.current!.id).toBe('noJointCut');
     // 0,1 > 0,075: vỡ thật, quay lại bước cột.
-    r = run(r.state, turn(crit('thirdsColumn', 0.1), crit('thirdsEye', 0.2)), 3000);
+    r = run(r.state, turn(crit('thirdsColumn', 0.1), crit('noJointCut', 0.2)), 3000);
     expect(r.state.current!.id).toBe('thirdsColumn');
   });
 

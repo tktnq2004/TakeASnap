@@ -126,10 +126,8 @@ export const t = {
       goals: {
         level: 'cho máy thẳng',
         thirdsColumn: 'để người đứng đúng cột',
-        thirdsEye: 'để mắt người trên cột trên',
         noJointCut: 'để không cắt ngang tay chân',
         centerAxis: 'để đưa người vào giữa',
-        centerEye: 'để mắt người trên cột trên',
         fillSize: 'để người lấp đầy khung',
         fillHead: 'để không cắt đỉnh đầu',
         groupInFrame: 'để cả nhóm vào khung',
@@ -140,10 +138,8 @@ export const t = {
       done: {
         level: 'máy thẳng',
         thirdsColumn: 'người đứng đúng cột',
-        thirdsEye: 'mắt người trên cột trên',
         noJointCut: 'không cắt ngang tay chân',
         centerAxis: 'người ở giữa',
-        centerEye: 'mắt người trên cột trên',
         fillSize: 'người lấp đầy khung',
         fillHead: 'không cắt đỉnh đầu',
         groupInFrame: 'cả nhóm trong khung',
@@ -156,14 +152,11 @@ export const t = {
        */
       move: { left: 'Đi/xoay máy qua trái', right: 'Đi/xoay máy qua phải' },
       turn: { left: 'Xoay máy qua trái', right: 'Xoay máy qua phải' },
-      tilt: { up: 'Ngửa/nâng máy lên', down: 'Chúc/hạ máy xuống' },
       to: {
         left: 'để người đứng cột trái',
         right: 'để người đứng cột phải',
         center: 'để người đứng giữa',
         group: 'để nhóm đứng giữa',
-        eyeUpper: 'để mắt người trên cột trên',
-        eyeLower: 'để mắt người trên cột dưới',
       },
       /** Ô bước trên viên hướng dẫn. */
       step: (i: number, n: number) => `Bước ${i}/${n}`,
@@ -210,8 +203,8 @@ export const t = {
       thirds: {
         name: 'Quy tắc 1/3',
         wrong: 'Người ở giữa',
-        right: 'Mắt trên đường 1/3',
-        what: 'Chia khung thành 3 × 3. Đặt mắt người gần đường ngang trên, thân người trên một đường dọc.',
+        right: 'Người trên đường dọc 1/3',
+        what: 'Chia khung thành 3 × 3. Đặt người trên đường dọc trái hoặc phải, chừa chỗ phía người nhìn. Chụp cận thì mắt thường quanh đường ngang trên; toàn thân hay người ngồi thì đầu thấp hơn, tuỳ muốn lấy bao nhiêu cảnh.',
         when: 'Chân dung có cảnh phía sau, ảnh du lịch, người nhìn sang một bên.',
         breakRule: 'Nền đối xứng, người nhìn thẳng vào máy: đặt ở giữa thường đẹp hơn.',
       },
@@ -219,7 +212,7 @@ export const t = {
         name: 'Đặt ở giữa',
         wrong: 'Lệch nhẹ khỏi trục',
         right: 'Đúng trục giữa',
-        what: 'Đặt người đúng trục dọc giữa khung, mắt gần đường 1/3 trên.',
+        what: 'Giữ máy thẳng, đặt người đúng trục dọc giữa khung để hai bên cân. Đầu cao thấp tuỳ muốn lấy bao nhiêu cảnh.',
         when: 'Nền đối xứng (cửa, hành lang, hàng cây), người nhìn thẳng vào máy.',
         breakRule: 'Cảnh phía sau quan trọng hơn người: dời người sang đường 1/3.',
       },
@@ -484,8 +477,6 @@ export const t = {
     cropSaved: 'Đã lưu bản cắt vào album SnapShot',
     toggleGuide: 'Bật hoặc tắt lớp bố cục trên ảnh',
     notes: {
-      eyeOnThird: 'Mắt nằm trên đường 1/3 trên',
-      eyeOffThird: 'Mắt còn xa đường 1/3 trên, nghiêng máy đưa mắt về đường này',
       onVertical: 'Người đứng trên đường dọc 1/3',
       inMiddle: 'Người đứng giữa khung, dời máy để người sang đường 1/3',
       offVertical: 'Người chưa nằm trên đường dọc 1/3, dời máy sang bên',

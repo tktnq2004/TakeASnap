@@ -595,7 +595,9 @@ Không làm (trượt cổng hai lần, người dùng chọn dừng 2026-11-22)
 - [x] Phiếu lần 5 (Ở giữa): trục giữa nhảy trái / phải với người không đối xứng, bước mắt tự Đạt. Sửa: trục giữa theo trọng tâm phần trên vùng người (composition-critic v0.8.0, nhận xét sau khi chụp dùng chung); bước chỉ qua khi vào sâu 0,7 ngưỡng; tiêu chí đang làm không đo được thì giữ; bỏ mắt bắt nhầm; máy thẳng nói "Nghiêng máy sang trái / phải". Claude chạy model thật trên 28 khung cắt ảnh người dùng gửi: độ lệch giảm đều khi dời máy
 - [x] Phiếu lần 6 (Ở giữa): đạt trừ người quay lưng (14.2.4). Sửa: không thấy mắt thì đoán độ cao mắt từ tai (đo trên bộ ảnh mẫu, 90% lệch dưới 0,027); chấm đích đỏ ở đầu mũi tên kết quả (14.4)
 - [x] Ảnh thác nước người dùng gửi (quay lưng, dang tay): Claude chạy model thật trên 238 khung cắt; tai / mắt khung xương lấy nhầm bàn tay → độ cao mắt theo đầu trên mặt nạ người (composition-critic v0.9.0, `headY`, `faceSeen`); người chụp ảo tới Đạt 177 / 182 lần, không đổi chiều
-- [ ] Thử từng bố cục một (phiếu lần 7: Ở giữa, người quay lưng + chấm đích; rồi Lấp đầy, Nhóm)
+- [x] Phiếu lần 7 (Ở giữa): đạt hết. Góp ý 15.7: bỏ bước mắt ở mọi bố cục, chỉ giữ tiêu chí cốt lõi (1/3: cột + không cắt khớp; Ở giữa: máy thẳng + trục giữa; Lấp đầy, Nhóm vốn không có bước mắt); nhận xét sau khi chụp bỏ dòng mắt, khung cắt chỉ căn ngang (composition-critic v0.10.0); thẻ học 1/3, Ở giữa viết lại
+- [ ] Cách hiện đích khi hướng dẫn (góp ý 15.7: chấm, mũi tên nhảy vì chỉ cập nhật ~1 lần / giây): Claude làm trang so sánh 7 cách, đợi người dùng chọn
+- [ ] Thử từng bố cục một (rồi Lấp đầy, Nhóm)
 - [ ] Đo thời gian mỗi lượt, độ nóng, pin trên iPhone, Android; phiếu `phase5b-test.md`
 
 ### Phase 6 — Hoàn thiện portfolio (1–2 tuần)
