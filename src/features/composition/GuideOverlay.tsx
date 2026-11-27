@@ -1,12 +1,11 @@
 /**
- * Hướng dẫn liên tục trên khung ngắm (Phase 5b, design.md §6.15): khung người, chấm mắt, đường
- * tìm được của lượt gần nhất (giữ tới khi có lượt mới, không nháy), **mũi tên kết quả** từ chỗ
- * người / mắt đang đứng tới đích sáng, ô "Bước 2/3" với chấm nhắc, viên hướng dẫn; viên xanh "Đúng
- * rồi, giữ yên máy" khi vừa tới đích, "Đạt: …" khi qua một bước; viên kết thúc.
+ * Hướng dẫn liên tục trên khung ngắm (Phase 5b, design.md §6.15): ô "Bước 2/3" với chấm nhắc, viên
+ * hướng dẫn một dòng; viên xanh "Đúng rồi, giữ yên máy" khi vừa tới đích, "Đạt: …" khi qua một
+ * bước; viên kết thúc.
  *
- * Viên hướng dẫn đưa người / mắt tới đích có hai dòng, mỗi dòng một cách làm với icon mũi tên theo
- * chiều của chính dòng đó: "← Xoay máy sang trái" / "→ Hoặc người bước sang phải" (phiếu Phase 5b
- * lần 2, mục 10.2.2).
+ * Không vẽ gì theo vị trí người (khung người, chấm mắt, chấm đích, mũi tên): app chỉ biết người ở
+ * đâu sau mỗi lần chụp kiểm tra nên chúng luôn trễ, nhảy (góp ý phiếu Phase 5b lần 7, mục 15.7).
+ * Đích là dải đứng yên kèm dấu chiều (`CompositionGuide`), người dùng canh bằng khung ngắm.
  */
 import {
   ArrowDown,
@@ -23,16 +22,14 @@ import {
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import Svg, { Line, Polygon } from 'react-native-svg';
 
 import type { Rect } from '@/features/camera/frame';
 import { ease } from '@/ui/easing';
 import { t } from '@/ui/strings';
-import { color, compositionUi, motion, radius, size, space, type } from '@/ui/tokens';
+import { color, compositionUi, motion, size, space, type } from '@/ui/tokens';
 
 import {
   type Action,
-  type Check as GuideCheck,
   type Dir,
   GUIDE,
   gaveUpLines,
@@ -67,114 +64,6 @@ const hintTop = (frame: Rect, maxBottom: number) =>
 
 /** Khung neo đáy của viên hướng dẫn: viên hai dòng và ô bước mọc lên trên, đáy viên không đổi. */
 const STACK_H = 200;
-
-/** Điểm cuối mũi tên: chiếu chỗ đang đứng lên đích (đường dọc, đường ngang) hoặc chính điểm đích. */
-function arrowEnd(c: GuideCheck): { x: number; y: number } | null {
-  const a = c.at;
-  const tg = c.target;
-  if (!a || !tg) return null;
-  if (tg.kind === 'vline') return { x: tg.x, y: a.y };
-  if (tg.kind === 'hline') return { x: a.x, y: tg.y };
-  if (tg.kind === 'point') return { x: tg.x, y: tg.y };
-  return null;
-}
-
-/** Chấm đích đỏ: chỗ trên đường sáng mà người / mắt cần tới (phiếu Phase 5b lần 6, mục 14.4). */
-function TargetDot({ c, width, height }: { c: GuideCheck; width: number; height: number }) {
-  const end = arrowEnd(c);
-  if (!end) return null;
-  const D = compositionUi.targetDot;
-  return (
-    <View style={[styles.target, { left: end.x * width - D / 2, top: end.y * height - D / 2 }]} />
-  );
-}
-
-/** Mũi tên kết quả: người / mắt sẽ đi từ đây tới đích sáng. */
-function ResultArrow({ c, width, height }: { c: GuideCheck; width: number; height: number }) {
-  const end = arrowEnd(c);
-  if (!c.at || !end) return null;
-  const x1 = c.at.x * width;
-  const y1 = c.at.y * height;
-  const x2 = end.x * width;
-  const y2 = end.y * height;
-  const len = Math.hypot(x2 - x1, y2 - y1);
-  const head = compositionUi.arrowHead;
-  if (len < head * 1.5) return null;
-  const ux = (x2 - x1) / len;
-  const uy = (y2 - y1) / len;
-  // Thân dừng ở gốc đầu mũi tên; đầu là tam giác nhọn chạm đích.
-  const bx = x2 - ux * head;
-  const by = y2 - uy * head;
-  const w = head * 0.6;
-  const pts = `${x2},${y2} ${bx - uy * w},${by + ux * w} ${bx + uy * w},${by - ux * w}`;
-  const s = compositionUi.arrowStroke;
-  return (
-    <Svg width={width} height={height} style={StyleSheet.absoluteFill} pointerEvents="none">
-      {/* Viền tối để mũi tên trắng vẫn thấy trên nền sáng. */}
-      <Line
-        x1={x1}
-        y1={y1}
-        x2={bx}
-        y2={by}
-        stroke={color.camBg}
-        strokeOpacity={0.45}
-        strokeWidth={s + 3}
-        strokeLinecap="round"
-      />
-      <Polygon
-        points={pts}
-        fill={color.camBg}
-        fillOpacity={0.45}
-        stroke={color.camBg}
-        strokeOpacity={0.45}
-        strokeWidth={3}
-        strokeLinejoin="round"
-      />
-      <Line
-        x1={x1}
-        y1={y1}
-        x2={bx}
-        y2={by}
-        stroke={color.camInk}
-        strokeWidth={s}
-        strokeLinecap="round"
-      />
-      <Polygon points={pts} fill={color.camInk} />
-    </Svg>
-  );
-}
-
-/** Khung người, chấm mắt của lượt gần nhất (đã theo khung ngắm), mũi tên. */
-function Found({ frame, view }: { frame: Rect; view: GuideView }) {
-  const snap = view.snap;
-  if (!snap) return null;
-  const f = snap.features;
-  const b = f.people[f.main]?.box;
-  const W = frame.width;
-  const H = frame.height;
-  const E = compositionUi.checkEye;
-  const c = view.state.current;
-  return (
-    <View
-      pointerEvents="none"
-      style={[styles.abs, { left: frame.x, top: frame.y, width: W, height: H }]}
-    >
-      {b && (
-        <View
-          style={[
-            styles.box,
-            { left: b[0] * W, top: b[1] * H, width: (b[2] - b[0]) * W, height: (b[3] - b[1]) * H },
-          ]}
-        />
-      )}
-      {f.eye && (
-        <View style={[styles.eye, { left: f.eye.x * W - E / 2, top: f.eye.y * H - E / 2 }]} />
-      )}
-      {c && !view.state.holding && <ResultArrow c={c} width={W} height={H} />}
-      {c && <TargetDot c={c} width={W} height={H} />}
-    </View>
-  );
-}
 
 /** Viên "Đạt: …" hiện `compositionUi.stepOkMs` sau mỗi bước vừa qua. */
 function usePassedFlash(passedAt: number) {
@@ -228,7 +117,6 @@ export function GuideOverlay({
   const top = hintTop(frame, maxBottom) + compositionUi.hintH - STACK_H;
   return (
     <>
-      <Found frame={frame} view={view} />
       <View pointerEvents="none" style={[styles.stack, { top }]}>
         {at && (
           <View style={styles.step} accessibilityRole="text">
@@ -325,31 +213,6 @@ export function GuideEndPill({
 
 const styles = StyleSheet.create({
   abs: { position: 'absolute' },
-  box: {
-    position: 'absolute',
-    borderWidth: 1,
-    borderColor: color.camInk,
-    borderRadius: radius.sm,
-    opacity: 0.7,
-  },
-  target: {
-    position: 'absolute',
-    width: compositionUi.targetDot,
-    height: compositionUi.targetDot,
-    borderRadius: radius.full,
-    backgroundColor: color.camTarget,
-    borderWidth: compositionUi.targetRing,
-    borderColor: color.camInk,
-  },
-  eye: {
-    position: 'absolute',
-    width: compositionUi.checkEye,
-    height: compositionUi.checkEye,
-    borderRadius: radius.full,
-    backgroundColor: color.camInk,
-    borderWidth: 2,
-    borderColor: color.camBg,
-  },
   wrap: { position: 'absolute', left: space[4], right: space[4], alignItems: 'center' },
   stack: {
     position: 'absolute',

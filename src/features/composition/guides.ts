@@ -48,7 +48,8 @@ export function guideShape(t: TechniqueId, anchor: Pt | null = null): GuideShape
         ? { ...EMPTY, v: THIRDS, h: THIRDS, target: nearest(UPPER, anchor) }
         : { ...EMPTY, v: THIRDS, h: THIRDS, points: UPPER };
     case 'center':
-      return { ...EMPTY, v: [0.5], target: { x: 0.5, y: 1 / 3 } };
+      // Lưới 3×3 thêm trục dọc giữa (phiếu Phase 5b lần 13, mục 21.6: chỉ một trục thì khung trống).
+      return { ...EMPTY, v: [1 / 3, 0.5, 2 / 3], h: THIRDS, target: { x: 0.5, y: 1 / 3 } };
     default:
       // Lưới 3×3, góc thấp, selfie, nhóm: lưới 3×3 (ba kỹ thuật sau gợi ý qua dòng gợi ý).
       return { ...EMPTY, v: THIRDS, h: THIRDS };

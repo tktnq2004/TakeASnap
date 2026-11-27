@@ -488,3 +488,228 @@ Cài lại gói rồi chạy (`npm install`, `npx expo start -c`): app dùng com
 ### 15.7 Góp ý
 - Có lẻ chụp ở giữa chỉ cần máy thẳng và trục giữa chia đôi đúng khung người để cho bức ảnh cân bằng 2 bên là được, còn mắt ở đâu còn tùy thuộc vào người dùng muốn lấy bao nhiêu background ở phía sau, vì có những ảnh (kể cả 1/3) đầu người có thể nằm dưới lưới trên ( không quá xa), và trường hợp khác nữa là người ngồi thì đầu có thể nằm xung quanh lưới dưới. Vì vậy đúng những tiêu chí quan trọng là được. Suy nghĩ về vấn đè này, đọc lại các tài liệu vè chụp ảnh, vì nó liên quan gần như nhiều bố cục và các thẻ học
 - Chấm và mũi tên luôn nhảy không đều và không đúng. Tôi biết đây là hạn chế của việc phải chụp ảnh liên tục để xét và làm điểm đích - mũi tên -> nhưng nó cũng tạo ra cảm giác app rất dở, không thật sự làm được tính năng này cần nghĩ ra cách để hướng dẫn tốt, mượt mà hơn, có thể xử lí ở fe càng tốt vì nó sẽ realtime và người dùng dễ canh chỉnh hơn
+
+## 16. Lần 8 — Dải đích đứng yên, dấu chiều, chỉ kiểm tra khi máy yên (2026-11-26)
+
+Chạy lại `npx expo start -c` (**chưa commit**, thử trên bản đang có ở máy tính).
+
+**Đổi gì:**
+
+- **Bỏ bước mắt ở mọi bố cục** (đã commit `8679e05`): 1/3 chỉ còn cột trái / phải + không cắt khớp; Ở giữa chỉ còn máy thẳng + trục giữa.
+- **Đích (cách C):** đường đích đỏ và **dải đỏ mờ** đúng bằng vùng đạt, đứng yên, kèm **ba dấu ‹‹ / ››** cố định trên đường (trên, giữa, dưới khung) cùng chiều câu "xoay máy qua …". **Không còn** khung người, chấm mắt, chấm đỏ, mũi tên: không có gì vẽ theo vị trí người nên không có gì nhảy. Bạn nhìn khung ngắm và dời máy cho người vào dải; vào dải là đủ. Đang đúng chờ xác nhận: dải và đường đổi màu nhấn (xanh dương của app), hết dấu chiều.
+- **Chỉ chụp kiểm tra khi máy yên:** con quay cho biết máy đang dời hay yên; máy yên 0,4 s mới chụp (dời mãi thì 2,5 s vẫn kiểm tra một lần). Câu và dấu chiều chỉ đổi sau mỗi lần kiểm tra.
+
+### 16.1 Ở giữa
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 16.1.1 | Chọn Ở giữa, cầm máy nghiêng | "Nghiêng máy sang trái / phải cho máy thẳng"; thẳng thì sang bước trục giữa (không có bước mắt) |d |d | |
+| 16.1.2 | Người lệch trái khung | Đường đỏ giữa khung + dải đỏ mờ, ba dấu ‹‹; câu "← Đi/xoay máy qua trái …" |d |d | |
+| 16.1.3 | Xoay máy từ từ, không dừng | Dải, dấu không nhảy; người trôi về dải ngay trên khung ngắm |d |d | di chuyển máy tầm 0.5s cam sẽ giật 1 cái , có phải là do chụp ảnh ? nó mang lại trải nghiệm kém |
+| 16.1.4 | Xoay quá tay, người sang phía bên kia dải rồi dừng | Khoảng 1 s sau dấu đổi thành ›› và câu đổi chiều |d |d | |
+| 16.1.5 | Người vào dải, giữ yên | Dải đổi màu nhấn, "Đúng rồi, giữ yên máy", rồi "Đạt" |d |d | |
+| 16.1.6 | Đi ngang (bước chân) thay vì xoay | Vẫn tới Đạt | d|d | |
+| 16.1.7 | Người đứng / ngồi, đầu cao thấp khác nhau | Không có câu nào về mắt; chỉ cần người vào dải giữa |d | d| |
+
+### 16.2 Quy tắc 1/3 (thử lại với cách mới)
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 16.2.1 | Chọn 1/3, người nhìn thẳng, đứng hơi lệch phải giữa khung | Dải đỏ ở cột gần người (cột phải), ba dấu theo chiều câu; câu "→ Đi/xoay máy qua phải để người đứng cột …" hoặc ngược lại đúng chiều |d |d |  |
+| 16.2.2 | Người quay đầu nhìn sang trái / phải | Dải ở cột phía còn chỗ trước mặt người (nhìn sang phải → cột trái) |l |l |khi người đứng ngang (vai đối diện với cam) app lại bị xác định mắt sai và gợi ý cột mắt đang nhìn |
+| 16.2.3 | Xoay máy cho người vào dải | Dải đổi màu nhấn, "Đúng rồi, giữ yên máy", "Đạt: người đứng đúng cột" | d| d| |
+| 16.2.4 | Sau khi đạt cột, mép dưới khung cắt ngang gối | Bước "Lùi ra để không cắt ngang tay chân"; không có bước mắt | — | — | Claude thử trên máy tính: mô phỏng 1/3 trên 2202 ảnh một người, người chụp ảo làm theo; sau bước cột chỉ còn bước không cắt khớp (745 lần chạy dừng ở bước này vì khung chạm mép ảnh gốc), không có bước mắt |
+| 16.2.5 | Người ngồi, đầu thấp gần đường dưới | Vẫn Đạt khi người ở cột; không bảo ngửa / chúc máy | — | — | Claude đọc code: 1/3 chỉ còn cột + không cắt khớp, không tiêu chí nào nói ngửa / chúc máy |
+| 16.2.6 | Camera trước, bạn lệch cột | "Xoay máy qua … để người đứng cột …", dải và dấu cùng chiều câu | — | — | Claude thử trên máy tính: mô phỏng camera trước 9251 lần chạy làm theo, 8080 Đạt, 0 lần đổi chiều câu giữa chừng (còn lại khung chạm mép ảnh gốc) |
+| 16.2.7 | Xoay qua lại quanh dải | Dải không đổi cột, dấu chỉ đổi chiều khi người sang hẳn phía kia | — | — | Claude thử trên máy tính: mô phỏng 0 lần đổi cột giữa chừng. Nhưng ảnh của mô phỏng đứng yên nên không có độ quay đầu lắc qua lại như ngoài đời; xem 16.2.2 và góp ý vòng lặp ở 16.4 |
+
+### 16.3 Chung
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 16.3.1 | Đặt máy xuống / không làm theo | App vẫn nhắc và tự dừng sau chừng 17 s |d |d | |
+| 16.3.2 | Bấm chụp lúc đang hướng dẫn | Chụp ngay, hướng dẫn chạy tiếp |d |d | |
+| 16.3.3 | So với lần 7 (chấm đỏ, mũi tên) | Dễ canh hơn hay không, máy đỡ nóng không (ghi ở Ghi chú) |d |d | |
+
+### 16.4 Góp ý
+
+- thông báo khi không tìm thấy người : Không tìm thấy người 
+- bỏ hiệu ứng ảnh nhảy xuống album vì nó gây cản trở cho chức năng này 
+- chỉ cần 1 mũi tên đủ đẹp, đủ nổi bật và đủ để chỉ dẫn 
+- ở giữa tạm ổn nhwung cần bạn tự test lại 1 lần nữa với đầy đủ ảnh dễ đến những ảnh khó 
+
+-> 1/3 đang quá sai vì khong nhận ra được hướng mắt người nửa. đang gợi ý cột mà người đang nhìn vào kể cả vai ngang hay vai dọc. Có ảnh còn bị vòng lặp gợi ý cột trái - phải liên tục khi máy đứng im
+
+### 16.5 Trả lời góp ý lần 8
+
+- **16.2.2, vòng lặp cột (1/3 chọn cột người đang nhìn vào):** Claude chạy model thật trên máy tính. Ở ảnh người to, lưới mặt đoán đúng chiều quay đầu (60 ảnh xem bằng mắt; 525 lượt cắt 512 px: 487 khớp, 3 lật). Ở ảnh 512 px, người càng nhỏ thì càng mất mặt: người cao 0,3 khung chỉ thấy mặt 32/80, một nửa số lượt không đoán được hướng nhìn. Không đoán được thì app lấy **cột gần người nhất**, mà người đứng lệch về phía mình nhìn thì đó chính là cột họ đang nhìn vào. Vòng lặp trái phải khi máy đứng im: người nhìn gần thẳng thì độ quay lắc quanh ngưỡng 0,07, hai lượt ngược chiều là đổi cột. Sửa:
+  - Ảnh nhỏ không thấy mặt: cắt vùng đầu từ **ảnh cỡ thật** (vẫn trong bộ nhớ) rồi dò mặt lại. Trên máy tính (ảnh mẫu chỉ khoảng 1024 px nên còn thấp hơn điện thoại): người cao 0,4 khung đúng 52 → 61/80, 0,3 khung 34 → 40/80, không tăng lượt lật.
+  - Đã chốt cột theo hướng nhìn thì chỉ đổi khi quay đầu rõ (độ quay từ 0,2), hai lượt.
+- **16.1.3, camera giật khi dời máy:** đúng là do chụp kiểm tra (chụp ảnh làm khung ngắm khựng một nhịp; lúc máy yên thì không thấy). Giờ xoay chậm chừng 5°/s vẫn tính là đang dời (trước 8,6°/s), và chỉ ép kiểm tra khi dời liền 5 s (trước 2,5 s).
+- **Không tìm thấy người:** mất người hai lượt liền thì viên chỉ hiện "Không tìm thấy người"; cảnh không có người lúc bắt đầu cũng báo câu này.
+- **Bỏ ảnh bay xuống album:** bỏ hẳn; ô ảnh vừa chụp hiện ảnh mới khi lưu xong.
+- **Một mũi tên:** thay ba dấu ‹‹ bằng một mũi tên to giữa đường đích (nền tròn đỏ viền trắng, nhích nhẹ tới lui theo chiều cần dời máy).
+- **Ở giữa, tự thử lại:** mô phỏng trên 2202 ảnh một người (người chụp ảo làm theo, tay yên / rung tay / làm nhanh): khoảng 97% tới Đạt (còn lại khung chạm mép ảnh gốc, giới hạn của mô phỏng), 0 lần đổi chiều câu giữa chừng, 2–3 lần Đạt sai trên 9251 lần chạy (người sát mép dưới, đầu ra ngoài khung). Hai ảnh bạn gửi (thác nước, ảnh 2): 178 Đạt, 4 tự dừng, 0 lần đổi chiều.
+
+## 17. Lần 9 — Hướng nhìn người đứng xa, một mũi tên, bớt giật (2026-11-26)
+
+Chạy lại `npx expo start -c` (**chưa commit**). Phần 1/3 ghi thêm: người đứng **toàn thân / nửa người**, **cách máy bao xa**, quay đầu sang **phía nào của khung**, và **dải ở cột nào** (trái / phải).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 17.1 | Ở giữa, người lệch một bên | **Một mũi tên** to giữa đường đỏ (nền đỏ viền trắng, nhích tới lui) cùng chiều câu; không còn ba dấu ‹‹ | d| d| không cần hiệu ứng, và nhìn nó rất nhựa và giả, thiếu chuyên nghiệp, vẽ khoảng 10 cách để tôi chọn  |
+| 17.2 | Xoay máy chậm, đều, không dừng | Khung ngắm không giật; câu, mũi tên giữ nguyên tới khi dừng tay |l |l | vẫn còn khựng và giật |
+| 17.3 | Dừng tay | Khoảng 0,4 s sau mới kiểm tra (có thể thấy khung khựng nhẹ lúc này) | d| d| |
+| 17.4 | Người ra khỏi khung khi đang hướng dẫn | Khoảng 2 s sau viên "Không tìm thấy người"; người vào lại thì tiếp bước cũ | d| d| |
+| 17.5 | Chọn bố cục khi khung không có ai | Viên "Không tìm thấy người" rồi dừng |d |d | |
+| 17.6 | Bấm chụp vài ảnh | Chớp màn; ô ảnh vừa chụp đổi sang ảnh mới, **không có ảnh bay** từ khung ngắm xuống |d |d | |
+| 17.7 | 1/3, người **nửa người** gần máy, quay đầu sang phải của khung | Dải ở **cột trái** |l |l | |
+| 17.8 | 1/3, người **toàn thân** cách 3–4 m, quay đầu sang phải của khung | Dải ở **cột trái** (trước đây hay ra cột phải) |l |l |vẫn còn lỗi, và toi đã gửi ảnh trường hợp tôi test lỗi, hãy thử áp dụng 1/3 lên 2 ảnh đó, thử đi thử lại, sẽ có lỗi cột đứng yên nhưng chỉ đưa máy qua trái xong đưa máy qua phải liên tục |
+| 17.9 | Như 17.8, quay đầu sang trái của khung | Dải ở **cột phải** |l |l | |
+| 17.10 | Người đứng nghiêng hẳn (vai hướng về máy), mặt nhìn sang một bên | Dải ở cột phía sau lưng người (chừa chỗ phía người nhìn) |l |l | tôi đã gủi ảnh để test ra lỗi |
+| 17.11 | Người nhìn gần thẳng, máy đứng im 10 s | Dải **không đổi cột** qua lại | | | ở trên lỗi lớn, ở đây không test |
+| 17.12 | Đang hướng dẫn, người quay đầu hẳn sang phía kia và giữ | Khoảng 2–3 s sau dải đổi cột | | |ở trên lỗi lớn, ở đây không test |
+| 17.13 | So với lần 8: máy nóng, độ trễ câu ở 1/3 (có thể chậm hơn chút khi người đứng xa) | Ghi ở Ghi chú | | | ở trên lỗi lớn, ở đây không test|
+
+### 17.14 Góp ý
+
+- (ghi trong cột Ghi chú)
+
+### 17.15 Trả lời góp ý lần 9
+
+- **17.7–17.10, câu "qua trái" rồi "qua phải" liên tục khi máy đứng yên:** Claude chạy model thật trên hai ảnh bạn gửi (ảnh núi: 42 + 40 khung 3:4, ảnh hoa anh đào: 28 + 44 khung), người chụp ảo làm theo câu từ mọi chỗ bắt đầu. Đã tái hiện đúng lỗi. Ảnh núi, khung cao 0,9: 6 lần chạy đổi chiều liên tục, mỗi lần 14–17 lượt qua lại. Có ba nguyên nhân:
+  1. **Khung xương bắt nhầm cảnh:** MediaPipe Pose đặt "mắt" lên đỉnh núi / mái nhà (x = 0,42 trong khi người ở 0,70–1,00). Lượt đó app tưởng người ở 0,42 nên bảo qua trái; lượt sau thấy đúng thì bảo qua phải. Điểm sai này cũng cho hướng nhìn sai, nên có lượt chọn cột trái. Sửa ở composition-critic: chỉ nhận khung xương có mắt / mũi nằm trong vùng một người, không thì thử khung xương khác hoặc bỏ.
+  2. **Đổi cách đo giữa các lượt:** lượt thấy mắt thì đo theo mắt; lượt không thấy (mũ che, mặt nghiêng) thì coi như người ở mép khung. Hai cách lệch nhau nhiều nên câu đổi chiều. Sửa: 1/3 đo chỗ người bằng **trọng tâm phần trên vùng người** (như Ở giữa, đã ổn từ lần 6), có ở mọi lượt.
+  3. **Một lượt đoán sai hướng nhìn là chốt cột sai:** giờ cột theo **phiếu** của nhiều lượt (quay đầu rõ 2 phiếu, quay nhẹ 1 phiếu, tối đa ±3). Một lượt sai không đổi cột; quay đầu hẳn sang phía kia 2 lượt thì đổi.
+  - Sau sửa: ảnh núi H 0,9: 0 lần đổi chiều, 35/42 tới Đạt (còn lại dừng ở bước "lùi ra không cắt khớp" vì mô phỏng không lùi được); H 0,75: 40/40 Đạt; ảnh hoa anh đào H 0,5: 40 Đạt + 4 bước lùi ra, 0 đổi chiều; H 0,65: 4 lần đổi chiều **một lần** (lượt đầu chưa thấy hướng nhìn nên lấy cột gần, lượt sau thấy thì đổi sang cột đúng). Cả hai ảnh đều về **cột phải** (người nhìn sang trái), đúng.
+  - Lưới mặt (độ quay đầu) không thấy mặt ở cả hai ảnh (vành mũ, mặt nghiêng hẳn); hướng nhìn lấy từ khung xương (mũi so với tai) và đúng.
+- **17.2, vẫn khựng khi xoay:** sau lúc chụp kiểm tra, model còn chạy khoảng 1 s; bạn bắt đầu dời máy trong lúc đó thì khung ngắm giật. Giờ: máy dời từ lúc chụp thì bỏ lượt, không chạy model; phải yên 0,6 s mới chụp (trước 0,4 s). Lúc chụp vẫn có thể khựng một nhịp; Expo Go không cho lấy khung hình mà không chụp ảnh.
+- **17.1, mũi tên:** bỏ hiệu ứng nhích. Trang so sánh 10 kiểu mũi tên (tĩnh) để bạn chọn: https://claude.ai/artifact/NqKKaENMLeJJDLUBdJtoin
+- **Mô phỏng 1/3 trên ảnh mẫu với cách đo mới** (chạy lại model cho 1202 ảnh một người có trọng tâm vùng người): 0 lần đổi chiều câu và 0 lần đổi cột ở cả năm kiểu người chụp ảo (làm theo tay yên, rung tay, làm nhanh, đứng yên, làm ngược), camera sau và trước. Làm theo tay yên: 4457/5101 Đạt, còn lại khung chạm mép ảnh gốc hoặc dừng ở bước lùi ra.
+- **Ở giữa sau bản sửa khung xương:** vẫn 0 lần đổi chiều. Số lần Đạt sai tăng từ 2–3 lên chừng 40 trên 9258 lần chạy, tất cả cùng một kiểu: người to hơn khung (vùng người phủ kín khung), đầu đã ra ngoài khung mà vẫn báo Đạt. Mô phỏng chỉ ước lượng trọng tâm nên có thể phóng đại; ngoài đời gặp khi đứng quá gần. Chưa sửa, ghi lại để xem ở lần sau.
+- **Chưa thử được trên máy tính:** độ giật thật trên điện thoại.
+
+## 18. Lần 10 — 1/3 hết đổi chiều, cột theo phiếu (2026-11-27)
+
+Chạy lại `npx expo start -c` (**chưa commit**; bản sửa composition-critic đang chép thẳng vào `node_modules` trên máy tính, đừng chạy `npm install` trước khi thử). Ghi như lần 9: toàn thân / nửa người, cách máy bao xa, quay đầu phía nào của khung, dải ở cột nào.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 18.1 | Tái hiện đúng cảnh lỗi lần 9 (người nghiêng, đội mũ, nhìn sang trái), chọn 1/3, đứng im | Dải ở **cột phải**; câu **không** đổi qua lại trái phải |l | l | tôi đã thử mẹo với ảnh này, để người sát mép trái khung -> kiểm tra -> cột trái đỏ -> lập tức đưa người vào cột trái -> kiểm tra nháy xanh đạt -> trong khi người đang nhìn cột trái |
+| 18.2 | Như 18.1, làm theo câu tới khi đạt | Câu giữ một chiều tới lúc vào dải (có thể đổi một lần ở 1–2 lượt đầu khi app mới thấy hướng nhìn) | | | |
+| 18.3 | Người nửa người gần máy, quay đầu sang phải của khung | Dải ở **cột trái** | | | |
+| 18.4 | Người toàn thân 3–4 m, quay đầu sang phải / trái | Dải ở cột trái / phải | | | |
+| 18.5 | Người nhìn gần thẳng, máy đứng im 10 s | Dải không đổi cột, câu không đổi chiều | | | |
+| 18.6 | Đang hướng dẫn, người quay đầu hẳn sang phía kia và giữ | Khoảng 2–3 s sau dải đổi cột | | | |
+| 18.7 | Người chụp cận (vai chạm hai mép khung) | Vẫn có câu xoay máy tới cột, không bảo lùi ra liên tục | | | |
+| 18.8 | Ở giữa: chạy lại như lần 8 | Vẫn đạt như trước (Ở giữa không đổi) |d | d| |
+| 18.9 | Xoay máy chậm, đều, rồi xoay ngay sau khi vừa dừng | Ít khựng hơn lần 9; ghi mức khựng |d |d | khi di chuyển rất chậm (di chuyển một cách từ từ ) sẽ giật  |
+| 18.10 | Chiều dời máy (bạn chọn kiểu 6) | Trên dải **không có mũi tên**, chỉ dải + đường đỏ; chiều nằm ở icon đầu câu |d |d | |
+
+### 18.11 Góp ý
+
+- (ghi trong cột Ghi chú)
+
+### 18.12 Trả lời góp ý lần 10
+
+- **18.1 (người sát mép trái, cột trái đỏ, đưa vào là Đạt dù người nhìn về cột trái):** lượt đầu app chưa thấy hướng nhìn (người sát mép, mũ che) nên lấy cột gần nhất; bước cột chỉ cần 2 lượt đúng nên Đạt trước khi kịp thấy hướng nhìn. Sửa: **chưa lượt nào thấy hướng nhìn thì bước cột cần 3 lượt đúng liền** (thấy rồi thì vẫn 2). Lượt thêm cho app cơ hội thấy hướng nhìn; thấy là đổi cột ngay, câu bảo dời tiếp. Người nhìn thẳng thật vẫn Đạt, chậm hơn chừng 1 s.
+  - Mô phỏng trên hai ảnh bạn gửi (170 lần chạy): 168 về cột phải (đúng). 2 lần còn về cột trái: khung đó 3 lượt liền không thấy khung xương nào (không có mắt, mũi). Mô phỏng dùng đúng một khung cho mọi lượt nên lần nào cũng không thấy; trên điện thoại mỗi lượt là ảnh mới nên dễ thấy hơn. Chặn hẳn ca này thì người quay lưng sẽ không bao giờ Đạt, nên giữ cột gần nhất sau 3 lượt.
+  - Mô phỏng 1/3 trên 1202 ảnh mẫu: vẫn 0 lần đổi chiều, 0 lần đổi cột.
+- **18.9 (xoay rất chậm vẫn giật):** xoay rất chậm thì con quay coi như máy đứng yên, nên app vẫn chụp kiểm tra giữa lúc xoay. Chưa sửa: hạ ngưỡng thêm thì rung tay lúc cầm yên cũng thành "đang dời" và app không bao giờ chụp kiểm tra. Ghi lại để bàn.
+
+## 19. Lần 11 — Chưa thấy hướng nhìn thì chưa Đạt cột vội (2026-11-27)
+
+Chạy lại `npx expo start -c` (**chưa commit**; đừng chạy `npm install`). Các dòng 18.2–18.7 bạn chưa thử thì thử ở đây.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 19.1 | Như 18.1: người sát mép trái, chọn 1/3, đưa người vào cột trái và giữ | Không báo Đạt ngay; trong 3 lượt app thấy người nhìn trái thì dải sang **cột phải**, câu bảo dời tiếp | l| l| |
+| 19.2 | Làm theo câu tới khi đạt (18.2) | Câu giữ một chiều tới lúc vào dải |d |d | |
+| 19.3 | Người nửa người gần máy, quay đầu sang phải của khung (18.3) | Dải ở **cột trái** | d| d| |
+| 19.4 | Người toàn thân 3–4 m, quay đầu sang phải / trái (18.4) | Dải ở cột trái / phải |d | d| |
+| 19.5 | Người nhìn gần thẳng, máy đứng im 10 s (18.5) | Dải không đổi cột, câu không đổi chiều; Đạt sau chừng 3 s khi đã ở cột |d |d | |
+| 19.6 | Đang hướng dẫn, người quay đầu hẳn sang phía kia và giữ (18.6) | Khoảng 2–3 s sau dải đổi cột |d |d | |
+| 19.7 | Người chụp cận, vai chạm hai mép khung (18.7) | Vẫn có câu xoay máy tới cột, không bảo lùi ra liên tục |d |d | |
+
+### 19.8 Góp ý
+
+- Ảnh người đội mũ nhìn sang trái (bạn gửi): đưa người vào cột trái, bật kiểm tra → cột trái xanh, báo Đạt, trong khi phải về cột phải.
+
+### 19.9 Trả lời góp ý lần 11
+
+- **Thử trên máy tính với đúng ảnh bạn gửi:** cả khung, nhiều khung 3:4, và đặt người ở cột trái với 5 cỡ (người cao 0,29–0,83 khung), mắt ở 0,12 và 0,2 bề ngang. Lần nào khung xương cũng đoán "nhìn trái" nên chọn **cột phải**; trọng tâm người ở 0,43–0,63 nên không thể lọt dải cột trái. **Claude chưa tái hiện được lỗi** trên máy tính. Có thể khi quay ảnh trên màn hình bằng điện thoại, khung xương ở ảnh 512 px không thấy hướng nhìn mấy lượt liền.
+- **Đã sửa chỗ yếu tìm thấy:** lần dò lại trên ảnh cỡ thật trước chỉ dùng lưới mặt, mà lưới mặt **không bao giờ** thấy mặt nghiêng hẳn (cả hai ảnh của bạn: 0 lần). Giờ vùng cắt gồm cả đầu và vai, và lấy hướng nhìn từ **khung xương** của vùng cắt khi không thấy mặt. Trên máy tính, khung xương ở vùng cắt này thấy "nhìn trái" ở 13/15 lần thử (3 cảnh × 5 cỡ), không lần nào thấy "nhìn phải".
+- **Dòng chẩn đoán (chỉ bản dev):** khi hướng dẫn 1/3, góc trên trái khung ngắm hiện một dòng nhỏ, ví dụ `nguồn hiSkeleton · nhìn trái · phiếu -2 · cột phải · x 0.52`: hướng nhìn lấy từ đâu (`face` / `skeleton` ở ảnh nhỏ, `hiFace` / `hiSkeleton` ở ảnh cỡ thật, `không`), người nhìn về đâu, tổng phiếu, cột đang chọn, chỗ người. Nếu còn sai, chụp màn hình lúc sai gửi Claude.
+
+- **Chạy thêm bộ ảnh mới:** 1146 mục còn lại của bộ cũ không chạy lại được (ảnh gốc không còn trên máy). Claude chạy model trên bộ 1977 ảnh một người khác (`eval/composition/images`, chưa từng dùng cho mô phỏng hướng dẫn). Đây là dữ liệu để thử, **không làm model học thêm** (model MediaPipe cố định).
+  - 1/3 trên 1764 ảnh dùng được: **0 lần đổi chiều câu, 0 lần đổi cột** ở cả năm kiểu người chụp ảo, camera sau và trước. Làm theo tay yên: 6586/8095 Đạt.
+  - Ở giữa: 0 lần đổi chiều.
+  - Khoảng 12% lần chạy "làm theo" vẫn tự dừng. Claude chạy lại model giữ **mặt nạ người** để mô phỏng tính trọng tâm phần người thấy trong từng khung như app. Ca tự dừng còn lại khoảng 10%, và là lỗi thật: người rộng hơn khung (nằm, dang tay, cận quá), phần trên của người phủ hết bề ngang nên xoay máy trọng tâm trượt theo khung, không bao giờ tới đường đích. **Sửa:** phần trên của người phủ từ 90% bề ngang khung thì câu là "Lùi ra" (1/3 và Ở giữa; composition-critic đo thêm bề ngang phần trên).
+  - Sau sửa, 1/3 làm theo tay yên: tự dừng 832 → 111 / 8095 lần chạy; 0 lần đổi chiều, 0 lần đổi cột ở các kiểu làm theo (làm nhanh: 1 lần đổi chiều do quá tay). Số lần "chạm mép ảnh" tăng vì người chụp ảo lùi ra tới mép ảnh gốc (giới hạn của mô phỏng).
+  - Ở giữa làm theo tay yên: 5837 Đạt, 144 tự dừng, 1 lần đổi chiều; Đạt khi mắt đã ra ngoài khung 15 / 8095 lần chạy.
+
+## 20. Lần 12 — Dò hướng nhìn lại bằng khung xương ở ảnh cỡ thật, dòng chẩn đoán (2026-11-27)
+
+Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại** cho chắc nạp bản mới (**chưa commit**; đừng chạy `npm install`).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 20.1 | Có dòng chẩn đoán | Khi hướng dẫn 1/3, góc trên trái khung có dòng `nguồn … · nhìn … · phiếu … · cột … · x …` |d |d | |
+| 20.2 | Ảnh người đội mũ nhìn trái (ảnh bạn gửi), người ở cột trái, chọn 1/3, đứng im | Dòng chẩn đoán "nhìn trái", phiếu âm, **cột phải**; không báo Đạt ở cột trái. Nếu sai: chụp màn hình dòng chẩn đoán |d |d | dù vẫn có đoán nhìn phải nhưng vẫn kịp đổi lại nhìn trái, không còn bị vòng lặp nhắc trái phải liên tục, ổn   |
+| 20.3 | Như 20.2, người ở giữa và ở cột phải | Luôn cột phải |d |d | khá tốt |
+| 20.4 | Người thật nhìn sang phải của khung | Cột trái |d |d | |
+| 20.5 | Người nhìn thẳng | "nhìn ?" phiếu 0, cột gần nhất; Đạt sau chừng 3 s ở cột |d |d |khong báo nhìn ? mà luôn nhìn trái và luôn chọn cột phải. cũng đúng vì mắt người thường thích chủ thể nằm bên phải vì nó là ở tay phải nên thuận hơn, nếu ko xác định được mặt cứ chọn cột phải |
+| 20.6 | Các dòng 19.2–19.7 chưa thử | Như mục 19 | — | — | Không cần thử lại: 19.2–19.7 đã đạt (d) trên cả hai máy ở mục 19. |
+
+### 20.7 Góp ý
+
+- (ghi trong cột Ghi chú)
+
+### 20.8 Trả lời góp ý lần 12
+
+- **20.2 (lúc đầu vẫn đoán nhìn phải rồi mới đổi lại):** Claude tái hiện được trên lưới khung cắt của ảnh lần 11. Ở một khung, khung xương đoán nhầm "nhìn phải". Phiếu đang 0 thì một lượt nhầm (2 phiếu) là sang cột trái, lượt sau thấy nhìn trái chỉ kéo phiếu về 0 nên cột kẹt ở trái. **Sửa:** giữa chừng hướng dẫn, muốn rời cột phải sang cột trái phải có tổng 3 phiếu, tức ít nhất 2 lượt thấy nhìn phải; một lượt nhầm không đổi cột nữa. Lượt đầu (chưa hiện câu nào) vẫn chọn ngay theo hướng nhìn, vì bắt đợi thêm lượt thì người quay đầu nhẹ sang phải bị bảo dời về cột phải rồi lại dời ngược (Claude thử cách đợi trước: mô phỏng ra 550 lần đổi chiều, nên bỏ).
+- **20.5 (nhìn thẳng vẫn báo nhìn trái, chọn cột phải; không biết hướng thì cứ chọn cột phải):** đã làm. Chưa thấy hướng nhìn thì dải ở **cột phải**, không còn theo cột gần người nhất. Bước cột vẫn cần 3 lượt đúng liền khi chưa thấy hướng nhìn, để app kịp thấy nếu người thật ra nhìn sang phải.
+  - Người nhìn thẳng mà app vẫn báo "nhìn trái" là lưới mặt / khung xương lệch nhẹ về một phía khi mặt gần thẳng. Với cột phải mặc định thì lệch này không đổi kết quả (đằng nào cũng cột phải). Nếu có lúc người nhìn **phải** nhẹ mà dải vẫn ở cột phải, ghi lại kèm dòng chẩn đoán.
+- **Thử trên máy tính sau sửa:**
+  - Lưới khung cắt của 3 ảnh bạn gửi (137 điểm bắt đầu): 0 lần đổi chiều; mọi lần Đạt đều ở **cột phải**. Trước sửa, ảnh 3 có 2 lần đổi chiều. Còn 1 lần ở ảnh 3 chạm mép ảnh: bắt đầu đúng ở khung mà khung xương đoán nhầm, nên lượt đầu đã chọn cột trái.
+  - 1/3 trên 1764 ảnh: **0 lần đổi cột, 0 lần đổi chiều** ở các kiểu làm theo (làm nhanh camera trước: 1, đứng yên camera sau: 1). Làm theo tay yên camera sau: Đạt 5601 → 5366, tự dừng 111 → 169, chạm mép ảnh 2383 → 2560. Giảm vì người không rõ hướng nhìn đứng bên trái giờ phải dời xa hơn, sang cột phải; trong mô phỏng ô cắt hay chạm mép ảnh gốc trước khi tới.
+
+## 21. Lần 13 — Không rõ hướng nhìn thì cột phải; một lượt đoán nhầm không đổi cột (2026-11-27)
+
+Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại** (**chưa commit**; đừng chạy `npm install`). Dòng chẩn đoán vẫn còn (bản dev).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 21.1 | Người nhìn thẳng, đứng ở **cột trái**, chọn 1/3, máy đứng im | Dải ở **cột phải**, câu bảo dời tới cột phải; không Đạt ở cột trái | d| d| |
+| 21.2 | Như 21.1, người đứng ở cột phải | Đạt sau chừng 3 s |d |d | |
+| 21.3 | Ảnh người đội mũ nhìn trái (20.2), người ở cột trái / giữa / phải | Luôn cột phải; câu không đổi chiều, kể cả lúc đầu |d |d | |
+| 21.4 | Người thật nhìn rõ sang phải của khung, bật 1/3 | Dải ở **cột trái** ngay lượt đầu |d | d| |
+| 21.5 | Đang hướng dẫn ở cột phải, người quay đầu hẳn sang phải và giữ | Khoảng 2–3 lượt sau dải sang cột trái (một lượt thoáng quay không đổi) |d |d | |
+| 21.6 | Ở giữa: chạy lại nhanh | Vẫn đạt như trước (Ở giữa không đổi) |d | d| ở giữa hơi trống, cho lưới 3x3 vào |
+
+### 21.7 Góp ý
+
+- (ghi trong cột Ghi chú)
+
+### 21.8 Trả lời góp ý lần 13
+
+- **21.1–21.5:** đạt trên cả hai máy, chọn cột 1/3 giữ như bản này.
+- **21.6 (Ở giữa hơi trống, cho lưới 3×3 vào):** đã làm. Lớp kẻ của Ở giữa giờ là lưới 3×3 thêm trục dọc giữa (cùng nét trắng mờ như lưới). Đang hướng dẫn thì dải đích đỏ vẫn nằm trên trục giữa. Chỗ dính khi thả pose không đổi (vẫn trục giữa và điểm đích).
+
+## 22. Lần 14 — Lưới 3×3 cho Ở giữa (2026-11-27)
+
+Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại** (**chưa commit**; đừng chạy `npm install`).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 22.1 | Chọn Ở giữa trong bảng Bố cục | Khung có lưới 3×3 và trục dọc giữa |d |d | |
+| 22.2 | Hướng dẫn Ở giữa | Dải đích đỏ nằm trên trục giữa, dễ phân biệt với lưới |d |d | |
+| 22.3 | Thả pose khi đang Ở giữa | Pose vẫn dính trục giữa, không dính các đường 1/3 |d |d | |
+
+### 22.4 Góp ý
+
+- (không có)
+
+### 22.5 Trả lời lần 14
+
+- 22.1–22.3 đạt trên cả hai máy. 1/3 (lần 13) và Ở giữa (lần 14) giữ như bản này; chưa commit, chờ bạn đồng ý.

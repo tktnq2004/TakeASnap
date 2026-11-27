@@ -17,6 +17,8 @@ export function CompositionGuide({
   technique,
   anchor,
   focus = null,
+  focusBand = 0,
+  focusOk = false,
 }: {
   frame: Rect;
   technique: TechniqueId;
@@ -24,6 +26,10 @@ export function CompositionGuide({
   anchor: Pt | null;
   /** Đích sáng của tiêu chí đang hướng dẫn (Phase 5b). */
   focus?: Target | null;
+  /** Nửa bề rộng dải đích (phần khung): vào dải là đạt. 0: chỉ vẽ đường. */
+  focusBand?: number;
+  /** Đang đúng, chờ xác nhận: dải màu nhấn thay cho đỏ. */
+  focusOk?: boolean;
 }) {
   if (technique === 'off') return null;
   const g = guideShape(technique, anchor);
@@ -51,15 +57,63 @@ export function CompositionGuide({
         </View>
       ))}
       {/* Không vẽ chấm xanh nào (phiếu Phase 5b lần 3, mục 11.5: bỏ ở mọi bố cục). */}
-      {focus && <Focus target={focus} width={W} height={H} />}
+      {focus && <Focus target={focus} band={focusBand} ok={focusOk} width={W} height={H} />}
     </View>
   );
 }
 
-/** Đích sáng (design.md §6.15, Hướng dẫn liên tục): đường `camAccent` đậm; điểm thì không vẽ. */
-function Focus({ target, width, height }: { target: Target; width: number; height: number }) {
-  if (target.kind === 'vline') return <View style={[styles.focusV, { left: target.x * width }]} />;
-  if (target.kind === 'hline') return <View style={[styles.focusH, { top: target.y * height }]} />;
+/**
+ * Dải đích (cách C, phiếu Phase 5b lần 8, mục 16): dải đỏ mờ đúng bằng vùng đạt + đường đích đỏ,
+ * đứng yên; người dùng nhìn khung ngắm (realtime) để đưa người vào dải. Không vẽ mũi tên trên dải
+ * (phiếu Phase 5b lần 9, kiểu 6): chiều chỉ ở đầu câu hướng dẫn. Đang đúng chờ xác nhận: màu nhấn.
+ */
+function Focus({
+  target,
+  band,
+  ok,
+  width,
+  height,
+}: {
+  target: Target;
+  band: number;
+  ok: boolean;
+  width: number;
+  height: number;
+}) {
+  const line = ok ? color.camAccent : color.camTarget;
+  const fill = ok ? color.camOkBand : color.camTargetBand;
+  if (target.kind === 'vline') {
+    const half = band * width;
+    return (
+      <>
+        {half > 0 && (
+          <View
+            style={[
+              styles.bandV,
+              { left: target.x * width - half, width: 2 * half, backgroundColor: fill },
+            ]}
+          />
+        )}
+        <View style={[styles.focusV, { left: target.x * width, backgroundColor: line }]} />
+      </>
+    );
+  }
+  if (target.kind === 'hline') {
+    const half = band * height;
+    return (
+      <>
+        {half > 0 && (
+          <View
+            style={[
+              styles.bandH,
+              { top: target.y * height - half, height: 2 * half, backgroundColor: fill },
+            ]}
+          />
+        )}
+        <View style={[styles.focusH, { top: target.y * height, backgroundColor: line }]} />
+      </>
+    );
+  }
   return null;
 }
 
@@ -84,6 +138,8 @@ const styles = StyleSheet.create({
   },
   halo: { flexBasis: gridLine.halo, backgroundColor: color.guideHalo },
   stroke: { flexBasis: gridLine.width, backgroundColor: color.guide },
+  bandV: { position: 'absolute', top: 0, bottom: 0 },
+  bandH: { position: 'absolute', left: 0, right: 0 },
   focusV: {
     position: 'absolute',
     top: 0,

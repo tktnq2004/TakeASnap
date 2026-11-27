@@ -68,7 +68,8 @@ export function useLayoutCheck() {
     setResult(null);
     clearHide();
     try {
-      const s = await snapshot.take(cam, frame, preview);
+      // Không truyền `moved` nên luôn có kết quả.
+      const s = (await snapshot.take(cam, frame, preview))!;
       if (token.current !== my) return;
       if (s.kind === 'none') {
         show({ kind: 'none' });

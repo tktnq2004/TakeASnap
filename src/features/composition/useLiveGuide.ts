@@ -1,7 +1,13 @@
 /**
- * Hướng dẫn liên tục (Phase 5b, business-flow §6.10): khoảng 1 lần / giây chụp lặng một ảnh
- * (`useSnapshot`), đo tiêu chí của bố cục đang bật (`measure`) rồi áp luật nhắc / dừng (`step`).
- * Dừng khi đạt, cảnh không áp được, 5 lần nhắc không tiến bộ + 10 s, hoặc người dùng dừng.
+ * Hướng dẫn liên tục (Phase 5b, business-flow §6.10): chụp lặng một ảnh (`useSnapshot`), đo tiêu
+ * chí của bố cục đang bật (`measure`) rồi áp luật nhắc / dừng (`step`). Dừng khi đạt, cảnh không áp
+ * được, 3 lần nhắc không tiến bộ + 10 s, hoặc người dùng dừng.
+ *
+ * Cách 7 (góp ý phiếu Phase 5b lần 7, mục 15.7: chấm, mũi tên nhảy vì chỉ biết người ở đâu sau mỗi
+ * lần chụp): con quay cho biết máy đang dời hay đứng yên (realtime). Chỉ chụp kiểm tra khi máy yên
+ * `stillMs` (lần sau cách `guideIntervalMs`); dời mãi không yên thì vẫn kiểm tra sau
+ * `guideMaxWaitMs`. Ảnh chụp lúc máy yên thì đúng với khung ngắm người dùng đang thấy; ít lần chụp
+ * hơn cũng đỡ nóng máy. Không vẽ gì theo vị trí người (cách C, mục 16).
  *
  * Camera chỉ chụp một ảnh mỗi lúc: lượt nào camera đang bận (người dùng đang bấm chụp) thì bỏ
  * lượt đó; nút chụp đợi lần chụp lặng đang chạy (`settled()`) rồi chụp ngay.
@@ -9,7 +15,13 @@
 import type { CameraView } from 'expo-camera';
 import { useEffect, useRef, useState } from 'react';
 import { Platform } from 'react-native';
-import { SensorType, useAnimatedSensor } from 'react-native-reanimated';
+import {
+  SensorType,
+  useAnimatedReaction,
+  useAnimatedSensor,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 
 import type { Rect } from '@/features/camera/frame';
 import { deviceRoll, levelUsable } from '@/features/camera/level';
@@ -18,6 +30,7 @@ import { compositionUi } from '@/ui/tokens';
 
 import {
   type ColumnLock,
+  columnUnsure,
   flipX,
   type GuidePlan,
   type GuideState,
@@ -58,6 +71,29 @@ export type GuideEnd = { state: GuideState; plan: GuidePlan } | { stopped: true 
 export function useLiveGuide(getContext: () => GuideContext) {
   const snapshot = useSnapshot();
   const gravity = useAnimatedSensor(SensorType.GRAVITY, { interval: 'auto' });
+  const gyro = useAnimatedSensor(SensorType.GYROSCOPE, { interval: 'auto' });
+  // Máy đang dời (có độ trễ giữa hai ngưỡng để không nhấp nháy theo rung tay).
+  const movingSV = useSharedValue(false);
+  /** Lúc máy bắt đầu đứng yên (0: yên từ trước khi mở), null khi đang dời. */
+  const stillAt = useRef<number | null>(0);
+  const onMotion = (m: boolean) => {
+    stillAt.current = m ? null : Date.now();
+  };
+  useAnimatedReaction(
+    () => {
+      const g = gyro.sensor.get();
+      const rate = Math.hypot(g.x, g.y, g.z);
+      return movingSV.get() ? rate > compositionUi.stillGyro : rate > compositionUi.moveGyro;
+    },
+    (m, prev) => {
+      if (m === prev) return;
+      movingSV.set(m);
+      scheduleOnRN(onMotion, m);
+    },
+  );
+  /** Máy đã yên đủ lâu để chụp kiểm tra. */
+  const steady = () =>
+    stillAt.current != null && Date.now() - stillAt.current >= compositionUi.stillMs;
   const [view, setView] = useState<GuideView | null>(null);
   const [end, setEnd] = useState<GuideEnd | null>(null);
   const token = useRef(0);
@@ -91,13 +127,28 @@ export function useLiveGuide(getContext: () => GuideContext) {
     let state = initialGuide();
     // Cột 1/3 chốt trong cả lần hướng dẫn (không nhảy theo rung tay).
     let lock: ColumnLock | null = null;
+    let last = Date.now();
     while (token.current === my) {
+      // Đợi máy yên (hoặc quá lâu chưa kiểm tra).
+      while (
+        token.current === my &&
+        !steady() &&
+        Date.now() - last < compositionUi.guideMaxWaitMs
+      ) {
+        await new Promise((res) => setTimeout(res, 50));
+      }
+      if (token.current !== my) return;
       const t0 = Date.now();
+      last = t0;
       const c = ctxRef.current();
       if (c.cam && c.free) {
         let s: Snapshot | null = null;
         try {
-          s = await snapshot.take(c.cam, c.frame, c.preview);
+          s = await snapshot.take(c.cam, c.frame, c.preview, {
+            gaze: plan.main === 'thirds',
+            // Máy dời từ lúc bắt đầu chụp: bỏ lượt (mục 17.2).
+            moved: () => stillAt.current == null || stillAt.current > t0,
+          });
         } catch {
           // Camera bận (vừa bấm chụp) hoặc trang lỗi: bỏ lượt này.
         }
@@ -112,7 +163,14 @@ export function useLiveGuide(getContext: () => GuideContext) {
             };
           }
           if (snap) lock = lockColumn(lock, snap.features, snap.yaw);
-          const m: Measure = measure(plan, snap?.features ?? null, rollDeg(), c.front, lock?.col);
+          const m: Measure = measure(
+            plan,
+            snap?.features ?? null,
+            rollDeg(),
+            c.front,
+            lock?.col,
+            lock != null && columnUnsure(lock),
+          );
           const r = step(state, m, Date.now());
           state = r.state;
           if (r.event === 'passed') haptic.levelReached();

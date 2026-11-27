@@ -2,6 +2,7 @@ import type { PhotoFeatures } from 'composition-critic';
 
 import {
   type Check,
+  columnUnsure,
   GUIDE,
   type GuideState,
   gaveUpLines,
@@ -260,49 +261,86 @@ describe('step: luật nhắc và dừng', () => {
 });
 
 describe('lockColumn: cột 1/3 chốt trong một lần hướng dẫn', () => {
-  it('nhìn thẳng: cột gần nhất lúc đầu, người lắc qua giữa khung không đổi cột', () => {
-    let lock = lockColumn(null, person([0.4, 0.2, 0.58, 0.9], { x: 0.49, y: 0.4 }));
-    expect(lock.col).toBe(1 / 3);
+  it('chưa biết hướng nhìn: cột phải dù người ở bên trái, người lắc qua giữa không đổi (mục 20.5)', () => {
+    let lock = lockColumn(null, person([0.1, 0.2, 0.3, 0.9], { x: 0.2, y: 0.4 }));
+    expect(lock).toEqual({ col: 2 / 3, score: 0 });
+    lock = lockColumn(lock, person([0.4, 0.2, 0.58, 0.9], { x: 0.49, y: 0.4 }));
     lock = lockColumn(lock, person([0.42, 0.2, 0.6, 0.9], { x: 0.51, y: 0.4 }));
-    expect(lock.col).toBe(1 / 3);
+    expect(lock.col).toBe(2 / 3);
   });
 
-  it('thấy rõ người nhìn về phía kia hai lượt liền mới đổi cột', () => {
+  it('bỏ phiếu: nhìn phải hai lượt mới rời cột phải; nhìn trái hai lượt là về lại', () => {
+    const right = person([0.4, 0.2, 0.6, 0.9], { x: 0.49, y: 0.4 }, 'right');
     const left = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.4 }, 'left');
-    let lock = lockColumn(null, person([0.4, 0.2, 0.6, 0.9], { x: 0.49, y: 0.4 }, 'right'));
-    expect(lock.col).toBe(1 / 3);
+    // Lượt đầu quay đầu rõ: chọn ngay (chưa hiện câu nào).
+    expect(lockColumn(null, right)).toEqual({ col: 1 / 3, score: 2 });
+    // Lượt đầu không thấy hướng: cột phải; sau đó cần hai lượt nhìn phải.
+    let lock = lockColumn(lockColumn(null, person([0.4, 0.2, 0.6, 0.9])), right);
+    expect(lock).toEqual({ col: 2 / 3, score: 2 });
+    expect(columnUnsure(lock)).toBe(true);
+    lock = lockColumn(lock, right);
+    expect(lock).toEqual({ col: 1 / 3, score: 3 });
+    expect(columnUnsure(lock)).toBe(false);
     lock = lockColumn(lock, left);
     expect(lock.col).toBe(1 / 3);
     lock = lockColumn(lock, left);
     expect(lock.col).toBe(2 / 3);
+    expect(columnUnsure(lock)).toBe(false);
   });
 
-  it('lượt không đoán được hướng không xóa số lượt đang đếm', () => {
-    const left = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.4 }, 'left');
+  it('một lượt đoán nhầm "nhìn phải" không làm kẹt cột trái (mô phỏng ảnh lần 11)', () => {
+    const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.4 });
+    // Giữa chừng khung xương đoán nhầm "nhìn phải" một lượt: vẫn cột phải.
+    let lock = lockColumn(lockColumn(null, f), person([0.4, 0.2, 0.6, 0.9], null, 'right'));
+    expect(lock.col).toBe(2 / 3);
+    // Lượt đầu đoán nhầm: sang cột trái, hai lượt thấy nhìn trái là về lại.
+    lock = lockColumn(null, person([0.4, 0.2, 0.6, 0.9], null, 'right'));
+    expect(lock.col).toBe(1 / 3);
+    lock = lockColumn(lock, f, -0.3);
+    expect(lock).toEqual({ col: 1 / 3, score: 0 });
+    lock = lockColumn(lock, f, -0.3);
+    expect(lock.col).toBe(2 / 3);
+    // Một lượt sai nữa không đổi.
+    lock = lockColumn(lock, person([0.4, 0.2, 0.6, 0.9], null, 'right'));
+    expect(lock.col).toBe(2 / 3);
+  });
+
+  it('lượt không đoán được hướng không đổi phiếu', () => {
     const none = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.4 });
-    let lock = lockColumn(null, person([0.4, 0.2, 0.6, 0.9], { x: 0.49, y: 0.4 }, 'right'));
-    lock = lockColumn(lock, left);
-    lock = lockColumn(lock, none);
-    expect(lock.col).toBe(1 / 3);
-    lock = lockColumn(lock, left);
-    expect(lock.col).toBe(2 / 3);
+    const lock = lockColumn(null, none, -0.3);
+    expect(lockColumn(lock, none)).toEqual(lock);
   });
 
-  it('chốt theo cột gần nhất: lượt đầu thấy hướng nhìn thì đổi ngay (mục 10.3.1)', () => {
-    let lock = lockColumn(null, person([0.42, 0.2, 0.6, 0.9], { x: 0.53, y: 0.4 }));
-    expect(lock).toMatchObject({ col: 2 / 3, sure: false });
-    lock = lockColumn(lock, person([0.42, 0.2, 0.6, 0.9], { x: 0.53, y: 0.4 }, 'right'));
-    expect(lock).toMatchObject({ col: 1 / 3, sure: true });
+  it('độ quay nhẹ lắc qua lại không đổi cột (mục 16.4)', () => {
+    const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.5, y: 0.4 });
+    // Lượt đầu chưa thấy hướng, sau đó lắc nhẹ: giữ cột phải.
+    let lock = lockColumn(null, f);
+    for (const y of [0.09, -0.1, 0.12, -0.08, 0.15, -0.11]) lock = lockColumn(lock, f, y);
+    expect(lock.col).toBe(2 / 3);
+    // Quay nhẹ sang phải ba lượt: cột trái, rồi lắc nhẹ không đổi lại.
+    for (const y of [0.1, 0.12, 0.09]) lock = lockColumn(lock, f, y);
+    expect(lock.col).toBe(1 / 3);
+    for (const y of [-0.1, 0.12, -0.08]) lock = lockColumn(lock, f, y);
+    expect(lock.col).toBe(1 / 3);
+    lock = lockColumn(lock, f, -0.3);
+    lock = lockColumn(lock, f, -0.28);
+    expect(lock.col).toBe(2 / 3);
   });
 
   it('quay đầu vừa phải (dưới ngưỡng nhận xét) vẫn chọn cột theo hướng nhìn (mục 11.3)', () => {
     // Người đứng gần cột phải, quay đầu sang phải nhẹ: khung xương coi là nhìn thẳng.
     const f = person([0.55, 0.2, 0.72, 0.9], { x: 0.64, y: 0.4 });
     expect(lockColumn(null, f).col).toBe(2 / 3);
-    expect(lockColumn(null, f, 0.1)).toMatchObject({ col: 1 / 3, sure: true });
-    expect(lockColumn(null, f, -0.1).col).toBe(2 / 3);
-    // Nhìn thẳng thật: cột gần nhất, chưa chốt.
-    expect(lockColumn(null, f, 0.02)).toMatchObject({ col: 2 / 3, sure: false });
+    // Lượt đầu: sang cột trái ngay (chưa hiện câu nào).
+    expect(lockColumn(null, f, 0.1).col).toBe(1 / 3);
+    // Giữa chừng: cần ba lượt.
+    let lock = lockColumn(lockColumn(null, f), f, 0.1);
+    expect(columnUnsure(lock)).toBe(true);
+    lock = lockColumn(lockColumn(lock, f, 0.1), f, 0.1);
+    expect(lock.col).toBe(1 / 3);
+    expect(lockColumn(null, f, -0.1)).toEqual({ col: 2 / 3, score: -1 });
+    // Nhìn thẳng thật: cột phải mặc định, chưa có phiếu.
+    expect(lockColumn(null, f, 0.02)).toEqual({ col: 2 / 3, score: 0 });
   });
 
   it('headYaw: mặt trong khung người chính, gần mắt nhất', () => {
@@ -319,17 +357,44 @@ describe('lockColumn: cột 1/3 chốt trong một lần hướng dẫn', () => 
     expect(headYaw(f, null)).toBeNull();
   });
 
-  it('người ra sát mép, không thấy đầu: coi như ở mép đó, không lấy giữa khung người', () => {
-    // Khung người rộng chạm mép trái (người đang ra khỏi khung bên trái): giữa khung là 0,4 nhưng
-    // người thật ở mép trái → vẫn bảo đưa người sang phải tới cột trái.
-    const f = person([0, 0.2, 0.8, 0.9]);
-    const c = first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!;
-    expect(c.action).toBe('panLeft');
-    expect(c.error).toBeCloseTo(1 / 3);
+  it('chỗ người 1/3 theo trọng tâm vùng người, không theo mắt (mục 17.8)', () => {
+    // Mắt bắt nhầm ngoài người không làm đổi chiều: trọng tâm vùng người mới tính.
+    const f = { ...person([0.6, 0.2, 0.9, 0.9], { x: 0.3, y: 0.3 }) };
+    f.people = [{ ...f.people[0]!, cx: 0.85 }];
+    const c = first(measure({ main: 'thirds' }, f, 0, false, 2 / 3))!;
+    expect(c.action).toBe('panRight');
+    expect(c.at!.x).toBeCloseTo(0.85);
+  });
+
+  it('chưa thấy hướng nhìn: bước cột cần 3 lượt đúng mới đạt (mục 18.1)', () => {
+    const f = person([0.25, 0.2, 0.42, 0.9]);
+    f.people = [{ ...f.people[0]!, cx: 1 / 3 }];
+    const m = measure({ main: 'thirds' }, f, 0, false, 1 / 3, true);
+    let s = initialGuide();
+    s = step(s, m, 0).state;
+    s = step(s, m, 1000).state;
+    expect(s.passed).not.toContain('thirdsColumn');
+    s = step(s, m, 2000).state;
+    expect(s.passed).toContain('thirdsColumn');
+    // Đã thấy hướng nhìn: 2 lượt như cũ.
+    const m2 = measure({ main: 'thirds' }, f, 0, false, 1 / 3, false);
+    let s2 = step(initialGuide(), m2, 0).state;
+    s2 = step(s2, m2, 1000).state;
+    expect(s2.passed).toContain('thirdsColumn');
+  });
+
+  it('phần trên của người phủ gần hết khung: bảo lùi ra, không xoay mãi (lần 12)', () => {
+    const f = person([0, 0.2, 1, 0.9]);
+    f.people = [{ ...f.people[0]!, cx: 0.5, upperW: 0.95 }];
+    expect(first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!.action).toBe('back');
+    expect(first(measure({ main: 'center' }, f, 0, false))!.action).toBe('back');
+    // Chụp cận nhưng đầu hẹp hơn khung: vẫn xoay tới cột.
+    f.people = [{ ...f.people[0]!, cx: 0.5, upperW: 0.4 }];
+    expect(first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!.action).toBe('panRight');
   });
 
   it('measure dùng cột đã chốt', () => {
-    const f = person([0.4, 0.2, 0.6, 0.9], { x: 0.55, y: 0.4 });
+    const f = person([0.45, 0.2, 0.65, 0.9], { x: 0.55, y: 0.4 });
     const c = first(measure({ main: 'thirds' }, f, 0, false, 1 / 3))!;
     expect(c.target).toEqual({ kind: 'vline', x: 1 / 3 });
     expect(c.action).toBe('panRight');

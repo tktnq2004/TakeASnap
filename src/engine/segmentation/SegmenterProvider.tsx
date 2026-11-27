@@ -35,6 +35,12 @@ type Ctx = {
    * lưới người + mọi khung xương + mắt từ bộ dò mặt. Không tự tải gói: gọi khi gói đã có.
    */
   analyzeSnapshot: (base64: string, gridSide: number) => Promise<Snapshot>;
+  /**
+   * Dò mặt và khung xương trên vùng đầu + vai đã cắt từ ảnh cỡ thật (phiếu Phase 5b lần 8, mục
+   * 16.2.2: người đứng xa; lần 11: mặt nghiêng hẳn thì chỉ khung xương thấy hướng nhìn): [x, y, độ
+   * quay đầu] từng mặt và 33 khớp phẳng, theo vùng cắt. Không tự tải gói.
+   */
+  headLandmarks: (base64: string) => Promise<{ faceEyes: number[][]; body: number[] | null }>;
 };
 
 export type Snapshot = {
@@ -123,6 +129,12 @@ export function SegmenterProvider({ children }: { children: ReactNode }) {
           bodies: lm.bodies ?? (lm.bodyPoints ? [lm.bodyPoints] : []),
           faceEyes: lm.faceEyes ?? [],
         };
+      },
+      headLandmarks: async (base64) => {
+        if (!isPackReady(POSE_PACK)) throw new Error('Chưa có bộ tách người');
+        await ensurePoseLoaded();
+        const lm = await segRef.current.landmarks(base64);
+        return { faceEyes: lm.faceEyes ?? [], body: lm.bodyPoints ?? null };
       },
     };
   }, []);

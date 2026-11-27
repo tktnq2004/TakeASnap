@@ -52,8 +52,11 @@ export const color = {
   /** Cùng màu nhấn với các màn khác (B2). */
   camAccent: '#8AB4F8',
   camWarn: '#FACC15',
-  /** Chấm đích của hướng dẫn liên tục: đỏ cho nổi trên khung ngắm (phiếu Phase 5b lần 6, 14.4). */
+  /** Đích của hướng dẫn liên tục: đỏ cho nổi trên khung ngắm (phiếu Phase 5b lần 6, 14.4). */
   camTarget: '#FF3B30',
+  /** Dải đích (vùng đạt) đỏ mờ; đang đúng chờ xác nhận thì dải màu nhấn. */
+  camTargetBand: 'rgba(255,59,48,0.22)',
+  camOkBand: 'rgba(138,180,248,0.3)',
   /** Nền viên gợi ý bố cục dưới khung ngắm (design.md §6.15). */
   camHint: 'rgba(5,7,13,0.72)',
   /** Lưới và mốc thước trên khung ngắm. */
@@ -295,9 +298,7 @@ export const cameraUi = {
   trashVanishMs: 420,
   timerOptions: [0, 3, 10],
   shutterFlashMs: 120,
-  /** Ảnh vừa chụp bay từ khung ngắm vào ô ảnh vừa chụp. */
-  flyMs: 420,
-  /** Chụp liên tục: ngừng bấm chừng này (và đã lưu xong) thì ảnh mới nhất bay vào ô. */
+  /** Chụp liên tục: ngừng bấm chừng này (và đã lưu xong) thì ô hiện ảnh mới nhất. */
   burstSettleMs: 350,
   /** Chụp liên tục: tối đa số ảnh chờ lưu; bấm thêm thì bỏ qua. */
   burstMaxPending: 8,
@@ -315,12 +316,6 @@ export const cameraUi = {
 export const compositionUi = {
   /** Các dòng nhận xét hiện lần lượt, mỗi dòng sau dòng trước chừng này (ms). */
   noteStagger: 60,
-  /**
-   * Chấm đích đỏ của hướng dẫn liên tục: chỗ người / mắt cần tới trên đường sáng (phiếu Phase 5b
-   * lần 6, mục 14.4), viền trắng để thấy trên nền đỏ.
-   */
-  targetDot: 16,
-  targetRing: 2,
   /** Viên gợi ý. */
   hintH: 38,
   /** Tình trạng giữ yên chừng này mới hiện gợi ý (business-flow §6.4). */
@@ -340,6 +335,15 @@ export const compositionUi = {
   checkShowMs: 5000,
   /** Ảnh chụp lặng thu về cạnh dài này trước khi gửi vào WebView; lưới người cạnh dài này. */
   checkSide: 512,
+  /**
+   * 1/3, ảnh nhỏ không thấy mặt: vùng đầu cắt từ ảnh cỡ thật, thu về cạnh này rồi dò mặt lại; vùng
+   * đầu nhỏ hơn `headMinPx` điểm ảnh thì bỏ (phiếu Phase 5b lần 8, mục 16.2.2).
+   */
+  headSide: 320,
+  headMinPx: 24,
+  /** Vùng cắt dò lại = vùng đầu × `headGrow`, tâm dời xuống `headDrop` × vùng đầu để có vai. */
+  headGrow: 2.2,
+  headDrop: 0.45,
   checkGrid: 256,
   /** Chấm mắt trên khung ngắm (design.md §6.15: chấm trắng 12, viền tối). */
   checkEye: 12,
@@ -352,13 +356,26 @@ export const compositionUi = {
   guideGraceMs: 10000,
   /** Mỗi lượt chụp lặng + phân tích cách nhau ít nhất chừng này (ms). */
   guideIntervalMs: 1000,
+  /**
+   * Cách 7 (góp ý phiếu Phase 5b lần 7, mục 15.7): chỉ chụp kiểm tra khi máy đứng yên chừng này
+   * (ms); máy dời mãi không yên thì vẫn kiểm tra sau `guideMaxWaitMs` để không kẹt.
+   */
+  stillMs: 600,
+  /**
+   * Phiếu lần 8, mục 16.1.3: chụp kiểm tra lúc máy đang dời làm khung ngắm giật, nên chỉ ép kiểm
+   * tra khi dời liền chừng này.
+   */
+  guideMaxWaitMs: 5000,
+  /**
+   * Tốc độ xoay (rad/s) của con quay: trên `moveGyro` là đang dời máy, dưới `stillGyro` là yên.
+   * Xoay chậm (chừng 5°/s) vẫn là dời (phiếu lần 8, mục 16.1.3).
+   */
+  moveGyro: 0.09,
+  stillGyro: 0.05,
   /** Viên kết thúc (dừng giữa chừng, cảnh không áp được) hiện chừng này. */
   guideEndMs: 3000,
   /** Viên "Đạt: …" sau mỗi bước hiện chừng này rồi mới tới câu sau. */
   stepOkMs: 1200,
-  /** Mũi tên kết quả trên khung ngắm: nét, cỡ đầu mũi tên. */
-  arrowStroke: 3,
-  arrowHead: 14,
   /** Ô "Bước 2/3" (cùng chấm nhắc) trên viên hướng dẫn. */
   stepChipH: 24,
 } as const;

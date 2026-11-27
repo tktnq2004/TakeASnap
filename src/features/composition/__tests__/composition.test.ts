@@ -48,6 +48,12 @@ describe('guideShape', () => {
     expect(guideShape('thirds', { x: 0.2, y: 0.8 }).target).toEqual({ x: 1 / 3, y: 1 / 3 });
     expect(guideShape('thirds', { x: 0.2, y: 0.8 }).points).toEqual([]);
   });
+
+  it('Ở giữa: lưới 3×3 thêm trục giữa (phiếu Phase 5b lần 13, mục 21.6)', () => {
+    const g = guideShape('center');
+    expect(g.v).toEqual([1 / 3, 0.5, 2 / 3]);
+    expect(g.h).toEqual([1 / 3, 2 / 3]);
+  });
 });
 
 describe('cameraPitchDeg', () => {

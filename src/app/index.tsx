@@ -63,7 +63,7 @@ import { nextZoomFactor, ULTRA_WIDE_FACTOR } from '@/features/camera/zoom';
 import { ZoomControl, zoomChipsWidth, zoomControlHeight } from '@/features/camera/ZoomControl';
 import { CheckOverlay } from '@/features/composition/CheckOverlay';
 import { GuideEndPill, GuideOverlay } from '@/features/composition/GuideOverlay';
-import { isGuidedMain } from '@/features/composition/guidance';
+import { bandOf, isGuidedMain } from '@/features/composition/guidance';
 import { CompositionGuide } from '@/features/composition/CompositionGuide';
 import { CompositionHint, HintPill } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
@@ -172,12 +172,11 @@ function CameraBody() {
   const [countdown, setCountdown] = useState<number | null>(null);
   // Ảnh vừa chụp: ảnh mới nhất đã lưu trong lần mở app này; chạm để mở màn Xem ảnh vừa chụp.
   const savedPhoto = useSessionPhotos((s) => s.photos[s.photos.length - 1]?.uri ?? null);
-  // Trong lúc chụp liên tục, ô ảnh giữ nguyên ảnh cũ ('' = trống); ngừng chụp thì ảnh mới nhất
-  // bay vào ô rồi ô lại đi theo danh sách ảnh đã lưu (null).
+  // Trong lúc chụp liên tục, ô ảnh giữ nguyên ảnh cũ ('' = trống); ngừng chụp thì ô đi theo danh
+  // sách ảnh đã lưu (null). Không có ảnh bay vào ô (phiếu Phase 5b lần 8, mục 16.4: che khung ngắm
+  // lúc đang hướng dẫn).
   const [heldThumb, setHeldThumb] = useState<string | null>(null);
   const lastPhoto = heldThumb === null ? savedPhoto : heldThumb || null;
-  /** Ảnh đang bay từ khung ngắm vào ô ảnh vừa chụp. */
-  const [flying, setFlying] = useState<string | null>(null);
   const countdownTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Kiểm tra bố cục (Phase 5a): chụp lặng một ảnh khi chạm, nhận xét trên khung ngắm.
   const check = useLayoutCheck();
@@ -533,38 +532,10 @@ function CameraBody() {
   const flashOpacity = useSharedValue(0);
   const flashStyle = useAnimatedStyle(() => ({ opacity: flashOpacity.get() }));
 
-  // Ảnh vừa chụp hiện đúng chỗ khung ngắm rồi thu nhỏ, trượt vào ô ảnh vừa chụp.
-  const fly = useSharedValue(0);
-  const thumbX = SIDE;
-  const thumbY = root.height - shutterBottom - size.shutter / 2 - size.thumb / 2;
-  const flyStyle = useAnimatedStyle(() => {
-    const t = fly.get();
-    const mix = (a: number, b: number) => a + (b - a) * t;
-    return {
-      left: mix(frame.x, thumbX),
-      top: mix(frame.y, thumbY),
-      width: mix(frame.width, size.thumb),
-      height: mix(frame.height, size.thumb),
-      borderRadius: mix(radius.xxl, 17),
-    };
-  });
-  const startFly = (uri: string) => {
-    setHeldThumb(uri);
-    setFlying(uri);
-    fly.set(0);
-    fly.set(
-      withTiming(1, { duration: cameraUi.flyMs, easing: easeIO }, (done) => {
-        if (!done) return;
-        scheduleOnRN(setFlying, null);
-        scheduleOnRN(setHeldThumb, null);
-      }),
-    );
-  };
-
   // ---- Chụp liên tục (góp ý Phase 4): mỗi lần bấm là một lần chớp màn và một ảnh. ----
   // Bấm lại được ngay khi camera chụp xong (camera chỉ chụp một ảnh mỗi lúc); cắt và lưu album
   // chạy nền theo hàng đợi, từng ảnh một để không giữ nhiều ảnh lớn trong bộ nhớ. Ngừng bấm thì
-  // ảnh mới nhất bay vào ô ảnh vừa chụp.
+  // ô ảnh vừa chụp hiện ảnh mới nhất.
   // Bấm trong lúc camera đang chụp: chỉ nhớ MỘT lần bấm, và bỏ nếu camera xong muộn hơn
   // `burstTapTtlMs` (phiếu mục 15.5: không để camera còn chớp sau khi đã ngừng bấm, lúc người
   // dùng có thể đã đưa máy đi chỗ khác).
@@ -582,25 +553,21 @@ function CameraBody() {
       technique: TechniqueId;
     }[],
     saving: false,
-    /** Ảnh mới nhất đã lưu trong đợt chụp này, sẽ bay vào ô. */
+    /** Ảnh mới nhất đã lưu trong đợt chụp này. */
     last: null as string | null,
     failed: 0,
     settle: null as ReturnType<typeof setTimeout> | null,
   });
 
-  /** Hết bấm, hết chụp, hết lưu thì kết thúc đợt: ảnh bay vào ô, báo lỗi (nếu có) một lần. */
+  /** Hết bấm, hết chụp, hết lưu thì kết thúc đợt: ô hiện ảnh mới, báo lỗi (nếu có) một lần. */
   const settleBurst = () => {
     const b = burst.current;
     if (b.settle) clearTimeout(b.settle);
     b.settle = setTimeout(() => {
       b.settle = null;
       if (b.tapAt != null || b.capturing || b.saving || b.queue.length) return;
-      if (b.last) {
-        startFly(b.last);
-        haptic.saved();
-      } else {
-        setHeldThumb(null);
-      }
+      if (b.last) haptic.saved();
+      setHeldThumb(null);
       b.last = null;
       if (b.failed) {
         b.failed = 0;
@@ -790,6 +757,8 @@ function CameraBody() {
             technique={technique}
             anchor={anchorN}
             focus={guide.view?.state.current?.target ?? null}
+            focusBand={guide.view?.state.current ? bandOf(guide.view.state.current) : 0}
+            focusOk={guide.view?.state.holding ?? false}
           />
           {levelOn && <LevelGuide frame={frame} />}
 
@@ -930,15 +899,6 @@ function CameraBody() {
             )}
           </PressableScale>
         </Animated.View>
-      )}
-
-      {flying && (
-        <Animated.Image
-          source={{ uri: flying }}
-          resizeMode="cover"
-          pointerEvents="none"
-          style={[styles.abs, styles.flying, flyStyle]}
-        />
       )}
 
       {/* Hàng chụp: ảnh vừa chụp · nút chụp · đổi camera. */}
@@ -1112,7 +1072,6 @@ const styles = StyleSheet.create({
   ink: { color: color.camInk },
   mask: { position: 'absolute', borderColor: color.camBg },
   shutterFlash: { backgroundColor: color.shutterFlash },
-  flying: { borderWidth: 2, borderColor: color.camInk, overflow: 'hidden' },
   zoomRow: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   checkWrap: { position: 'absolute' },
   check: {

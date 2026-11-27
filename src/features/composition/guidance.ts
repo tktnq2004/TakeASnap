@@ -64,6 +64,8 @@ export type Check = {
   target: Target | null;
   /** Chỗ của người / mắt / chân trời lúc này (gốc mũi tên tới đích), null khi không vẽ mũi tên. */
   at: { x: number; y: number } | null;
+  /** Số lượt đúng liền cần để tính đạt, khác `GUIDE.confirmTurns`. */
+  confirm?: number;
 };
 
 /** Một lượt đo: các tiêu chí theo thứ tự, hoặc cảnh không áp được. */
@@ -95,24 +97,25 @@ const check = (
   return { id, ok, error, band, action: quiet ? null : action, target, at };
 };
 
-/** Cột 1/3 cho người chính: chừa chỗ phía người nhìn, nhìn thẳng thì cột gần nhất. */
-export function thirdsColumn(f: PhotoFeatures, x: number): number {
-  if (f.facing === 'right') return 1 / 3;
-  if (f.facing === 'left') return 2 / 3;
-  return x < 0.5 ? 1 / 3 : 2 / 3;
+/** Cột 1/3 cho người chính: chừa chỗ phía người nhìn, không biết hướng nhìn thì cột phải. */
+export function thirdsColumn(f: PhotoFeatures): number {
+  return f.facing === 'right' ? 1 / 3 : 2 / 3;
 }
 
 /**
- * Cột 1/3 đã chốt trong một lần hướng dẫn (phiếu Phase 5b lần 1: người đứng giữa khung thì cột gần
- * nhất đổi qua lại theo rung tay, câu nhảy "xoay trái" / "xoay phải"). Chốt ở lượt đầu.
- * - Chốt theo hướng nhìn (`sure`): chỉ đổi khi thấy người nhìn về phía kia `GUIDE.confirmTurns`
- *   lượt (không tính các lượt không đoán được hướng).
- * - Chốt theo cột gần nhất (lượt đầu không đoán được hướng): lượt đầu tiên thấy hướng nhìn thì đổi
- *   theo ngay (phiếu Phase 5b lần 2, mục 10.3.1: chọn 1/3 khi người đã quay đầu mà cột vẫn sai).
- * Lượt không đoán được hướng không xóa số lượt đang đếm: hướng nhìn của người đứng xa lúc có lúc
- * không, xóa thì cột không bao giờ đổi.
+ * Cột 1/3 trong một lần hướng dẫn: **bỏ phiếu** theo hướng nhìn qua các lượt (phiếu Phase 5b lần 9,
+ * mục 17.8–17.10: một lượt khung xương / lưới mặt đoán sai là chốt cột sai; người nhìn gần thẳng thì
+ * hướng lắc qua lại, cột đổi liên tục). Mỗi lượt thấy người nhìn phải cộng phiếu (nhìn trái trừ):
+ * quay đầu rõ (lưới mặt từ `GUIDE.leanFlip`, hoặc khung xương) 2 phiếu, quay nhẹ 1 phiếu; tổng giữ
+ * trong ±`GUIDE.leanVotes`. Chưa có phiếu nào: **cột phải** (phiếu lần 12, mục 20.5: không biết
+ * người nhìn về đâu thì để chủ thể bên phải, mắt người xem quen nhìn về đó; trước đây cột gần người
+ * nhất). Tổng âm: cột phải. Sang cột trái (chừa chỗ bên phải): lượt đầu thấy nhìn phải là sang
+ * ngay (chưa hiện câu nào nên không thành đổi chiều; mô phỏng: bắt đợi thêm lượt thì người quay đầu
+ * nhẹ bị bảo dời về cột phải rồi lại dời ngược), giữa chừng thì tổng phải tới `GUIDE.leftVotes` (mô
+ * phỏng ảnh lần 11: một lượt khung xương đoán nhầm "nhìn phải" giữa chừng là sang cột trái rồi kẹt
+ * ở đó, lượt đúng sau chỉ kéo phiếu về 0). Còn lại giữ cột đang có.
  */
-export type ColumnLock = { col: number; sure: boolean; pending: number | null; count: number };
+export type ColumnLock = { col: number; score: number };
 
 /**
  * Độ quay đầu của người chính theo lưới mặt (`faceEyes[i][2]`, > 0: mũi lệch sang phải ảnh): mặt
@@ -139,8 +142,8 @@ export function headYaw(f: PhotoFeatures, faces: number[][] | null | undefined):
 /**
  * Hướng nhìn để chọn cột 1/3: theo độ quay đầu của lưới mặt với ngưỡng thấp hơn ngưỡng "đang quay
  * đầu" của nhận xét (phiếu Phase 5b lần 3, mục 11.3.1–11.3.4: người chỉ quay đầu vừa phải thì bị
- * coi là nhìn thẳng, app chọn cột gần người nhất, nên khi người đứng gần cột phía mình nhìn thì app
- * chọn đúng cột đó). Không có mặt: theo khung xương (`f.facing`).
+ * coi là nhìn thẳng, app chọn cột mặc định dù người nhìn về chính cột đó). Không có mặt: theo
+ * khung xương (`f.facing`).
  */
 export function leanOf(f: PhotoFeatures, yaw: number | null): 'left' | 'right' | null {
   if (yaw == null) return f.facing;
@@ -148,29 +151,29 @@ export function leanOf(f: PhotoFeatures, yaw: number | null): 'left' | 'right' |
   return yaw > 0 ? 'right' : 'left';
 }
 
-const leanColumn = (lean: 'left' | 'right' | null) =>
-  lean === 'right' ? 1 / 3 : lean === 'left' ? 2 / 3 : null;
-
 /** `yaw`: độ quay đầu của người chính (`headYaw`, đã lật theo khung ngắm), null khi không có mặt. */
 export function lockColumn(
   lock: ColumnLock | null,
   f: PhotoFeatures,
   yaw: number | null = null,
 ): ColumnLock {
-  const want = leanColumn(leanOf(f, yaw));
-  if (!lock) {
-    return want == null
-      ? { col: personX(f) < 0.5 ? 1 / 3 : 2 / 3, sure: false, pending: null, count: 0 }
-      : { col: want, sure: true, pending: null, count: 0 };
-  }
-  if (want == null) return lock;
-  if (want === lock.col) return { col: lock.col, sure: true, pending: null, count: 0 };
-  if (!lock.sure) return { col: want, sure: true, pending: null, count: 0 };
-  const count = lock.pending === want ? lock.count + 1 : 1;
-  return count >= GUIDE.confirmTurns
-    ? { col: want, sure: true, pending: null, count: 0 }
-    : { ...lock, pending: want, count };
+  const prev = lock ?? { col: 2 / 3, score: 0 };
+  const lean = leanOf(f, yaw);
+  if (!lean) return prev;
+  const w = yaw == null || Math.abs(yaw) >= GUIDE.leanFlip ? 2 : 1;
+  const max = GUIDE.leanVotes;
+  const score = Math.max(-max, Math.min(max, prev.score + (lean === 'right' ? w : -w)));
+  // Lượt đầu chưa hiện câu nào nên thấy nhìn phải là sang ngay; giữa chừng cần đủ phiếu.
+  const need = lock ? GUIDE.leftVotes : 1;
+  const col = score >= need ? 1 / 3 : score < 0 ? 2 / 3 : prev.col;
+  return { col, score };
 }
+
+/**
+ * Cột chưa theo hướng nhìn: chưa có phiếu, hoặc có phiếu nhìn phải nhưng chưa đủ rời cột phải mặc
+ * định. Khi đó bước cột cần `GUIDE.gazeTurns` lượt đúng.
+ */
+export const columnUnsure = (l: ColumnLock) => l.score === 0 || (l.score > 0 && l.col === 2 / 3);
 
 /**
  * Chỗ ngang của người chính: giữa hai mắt; không thấy mắt thì mũi, rồi giữa hai vai của khung
@@ -214,6 +217,16 @@ const EDGE = 0.01;
  */
 function centerX(f: PhotoFeatures): number {
   return centerOf(f.people[f.main]!);
+}
+
+/**
+ * Phần trên của người phủ gần hết bề ngang khung (nằm, dang tay, cận quá): xoay máy thì trọng tâm
+ * trượt theo khung, không bao giờ tới đường đích (mô phỏng phiếu lần 12: câu xoay mãi rồi tự dừng;
+ * Ở giữa thì báo Đạt dù đầu đã ra ngoài khung). Lúc này phải lùi ra.
+ */
+function tooWide(f: PhotoFeatures): boolean {
+  const w = f.people[f.main]!.upperW;
+  return w != null && w >= GUIDE.wideUpper;
 }
 
 /**
@@ -266,19 +279,33 @@ function mainChecks(
   f: PhotoFeatures,
   front: boolean,
   col: number | undefined,
+  colUnsure: boolean,
 ): Check[] {
   const p = f.people[f.main]!;
   const [, y0, , y1] = p.box;
   switch (m) {
     case 'thirds': {
-      const c = col ?? thirdsColumn(f, personX(f));
+      const c = col ?? thirdsColumn(f);
       // Chỉ tiêu chí cốt lõi (phiếu Phase 5b lần 7, mục 15.7): người trên cột, không cắt khớp. Mắt
       // ở đâu tuỳ cỡ cảnh (chụp cận mắt quanh đường trên; toàn thân, người ngồi thì thấp hơn).
-      return [sideCheck('thirdsColumn', f, seenX(f), c, RULE.verticalBand), jointCut(f)];
+      // Chỗ người: trọng tâm phần trên vùng người như Ở giữa (phiếu lần 9, mục 17.8: mắt / mũi của
+      // khung xương lúc thấy lúc không, lúc bắt nhầm cảnh, câu đổi trái phải mỗi lượt).
+      // Luôn một cách đo (đổi qua lại giữa mắt và vùng người là câu nhảy trái phải). Trọng tâm
+      // phần trên vùng người có ở mọi ảnh của app, kể cả chụp cận (phần trên là đầu). Dữ liệu cũ
+      // không có trọng tâm: người to hơn khung thì theo mắt / mũi, không thấy thì lùi ra.
+      const p = f.people[f.main]!;
+      const wide = p.box[0] <= EDGE && p.box[2] >= 1 - EDGE;
+      const at = tooWide(f) ? null : p.cx == null && wide ? seenX(f) : centerX(f);
+      const column = sideCheck('thirdsColumn', f, at, c, RULE.verticalBand);
+      // Chưa lượt nào thấy hướng nhìn (cột đang là cột phải mặc định): cần thêm lượt đúng mới đạt, để
+      // kịp thấy người nhìn về phía nào (phiếu lần 10, mục 18.1: đưa người vào cột trong 2 lượt
+      // là Đạt, trong khi người nhìn về chính cột đó).
+      if (colUnsure) column.confirm = GUIDE.gazeTurns;
+      return [column, jointCut(f)];
     }
     case 'center': {
       // Máy thẳng (ở `measure`) và trục giữa chia đôi người: hai bên cân (mục 15.7).
-      return [sideCheck('centerAxis', f, centerX(f), 0.5, RULE.centerBand)];
+      return [sideCheck('centerAxis', f, tooWide(f) ? null : centerX(f), 0.5, RULE.centerBand)];
     }
     case 'fill': {
       const short = Math.min(RULE.fillHeight - (y1 - y0), RULE.fillArea - p.area);
@@ -316,6 +343,8 @@ export function measure(
   front: boolean,
   /** Cột 1/3 đã chốt (`lockColumn`); không có thì chọn theo lượt này. */
   col?: number,
+  /** Cột 1/3 chưa theo hướng nhìn (chưa lượt nào thấy người nhìn về đâu). */
+  colUnsure = false,
 ): Measure {
   if (!f || f.main < 0 || !f.people[f.main]) return { kind: 'noPerson' };
   if (plan.main === 'group' && f.people.length < 2 && f.heads.length < 2)
@@ -328,7 +357,7 @@ export function measure(
       check('level', r, SENSOR.levelIn, rollDeg > 0 ? 'rotateCcw' : 'rotateCw', { kind: 'frame' }),
     );
   }
-  checks.push(...mainChecks(plan.main, f, front, col));
+  checks.push(...mainChecks(plan.main, f, front, col, colUnsure));
   return { kind: 'checks', checks };
 }
 
@@ -355,6 +384,20 @@ export const GUIDE = {
    * phía đó, vẫn là một bố cục đúng.
    */
   leanTurn: 0.07,
+  /**
+   * Cột đã chốt theo hướng nhìn chỉ đổi khi quay đầu rõ chừng này (phiếu Phase 5b lần 8, mục 16.4:
+   * người nhìn gần thẳng thì độ quay lắc quanh `leanTurn`, cột đổi trái phải liên tục khi máy đứng
+   * im). Khung xương (không thấy mặt) đã có ngưỡng riêng cao hơn nên luôn tính.
+   */
+  leanFlip: 0.2,
+  /** Tổng phiếu hướng nhìn giữ trong ± chừng này: quay đầu hẳn sang phía kia 2–3 lượt là đổi cột. */
+  leanVotes: 3,
+  /** Tổng phiếu nhìn phải cần để rời cột phải mặc định sang cột trái (`lockColumn`). */
+  leftVotes: 3,
+  /** Phần trên của người rộng từ chừng này bề ngang khung: bảo lùi ra (`tooWide`). */
+  wideUpper: 0.9,
+  /** 1/3 chưa thấy hướng nhìn: bước cột cần chừng này lượt đúng liền (thay `confirmTurns`). */
+  gazeTurns: 3,
   /** Tiêu chí đã đạt chỉ tính là vỡ khi lệch quá ngưỡng × chừng này (rung tay không làm vỡ). */
   holdBand: 1.5,
   /**
@@ -429,6 +472,9 @@ const MISSING = {
 function enterOf(id: CriterionId): number {
   return id === 'level' ? 1 : GUIDE.enterBand;
 }
+
+/** Nửa bề rộng vùng đạt của tiêu chí chưa đạt (dải đích vẽ trên khung ngắm). */
+export const bandOf = (c: Check) => c.band * enterOf(c.id);
 
 /** Thứ tự tiêu chí trong một lượt đo (`measure` luôn đo theo thứ tự này). */
 const ORDER: CriterionId[] = [
@@ -505,7 +551,7 @@ export function step(
   const okRun: GuideState['okRun'] = {};
   for (const c of checks) okRun[c.id] = good(c) ? (s.okRun[c.id] ?? 0) + 1 : 0;
   const confirmed = (c: Check) =>
-    good(c) && (was.has(c.id) || (okRun[c.id] ?? 0) >= GUIDE.confirmTurns);
+    good(c) && (was.has(c.id) || (okRun[c.id] ?? 0) >= (c.confirm ?? GUIDE.confirmTurns));
 
   const failing = checks.find((c) => !confirmed(c)) ?? null;
   const passed = checks.filter(confirmed).map((c) => c.id);
@@ -630,6 +676,8 @@ function goalOf(c: Check): string {
  * xoay máy (bước ngang thì người cầm máy đi theo máy). Tiêu chí khác: một câu "hành động + kết quả".
  */
 export function guideLines(c: Check, front = false): GuideLine[] {
+  // Mất người: chỉ báo không tìm thấy (phiếu Phase 5b lần 8, mục 16.4).
+  if (c.id === 'person') return [{ text: G.lost, dir: null }];
   if (!c.action) return [{ text: G.done[c.id], dir: null }];
   const dir = ACTION_DIR[c.action] ?? null;
   if (SIDEWAYS.includes(c.id) && (dir === 'left' || dir === 'right')) {

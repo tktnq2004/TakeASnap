@@ -165,8 +165,10 @@ export const t = {
       reached: (names: string) => `Đạt ${names}`,
       passed: (items: string) => `Đạt: ${items}`,
       failed: (item: string) => `Chưa đạt: ${item}`,
+      /** Mất người giữa lúc hướng dẫn (phiếu Phase 5b lần 8, mục 16.4). */
+      lost: 'Không tìm thấy người',
       missing: {
-        person: 'Cảnh này không thấy người',
+        person: 'Không tìm thấy người',
         group: 'Cảnh này chưa thấy nhóm người',
       },
       stopped: 'Đã dừng hướng dẫn',
