@@ -1,4 +1,4 @@
-import type { PhotoFeatures } from 'composition-critic';
+import { J, type PhotoFeatures } from 'composition-critic';
 
 import {
   type Check,
@@ -107,6 +107,46 @@ describe('measure: tiêu chí theo thứ tự', () => {
     const c = first(measure({ main: 'fill' }, person([0.45, 0.4, 0.55, 0.7]), 0, false))!;
     expect(c.id).toBe('fillSize');
     expect(guideLines(c)).toEqual([{ text: 'Tiến lại gần để người lấp đầy khung', dir: null }]);
+  });
+
+  describe('Lấp đầy: đỉnh đầu theo mắt, không theo đỉnh vùng người', () => {
+    /** Người to chạm mép trên; khớp: mắt, vai thấy rõ. */
+    const big = (eyeY: number, shoulderW: number | null, eyeGap = 0.04): PhotoFeatures => {
+      const joints = Array.from({ length: 33 }, () => ({ x: 0, y: 0, v: 0 }));
+      joints[J.eyeL] = { x: 0.5 - eyeGap / 2, y: eyeY, v: 1 };
+      joints[J.eyeR] = { x: 0.5 + eyeGap / 2, y: eyeY, v: 1 };
+      if (shoulderW) {
+        joints[J.shoulderL] = { x: 0.5 - shoulderW / 2, y: eyeY + 0.2, v: 1 };
+        joints[J.shoulderR] = { x: 0.5 + shoulderW / 2, y: eyeY + 0.2, v: 1 };
+      }
+      return { ...person([0.2, 0, 0.8, 1], { x: 0.5, y: eyeY }), joints };
+    };
+    const head = (f: PhotoFeatures) =>
+      checks(measure({ main: 'fill' }, f, 0, false)).find((c) => c.id === 'fillHead')!;
+
+    it('tay giơ / mũ chạm mép, mắt còn thấp: không bắt ngửa máy', () => {
+      // Đỉnh đầu đoán ở 0,4 − 0,6 × 0,4 × 0,75 = 0,22.
+      expect(head(big(0.4, 0.4)).ok).toBe(true);
+    });
+
+    it('đầu ra ngoài thật: ngửa máy, độ lệch nhỏ dần khi ngửa', () => {
+      const a = head(big(0.1, 0.4));
+      const b = head(big(0.14, 0.4));
+      expect(a.ok).toBe(false);
+      expect(a.action).toBe('tiltUp');
+      expect(b.error).toBeLessThan(a.error);
+    });
+
+    it('không thấy vai (chụp cận): theo khoảng hai mắt; mắt quá sát mép luôn tính chạm', () => {
+      // Đỉnh đầu 0,4 − 2,6 × 0,1 × 0,75 = 0,205: không chạm.
+      expect(head(big(0.4, null, 0.1)).ok).toBe(true);
+      // Hai mắt sát nhau (mặt nghiêng): vẫn tính đỉnh đầu ít nhất 0,15 trên mắt.
+      expect(head(big(0.12, null, 0.01)).ok).toBe(false);
+    });
+
+    it('không thấy mắt: theo đỉnh vùng người như trước', () => {
+      expect(head(person([0.2, 0, 0.8, 1])).ok).toBe(false);
+    });
   });
 
   it('cảnh không áp được: không người, không nhóm', () => {

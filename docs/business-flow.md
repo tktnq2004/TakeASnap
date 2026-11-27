@@ -368,7 +368,7 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 |---|---|---|
 | 1/3 | Có 1 người | ① người trên cột 1/3 (phía người đang nhìn còn chỗ) → ② không cắt khớp. Không có bước mắt (phiếu lần 7, mục 15.7: mắt ở đâu tuỳ cỡ cảnh) |
 | Ở giữa | Có 1 người | ① máy thẳng → ② người trên trục giữa (**trọng tâm phần trên vùng người**, composition-critic v0.8.0, như nhận xét sau khi chụp). Không có bước mắt (phiếu lần 7, mục 15.7) |
-| Lấp đầy khung | Có 1 người | ① người cao gần hết khung → ② không cắt cằm, đỉnh đầu |
+| Lấp đầy khung | Có 1 người | ① người cao từ 70% khung hoặc chiếm từ 30% diện tích ('Tiến lại gần') → ② không cắt đỉnh đầu ('Ngửa máy lên'). **Đỉnh đầu đoán từ mắt**, không theo đỉnh vùng người (mô phỏng Lấp đầy 2026-11-27: tay giơ, mũ, vùng người lan ra nền chạm mép trên thì app bảo ngửa máy tới lúc mắt xuống đáy khung rồi tự dừng): trên mắt 0,6 bề ngang vai, không thấy vai thì 2,6 khoảng hai mắt, ít nhất 0,15 khung; không thấy mắt thì theo đỉnh vùng người |
 | Nhóm người | Có nhóm người (luật Nhóm của Phase 5) | ① cả nhóm trong khung, không ai sát mép → ② nhóm ở giữa |
 
 | Lệch | Câu hướng dẫn (ví dụ) |

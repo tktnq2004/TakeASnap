@@ -246,6 +246,30 @@ function sideCheck(
 }
 
 /** Cắt ngang khớp: mép dưới qua gối / cổ chân, mép trái phải qua khuỷu / cổ tay → lùi ra. */
+/**
+ * Đỉnh đầu ra ngoài mép trên bao nhiêu (phần khung), 0 khi không chạm. Đỉnh vùng người chạm mép
+ * chưa chắc là đầu: tay giơ lên, mũ, vùng người lan ra nền cũng chạm, và app bảo ngửa máy mãi tới
+ * lúc mắt xuống đáy khung (mô phỏng Lấp đầy). Vùng người không cho biết đầu ra ngoài bao xa, nên
+ * ngửa máy mà độ lệch đứng yên, app tưởng không làm theo. Thấy mắt thì đoán đỉnh đầu từ mắt (trên
+ * mắt `GUIDE.crownShoulder` bề ngang vai, không thấy vai thì `GUIDE.crownEyes` khoảng hai mắt):
+ * chỉ đỉnh đầu đoán được chạm mép mới tính, và số này nhỏ dần khi ngửa máy.
+ */
+function headOut(f: PhotoFeatures, top: number): number {
+  const touch = Math.max(0, RULE.headTouch - top);
+  const j = f.joints;
+  const e = f.eye;
+  if (!touch || !j || !e) return touch;
+  const span = (a: number, b: number) => {
+    const p = j[a];
+    const q = j[b];
+    return visible(p) && visible(q) ? Math.hypot((p!.x - q!.x) * f.aspect, p!.y - q!.y) : 0;
+  };
+  const shoulders = span(J.shoulderL, J.shoulderR);
+  const eyes = span(J.eyeL, J.eyeR);
+  const up = shoulders ? GUIDE.crownShoulder * shoulders : eyes ? GUIDE.crownEyes * eyes : null;
+  return up == null ? touch : Math.max(0, RULE.headTouch - (e.y - Math.max(up, GUIDE.crownMin)));
+}
+
 function jointCut(f: PhotoFeatures): Check {
   const j = f.joints;
   let cut = false;
@@ -312,7 +336,7 @@ function mainChecks(
       return [
         check('fillSize', Math.max(0, short), 0, 'closer', { kind: 'frame' }),
         // Đỉnh đầu chạm mép trên: ngửa máy lên để người dịch xuống.
-        check('fillHead', Math.max(0, RULE.headTouch - y0), 0, 'tiltUp', { kind: 'frame' }),
+        check('fillHead', headOut(f, y0), 0, 'tiltUp', { kind: 'frame' }),
       ];
     }
     case 'group': {
@@ -396,6 +420,18 @@ export const GUIDE = {
   leftVotes: 3,
   /** Phần trên của người rộng từ chừng này bề ngang khung: bảo lùi ra (`tooWide`). */
   wideUpper: 0.9,
+  /**
+   * Lấp đầy: đỉnh đầu đoán ở trên mắt chừng này bề ngang vai (`headOut`); trung vị trên 923 ảnh
+   * thấy cả đầu (đỉnh vùng người, có lẫn mũ, tay giơ nên lấy trung vị, không lấy cao hơn).
+   */
+  crownShoulder: 0.6,
+  /** Như trên khi không thấy vai (chụp cận): chừng này khoảng cách hai mắt; trung vị 929 ảnh. */
+  crownEyes: 2.6,
+  /**
+   * Đỉnh đầu ít nhất chừng này (phần khung) trên mắt: mặt nghiêng thì hai mắt gần nhau, đoán đỉnh
+   * đầu thấp quá (mô phỏng: 13 lần Đạt khi mắt đã ở 0,15 khung trên cùng).
+   */
+  crownMin: 0.15,
   /** 1/3 chưa thấy hướng nhìn: bước cột cần chừng này lượt đúng liền (thay `confirmTurns`). */
   gazeTurns: 3,
   /** Tiêu chí đã đạt chỉ tính là vỡ khi lệch quá ngưỡng × chừng này (rung tay không làm vỡ). */

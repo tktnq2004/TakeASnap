@@ -713,3 +713,29 @@ Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại** (**ch
 ### 22.5 Trả lời lần 14
 
 - 22.1–22.3 đạt trên cả hai máy. 1/3 (lần 13) và Ở giữa (lần 14) giữ như bản này; chưa commit, chờ bạn đồng ý.
+
+## 23. Lần 15 — Lấp đầy khung (2026-11-27)
+
+Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại** (**chưa commit**). Lấp đầy có hai bước: ① người cao từ 70% khung (hoặc chiếm từ 30% khung) → câu "Tiến lại gần để người lấp đầy khung"; ② đỉnh đầu không bị cắt → câu "Ngửa máy lên để không cắt đỉnh đầu".
+
+**Claude đã thử trên máy tính trước** (mô phỏng 1764 ảnh, mỗi ảnh 6 khung bắt đầu: người nhỏ / vừa, lệch trái / giữa / phải, 7200 lần chạy mỗi kiểu người chụp):
+- Câu không đổi chiều lần nào; không lần nào Đạt khi đầu bị cắt (mắt đã sát mép trên).
+- **Lỗi tìm được và đã sửa:** bước đỉnh đầu đo theo đỉnh **vùng người**. Tay giơ lên, mũ, vùng người lan ra nền chạm mép trên thì app bảo "Ngửa máy lên" mãi, tới lúc mắt người xuống tận đáy khung rồi tự dừng; vùng người cũng không cho biết đầu ra ngoài bao xa nên ngửa máy mà app tưởng không làm theo. Giờ thấy mắt thì **đoán đỉnh đầu từ mắt** (theo bề ngang vai, không thấy vai thì theo khoảng hai mắt). Làm theo tay yên: tự dừng ở bước đỉnh đầu 57 → 3, Đạt 5968 → 6573.
+- **Còn lại (chưa sửa, cần bạn thử):** người đứng thấp trong khung (ví dụ ngồi, nửa dưới khung) mà người chụp chỉ bước lại gần, không hướng máy về người: người tràn ra mép dưới, không bao giờ lấp đầy, app tự dừng (1,2% lần chạy). Người thật thường tự hướng máy theo người khi bước lại gần nên có thể không gặp.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 23.1 | Chọn Lấp đầy, người đứng xa (người cao chừng nửa khung) | Câu "Tiến lại gần để người lấp đầy khung"; khung có lưới 3×3 |d |d | tiến lại gần / zoom  |
+| 23.2 | Bước lại gần theo câu | Người cao khoảng 70% khung thì Đạt bước 1; câu không đổi chiều | d| d| |
+| 23.3 | Chụp cận, đỉnh đầu ra ngoài mép trên | Câu "Ngửa máy lên để không cắt đỉnh đầu"; ngửa máy tới khi đầu vào khung thì Đạt |d |d | |
+| 23.4 | Người **giơ tay lên cao** (tay chạm mép trên, đầu còn trong khung) | **Không** bảo ngửa máy; Đạt |d |d | |
+| 23.5 | Người đội mũ cao / tóc búi chạm mép trên, mắt còn ở giữa khung | Không bảo ngửa máy mãi |d |d | |
+| 23.6 | Người ngồi ở nửa dưới khung, chỉ bước lại gần (không chỉnh hướng máy) | Ghi lại: có lấp đầy được không, có tự dừng không |d |d | |
+| 23.7 | Người quay lưng (không thấy mắt), đầu chạm mép trên | Vẫn bảo ngửa máy (theo đỉnh vùng người như trước) |d |d | |
+
+### 23.8 Góp ý
+
+- Nếu chụp trực diện thì có vẻ nó giống bố cục chụp ở giữa. Hãy cho tôi thấy sự khác nhau giữa 2 bố cục này bằng ảnh minh họa các trường hợp khác nhau
+
+
+**Trả lời 23.8 (Claude):** Hai bố cục chỉ cho cùng kết quả khi người đã to, đứng giữa, máy thẳng, đầu trong khung, tức đúng cảnh chụp trực diện. Khác nhau ở chỗ mỗi bố cục bỏ qua điều gì: **Ở giữa** đo máy thẳng và người trên trục giữa, không đo cỡ người, không đo đỉnh đầu; **Lấp đầy** đo cỡ người (cao từ 70% hoặc chiếm từ 30% khung) và đỉnh đầu, không đo người đứng đâu, không đo máy nghiêng. Trang minh hoạ sáu cảnh (người xa ở giữa, người gần lệch trái, người gần ở giữa, chụp cận cắt đầu, máy nghiêng, giơ tay chạm mép trên), mỗi cảnh hai khung ngắm và câu app nói: https://claude.ai/artifact/QRWgFKryRXADA8SSkmBNo3 (riêng tư, chỉ chủ tài khoản mở được). Phần còn lại của phiếu 23 đạt cả hai máy; 23.6 (người ngồi nửa dưới khung) đạt nên chưa thêm bước mới.
