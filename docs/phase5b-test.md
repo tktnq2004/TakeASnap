@@ -833,12 +833,12 @@ Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại**. Came
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 27.1 | Lưới 3×3, xoay máy dọc → ngang → dọc, cả hai phía | Lưới xoay mượt về góc mới (khoảng 0,3 s), không nhảy chỗ, không lòi ra ngoài khung, không nhấp nháy | | | |
-| 27.2 | Quy tắc 1/3 đang có câu hướng dẫn, xoay dọc → ngang | Dải đích và câu hướng dẫn xoay mượt theo, rồi hướng dẫn làm lại từ bước đầu như 26.5 | | | |
-| 27.3 | Nhóm người, xoay ngang → dọc | Như 27.2 | | | |
-| 27.4 | Bật thước cân bằng, xoay dọc → ngang chậm | Thước đi liền theo góc máy như trước, không quay thêm một vòng | | | |
-| 27.5 | Bố cục Tắt (viên "Đã tắt bố cục" đang hiện), xoay ngang | Viên xoay mượt về đúng chiều đọc | | | |
-| 27.6 | Đang xoay thì chạm Kiểm tra bố cục / nút chụp | Nút vẫn bấm được, ảnh lưu như 26.9, 26.10 | | | |
+| 27.1 | Lưới 3×3, xoay máy dọc → ngang → dọc, cả hai phía | Lưới xoay mượt về góc mới (khoảng 0,3 s), không nhảy chỗ, không lòi ra ngoài khung, không nhấp nháy | d|d | |
+| 27.2 | Quy tắc 1/3 đang có câu hướng dẫn, xoay dọc → ngang | Dải đích và câu hướng dẫn xoay mượt theo, rồi hướng dẫn làm lại từ bước đầu như 26.5 |d |d | |
+| 27.3 | Nhóm người, xoay ngang → dọc | Như 27.2 |d |d | |
+| 27.4 | Bật thước cân bằng, xoay dọc → ngang chậm | Thước đi liền theo góc máy như trước, không quay thêm một vòng |d |d | thước màu xanh của app, khi cân bằng thì màu trắng |
+| 27.5 | Bố cục Tắt (viên "Đã tắt bố cục" đang hiện), xoay ngang | Viên xoay mượt về đúng chiều đọc |d |d | |
+| 27.6 | Đang xoay thì chạm Kiểm tra bố cục / nút chụp | Nút vẫn bấm được, ảnh lưu như 26.9, 26.10 |d |d | |
 
 ### 27.7 Góp ý
 
