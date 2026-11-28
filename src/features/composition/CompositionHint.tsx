@@ -20,8 +20,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import type { Rect } from '@/features/camera/frame';
-import { deviceRoll, type Hold, levelUsable } from '@/features/camera/level';
+import type { Rect, Turn } from '@/features/camera/frame';
+import { deviceRoll, type Hold, levelUsable, rollFrom } from '@/features/camera/level';
 import { haptic } from '@/lib/haptics';
 import { t } from '@/ui/strings';
 import { color, compositionUi, motion, radius, size, space, type } from '@/ui/tokens';
@@ -50,10 +50,13 @@ export function CompositionHint({
   technique,
   front,
   maxBottom,
+  turn = 0,
 }: {
   frame: Rect;
   technique: TechniqueId;
   front: boolean;
+  /** Cầm ngang (vẽ trong `Turned`): máy thẳng là đỉnh máy nằm ngang. */
+  turn?: Turn;
   /** Đáy viên gợi ý không xuống dưới chỗ này (mép trên cụm zoom): khung 9:16 tràn ra sau các
    *  nút, đặt ở đáy khung thì bị nút chụp che (phiếu Phase 5 lần 4). */
   maxBottom: number;
@@ -107,7 +110,7 @@ export function CompositionHint({
     () => {
       const g = sensor.sensor.get();
       if (!levelUsable(g.x, g.y, g.z)) return null;
-      const roll = (deviceRoll(g.x, g.y, IOS) * 180) / Math.PI;
+      const roll = (rollFrom(deviceRoll(g.x, g.y, IOS), turn) * 180) / Math.PI;
       const pitch = cameraPitchDeg(g.x, g.y, g.z, IOS, front);
       const id = sensorHint(technique, roll, pitch, front, prev.get());
       if (id == null) return null;
@@ -118,7 +121,7 @@ export function CompositionHint({
       prev.set(key ? (key.split(':')[0] as SensorHintId) : null);
       scheduleOnRN(onCandidate, key);
     },
-    [technique, front],
+    [technique, front, turn],
   );
 
   // Dòng hướng dẫn khi vừa chọn kỹ thuật, ẩn sau `introMs`.

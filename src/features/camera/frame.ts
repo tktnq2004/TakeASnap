@@ -110,3 +110,51 @@ export function isWholeImage(crop: Rect, photo: { width: number; height: number 
     crop.x <= 1 && crop.y <= 1 && crop.width >= photo.width - 2 && crop.height >= photo.height - 2
   );
 }
+
+/** Máy cầm ngang mà bố cục dùng được khung ngang: 90 đỉnh máy quay sang phải, −90 sang trái. */
+export type Turn = 0 | 90 | -90;
+
+/**
+ * Vùng cắt khung ngắm trên ảnh camera `imgW × imgH` khi máy cầm theo `turn`, và góc xoay (độ,
+ * dương theo chiều kim đồng hồ) để phần cắt đứng đúng chiều cảnh (phiếu Phase 5b lần 18).
+ *
+ * App khóa màn hình dọc nên khung ngắm luôn tính trên ảnh dọc. Cầm ngang thì có hai khả năng tùy
+ * máy: ảnh đã xoay theo cách cầm (ảnh ngang, `imgW > imgH`) → đổi vùng cắt sang ảnh ngang, không
+ * xoay; ảnh còn dọc → cắt như cũ rồi xoay `turn`. Cả hai cho ảnh đứng: trên ảnh là phía trên cảnh.
+ * Cầm `turn = 90` (đỉnh máy sang phải): phía trên cảnh nằm ở mép trái khung dọc.
+ */
+export function frameCrop(
+  frame: Rect,
+  previewW: number,
+  previewH: number,
+  imgW: number,
+  imgH: number,
+  turn: Turn,
+): { rect: Rect; rotate: Turn } {
+  if (turn === 0 || imgW <= imgH) {
+    return { rect: frameToPhotoCrop(frame, previewW, previewH, imgW, imgH), rotate: turn };
+  }
+  // Ảnh dọc ứng với ảnh ngang này: rộng imgH, cao imgW.
+  const r = frameToPhotoCrop(frame, previewW, previewH, imgH, imgW);
+  return {
+    rect:
+      turn === 90
+        ? { x: imgW - r.y - r.height, y: r.x, width: r.height, height: r.width }
+        : { x: r.y, y: imgH - r.x - r.width, width: r.height, height: r.width },
+    rotate: 0,
+  };
+}
+
+/**
+ * Điểm (chuẩn hóa) trên phần cắt đã xoay đứng → pixel trên ảnh camera. `rotate` là góc đã xoay
+ * phần cắt `rect` (xoay 90: điểm trên cùng bên trái của phần cắt về trên cùng bên phải).
+ */
+export function uprightToImage(
+  u: number,
+  v: number,
+  rect: Rect,
+  rotate: Turn,
+): { x: number; y: number } {
+  const [a, b] = rotate === 90 ? [v, 1 - u] : rotate === -90 ? [1 - v, u] : [u, v];
+  return { x: rect.x + a * rect.width, y: rect.y + b * rect.height };
+}

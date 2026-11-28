@@ -1,5 +1,5 @@
 import { containSize, hitOverlay } from '../overlayHit';
-import { deviceRoll, holdOf, levelUsable } from '../level';
+import { deviceRoll, holdOf, levelUsable, rollFrom } from '../level';
 
 const G = 9.81;
 const deg = (r: number) => (r * 180) / Math.PI;
@@ -70,5 +70,18 @@ describe('holdOf (phiếu Phase 5b lần 17)', () => {
     expect(holdOf(179, 180)).toBe(180);
     expect(holdOf(-125, 180)).toBe(180);
     expect(holdOf(-110, 180)).toBe(-90);
+  });
+});
+
+describe('rollFrom (phiếu Phase 5b lần 18)', () => {
+  const r = (d: number) => (d * Math.PI) / 180;
+  it('cầm ngang: đỉnh máy nằm ngang là thẳng, lệch tính theo cách cầm', () => {
+    expect(deg(rollFrom(r(90), 90))).toBeCloseTo(0);
+    expect(deg(rollFrom(r(95), 90))).toBeCloseTo(5);
+    expect(deg(rollFrom(r(-88), -90))).toBeCloseTo(2);
+  });
+  it('qua mốc ±180 vẫn ra góc nhỏ', () => {
+    expect(deg(rollFrom(r(-175), 90))).toBeCloseTo(95);
+    expect(deg(rollFrom(r(179), -90))).toBeCloseTo(-91);
   });
 });

@@ -52,7 +52,14 @@ import {
   saveToAlbum,
   type Shot,
 } from '@/features/camera/capture';
-import { ASPECTS, previewRect, type Rect, viewfinderRect } from '@/features/camera/frame';
+import {
+  ASPECTS,
+  previewRect,
+  type Rect,
+  type Turn,
+  viewfinderRect,
+} from '@/features/camera/frame';
+import { Turned } from '@/features/camera/Turned';
 import { LevelGuide } from '@/features/camera/FrameGuides';
 import { useHold } from '@/features/camera/useHold';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
@@ -73,7 +80,7 @@ import {
 } from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
 import type { Pt } from '@/features/composition/guides';
-import type { TechniqueId } from '@/features/composition/techniques';
+import { landscapeOk, type TechniqueId } from '@/features/composition/techniques';
 import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '@/features/composition/snap';
 import { CHECKABLE, useLayoutCheck } from '@/features/composition/useLayoutCheck';
 import { useLiveGuide } from '@/features/composition/useLiveGuide';
@@ -504,16 +511,24 @@ function CameraBody() {
       front: facing === 'front',
       flip: facing === 'front' && !frontMirror,
       paused: sidewaysRef.current,
+      turn: turnRef.current,
     };
   });
-  // Máy cầm ngang / lộn ngược: mọi bố cục báo "Cầm máy dọc" và tạm dừng hướng dẫn (phiếu Phase
-  // 5b lần 17, bước 1: bố cục mới tính cho khung dọc).
+  // Cách cầm máy (phiếu Phase 5b lần 17, 18). Cầm ngang: Lưới, 1/3, Nhóm (camera sau) dùng khung
+  // ngang, vẽ trong `Turned`; bố cục khác (và lộn ngược) báo "Cầm máy dọc", tạm dừng hướng dẫn.
+  // Ảnh lưu và thước cân bằng theo cách cầm với mọi bố cục.
   const hold = useHold();
-  const sideways = hold !== 0 && technique !== 'off';
+  const holdTurn: Turn = hold === 90 || hold === -90 ? hold : 0;
+  const turn: Turn = holdTurn !== 0 && landscapeOk(technique) && facing === 'back' ? holdTurn : 0;
+  const sideways = hold !== 0 && technique !== 'off' && turn === 0;
   const sidewaysRef = useRef(sideways);
+  const turnRef = useRef(turn);
+  const holdTurnRef = useRef(holdTurn);
   useEffect(() => {
     sidewaysRef.current = sideways;
-  }, [sideways]);
+    turnRef.current = turn;
+    holdTurnRef.current = holdTurn;
+  }, [sideways, turn, holdTurn]);
   const countdownRef = useRef<number | null>(null);
   useEffect(() => {
     countdownRef.current = countdown;
@@ -567,6 +582,7 @@ function CameraBody() {
       frame: Rect;
       preview: { width: number; height: number };
       technique: TechniqueId;
+      turn: Turn;
     }[],
     saving: false,
     /** Ảnh mới nhất đã lưu trong đợt chụp này. */
@@ -600,7 +616,7 @@ function CameraBody() {
       const job = b.queue.shift()!;
       try {
         // Khung ngắm tính trong hệ của màn xem trước (previewRect).
-        const out = await cropToFrame(job.pic, job.frame, job.preview);
+        const out = await cropToFrame(job.pic, job.frame, job.preview, job.turn);
         if (out.uri !== job.pic.uri) deleteTemp(job.pic.uri);
         const assetId = await saveToAlbum(out.uri);
         useSessionPhotos.getState().add({ ...out, assetId, technique: job.technique });
@@ -648,6 +664,7 @@ function CameraBody() {
           preview: { width: preview.width, height: preview.height },
           // Kỹ thuật lúc bấm, không phải lúc lưu xong (chụp liên tục rồi đổi kỹ thuật).
           technique: useCameraStore.getState().technique,
+          turn: holdTurnRef.current,
         });
         saveQueue();
       } catch {
@@ -768,15 +785,23 @@ function CameraBody() {
       {root.height > 0 && (
         <>
           <FrameMask frame={frame} root={root} />
-          <CompositionGuide
-            frame={frame}
-            technique={technique}
-            anchor={anchorN}
-            focus={sideways ? null : (guide.view?.state.current?.target ?? null)}
-            focusBand={guide.view?.state.current ? bandOf(guide.view.state.current) : 0}
-            focusOk={guide.view?.state.holding ?? false}
-          />
-          {levelOn && <LevelGuide frame={frame} />}
+          <Turned frame={frame} turn={turn}>
+            {(f) => (
+              <CompositionGuide
+                frame={f}
+                technique={technique}
+                anchor={turn ? null : anchorN}
+                focus={sideways ? null : (guide.view?.state.current?.target ?? null)}
+                focusBand={guide.view?.state.current ? bandOf(guide.view.state.current) : 0}
+                focusOk={guide.view?.state.holding ?? false}
+              />
+            )}
+          </Turned>
+          {levelOn && (
+            <Turned frame={frame} turn={holdTurn}>
+              {(f) => <LevelGuide frame={f} turn={holdTurn} />}
+            </Turned>
+          )}
 
           {/* Vùng nhận cử chỉ phủ cả màn hình, nằm dưới các nút. Pose là lớp trên cùng của
               ảnh (trên cả vùng tối ngoài khung) nhưng dưới các nút (góp ý Phase 2). */}
@@ -814,27 +839,44 @@ function CameraBody() {
 
           {sideways ? (
             <HoldPortraitPill frame={frame} hold={hold} />
-          ) : guide.view ? (
-            <GuideOverlay frame={frame} view={guide.view} maxBottom={hintBottom} />
-          ) : guide.end ? (
-            <GuideEndPill frame={frame} end={guide.end} maxBottom={hintBottom} />
-          ) : check.result ? (
-            <CheckOverlay
-              frame={frame}
-              result={check.result}
-              flip={facing === 'front' && !frontMirror}
-              maxBottom={hintBottom}
-            />
           ) : (
-            <CompositionHint
-              frame={frame}
-              technique={technique}
-              front={facing === 'front'}
-              maxBottom={hintBottom}
-            />
+            <Turned frame={frame} turn={turn}>
+              {(f) => {
+                // Cầm ngang: đáy viên ở đáy khung ngang (không có nút đè lên).
+                const bottom = turn ? f.height : hintBottom;
+                return guide.view ? (
+                  <GuideOverlay frame={f} view={guide.view} maxBottom={bottom} />
+                ) : guide.end ? (
+                  <GuideEndPill frame={f} end={guide.end} maxBottom={bottom} />
+                ) : check.result ? (
+                  <CheckOverlay
+                    frame={f}
+                    result={check.result}
+                    flip={facing === 'front' && !frontMirror}
+                    maxBottom={bottom}
+                  />
+                ) : (
+                  <CompositionHint
+                    frame={f}
+                    technique={technique}
+                    front={facing === 'front'}
+                    maxBottom={bottom}
+                    turn={turn}
+                  />
+                );
+              }}
+            </Turned>
           )}
           {offNotice && technique === 'off' && (
-            <HintPill frame={frame} maxBottom={hintBottom} text={t.composition.turnedOff} />
+            <Turned frame={frame} turn={holdTurn}>
+              {(f) => (
+                <HintPill
+                  frame={f}
+                  maxBottom={holdTurn ? f.height : hintBottom}
+                  text={t.composition.turnedOff}
+                />
+              )}
+            </Turned>
           )}
 
           {/* Cột công cụ pose: dọc, kéo được, nằm trong khung ngắm (design.md §6.1). */}

@@ -12,8 +12,8 @@ import { haptic } from '@/lib/haptics';
 import { t } from '@/ui/strings';
 import { color, levelGuide } from '@/ui/tokens';
 
-import type { Rect } from './frame';
-import { deviceRoll, levelUsable } from './level';
+import type { Rect, Turn } from './frame';
+import { deviceRoll, levelUsable, rollFrom } from './level';
 
 const IOS = Platform.OS === 'ios';
 const LEVEL_RAD = (levelGuide.levelDeg * Math.PI) / 180;
@@ -23,14 +23,23 @@ const LEVEL_RAD = (levelGuide.levelDeg * Math.PI) / 180;
  * đổi sang màu nhấn và rung một lần khi máy lệch dưới 1°. Trọng lực đọc trên UI thread
  * (`useAnimatedSensor`), không qua state.
  */
-export function LevelGuide({ frame }: { frame: Rect }) {
+export function LevelGuide({
+  frame,
+  turn = 0,
+}: {
+  frame: Rect;
+  /** Cầm ngang: vẽ trong `Turned`, thẳng là đỉnh máy nằm ngang. */
+  turn?: Turn;
+}) {
   const sensor = useAnimatedSensor(SensorType.GRAVITY, { interval: 'auto' });
   const level = useSharedValue(false);
 
   useAnimatedReaction(
     () => {
       const g = sensor.sensor.get();
-      return levelUsable(g.x, g.y, g.z) ? Math.abs(deviceRoll(g.x, g.y, IOS)) : Infinity;
+      return levelUsable(g.x, g.y, g.z)
+        ? Math.abs(rollFrom(deviceRoll(g.x, g.y, IOS), turn))
+        : Infinity;
     },
     (roll) => {
       // Có độ trễ: vào "thẳng" dưới 1°, ra khi quá 1.5°, để rung không lặp khi tay run quanh 1°.
@@ -49,7 +58,7 @@ export function LevelGuide({ frame }: { frame: Rect }) {
     return {
       opacity: usable ? 1 : 0,
       backgroundColor: level.get() ? color.camAccent : color.camWarn,
-      transform: [{ rotate: `${-deviceRoll(g.x, g.y, IOS)}rad` }],
+      transform: [{ rotate: `${-rollFrom(deviceRoll(g.x, g.y, IOS), turn)}rad` }],
     };
   });
 

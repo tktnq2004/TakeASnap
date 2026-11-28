@@ -1,4 +1,12 @@
-import { ASPECTS, frameToPhotoCrop, isWholeImage, previewRect, viewfinderRect } from '../frame';
+import {
+  ASPECTS,
+  frameCrop,
+  frameToPhotoCrop,
+  isWholeImage,
+  previewRect,
+  uprightToImage,
+  viewfinderRect,
+} from '../frame';
 
 // iPhone 15 Pro Max: 430 × 932 pt; thanh trên 100, dưới 200 (ước lượng).
 const SW = 430;
@@ -108,5 +116,72 @@ describe('isWholeImage (chụp liên tục: khung trùng cả ảnh thì không 
     const frame = { x: 0, y: 65, width: 390, height: 390 };
     const crop = frameToPhotoCrop(frame, 390, 520, photo.width, photo.height);
     expect(isWholeImage(crop, photo)).toBe(false);
+  });
+});
+
+describe('frameCrop: cầm máy ngang (phiếu Phase 5b lần 18)', () => {
+  // Khung 3:4 trùng màn xem trước 300 × 400; ảnh camera 3000 × 4000 (dọc) hoặc 4000 × 3000.
+  const F = { x: 0, y: 0, width: 300, height: 400 };
+  // Khung 1:1 giữa màn xem trước.
+  const S = { x: 0, y: 50, width: 300, height: 300 };
+
+  it('cầm dọc: như frameToPhotoCrop, không xoay', () => {
+    expect(frameCrop(S, 300, 400, 3000, 4000, 0)).toEqual({
+      rect: frameToPhotoCrop(S, 300, 400, 3000, 4000),
+      rotate: 0,
+    });
+  });
+
+  it('ảnh còn dọc: cắt như cũ rồi xoay theo cách cầm', () => {
+    const r = frameCrop(S, 300, 400, 3000, 4000, 90);
+    expect(r.rect).toEqual({ x: 0, y: 500, width: 3000, height: 3000 });
+    expect(r.rotate).toBe(90);
+  });
+
+  it('ảnh đã xoay ngang: vùng cắt đổi sang ảnh ngang, không xoay', () => {
+    const whole = frameCrop(F, 300, 400, 4000, 3000, 90);
+    expect(whole).toEqual({ rect: { x: 0, y: 0, width: 4000, height: 3000 }, rotate: 0 });
+    // Khung 1:1 cách mép trên khung dọc 500 px (ảnh dọc): cầm 90 thì mép trên khung dọc là phía
+    // phải cảnh → vùng cắt cách mép phải ảnh ngang 500 px.
+    expect(frameCrop(S, 300, 400, 4000, 3000, 90).rect).toEqual({
+      x: 500,
+      y: 0,
+      width: 3000,
+      height: 3000,
+    });
+    // Cầm −90: mép trên khung dọc là phía trái cảnh.
+    expect(frameCrop(S, 300, 400, 4000, 3000, -90).rect).toEqual({
+      x: 500,
+      y: 0,
+      width: 3000,
+      height: 3000,
+    });
+  });
+
+  it('cầm 90, khung lệch: đổi đúng phía', () => {
+    // Khung chỉ nửa trên khung dọc (y 0..200): cầm 90 → nửa phải cảnh.
+    const top = { x: 0, y: 0, width: 300, height: 200 };
+    expect(frameCrop(top, 300, 400, 4000, 3000, 90).rect).toEqual({
+      x: 2000,
+      y: 0,
+      width: 2000,
+      height: 3000,
+    });
+    // Cầm −90 → nửa trái cảnh.
+    expect(frameCrop(top, 300, 400, 4000, 3000, -90).rect).toEqual({
+      x: 0,
+      y: 0,
+      width: 2000,
+      height: 3000,
+    });
+  });
+
+  it('uprightToImage ngược với cách xoay: góc trên trái của ảnh đứng', () => {
+    const rect = { x: 100, y: 200, width: 300, height: 400 };
+    // Xoay 90 (cầm 90): góc trên trái ảnh đứng là góc dưới trái phần cắt.
+    expect(uprightToImage(0, 0, rect, 90)).toEqual({ x: 100, y: 600 });
+    // Xoay −90: góc trên phải phần cắt.
+    expect(uprightToImage(0, 0, rect, -90)).toEqual({ x: 400, y: 200 });
+    expect(uprightToImage(0.5, 0.5, rect, 90)).toEqual({ x: 250, y: 400 });
   });
 });

@@ -21,7 +21,7 @@ import {
   type Snapshot as SegSnapshot,
   useSegmenter,
 } from '@/engine/segmentation/SegmenterProvider';
-import { frameToPhotoCrop, type Rect } from '@/features/camera/frame';
+import { frameCrop, type Rect, type Turn, uprightToImage } from '@/features/camera/frame';
 import { MIN_PERSON_RATIO } from '@/features/pose/createFromImage';
 import { compositionUi } from '@/ui/tokens';
 
@@ -51,7 +51,8 @@ export function useSnapshot() {
     cam: CameraView,
     frame: Rect,
     preview: { width: number; height: number },
-    opts: { gaze?: boolean; moved?: () => boolean } = {},
+    /** `turn`: máy cầm ngang, phân tích trên khung ngang đứng đúng chiều cảnh (phiếu lần 18). */
+    opts: { gaze?: boolean; moved?: () => boolean; turn?: Turn } = {},
   ): Promise<Snapshot | null> => {
     const shot = cam.takePictureAsync({ pictureRef: true, shutterSound: false });
     capture.current = shot.then(
@@ -66,15 +67,22 @@ export function useSnapshot() {
     }
     try {
       if (opts.moved?.()) return null;
-      const c = frameToPhotoCrop(frame, preview.width, preview.height, ref.width, ref.height);
-      const base64 = await cropBase64(ref, c, compositionUi.checkSide);
+      const cut = frameCrop(
+        frame,
+        preview.width,
+        preview.height,
+        ref.width,
+        ref.height,
+        opts.turn ?? 0,
+      );
+      const base64 = await cropBase64(ref, cut.rect, compositionUi.checkSide, cut.rotate);
       const a = await analyzeSnapshot(base64, compositionUi.checkGrid);
       let features = featuresOf(a);
       if (!features) return { kind: 'none' };
       let yaw = headYaw(features, a.faceEyes);
       if (opts.gaze && yaw == null && !opts.moved?.()) {
         // Ảnh cỡ thật nét hơn: lưới mặt trước, không thấy mặt (mặt nghiêng hẳn) thì khung xương.
-        const hi = await hiResGaze(ref, c, features);
+        const hi = await hiResGaze(ref, cut.rect, cut.rotate, features);
         if (hi.yaw != null) yaw = hi.yaw;
         else if (hi.facing) features = { ...features, facing: hi.facing };
       }
@@ -93,16 +101,21 @@ export function useSnapshot() {
   const hiResGaze = async (
     ref: PictureRef,
     c: Rect,
+    rotate: Turn,
     f: PhotoFeatures,
   ): Promise<{ yaw: number | null; facing: 'left' | 'right' | null }> => {
     const none = { yaw: null, facing: null };
-    const h = headRegion(f, c.width / c.height);
+    // Cỡ phần cắt khi đã đứng (xoay 90 thì đổi rộng / cao).
+    const uw = rotate ? c.height : c.width;
+    const uh = rotate ? c.width : c.height;
+    const h = headRegion(f, uw / uh);
     if (!h) return none;
-    const head = h.side * c.height;
+    const head = h.side * uh;
     const side = Math.min(Math.round(head * compositionUi.headGrow), ref.width, ref.height);
     if (head < compositionUi.headMinPx) return none;
-    const x = Math.round(c.x + h.x * c.width - side / 2);
-    const y = Math.round(c.y + h.y * c.height + head * compositionUi.headDrop - side / 2);
+    const mid = uprightToImage(h.x, h.y + (head * compositionUi.headDrop) / uh, c, rotate);
+    const x = Math.round(mid.x - side / 2);
+    const y = Math.round(mid.y - side / 2);
     const box = {
       x: Math.max(0, Math.min(ref.width - side, x)),
       y: Math.max(0, Math.min(ref.height - side, y)),
@@ -110,7 +123,7 @@ export function useSnapshot() {
       height: side,
     };
     try {
-      const r = await headLandmarks(await cropBase64(ref, box, compositionUi.headSide));
+      const r = await headLandmarks(await cropBase64(ref, box, compositionUi.headSide, rotate));
       return { yaw: yawNearCenter(r.faceEyes), facing: facingOf(jointsFrom(r.body)) };
     } catch {
       return none;
@@ -143,16 +156,28 @@ function featuresOf(a: SegSnapshot): PhotoFeatures | null {
   return features.main < 0 ? null : features;
 }
 
-/** Cắt `c` (px của ảnh) khỏi ảnh camera, thu cạnh dài về `side`, JPEG base64. */
-async function cropBase64(ref: PictureRef, c: Rect, side: number): Promise<string> {
+/**
+ * Cắt `c` (px của ảnh) khỏi ảnh camera, xoay `rotate` độ (cầm ngang mà ảnh còn dọc), thu cạnh dài
+ * về `side`, JPEG base64.
+ */
+async function cropBase64(
+  ref: PictureRef,
+  c: Rect,
+  side: number,
+  rotate: Turn = 0,
+): Promise<string> {
   const ctx = ImageManipulator.manipulate(ref).crop({
     originX: c.x,
     originY: c.y,
     width: c.width,
     height: c.height,
   });
-  if (c.width >= c.height) ctx.resize({ width: Math.min(side, c.width) });
-  else ctx.resize({ height: Math.min(side, c.height) });
+  if (rotate) ctx.rotate(rotate);
+  // Thu theo cạnh dài của phần cắt (xoay không đổi cạnh dài).
+  const w = rotate ? c.height : c.width;
+  const h = rotate ? c.width : c.height;
+  if (w >= h) ctx.resize({ width: Math.min(side, w) });
+  else ctx.resize({ height: Math.min(side, h) });
   const img = await ctx.renderAsync();
   const out = await img.saveAsync({ format: SaveFormat.JPEG, compress: 0.85, base64: true });
   ctx.release();

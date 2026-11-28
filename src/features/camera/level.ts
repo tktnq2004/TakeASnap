@@ -47,3 +47,15 @@ export function holdOf(rollDeg: number, prev: Hold): Hold {
   const q = Math.round(rollDeg / 90) * 90;
   return (q === -180 ? 180 : q) as Hold;
 }
+
+/**
+ * Góc nghiêng so với cách cầm `turnDeg` (0 dọc, ±90 ngang), radian trong (−π, π]: cầm ngang thì
+ * "thẳng" là đỉnh máy nằm ngang (phiếu Phase 5b lần 18).
+ */
+export function rollFrom(rollRad: number, turnDeg: number): number {
+  'worklet';
+  let d = rollRad - (turnDeg * Math.PI) / 180;
+  while (d > Math.PI) d -= 2 * Math.PI;
+  while (d <= -Math.PI) d += 2 * Math.PI;
+  return d;
+}

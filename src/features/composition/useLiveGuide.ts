@@ -23,7 +23,7 @@ import {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import type { Rect } from '@/features/camera/frame';
+import type { Rect, Turn } from '@/features/camera/frame';
 import { deviceRoll, levelUsable } from '@/features/camera/level';
 import { haptic } from '@/lib/haptics';
 import { compositionUi } from '@/ui/tokens';
@@ -57,6 +57,8 @@ export type GuideContext = {
   flip: boolean;
   /** Tạm dừng (máy cầm ngang): không chụp kiểm tra, không đếm giờ nhắc / hết hạn. */
   paused: boolean;
+  /** Cầm ngang với bố cục dùng được khung ngang: đo trên khung ngang (phiếu Phase 5b lần 18). */
+  turn: Turn;
 };
 
 export type GuideView = {
@@ -131,7 +133,16 @@ export function useLiveGuide(getContext: () => GuideContext) {
     // Cột 1/3 chốt trong cả lần hướng dẫn (không nhảy theo rung tay).
     let lock: ColumnLock | null = null;
     let last = Date.now();
+    let turn = ctxRef.current().turn;
     while (token.current === my) {
+      // Đổi cách cầm (dọc ↔ ngang): khung đo khác hẳn, làm lại từ bước đầu.
+      if (ctxRef.current().turn !== turn) {
+        turn = ctxRef.current().turn;
+        const fresh = initialGuide();
+        state = fresh;
+        lock = null;
+        setView((v) => (v ? { ...v, state: fresh, snap: null } : v));
+      }
       // Máy cầm ngang: đợi cầm dọc lại rồi làm tiếp, giờ nhắc / hết hạn dời theo lúc tạm dừng.
       if (ctxRef.current().paused) {
         const p0 = Date.now();
@@ -162,6 +173,7 @@ export function useLiveGuide(getContext: () => GuideContext) {
         try {
           s = await snapshot.take(c.cam, c.frame, c.preview, {
             gaze: plan.main === 'thirds',
+            turn,
             // Máy dời từ lúc bắt đầu chụp: bỏ lượt (mục 17.2).
             moved: () => stillAt.current == null || stillAt.current > t0,
           });
@@ -169,8 +181,8 @@ export function useLiveGuide(getContext: () => GuideContext) {
           // Camera bận (vừa bấm chụp) hoặc trang lỗi: bỏ lượt này.
         }
         if (token.current !== my) return;
-        // Vừa xoay ngang trong lúc chụp: ảnh nằm nghiêng, bỏ lượt.
-        if (ctxRef.current().paused) continue;
+        // Vừa xoay máy trong lúc chụp: ảnh không khớp khung đang thấy, bỏ lượt.
+        if (ctxRef.current().paused || ctxRef.current().turn !== turn) continue;
         if (s) {
           let snap = s.kind === 'ok' ? s : null;
           if (snap && c.flip) {

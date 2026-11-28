@@ -25,3 +25,10 @@ export const isTechnique = (v: unknown): v is TechniqueId =>
 
 /** Kỹ thuật cần camera trước. */
 export const needsFront = (t: TechniqueId) => t === 'selfie';
+
+/**
+ * Bố cục dùng được khung ngang (phiếu Phase 5b lần 18, bước 2): lưới, 1/3, nhóm. Lấp đầy, Góc
+ * thấp, Selfie chỉ khung dọc; Ở giữa để sau. Chỉ camera sau (camera trước có soi gương, chưa thử).
+ */
+export const landscapeOk = (t: TechniqueId) =>
+  t === 'grid' || t === 'grid4' || t === 'thirds' || t === 'group';

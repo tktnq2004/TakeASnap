@@ -798,3 +798,26 @@ Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại**. Bư�
 - **25.4:** đúng như đã định. Nghiêng quá 60° mới hiện viên, về dưới 30° mới tắt: nếu tắt ngay dưới 60° thì cầm quanh 60° viên sẽ hiện tắt liên tục. Lúc nghiêng 30–60° hướng dẫn chạy lại trên ảnh nghiêng nhiều nên cũng không đo đúng; giữ khoảng này là hợp lý. Nếu bạn thấy khó chịu, tôi hạ ngưỡng tắt lên 40°.
 - **25.8:** cả hai máy lưu ảnh **ngang, đúng chiều như đã chụp**, không phải ảnh nghiêng hay bị cắt như tôi lo. Vậy bước 2 không phải sửa cách lưu ảnh; ảnh chụp lặng để phân tích có lẽ cũng đã đúng chiều, việc chính còn lại là đổi khung đo sang 4:3 ngang và vẽ vạch, chấm, mũi tên, chữ theo cách cầm.
 
+## 26. Lần 18 — Khung ngang cho Lưới, 1/3, Nhóm (2026-11-28)
+
+Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại**. Camera sau. Cầm máy ngang với **Lưới 3×3, Lưới 4×4, Quy tắc 1/3, Nhóm người**: khung ngắm thành khung ngang của cảnh; đường kẻ, dải đích, câu hướng dẫn, mũi tên xoay theo cách cầm cho đứng đúng chiều; app đo bố cục trên khung ngang với cùng luật như khung dọc. Ở giữa, Lấp đầy, Góc thấp, Selfie, camera trước và cầm lộn ngược vẫn báo "Cầm máy dọc để dùng bố cục".
+
+**Claude đã thử trên máy tính:** mô phỏng khung ngang 4:3 trên ảnh thật. Nhóm (565 ảnh vừa khung ngang): làm theo tay yên đạt sau trung vị 5 lượt như khung dọc, câu không đổi chiều; Đạt mà có người bị cắt ở mép 2% số lần đạt (khung dọc 1%), xem kỹ thì gần hết là người rất nhỏ ở xa (người qua đường) nằm hẳn ngoài khung, app không thấy được. 1/3 (1202 ảnh có trọng tâm vùng người): đạt 92% số lần chạy (khung dọc 87%), tự dừng 12 lần (khung dọc 41), không đổi chiều. Cách đổi vùng cắt / xoay ảnh theo cách cầm có test. **Chưa thử được trên điện thoại:** thư viện camera có thể đưa ảnh chụp lặng đã xoay ngang hoặc còn dọc tùy máy; app xử lý cả hai, nhưng nếu một máy cho ảnh xoay ngược chiều thì câu hướng dẫn sẽ sai hẳn (vd bảo qua trái khi người đã ở bên trái, hoặc không thấy người). Dòng 26.2, 26.3, 26.6 bắt được lỗi này.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 26.1 | Lưới 3×3 và Lưới 4×4, cầm ngang hai phía | Lưới phủ khung ngang, không hiện viên "Cầm máy dọc"; thước cân bằng (nếu bật) xanh khi đỉnh máy nằm ngang | | | |
+| 26.2 | Quy tắc 1/3, một người, cầm ngang (đỉnh máy sang phải) | Câu hướng dẫn đọc được khi đang cầm ngang, ở cạnh dưới khung ngang; dải đích là đường dọc của cảnh; làm theo câu thì người vào cột và Đạt | | | |
+| 26.3 | Như 26.2, cầm ngang **phía kia** (đỉnh máy sang trái) | Như 26.2 | | | |
+| 26.4 | 1/3, người nhìn hẳn sang một bên | Người đứng cột phía sau lưng, chừa khoảng trống phía nhìn (như khung dọc) | | | |
+| 26.5 | 1/3 đang hướng dẫn ở khung dọc thì xoay ngang (và ngược lại) | Hướng dẫn làm lại từ bước đầu theo khung mới, không đứng ở câu cũ | | | |
+| 26.6 | Nhóm người, cầm ngang, nhóm lệch một bên / một người bị mép cắt / đầu sát mép trên | "Đi/xoay máy qua … để nhóm đứng giữa" / "Lùi ra" / "Ngửa máy lên" đúng chiều cảnh, làm theo thì Đạt | | | |
+| 26.7 | Ở giữa, Lấp đầy, Góc thấp, Selfie: cầm ngang | Vẫn viên "Cầm máy dọc để dùng bố cục" | | | |
+| 26.8 | 1/3 với camera trước, cầm ngang | Viên "Cầm máy dọc để dùng bố cục" (camera trước chưa có khung ngang) | | | |
+| 26.9 | Cầm ngang, chụp với khung **1:1** và **9:16** (bố cục nào cũng được), mở ảnh trong album | Ảnh ngang (9:16 thành 16:9) đúng chiều, đúng vùng khung đã thấy | | | |
+| 26.10 | Cầm ngang, khung 3:4, chụp | Ảnh như lần 17 (ngang đúng chiều) | | | |
+
+### 26.11 Góp ý
+
+-
+

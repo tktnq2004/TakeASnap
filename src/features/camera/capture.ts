@@ -6,7 +6,7 @@ import { File } from 'expo-file-system';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import { Album, Asset, requestPermissionsAsync } from 'expo-media-library';
 
-import { frameToPhotoCrop, isWholeImage, type Rect } from './frame';
+import { frameCrop, frameToPhotoCrop, isWholeImage, type Rect, type Turn } from './frame';
 
 /** Album lưu ảnh. App đổi tên từ TakeASnap ở Phase 4; ảnh chụp trước đó vẫn ở album cũ. */
 export const ALBUM = 'SnapShot';
@@ -24,7 +24,10 @@ export async function cropToFrame(
   shot: Shot,
   frame: Rect,
   preview: { width: number; height: number },
+  /** Máy cầm ngang lúc bấm (phiếu Phase 5b lần 18). */
+  turn: Turn = 0,
 ): Promise<Shot> {
+  if (turn !== 0) return cropSideways(shot, frame, preview, turn);
   const crop = frameToPhotoCrop(frame, preview.width, preview.height, shot.width, shot.height);
   // Khung 3:4 trùng cả ảnh: không giải mã / mã hóa lại (nhanh hơn nhiều khi chụp liên tục).
   if (isWholeImage(crop, shot)) return shot;
@@ -32,6 +35,38 @@ export async function cropToFrame(
     .crop({ originX: crop.x, originY: crop.y, width: crop.width, height: crop.height })
     .renderAsync();
   const out = await ref.saveAsync({ format: SaveFormat.JPEG, compress: PHOTO_QUALITY });
+  return { uri: out.uri, width: out.width, height: out.height };
+}
+
+/**
+ * Cầm ngang: khung 3:4 trùng cả ảnh thì giữ nguyên ảnh (phiếu lần 17, mục 25.8: ảnh lưu đã ngang
+ * đúng chiều trên cả hai máy). Khung khác (1:1, 9:16): giải mã để biết ảnh đã xoay ngang hay còn
+ * dọc rồi mới cắt (`frameCrop`), xoay cho đứng nếu cần.
+ */
+async function cropSideways(
+  shot: Shot,
+  frame: Rect,
+  preview: { width: number; height: number },
+  turn: Turn,
+): Promise<Shot> {
+  const w = Math.min(shot.width, shot.height);
+  const h = Math.max(shot.width, shot.height);
+  const whole = frameToPhotoCrop(frame, preview.width, preview.height, w, h);
+  if (isWholeImage(whole, { width: w, height: h })) return shot;
+  const src = await ImageManipulator.manipulate(shot.uri).renderAsync();
+  const cut = frameCrop(frame, preview.width, preview.height, src.width, src.height, turn);
+  const ctx = ImageManipulator.manipulate(src).crop({
+    originX: cut.rect.x,
+    originY: cut.rect.y,
+    width: cut.rect.width,
+    height: cut.rect.height,
+  });
+  if (cut.rotate) ctx.rotate(cut.rotate);
+  const ref = await ctx.renderAsync();
+  const out = await ref.saveAsync({ format: SaveFormat.JPEG, compress: PHOTO_QUALITY });
+  ctx.release();
+  src.release();
+  ref.release();
   return { uri: out.uri, width: out.width, height: out.height };
 }
 
