@@ -739,3 +739,62 @@ Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại** (**ch
 
 
 **Trả lời 23.8 (Claude):** Hai bố cục chỉ cho cùng kết quả khi người đã to, đứng giữa, máy thẳng, đầu trong khung, tức đúng cảnh chụp trực diện. Khác nhau ở chỗ mỗi bố cục bỏ qua điều gì: **Ở giữa** đo máy thẳng và người trên trục giữa, không đo cỡ người, không đo đỉnh đầu; **Lấp đầy** đo cỡ người (cao từ 70% hoặc chiếm từ 30% khung) và đỉnh đầu, không đo người đứng đâu, không đo máy nghiêng. Trang minh hoạ sáu cảnh (người xa ở giữa, người gần lệch trái, người gần ở giữa, chụp cận cắt đầu, máy nghiêng, giơ tay chạm mép trên), mỗi cảnh hai khung ngắm và câu app nói: https://claude.ai/artifact/QRWgFKryRXADA8SSkmBNo3 (riêng tư, chỉ chủ tài khoản mở được). Phần còn lại của phiếu 23 đạt cả hai máy; 23.6 (người ngồi nửa dưới khung) đạt nên chưa thêm bước mới.
+
+## 24. Lần 16 — Nhóm người (2026-11-28)
+
+Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại**. Cần từ 2 người. Nhóm có ba bước: ① cả nhóm trong khung, không ai sát mép trái / phải → "Lùi ra để cả nhóm vào khung"; ② không cắt đầu ai → "Ngửa máy lên để không cắt đầu ai" (**bước mới**); ③ nhóm ở giữa → "Đi/xoay máy qua trái / phải để nhóm đứng giữa".
+
+**Claude đã thử trên máy tính trước** (mô phỏng 231 ảnh nhóm mà cả nhóm vừa khung dọc, mỗi ảnh 8 khung bắt đầu, 1493 lần chạy mỗi kiểu người chụp):
+- **Lỗi tìm được và đã sửa:** bộ tách người gộp người nhỏ hơn 2% ảnh (đứng xa, đứng sau, bị che) vào người gần nhất mà **không nới khung người**, nên app không biết có người đó. Người đó bị cắt ở mép mà app vẫn báo Đạt; giữa nhóm tính lệch. Giờ bề ngang nhóm tính thêm **khung xương** từng người (thấy hai vai là tính, kể cả quay lưng). Làm theo tay yên: Đạt mà có người bị cắt ở mép 46 → 7 (7 ca còn lại là người gần như ra hẳn ngoài khung, app không thấy được); Đạt mà nhóm lệch giữa 54 → 7; tự dừng 16 → 1.
+- **Bước mới, cắt đầu:** trước đây Nhóm không xét mép trên. Bắt đầu với đầu người cao nhất ra ngoài mép trên: Đạt mà mắt ai đó sát mép trên 109 → 5. Đỉnh đầu đoán theo vai từng người như Lấp đầy; vùng người phủ người đó mà đỉnh còn trong khung thì tin vùng người (chụp cận nhóm, đoán theo vai hay cao quá: bảo ngửa máy nhầm 12 → 1).
+- Câu không đổi chiều lần nào khi làm theo.
+- Mô phỏng không lùi ra xa hơn ảnh gốc được nên phần lớn lần "Lùi ra" dừng ở mép ảnh gốc; cần bạn thử bước ① trên máy thật (24.2, 24.3).
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 24.1 | Chọn Nhóm người, khung chỉ có 1 người | "Cảnh này chưa thấy nhóm người", dừng ngay | — | — | Claude thử trên máy tính: 1212 ảnh một người, khung quanh người đó: người không chạm mép trái / phải thì báo ngay "Cảnh này chưa thấy nhóm người". **Đổi sau lần này:** người chạm mép trái / phải thì app bảo "Lùi ra" trước (xem 24.2), lùi rồi vẫn chỉ một người 2 lượt liền thì báo "chưa thấy nhóm" và dừng |
+| 24.2 | 2–3 người đứng cạnh nhau, một người bị mép trái hoặc phải cắt một nửa | "Lùi ra để cả nhóm vào khung"; lùi tới khi đủ người thì sang bước sau | — | — | Claude thử trên máy tính: 94 ảnh nhóm, mép trái qua giữa người ngoài cùng. **Lỗi tìm được:** 26/94 lần báo "chưa thấy nhóm" rồi dừng (hai người đứng sát thì vùng người dính làm một, mặt và khung xương người bị cắt ở ngoài khung, app chỉ đếm được một người). Đã sửa: 90/94 bảo "Lùi ra"; 4 lần còn lại người bị cắt không có trong vùng người nên app không thấy |
+| 24.3 | Nhóm có **một người đứng sau / xa hơn** (nhỏ hơn hẳn) ở sát mép | Vẫn bảo lùi ra cho người đó vào khung (lỗi vừa sửa) | — | — | Claude thử trên máy tính: 28 ảnh có người chỉ khung xương thấy (vùng người gộp mất), mép khung qua giữa người đó: 23 bảo "Lùi ra" (bản cũ: 12; 3 lần bản cũ báo Đạt luôn, 7 lần báo không thấy nhóm), 5 lần không thấy người đó |
+| 24.4 | Chụp gần, đầu người cao nhất bị mép trên cắt | "Ngửa máy lên để không cắt đầu ai"; ngửa tới khi đầu vào khung thì Đạt bước 2 | — | — | Claude thử trên máy tính: 14 ảnh, mép trên ngang mắt người cao nhất (cả nhóm đã vừa ngang): 14/14 bảo "Ngửa máy lên" |
+| 24.5 | Chụp cận nhóm 2 người (nửa người), đầu sát nhưng còn trong khung | **Không** bảo ngửa máy | — | — | Claude thử trên máy tính: 28 ảnh, đỉnh đầu còn trong khung cách mép 3%: 28/28 không bảo ngửa máy |
+| 24.6 | Một người giơ tay chạm mép trên, đầu còn trong khung | Không bảo ngửa máy | — | — | Claude thử trên máy tính: 7 ảnh vùng người cao hẳn trên đầu (tay giơ / vật cầm) chạm mép trên, đầu còn trong: 6/7 không bảo ngửa, 1 lần bảo ngửa |
+| 24.7 | Cả nhóm trong khung nhưng lệch hẳn một bên | "Đi/xoay máy qua … để nhóm đứng giữa"; câu không đổi chiều | — | — | Claude thử trên máy tính: 162 lần nhóm sát một bên: 162/162 đúng chiều; mô phỏng làm theo không lần nào đổi chiều |
+| 24.8 | Nhóm quay lưng (không thấy mặt) | Vẫn nhận ra nhóm và hướng dẫn | — | — | Claude thử trên máy tính: bộ ảnh không có ảnh nhóm nào không thấy mặt ai nên không thử được trên ảnh thật; có test với khung xương không thấy đầu (vẫn nhận ra nhóm). Cần thử trên điện thoại khi có dịp |
+
+### 24.9 Góp ý
+
+- 
+
+### 24.10 Trả lời lần 16 (Claude)
+
+Bạn để trống cả phần, nên tôi thử từng dòng trên máy tính bằng ảnh thật (234 ảnh nhóm vừa khung dọc, 1212 ảnh một người), ghi ở cột Ghi chú. Dòng 24.2 lộ ra một lỗi, đã sửa: một vùng người chạm mép trái / phải thì app bảo **"Lùi ra để cả nhóm vào khung"** trước, không báo ngay "chưa thấy nhóm"; lùi rồi mà 2 lượt liền vẫn chỉ thấy một người thì dừng với câu "Cảnh này chưa thấy nhóm người" (trước đây nhắc "để thấy lại người" rồi mới tự dừng). Không tách được "một người chụp cận chạm mép" với "người bên cạnh bị cắt": trên ảnh hai trường hợp này giống nhau, nên một người chụp cận chạm mép cũng bị bảo lùi ra trước. Mô phỏng cả lượt (làm theo, tay yên): báo không thấy nhóm ngay lượt đầu 76 → 37, tự dừng 2 → 0, các số khác giữ nguyên.
+
+## 25. Lần 17 — Cầm máy ngang, bước 1 (2026-11-28)
+
+Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại**. Bước 1 đã chốt: app chưa tính bố cục cho khung ngang, nên cầm máy ngang (hoặc lộn ngược) thì mọi bố cục trừ Tắt hiện viên **"Cầm máy dọc để dùng bố cục"** giữa khung, chữ xoay theo cách cầm cho đọc được; hướng dẫn tạm dừng rồi làm tiếp khi cầm dọc lại. Ngưỡng: nghiêng quá 60° là ngang, về dưới 30° mới là dọc lại (để không nhấp nháy quanh ngưỡng).
+
+**Claude đã thử trên máy tính:** cách tính dọc / ngang / lộn ngược và độ trễ có test; lúc tạm dừng không tính vào giờ nhắc / hết hạn (tạm dừng 60 s rồi cầm dọc lại: bước đang làm như vừa bắt đầu, không bị nhắc, không tự dừng). Chưa thử được trên điện thoại.
+
+**Cần bạn xem thêm ở 25.8:** đọc mã thư viện camera thì thấy hai máy có thể lưu ảnh chụp ngang khác nhau: iPhone xoay ảnh theo màn hình (đang khóa dọc), nên có thể ra **ảnh dọc, cảnh nằm nghiêng**; Android xoay ảnh theo cách cầm, nên ảnh là ảnh ngang mà app lại cắt theo khung dọc, có thể ra **ảnh bị cắt mất hai bên**. Đây là chuyện có từ trước, không do lần này. Bạn ghi lại ảnh trong album trông thế nào để tôi biết bước 2 phải sửa gì.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 25.1 | Bật Quy tắc 1/3 có người, đang hướng dẫn thì xoay máy ngang | Viên "Cầm máy dọc để dùng bố cục" giữa khung, chữ đọc được khi đang cầm ngang; câu hướng dẫn, khung người, chấm, vạch đích ẩn |d |d | |
+| 25.2 | Xoay ngang sang **phía kia** | Viên xoay theo, vẫn đọc được |d | d| |
+| 25.3 | Giữ ngang khoảng 20 s rồi cầm dọc lại | Hướng dẫn làm tiếp bước đang dở, **không** tự dừng vì đã để lâu; vòng đếm trên nút (nếu có) không chạy lúc cầm ngang |d |d | |
+| 25.4 | Nghiêng chừng 45° rồi về | Không hiện viên cầm dọc (chỉ câu nghiêng máy như cũ nếu bố cục có), không nhấp nháy |d |d | nghiêng trên 60 thì mới hiện viên, nhưng phải nghiêng về gần dọc mới tắt viên |
+| 25.5 | Nhóm người, Lấp đầy, Ở giữa: xoay ngang | Như 25.1 |d |d | |
+| 25.6 | Lưới 3×3, Góc thấp, Selfie: xoay ngang | Viên cầm dọc hiện; Góc thấp / Selfie chạm Kiểm tra bố cục thì không chạy |d |d | |
+| 25.7 | Bố cục Tắt, xoay ngang | Không hiện gì |d |d | |
+| 25.8 | Cầm ngang bấm chụp, mở ảnh trong album | Ghi lại ảnh ra sao: ảnh ngang đúng chiều / ảnh dọc cảnh nằm nghiêng / bị cắt mất hai bên |d |d | ảnh nằm ngang như những gì đã chụp |
+| 25.9 | Cầm dọc rồi đặt máy nằm ngửa trên bàn | Không hiện viên cầm dọc (máy nằm ngửa thì không tính ngang hay dọc) |d |d | |
+
+### 25.10 Góp ý
+
+-
+
+### 25.11 Trả lời lần 17 (Claude)
+
+- **25.4:** đúng như đã định. Nghiêng quá 60° mới hiện viên, về dưới 30° mới tắt: nếu tắt ngay dưới 60° thì cầm quanh 60° viên sẽ hiện tắt liên tục. Lúc nghiêng 30–60° hướng dẫn chạy lại trên ảnh nghiêng nhiều nên cũng không đo đúng; giữ khoảng này là hợp lý. Nếu bạn thấy khó chịu, tôi hạ ngưỡng tắt lên 40°.
+- **25.8:** cả hai máy lưu ảnh **ngang, đúng chiều như đã chụp**, không phải ảnh nghiêng hay bị cắt như tôi lo. Vậy bước 2 không phải sửa cách lưu ảnh; ảnh chụp lặng để phân tích có lẽ cũng đã đúng chiều, việc chính còn lại là đổi khung đo sang 4:3 ngang và vẽ vạch, chấm, mũi tên, chữ theo cách cầm.
+

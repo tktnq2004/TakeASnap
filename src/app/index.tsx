@@ -54,6 +54,7 @@ import {
 } from '@/features/camera/capture';
 import { ASPECTS, previewRect, type Rect, viewfinderRect } from '@/features/camera/frame';
 import { LevelGuide } from '@/features/camera/FrameGuides';
+import { useHold } from '@/features/camera/useHold';
 import { containSize, hitOverlay } from '@/features/camera/overlayHit';
 import { PoseOverlay } from '@/features/camera/PoseOverlay';
 import { useSessionPhotos } from '@/features/camera/sessionPhotos';
@@ -65,7 +66,11 @@ import { CheckOverlay } from '@/features/composition/CheckOverlay';
 import { GuideEndPill, GuideOverlay } from '@/features/composition/GuideOverlay';
 import { bandOf, isGuidedMain } from '@/features/composition/guidance';
 import { CompositionGuide } from '@/features/composition/CompositionGuide';
-import { CompositionHint, HintPill } from '@/features/composition/CompositionHint';
+import {
+  CompositionHint,
+  HintPill,
+  HoldPortraitPill,
+} from '@/features/composition/CompositionHint';
 import { CompositionSheet } from '@/features/composition/CompositionSheet';
 import type { Pt } from '@/features/composition/guides';
 import type { TechniqueId } from '@/features/composition/techniques';
@@ -471,6 +476,8 @@ function CameraBody() {
       return;
     }
     if (check.busy || downloading) return;
+    // Cầm ngang: ảnh nằm nghiêng, chưa kiểm tra được (viên "Cầm máy dọc" đang hiện).
+    if (sideways) return;
     // Bố cục có hướng dẫn: nút là phím tắt chạy lại hướng dẫn (phiếu Phase 5b lần 1: đạt rồi muốn
     // hướng dẫn lại thì không phải tắt bố cục rồi bật lại). Góc thấp, Selfie: kiểm tra một ảnh.
     const run = guided ? restartGuide : startCheck;
@@ -496,8 +503,17 @@ function CameraBody() {
       preview: { width: preview.width, height: preview.height },
       front: facing === 'front',
       flip: facing === 'front' && !frontMirror,
+      paused: sidewaysRef.current,
     };
   });
+  // Máy cầm ngang / lộn ngược: mọi bố cục báo "Cầm máy dọc" và tạm dừng hướng dẫn (phiếu Phase
+  // 5b lần 17, bước 1: bố cục mới tính cho khung dọc).
+  const hold = useHold();
+  const sideways = hold !== 0 && technique !== 'off';
+  const sidewaysRef = useRef(sideways);
+  useEffect(() => {
+    sidewaysRef.current = sideways;
+  }, [sideways]);
   const countdownRef = useRef<number | null>(null);
   useEffect(() => {
     countdownRef.current = countdown;
@@ -756,7 +772,7 @@ function CameraBody() {
             frame={frame}
             technique={technique}
             anchor={anchorN}
-            focus={guide.view?.state.current?.target ?? null}
+            focus={sideways ? null : (guide.view?.state.current?.target ?? null)}
             focusBand={guide.view?.state.current ? bandOf(guide.view.state.current) : 0}
             focusOk={guide.view?.state.holding ?? false}
           />
@@ -796,7 +812,9 @@ function CameraBody() {
             </View>
           )}
 
-          {guide.view ? (
+          {sideways ? (
+            <HoldPortraitPill frame={frame} hold={hold} />
+          ) : guide.view ? (
             <GuideOverlay frame={frame} view={guide.view} maxBottom={hintBottom} />
           ) : guide.end ? (
             <GuideEndPill frame={frame} end={guide.end} maxBottom={hintBottom} />
@@ -887,7 +905,7 @@ function CameraBody() {
             onPress={onCheck}
             style={[styles.check, guide.active && styles.checkOn]}
           >
-            {guide.view?.state.deadline != null && (
+            {!sideways && guide.view?.state.deadline != null && (
               <GraceRing deadline={guide.view.state.deadline} />
             )}
             {guide.active ? (

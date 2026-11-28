@@ -61,6 +61,8 @@ export const t = {
     /** Nút Bố cục khi đang bật: chạm là tắt (phiếu Phase 5 lần 7). */
     turnOff: (name: string) => `Tắt bố cục ${name}`,
     turnedOff: 'Đã tắt bố cục',
+    /** Máy cầm ngang: bố cục mới tính cho khung dọc (phiếu Phase 5b lần 17). */
+    holdPortrait: 'Cầm máy dọc để dùng bố cục',
     learn: 'Học các kỹ thuật',
     names: {
       off: 'Tắt',
@@ -131,6 +133,7 @@ export const t = {
         fillSize: 'để người lấp đầy khung',
         fillHead: 'để không cắt đỉnh đầu',
         groupInFrame: 'để cả nhóm vào khung',
+        groupHead: 'để không cắt đầu ai',
         groupCenter: 'để nhóm vào giữa',
         person: 'để thấy lại người',
       },
@@ -143,6 +146,7 @@ export const t = {
         fillSize: 'người lấp đầy khung',
         fillHead: 'không cắt đỉnh đầu',
         groupInFrame: 'cả nhóm trong khung',
+        groupHead: 'không cắt đầu ai',
         groupCenter: 'nhóm ở giữa',
         person: 'thấy người',
       },

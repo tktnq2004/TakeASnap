@@ -27,3 +27,23 @@ export function levelUsable(x: number, y: number, z: number, ratio = 0.35): bool
   if (g === 0) return false;
   return Math.sqrt(x * x + y * y) / g >= ratio;
 }
+
+/** Cách cầm máy, theo bước 90°: 0 dọc, 90 đỉnh máy quay sang phải, −90 sang trái, 180 lộn ngược. */
+export type Hold = 0 | 90 | -90 | 180;
+
+/**
+ * Lệch khỏi cách cầm hiện tại quá chừng này (độ) thì đổi sang cách cầm gần nhất. 60° có độ trễ
+ * 30° hai phía: từ dọc nghiêng tới 60° mới tính là cầm ngang, từ ngang về dưới 30° mới là dọc.
+ */
+export const HOLD_SWITCH_DEG = 60;
+
+/** Cách cầm máy sau khi đọc góc nghiêng `rollDeg` (−180..180), có độ trễ theo cách cầm `prev`. */
+export function holdOf(rollDeg: number, prev: Hold): Hold {
+  'worklet';
+  let d = rollDeg - prev;
+  while (d > 180) d -= 360;
+  while (d < -180) d += 360;
+  if (Math.abs(d) <= HOLD_SWITCH_DEG) return prev;
+  const q = Math.round(rollDeg / 90) * 90;
+  return (q === -180 ? 180 : q) as Hold;
+}

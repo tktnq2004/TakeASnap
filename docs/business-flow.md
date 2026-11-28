@@ -280,6 +280,7 @@ flowchart TD
 - **Đạt**: đường kẻ chuyển màu nhấn, rung nhẹ một lần, dòng gợi ý biến mất.
 - **Không thấy người**: chỉ còn gợi ý từ cảm biến; không báo lỗi.
 - Gợi ý từ cảm biến (máy thẳng, góc thấp, selfie) chạy tức thì trên UI thread.
+- **Cầm máy ngang / lộn ngược** (2026-11-28, phiếu Phase 5b lần 17, bước 1): app khóa màn hình dọc và mọi bố cục mới tính cho khung dọc. Đỉnh máy nghiêng quá 60° so với dọc (về dưới 30° mới là dọc lại) thì mọi bố cục trừ Tắt hiện viên **"Cầm máy dọc để dùng bố cục"** giữa khung, xoay theo cách cầm cho đọc được; hướng dẫn liên tục tạm dừng (không chụp kiểm tra, giờ nhắc và hết hạn dời theo lúc tạm dừng) rồi làm tiếp khi cầm dọc lại; nút Kiểm tra bố cục (Góc thấp, Selfie) không chạy. Nút chụp vẫn chụp. Bước sau (chưa làm): khung ngang cho Lưới, 1/3, Nhóm (sau đó có thể Ở giữa); Lấp đầy, Góc thấp, Selfie chỉ khung dọc.
 - **Không theo dõi người liên tục không giới hạn** (cổng Phase 5 Bước 3 không đạt: Expo Go chỉ lấy được ảnh bằng cách chụp thật; cỡ thật 1,2 lần / giây và nóng máy, cỡ nhỏ thì đổi sang cỡ thật lúc bấm chụp mất ~1 s và nháy). Từ Phase 5b (2026-11-23, người dùng chốt) có **hướng dẫn liên tục có giới hạn** (§6.10): chạy tới khi đạt, người dùng dừng, cảnh không áp được, hoặc hết 3 lần nhắc không tiến bộ ở một bước + 10 s.
 - **Kiểm tra bố cục (Phase 5a):** người dùng chạm nút thì app chụp lặng một ảnh, khoảng 1 s sau hiện nhận xét trên khung ngắm vài giây (khung người, chấm mắt, đường tìm được, một dòng gợi ý theo thứ tự ưu tiên ở trên). Chỉnh xong thì chạm lại. Bấm chụp lúc đang kiểm tra thì chụp ngay. Phase 5 chỉ có nhận xét sau khi chụp (§6.5).
 
@@ -310,6 +311,7 @@ flowchart TD
 
 - Toàn bộ phân tích chạy trên máy, không gửi ảnh đi đâu; không dùng AI trên cloud.
 - App không biết ảnh "đẹp", chỉ biết ảnh có theo kỹ thuật đang chọn hay không.
+- Bố cục chỉ tính cho khung dọc; cầm máy ngang thì báo "Cầm máy dọc để dùng bố cục" (§6.4).
 - Người dùng tự chọn kỹ thuật. App không dò cảnh (đường chân trời, đường dẫn đã bỏ 2026-11-26); tự đoán kỹ thuật bằng model (Phase 5b) không đạt cổng.
 - Lúc ngắm có gợi ý từ cảm biến; phân tích người lúc ngắm khi chạm **Kiểm tra bố cục** (Phase 5a, §6.4) và trong **hướng dẫn liên tục có giới hạn** (Phase 5b, §6.10); không bao giờ chạy nền không giới hạn.
 
@@ -369,7 +371,7 @@ Một model nhỏ do dự án tự huấn luyện nhìn khung cảnh và đoán 
 | 1/3 | Có 1 người | ① người trên cột 1/3 (phía người đang nhìn còn chỗ) → ② không cắt khớp. Không có bước mắt (phiếu lần 7, mục 15.7: mắt ở đâu tuỳ cỡ cảnh) |
 | Ở giữa | Có 1 người | ① máy thẳng → ② người trên trục giữa (**trọng tâm phần trên vùng người**, composition-critic v0.8.0, như nhận xét sau khi chụp). Không có bước mắt (phiếu lần 7, mục 15.7) |
 | Lấp đầy khung | Có 1 người | ① người cao từ 70% khung hoặc chiếm từ 30% diện tích ('Tiến lại gần') → ② không cắt đỉnh đầu ('Ngửa máy lên'). **Đỉnh đầu đoán từ mắt**, không theo đỉnh vùng người (mô phỏng Lấp đầy 2026-11-27: tay giơ, mũ, vùng người lan ra nền chạm mép trên thì app bảo ngửa máy tới lúc mắt xuống đáy khung rồi tự dừng): trên mắt 0,6 bề ngang vai, không thấy vai thì 2,6 khoảng hai mắt, ít nhất 0,15 khung; không thấy mắt thì theo đỉnh vùng người |
-| Nhóm người | Có nhóm người (luật Nhóm của Phase 5) | ① cả nhóm trong khung, không ai sát mép → ② nhóm ở giữa |
+| Nhóm người | Có nhóm người: từ 2 vùng người, 2 đầu hoặc 2 khung xương thấy hai vai; hoặc một vùng người chạm mép trái / phải (có thể người bên cạnh bị cắt, vùng người dính làm một: bảo lùi ra trước; đang làm mà 2 lượt liền chỉ thấy một người thì dừng, "chưa thấy nhóm"; phiếu lần 16, mục 24.2) | ① cả nhóm trong khung, không ai sát mép trái / phải ('Lùi ra') → ② không cắt đầu ai ('Ngửa máy lên') → ③ nhóm ở giữa. **Bề ngang nhóm tính cả khung xương** (composition-critic v0.12.0, `figures`; mô phỏng Nhóm 2026-11-28: bộ tách người gộp người nhỏ hơn 2% ảnh vào người gần nhất mà không nới khung, nên khung người hụt người trong nhóm, app báo Đạt khi người đó còn bị cắt). **Đỉnh đầu từng người** theo khung xương: trên mắt / tai 0,6 bề ngang vai; không thấy đầu thì trên vai 0,9 bề ngang vai; vùng người phủ người đó mà đỉnh còn trong khung thì tin vùng người |
 
 | Lệch | Câu hướng dẫn (ví dụ) |
 |---|---|

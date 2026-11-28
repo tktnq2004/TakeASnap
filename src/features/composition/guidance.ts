@@ -7,7 +7,7 @@
  * gương; đưa / xoay máy qua trái thì người dịch sang phải trên khung, cùng chiều camera sau (phiếu
  * Phase 5b lần 4, mục 12.1.5).
  */
-import { centerOf, J, type PhotoFeatures, RULE, visible } from 'composition-critic';
+import { centerOf, type Figure, J, type PhotoFeatures, RULE, visible } from 'composition-critic';
 
 import { t } from '@/ui/strings';
 import { compositionUi } from '@/ui/tokens';
@@ -30,6 +30,7 @@ export type CriterionId =
   | 'fillSize'
   | 'fillHead'
   | 'groupInFrame'
+  | 'groupHead'
   | 'groupCenter'
   /** Giả: mất người giữa chừng (không tiến bộ được, nên bị nhắc rồi dừng). */
   | 'person';
@@ -254,6 +255,28 @@ function sideCheck(
  * mắt `GUIDE.crownShoulder` bề ngang vai, không thấy vai thì `GUIDE.crownEyes` khoảng hai mắt):
  * chỉ đỉnh đầu đoán được chạm mép mới tính, và số này nhỏ dần khi ngửa máy.
  */
+/**
+ * Nhóm: đỉnh đầu từng người theo khung xương ra ngoài mép trên bao nhiêu. Thấy đầu: đỉnh trên mắt /
+ * tai `crownShoulder` × bề ngang vai; không thấy đầu (đầu đã ra ngoài khung, hoặc quay lưng): đỉnh
+ * trên vai `crownNoHead` × bề ngang vai, vai còn thấp thì coi như đầu vẫn trong khung.
+ * Không xét người có vùng người phủ lên mà đỉnh vùng còn trong khung.
+ */
+function groupHeadOut(f: PhotoFeatures, figs: readonly Figure[]): number {
+  let out = 0;
+  for (const g of figs) {
+    // Vùng người phủ người này mà đỉnh còn trong khung: đầu chưa ra ngoài (ước theo vai hay cao
+    // quá khi chụp cận, mô phỏng Nhóm 2026-11-28).
+    const cx = (g.x0 + g.x1) / 2;
+    const inside = f.people.some(
+      (p) => p.box[0] <= cx && cx <= p.box[2] && p.box[1] >= RULE.headTouch && p.box[1] <= g.top,
+    );
+    if (inside) continue;
+    const crown = g.top - (g.head ? GUIDE.crownShoulder : GUIDE.crownNoHead) * g.span;
+    out = Math.max(out, RULE.headTouch - crown);
+  }
+  return out;
+}
+
 function headOut(f: PhotoFeatures, top: number): number {
   const touch = Math.max(0, RULE.headTouch - top);
   const j = f.joints;
@@ -340,12 +363,16 @@ function mainChecks(
       ];
     }
     case 'group': {
-      const left = Math.min(...f.people.map((q) => q.box[0]));
-      const right = Math.max(...f.people.map((q) => q.box[2]));
+      // Khung người hụt người nhỏ trong nhóm (gộp vào người gần nhất): thêm bề ngang khung xương.
+      const figs = f.figures ?? [];
+      const left = Math.min(...f.people.map((q) => q.box[0]), ...figs.map((g) => g.x0));
+      const right = Math.max(...f.people.map((q) => q.box[2]), ...figs.map((g) => g.x1));
       const edge = Math.max(0, RULE.edge - left) + Math.max(0, right - (1 - RULE.edge));
       const mid = (left + right) / 2;
       return [
         check('groupInFrame', edge, 0, 'back', { kind: 'frame' }),
+        // Đầu ai đó ra ngoài mép trên (đỉnh đầu đoán theo vai từng người, như Lấp đầy).
+        check('groupHead', groupHeadOut(f, figs), 0, 'tiltUp', { kind: 'frame' }),
         check(
           'groupCenter',
           Math.abs(0.5 - mid),
@@ -371,7 +398,16 @@ export function measure(
   colUnsure = false,
 ): Measure {
   if (!f || f.main < 0 || !f.people[f.main]) return { kind: 'noPerson' };
-  if (plan.main === 'group' && f.people.length < 2 && f.heads.length < 2)
+  // Một người mà vùng người chạm mép trái / phải: có thể người kia bị mép cắt (vùng người hai
+  // người đứng sát dính làm một, mặt và khung xương người bị cắt ở ngoài khung): bảo lùi ra trước
+  // (phiếu Phase 5b lần 16, mục 24.2: 26/94 lần báo không thấy nhóm rồi dừng).
+  if (
+    plan.main === 'group' &&
+    f.people.length < 2 &&
+    f.heads.length < 2 &&
+    (f.figures?.length ?? 0) < 2 &&
+    !f.people.some((p) => p.box[0] <= RULE.edge || p.box[2] >= 1 - RULE.edge)
+  )
     return { kind: 'noGroup' };
 
   const checks: Check[] = [];
@@ -432,6 +468,8 @@ export const GUIDE = {
    * đầu thấp quá (mô phỏng: 13 lần Đạt khi mắt đã ở 0,15 khung trên cùng).
    */
   crownMin: 0.15,
+  /** Nhóm, không thấy đầu: đỉnh đầu trên vai chừng này × bề ngang vai (`groupHeadOut`). */
+  crownNoHead: 0.9,
   /** 1/3 chưa thấy hướng nhìn: bước cột cần chừng này lượt đúng liền (thay `confirmTurns`). */
   gazeTurns: 3,
   /** Tiêu chí đã đạt chỉ tính là vỡ khi lệch quá ngưỡng × chừng này (rung tay không làm vỡ). */
@@ -521,6 +559,7 @@ const ORDER: CriterionId[] = [
   'fillSize',
   'fillHead',
   'groupInFrame',
+  'groupHead',
   'groupCenter',
   'person',
 ];
@@ -545,6 +584,20 @@ function fillMissing(s: GuideState, checks: Check[]): Check[] {
   return [...checks, ...extra].sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
 }
 
+/**
+ * Tạm dừng `ms` (máy cầm ngang) rồi làm tiếp: dời các mốc giờ đi chừng đó, như thời gian đứng
+ * yên. Lúc tạm dừng không tính vào khoảng xét tiến bộ, không làm hết hạn.
+ */
+export function resumeGuide(s: GuideState, ms: number): GuideState {
+  if (ms <= 0) return s;
+  return {
+    ...s,
+    lastRemindAt: s.lastRemindAt + ms,
+    deadline: s.deadline == null ? null : s.deadline + ms,
+    passedAt: s.passedAt + ms,
+  };
+}
+
 /** Một lượt: cập nhật trạng thái theo kết quả đo lúc `now` (ms). */
 export function step(
   s: GuideState,
@@ -565,6 +618,11 @@ export function step(
     // Một lượt dò hụt: giữ nguyên, không đổi câu.
     lost = s.lost + 1;
     if (lost < GUIDE.lostTurns) return { state: { ...s, lost }, event: null };
+    // Nhóm: vẫn thấy người mà chỉ một (vd đã lùi ra theo câu "Lùi ra" lúc vùng người chạm mép,
+    // mục 24.2): cảnh không áp được, dừng như lượt đầu.
+    if (m.kind === 'noGroup') {
+      return { state: { ...s, lost, status: 'notApplicable', missing }, event: 'notApplicable' };
+    }
     // Mất thật: một tiêu chí giả không bao giờ tiến bộ (bị nhắc rồi dừng).
     checks = [
       ...s.passed.map((p): Check => ({

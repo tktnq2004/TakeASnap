@@ -1,5 +1,5 @@
 import { containSize, hitOverlay } from '../overlayHit';
-import { deviceRoll, levelUsable } from '../level';
+import { deviceRoll, holdOf, levelUsable } from '../level';
 
 const G = 9.81;
 const deg = (r: number) => (r * 180) / Math.PI;
@@ -47,5 +47,28 @@ describe('hitOverlay', () => {
 describe('containSize', () => {
   it('ảnh dọc trong khung dọc cao hơn → vừa chiều rộng', () => {
     expect(containSize(3, 4, 300, 600)).toEqual({ width: 300, height: 400 });
+  });
+});
+
+describe('holdOf (phiếu Phase 5b lần 17)', () => {
+  it('dọc: nghiêng tới 60° vẫn là dọc, quá 60° là ngang theo phía đỉnh máy', () => {
+    expect(holdOf(45, 0)).toBe(0);
+    expect(holdOf(60, 0)).toBe(0);
+    expect(holdOf(61, 0)).toBe(90);
+    expect(holdOf(-75, 0)).toBe(-90);
+  });
+
+  it('ngang: về dưới 30° mới là dọc lại (độ trễ, không nhấp nháy quanh ngưỡng)', () => {
+    expect(holdOf(40, 90)).toBe(90);
+    expect(holdOf(29, 90)).toBe(0);
+    expect(holdOf(-35, -90)).toBe(-90);
+  });
+
+  it('lộn ngược: quanh ±180° là 180, đi qua mốc ±180 không đổi', () => {
+    expect(holdOf(170, 90)).toBe(180);
+    expect(holdOf(-170, 180)).toBe(180);
+    expect(holdOf(179, 180)).toBe(180);
+    expect(holdOf(-125, 180)).toBe(180);
+    expect(holdOf(-110, 180)).toBe(-90);
   });
 });

@@ -5,6 +5,7 @@ import {
   type LucideIcon,
   RotateCcw,
   RotateCw,
+  Smartphone,
   SwitchCamera,
 } from 'lucide-react-native';
 import { useEffect, useRef, useState } from 'react';
@@ -20,7 +21,7 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import type { Rect } from '@/features/camera/frame';
-import { deviceRoll, levelUsable } from '@/features/camera/level';
+import { deviceRoll, type Hold, levelUsable } from '@/features/camera/level';
 import { haptic } from '@/lib/haptics';
 import { t } from '@/ui/strings';
 import { color, compositionUi, motion, radius, size, space, type } from '@/ui/tokens';
@@ -203,6 +204,32 @@ export function HintPill({
       >
         <Text style={styles.text} maxFontSizeMultiplier={1.3}>
           {text}
+        </Text>
+      </Animated.View>
+    </View>
+  );
+}
+
+/**
+ * Máy cầm ngang / lộn ngược: bố cục chưa tính cho khung ngang (phiếu Phase 5b lần 17). Viên nằm
+ * giữa khung, xoay theo cách cầm để đọc được ngay khi đang cầm ngang.
+ */
+export function HoldPortraitPill({ frame, hold }: { frame: Rect; hold: Hold }) {
+  return (
+    <View
+      pointerEvents="none"
+      style={[styles.wrap, { top: frame.y + (frame.height - compositionUi.hintH) / 2 }]}
+    >
+      <Animated.View
+        entering={FadeIn.duration(motion.in)}
+        exiting={FadeOut.duration(motion.in)}
+        accessibilityRole="text"
+        accessibilityLiveRegion="polite"
+        style={[styles.pill, { transform: [{ rotate: `${-hold}deg` }] }]}
+      >
+        <Smartphone size={size.iconSmall} strokeWidth={2.5} color={color.camAccent} />
+        <Text style={styles.text} maxFontSizeMultiplier={1.3}>
+          {t.composition.holdPortrait}
         </Text>
       </Animated.View>
     </View>

@@ -38,6 +38,7 @@ import {
   lockColumn,
   measure,
   type Measure,
+  resumeGuide,
   step,
 } from './guidance';
 import { type Snapshot, useSnapshot } from './useSnapshot';
@@ -54,6 +55,8 @@ export type GuideContext = {
   front: boolean;
   /** Ảnh không lật như khung ngắm (camera trước, tắt Lưu soi gương). */
   flip: boolean;
+  /** Tạm dừng (máy cầm ngang): không chụp kiểm tra, không đếm giờ nhắc / hết hạn. */
+  paused: boolean;
 };
 
 export type GuideView = {
@@ -129,6 +132,19 @@ export function useLiveGuide(getContext: () => GuideContext) {
     let lock: ColumnLock | null = null;
     let last = Date.now();
     while (token.current === my) {
+      // Máy cầm ngang: đợi cầm dọc lại rồi làm tiếp, giờ nhắc / hết hạn dời theo lúc tạm dừng.
+      if (ctxRef.current().paused) {
+        const p0 = Date.now();
+        while (token.current === my && ctxRef.current().paused) {
+          await new Promise((res) => setTimeout(res, 100));
+        }
+        if (token.current !== my) return;
+        const resumed = resumeGuide(state, Date.now() - p0);
+        state = resumed;
+        last = Date.now();
+        setView((v) => (v ? { ...v, state: resumed } : v));
+        continue;
+      }
       // Đợi máy yên (hoặc quá lâu chưa kiểm tra).
       while (
         token.current === my &&
@@ -153,6 +169,8 @@ export function useLiveGuide(getContext: () => GuideContext) {
           // Camera bận (vừa bấm chụp) hoặc trang lỗi: bỏ lượt này.
         }
         if (token.current !== my) return;
+        // Vừa xoay ngang trong lúc chụp: ảnh nằm nghiêng, bỏ lượt.
+        if (ctxRef.current().paused) continue;
         if (s) {
           let snap = s.kind === 'ok' ? s : null;
           if (snap && c.flip) {

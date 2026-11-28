@@ -13,6 +13,7 @@ import {
   lockColumn,
   type Measure,
   measure,
+  resumeGuide,
   step,
   stepOf,
 } from '../guidance';
@@ -154,6 +155,69 @@ describe('measure: tiêu chí theo thứ tự', () => {
     const f = person([0.3, 0.2, 0.5, 0.9]);
     expect(measure({ main: 'group' }, f, 0, false).kind).toBe('noGroup');
   });
+
+  it('Nhóm: một vùng người chạm mép trái / phải thì bảo lùi ra, chưa báo không thấy nhóm (mục 24.2)', () => {
+    // Hai người đứng sát, vùng người dính làm một, người bên trái bị mép cắt nửa.
+    const m = measure({ main: 'group' }, person([0, 0.2, 0.5, 0.9]), 0, false);
+    expect(m.kind).toBe('checks');
+    expect(first(m)!.id).toBe('groupInFrame');
+    expect(first(m)!.action).toBe('back');
+  });
+
+  describe('Nhóm: thêm người theo khung xương (mô phỏng Nhóm 2026-11-28)', () => {
+    type Fig = NonNullable<PhotoFeatures['figures']>[number];
+    const fig = (x0: number, x1: number, top: number, head = true, span = 0.1): Fig => ({
+      x0,
+      x1,
+      top,
+      head,
+      span,
+    });
+    const group = (box: [number, number, number, number], figures: Fig[]) => ({
+      ...person(box),
+      figures,
+    });
+    const byId = (m: Measure, id: Check['id']) => checks(m).find((c) => c.id === id)!;
+
+    it('người nhỏ không có khung người riêng vẫn được tính là trong nhóm', () => {
+      // Vùng người chỉ có người to bên trái; khung xương thấy người thứ hai sát mép phải.
+      const f = group([0.2, 0.2, 0.5, 0.9], [fig(0.25, 0.45, 0.3), fig(0.8, 0.995, 0.35)]);
+      const m = measure({ main: 'group' }, f, 0, false);
+      expect(m.kind).toBe('checks');
+      expect(checks(m).map((c) => c.id)).toEqual(['groupInFrame', 'groupHead', 'groupCenter']);
+      expect(first(m)!.id).toBe('groupInFrame');
+      expect(first(m)!.action).toBe('back');
+      // Cả hai trong khung: giữa nhóm theo cả hai người.
+      const g = group([0.2, 0.2, 0.5, 0.9], [fig(0.25, 0.45, 0.3), fig(0.6, 0.8, 0.35)]);
+      expect(byId(measure({ main: 'group' }, g, 0, false), 'groupCenter').ok).toBe(true);
+    });
+
+    it('đầu ra ngoài mép trên → ngửa máy; vùng người còn đỉnh trong khung thì không', () => {
+      // Mắt ở 0,04, vai rộng 0,1: đỉnh đầu ở −0,02.
+      const cut = group([0.2, 0, 0.8, 0.9], [fig(0.25, 0.45, 0.04), fig(0.55, 0.75, 0.2)]);
+      const c = byId(measure({ main: 'group' }, cut, 0, false), 'groupHead');
+      expect(c.ok).toBe(false);
+      expect(c.action).toBe('tiltUp');
+      // Vùng người bắt đầu ở 0,03, dưới mép: tin vùng người.
+      const inside = group([0.2, 0.03, 0.8, 0.9], [fig(0.25, 0.45, 0.04), fig(0.55, 0.75, 0.2)]);
+      expect(byId(measure({ main: 'group' }, inside, 0, false), 'groupHead').ok).toBe(true);
+    });
+
+    it('không thấy đầu: vai sát mép trên là đầu đã ra ngoài, vai thấp thì không', () => {
+      const high = group([0.2, 0, 0.8, 0.9], [fig(0.25, 0.45, 0.05, false), fig(0.55, 0.75, 0.3)]);
+      expect(byId(measure({ main: 'group' }, high, 0, false), 'groupHead').ok).toBe(false);
+      const low = group([0.2, 0, 0.8, 0.9], [fig(0.25, 0.45, 0.3, false), fig(0.55, 0.75, 0.3)]);
+      expect(byId(measure({ main: 'group' }, low, 0, false), 'groupHead').ok).toBe(true);
+    });
+
+    it('một vùng người mà khung xương thấy hai người: áp được', () => {
+      const f = group(
+        [0.2, 0.2, 0.8, 0.9],
+        [fig(0.25, 0.45, 0.3, false), fig(0.55, 0.75, 0.3, false)],
+      );
+      expect(measure({ main: 'group' }, f, 0, false).kind).toBe('checks');
+    });
+  });
 });
 
 /** Một tiêu chí, ngưỡng 0,05. */
@@ -171,6 +235,26 @@ const turn = (...cs: Check[]): Measure => ({ kind: 'checks', checks: cs });
 describe('step: luật nhắc và dừng', () => {
   const fail = (error: number, id: Check['id'] = 'thirdsColumn'): Measure => turn(crit(id, error));
   const run = (s: GuideState, m: Measure, now: number) => step(s, m, now);
+
+  it('tạm dừng (máy cầm ngang) không tính vào giờ nhắc / hết hạn (phiếu Phase 5b lần 17)', () => {
+    const s = run(initialGuide(), fail(0.3), 0).state;
+    // Không tạm dừng: 60 s đứng yên thì đã nhắc đủ và dừng.
+    expect(run(s, fail(0.3), 60000).event).toBe('remind');
+    // Tạm dừng 60 s: lượt ngay sau khi cầm dọc lại như vừa bắt đầu bước.
+    const r = run(resumeGuide(s, 60000), fail(0.3), 60500);
+    expect(r.event).toBeNull();
+    expect(r.state.status).toBe('running');
+    expect(r.state.memo.thirdsColumn!.reminders).toBe(0);
+  });
+
+  it('Nhóm: đang làm mà chỉ còn một người 2 lượt liền → dừng, báo không thấy nhóm (mục 24.2)', () => {
+    let r = run(initialGuide(), fail(0.2, 'groupInFrame'), 0);
+    r = run(r.state, { kind: 'noGroup' }, 1000);
+    expect(r.state.status).toBe('running');
+    r = run(r.state, { kind: 'noGroup' }, 2000);
+    expect(r.event).toBe('notApplicable');
+    expect(r.state.missing).toBe('group');
+  });
 
   it('lượt đầu cảnh không áp được → dừng ngay', () => {
     const r = run(initialGuide(), { kind: 'noGroup' }, 0);
