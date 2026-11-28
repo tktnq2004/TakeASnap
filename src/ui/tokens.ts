@@ -159,6 +159,8 @@ export const motion = {
   press: 90,
   panel: 200,
   slide: 240,
+  /** Lớp vẽ xoay theo cách cầm máy (dọc ↔ ngang). */
+  rotate: 300,
   image: 600,
   /** Giữ bao lâu thì thành thao tác giữ rồi kéo (độ hiện, zoom). */
   holdDelay: 300,

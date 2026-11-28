@@ -1,7 +1,7 @@
 import { guideShape, UPPER } from '../guides';
 import { cameraPitchDeg, isAchieved, SENSOR, sensorHint } from '../sensor';
 import { anchorOnFrame, poseAnchor, snapPlacement, snapTargets } from '../snap';
-import { isTechnique, TECHNIQUES } from '../techniques';
+import { isTechnique, landscapeOk, TECHNIQUES } from '../techniques';
 
 const G = 9.81;
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -161,5 +161,11 @@ describe('snap', () => {
 
   it('Góc thấp không có chỗ dính', () => {
     expect(snapTargets('low', frame)).toEqual({ points: [], v: [] });
+  });
+});
+
+describe('landscapeOk (phiếu Phase 5b lần 18, mục 26.7)', () => {
+  it('chỉ lưới, 1/3 và nhóm dùng khung ngang', () => {
+    expect(TECHNIQUES.filter(landscapeOk)).toEqual(['grid', 'grid4', 'thirds', 'group']);
   });
 });

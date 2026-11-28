@@ -798,7 +798,7 @@ function CameraBody() {
             )}
           </Turned>
           {levelOn && (
-            <Turned frame={frame} turn={holdTurn}>
+            <Turned frame={frame} turn={holdTurn} spin={false}>
               {(f) => <LevelGuide frame={f} turn={holdTurn} />}
             </Turned>
           )}

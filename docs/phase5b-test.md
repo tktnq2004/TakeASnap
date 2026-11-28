@@ -806,18 +806,40 @@ Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại**. Came
 
 | # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
 |---|---|---|---|---|---|
-| 26.1 | Lưới 3×3 và Lưới 4×4, cầm ngang hai phía | Lưới phủ khung ngang, không hiện viên "Cầm máy dọc"; thước cân bằng (nếu bật) xanh khi đỉnh máy nằm ngang | | | |
-| 26.2 | Quy tắc 1/3, một người, cầm ngang (đỉnh máy sang phải) | Câu hướng dẫn đọc được khi đang cầm ngang, ở cạnh dưới khung ngang; dải đích là đường dọc của cảnh; làm theo câu thì người vào cột và Đạt | | | |
-| 26.3 | Như 26.2, cầm ngang **phía kia** (đỉnh máy sang trái) | Như 26.2 | | | |
-| 26.4 | 1/3, người nhìn hẳn sang một bên | Người đứng cột phía sau lưng, chừa khoảng trống phía nhìn (như khung dọc) | | | |
-| 26.5 | 1/3 đang hướng dẫn ở khung dọc thì xoay ngang (và ngược lại) | Hướng dẫn làm lại từ bước đầu theo khung mới, không đứng ở câu cũ | | | |
-| 26.6 | Nhóm người, cầm ngang, nhóm lệch một bên / một người bị mép cắt / đầu sát mép trên | "Đi/xoay máy qua … để nhóm đứng giữa" / "Lùi ra" / "Ngửa máy lên" đúng chiều cảnh, làm theo thì Đạt | | | |
-| 26.7 | Ở giữa, Lấp đầy, Góc thấp, Selfie: cầm ngang | Vẫn viên "Cầm máy dọc để dùng bố cục" | | | |
-| 26.8 | 1/3 với camera trước, cầm ngang | Viên "Cầm máy dọc để dùng bố cục" (camera trước chưa có khung ngang) | | | |
-| 26.9 | Cầm ngang, chụp với khung **1:1** và **9:16** (bố cục nào cũng được), mở ảnh trong album | Ảnh ngang (9:16 thành 16:9) đúng chiều, đúng vùng khung đã thấy | | | |
-| 26.10 | Cầm ngang, khung 3:4, chụp | Ảnh như lần 17 (ngang đúng chiều) | | | |
+| 26.1 | Lưới 3×3 và Lưới 4×4, cầm ngang hai phía | Lưới phủ khung ngang, không hiện viên "Cầm máy dọc"; thước cân bằng (nếu bật) xanh khi đỉnh máy nằm ngang | d|d | thước xanh khi ngang thì trắng |
+| 26.2 | Quy tắc 1/3, một người, cầm ngang (đỉnh máy sang phải) | Câu hướng dẫn đọc được khi đang cầm ngang, ở cạnh dưới khung ngang; dải đích là đường dọc của cảnh; làm theo câu thì người vào cột và Đạt |d |d | làm thêm hiệu ứng trượt khi xoay thay cho dịch chuyển nhìn sẽ đẹp hơn |
+| 26.3 | Như 26.2, cầm ngang **phía kia** (đỉnh máy sang trái) | Như 26.2 | — | — | Claude thử trên máy tính: phía này dùng cùng đường code với 26.2 (đạt trên cả hai máy), chỉ đổi công thức vùng cắt và điểm đầu (test `frameCrop`, `uprightToImage` với −90°, khi ảnh máy đưa ra đã ngang và khi còn dọc); cách nhận cầm ngang phía trái có test `holdOf`. Chưa thử được trên điện thoại. |
+| 26.4 | 1/3, người nhìn hẳn sang một bên | Người đứng cột phía sau lưng, chừa khoảng trống phía nhìn (như khung dọc) |d |d | |
+| 26.5 | 1/3 đang hướng dẫn ở khung dọc thì xoay ngang (và ngược lại) | Hướng dẫn làm lại từ bước đầu theo khung mới, không đứng ở câu cũ | d|d | |
+| 26.6 | Nhóm người, cầm ngang, nhóm lệch một bên / một người bị mép cắt / đầu sát mép trên | "Đi/xoay máy qua … để nhóm đứng giữa" / "Lùi ra" / "Ngửa máy lên" đúng chiều cảnh, làm theo thì Đạt | — | — | Claude thử trên máy tính: chạy lại các dòng §24 trên khung ngang 4:3 cắt từ ảnh thật. Mép trái cắt nửa người ngoài cùng: 79/84 lần bước đầu là "Lùi ra" (2 lần báo Đạt, 2 lần bảo nhóm ra giữa). Mép trên ngang mắt người cao nhất: 135/135 bảo ngửa máy; đỉnh đầu còn trong khung: 99/100 không bảo ngửa. Nhóm lệch một bên: 73/73 câu đúng chiều. Chưa thử được trên điện thoại. |
+| 26.7 | Ở giữa, Lấp đầy, Góc thấp, Selfie: cầm ngang | Vẫn viên "Cầm máy dọc để dùng bố cục" | — | — | Claude thử trên máy tính: đọc code, chỉ Lưới 3×3, Lưới 4×4, 1/3, Nhóm dùng khung ngang (thêm test `landscapeOk`); bố cục khác cầm ngang thì hiện viên cầm dọc như mục 25.5, 25.6 đã đạt. Chưa thử được trên điện thoại. |
+| 26.8 | 1/3 với camera trước, cầm ngang | Viên "Cầm máy dọc để dùng bố cục" (camera trước chưa có khung ngang) |d |d | |
+| 26.9 | Cầm ngang, chụp với khung **1:1** và **9:16** (bố cục nào cũng được), mở ảnh trong album | Ảnh ngang (9:16 thành 16:9) đúng chiều, đúng vùng khung đã thấy | l| l | hiện tại 1:1 và 16:9 khi vào album của iphone sẽ luôn luôn và chiều dọc và trong thư viện của app cũng như v  |
+| 26.10 | Cầm ngang, khung 3:4, chụp | Ảnh như lần 17 (ngang đúng chiều) |d |d | |
 
 ### 26.11 Góp ý
 
--
+- Tôi muốn giữ như hiện tại ( dùng album của iphone sau khi chụp luôn dựng ảnh đứng ) giữ ảnh ngang như 3:4 hiện tại đã xưa và nó không cần thiết. 
 
+### 26.12 Trả lời lần 18 (Claude)
+
+- **26.1:** tôi hiểu ghi chú là thước xanh khi máy thẳng, trắng khi lệch: đúng như định. Nếu ý bạn là cầm ngang thì thước luôn trắng dù đã thẳng, ghi lại ở lần sau.
+- **26.2:** đã thêm hiệu ứng xoay. Đổi cách cầm thì đường kẻ, dải đích, câu hướng dẫn, viên chữ bắt đầu ở góc cũ (thu nhỏ cho vừa khung) rồi xoay về góc mới trong 0,3 s, thay cho nhảy chỗ. Thước cân bằng không xoay kiểu này vì nó đã đi liền theo góc máy.
+- **26.9, 26.11:** theo câu trả lời của bạn, ảnh 1:1 và 9:16 lưu như app Camera của iPhone: cảnh đứng, đủ hai bên; album hiện ảnh trong màn hình dọc, xoay máy ngang thì ảnh bung ra như lúc chụp. Đó chính là ảnh ngang đúng chiều mà dòng 26.9 kỳ vọng, khung 3:4 cũng lưu như vậy. Tôi giữ nguyên cách lưu ảnh, không sửa gì. Nếu bạn muốn ảnh lưu thành ảnh dọc thật (cảnh nằm nghiêng 90° trong ảnh), nói lại.
+
+## 27. Lần 19 — Xoay mượt khi đổi cách cầm (2026-11-28)
+
+Chạy lại `npx expo start -c`, **tắt hẳn Expo Go rồi mở lại**. Camera sau.
+
+| # | Thao tác | Kỳ vọng | iPhone | Android | Ghi chú |
+|---|---|---|---|---|---|
+| 27.1 | Lưới 3×3, xoay máy dọc → ngang → dọc, cả hai phía | Lưới xoay mượt về góc mới (khoảng 0,3 s), không nhảy chỗ, không lòi ra ngoài khung, không nhấp nháy | | | |
+| 27.2 | Quy tắc 1/3 đang có câu hướng dẫn, xoay dọc → ngang | Dải đích và câu hướng dẫn xoay mượt theo, rồi hướng dẫn làm lại từ bước đầu như 26.5 | | | |
+| 27.3 | Nhóm người, xoay ngang → dọc | Như 27.2 | | | |
+| 27.4 | Bật thước cân bằng, xoay dọc → ngang chậm | Thước đi liền theo góc máy như trước, không quay thêm một vòng | | | |
+| 27.5 | Bố cục Tắt (viên "Đã tắt bố cục" đang hiện), xoay ngang | Viên xoay mượt về đúng chiều đọc | | | |
+| 27.6 | Đang xoay thì chạm Kiểm tra bố cục / nút chụp | Nút vẫn bấm được, ảnh lưu như 26.9, 26.10 | | | |
+
+### 27.7 Góp ý
+
+-
